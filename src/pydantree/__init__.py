@@ -1,37 +1,41 @@
-"""pydantree – MVP implementation of a typed Tree‑sitter wrapper.
-
-This package exposes:
-
-* **TSNode / TSPoint** – language‑agnostic Pydantic core primitives mirroring tree‑sitter `Node` metadata.
-* **Parser** – thin convenience wrapper around `tree_sitter.Parser` that returns validated models.
-* **ParsedDocument** – incremental‑parsing helper that keeps text + tree in sync and lets you apply byte‑range edits.
-* **generate_from_node_types** – utility that reads a grammar's `node-types.json` and emits strongly‑typed subclasses plus a `NODE_MAP` registry.
-* **CLI** – `python -m pydantree gen node-types.json --out mylang_types.py` for code‑generation.
-
-The goal is to provide the smallest complete feature‑set promised in the README while keeping the code easy to follow.  No extraneous dependencies beyond Pydantic v2 and py‑tree‑sitter.
-"""
-
 from __future__ import annotations
 
-from .core import TSNode, TSPoint
-from .parser import Parser
-from .incremental import ParsedDocument
-from .generator import generate_from_node_types
-from .loader import NodeTypesBootstrap
-from .views import PyView, PyModule, PyFunction, PyClass, QuerySet, PyTransformer
+__version__ = "0.1.0"
+
+# Core exports
+from .core.base import BaseCodeNode
+from .core.classes import PyClass
+from .core.functions import PyFunction
+from .core.assignments import PyAssignment
+from .core.builders import PyClassBuilder, PyFunctionBuilder
+
+# Configuration
+from .config.settings import PydantreeConfig
+
+# Factory functions
+from .utils.factory import from_graphsitter, builder_for
+
+# Main API class
+from .api import PydantreeAPI
 
 __all__ = [
-    "TSNode",
-    "TSPoint",
-    "Parser",
-    "ParsedDocument",
-    "generate_from_node_types",
-    "NodeTypesBootstrap",
-    "PyView",
-    "PyModule",
+    # Core models
+    "BaseCodeNode",
+    "PyClass", 
     "PyFunction",
-    "PyClass",
-    "QuerySet",
-    "PyTransformer",
+    "PyAssignment",
+    
+    # Builders
+    "PyClassBuilder",
+    "PyFunctionBuilder",
+    
+    # Configuration
+    "PydantreeConfig",
+    
+    # Utilities
+    "from_graphsitter",
+    "builder_for",
+    
+    # Main API
+    "PydantreeAPI",
 ]
-__version__ = "0.1.2"
