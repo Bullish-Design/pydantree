@@ -3,7 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 .tmuxp.yaml
-.config/
 
 # C extensions
 *.so
