@@ -46,6 +46,8 @@ SAMPLE_SRC = dedent(
 codebase = Codebase.from_string(SAMPLE_SRC, language="python")
 pyfile_node = codebase.files[0]  # graphsitter.PyFile instance
 
+print(f"\nPyfileNode: \n{pyfile_node}\n")
+
 # Ensure compatibility with Pydantree’s `to_source()` expectation
 if not hasattr(pyfile_node, "to_source"):
     pyfile_node.to_source = lambda: pyfile_node.source  # type: ignore[attr-defined]
@@ -55,6 +57,7 @@ if not hasattr(pyfile_node, "to_source"):
 # ---------------------------------------------------------------------------
 pyfile = PyFile.from_graphsitter(pyfile_node)
 
+print(f"\nPyFile: \n{pyfile.to_source()}\n")
 assert pyfile.to_source() == SAMPLE_SRC, "Round‑trip failed: source mismatch"
 print("✅ Round‑trip OK — original source preserved.\n")
 

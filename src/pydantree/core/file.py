@@ -64,6 +64,9 @@ class PyFile(BaseCodeNode):
             raise ValueError(f"Unsupported node types in file.items: {wrong!r}")
         return list(v)
 
+    # def validate_structure(self):
+    #    pass
+
     # ------------------------------------------------------------------
     # Builder conveniences (mutate‑and‑return‑self)
     # ------------------------------------------------------------------
@@ -117,79 +120,60 @@ class PyFile(BaseCodeNode):
 
     @classmethod
     def from_graphsitter(cls, node: GraphSitterEditable) -> "PyFile":  # noqa: D401
-        """Build a ``PyFile`` by traversing a *module* root node.
+        """Construct a *PyFile* from a Graph Sitter `SourceFile` / `File`.
 
-        Requirements on *node*:
-        * Implements ``to_source()`` and ``walk()`` (tree‑sitter Python
-          node interface).
-        * ``node.type`` is ``"module"`` (root produced by the grammar).
+        Accepted minimal interface:
+            • `source` **or** `to_source()`  → full file text
+            • `symbols` list                → ordered children (preferred)
+            • *else* `imports`, `classes`, `functions` lists used as fallback
+            • optional `docstring` attribute
         """
-        if not all(hasattr(node, attr) for attr in ("to_source", "walk", "type")):
-            raise GraphSitterIntegrationError(
-                "Node must expose tree‑sitter API attributes"
-            )
-        if node.type != "module":
-            raise ValidationError("from_graphsitter expects a *module* root node")
-
-        full_source: str = node.to_source()
-
-        # --- Detect shebang -------------------------------------------------------
-        if full_source.startswith("#!"):
-            shebang_line = full_source.split("\n", 1)[0].rstrip("\n")
-            shebang = shebang_line
+        # ---- get raw text --------------------------------------------------
+        if hasattr(node, "to_source"):
+            src = node.to_source()
+        elif hasattr(node, "source"):
+            src = node.source  # type: ignore[attr-defined]
         else:
-            shebang = None
+            raise GraphSitterIntegrationError(
+                "Editable must expose .source or .to_source()"
+            )
 
-        # --- Utility: iterate direct children preserving order --------------------
-        def _iter_children(n):  # type: ignore[ann401]
-            cur = n.walk()
-            if not cur.goto_first_child():
-                return
-            while True:
-                yield cur.node
-                if not cur.goto_next_sibling():
-                    break
+        # ---- shebang -------------------------------------------------------
+        shebang = src.split("\n", 1)[0].rstrip() if src.startswith("#!") else None
 
-        # --- Extract module docstring & body items --------------------------------
-        docstring: Optional[str] = None
+        # ---- gather children in source order ------------------------------
+        if hasattr(node, "symbols"):
+            children = list(node.symbols)  # already source‑ordered
+        elif all(hasattr(node, attr) for attr in ("imports", "classes", "functions")):
+            children = list(node.imports) + list(node.classes) + list(node.functions)
+        else:
+            raise GraphSitterIntegrationError(
+                "Editable lacks accessible children lists"
+            )
+
+        def ensure_to_source(child):  # attach .to_source if only .source exists
+            if not hasattr(child, "to_source") and hasattr(child, "source"):
+                child.to_source = lambda c=child: c.source  # type: ignore[attr-defined]
+            return child
+
         items: List[TopLevelNode] = []
-
-        for child in _iter_children(node):
-            ctype = child.type
-
-            # *comments* may include shebang at (0,0). Skip normal comments.
-            if ctype == "comment":
-                continue
-
-            # Module docstring = first expression_statement
-            # whose child is *string* (triple‑quoted literal)
-            if docstring is None and ctype == "expression_statement":
-                str_child = (
-                    child.child_by_field_name("expression")
-                    if hasattr(child, "child_by_field_name")
-                    else None
-                )
-                if str_child and str_child.type == "string":
-                    docstring = str_child.text.decode()  # keep quotes
-                    continue  # do not store docstring as PyStatement
-
-            # Handle imports --------------------------------------------------
-            if ctype in {"import_statement", "import_from_statement"}:
+        for child in map(ensure_to_source, children):
+            name = child.__class__.__name__.lower()
+            if "import" in name:
                 items.append(PyImport.from_graphsitter(child))
-                continue
-
-            # Classes ---------------------------------------------------------
-            if ctype == "class_definition":
+            elif "class" in name:
                 items.append(PyClass.from_graphsitter(child))
-                continue
-
-            # Functions (decorated or plain) ----------------------------------
-            if ctype in {"function_definition", "decorated_definition"}:
+            elif "function" in name:
                 items.append(PyFunction.from_graphsitter(child))
-                continue
+            else:
+                items.append(PyStatement.from_graphsitter(child))
 
-            # Fallback – anything else becomes a generic statement ------------
-            items.append(PyStatement.from_graphsitter(child))
+        # ---- docstring -----------------------------------------------------
+        docstring = None
+        if hasattr(node, "docstring") and node.docstring is not None:
+            raw = getattr(node.docstring, "source", None)
+            if raw:
+                docstring = raw.strip()
 
         return cls(
             graphsitter_node=node,
