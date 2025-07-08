@@ -31,3 +31,33 @@ class Parser:
         byte_text = text.encode()
         tree = self._parser.parse(byte_text, old_tree=old_tree)
         return TSNode.from_tree_sitter(tree.root_node, byte_text)
+
+    # ------------------------------------------------------------------
+    # Convenience factory methods
+    # ------------------------------------------------------------------
+    @classmethod
+    def for_python(cls, module_name: str = "data.python_nodes") -> Parser:
+        """Create parser for Python language."""
+        try:
+            import tree_sitter_python as tspy
+
+            language = Language(tspy.language())
+            return cls(language, module_name=module_name)
+        except ImportError:
+            raise ImportError(
+                "tree-sitter-python is required for Python parsing. "
+                "Install with: pip install tree-sitter-python"
+            )
+
+    @classmethod
+    def for_language(
+        cls, language_name: str, module_name: Optional[str] = None
+    ) -> Parser:
+        """Create parser for named language (requires appropriate tree-sitter package)."""
+        if language_name == "python":
+            return cls.for_python(module_name or "data.python_nodes")
+        else:
+            raise NotImplementedError(
+                f"Language '{language_name}' not yet supported. "
+                "Use Parser(language) constructor directly."
+            )

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import List, ClassVar
+from typing import List, ClassVar, Optional, Dict, Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TSPoint(BaseModel):
@@ -26,8 +26,9 @@ class TSNode(BaseModel):
     start_point: TSPoint
     end_point: TSPoint
     text: str
-    children: List[TSNode] = []
-    is_named: bool  # `is_named` is always true for TSNode
+    children: List[TSNode] = Field(default_factory=list)
+    is_named: bool = True  # `is_named` is always true for TSNode
+    field_name: Optional[str] = None  # Named field if this is a field child
 
     # Allow nested models + immutability for structural pattern matching safety
     model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
@@ -35,10 +36,10 @@ class TSNode(BaseModel):
     # Enable `match … case` ergonomics
     __match_args__ = ("type_name", "children")
 
-    _registry: ClassVar[dict[str, type[TSNode]]] = {}
+    _registry: ClassVar[Dict[str, type[TSNode]]] = {}
 
     @classmethod
-    def register_subclasses(cls, mapping: dict[str, type[TSNode]]) -> None:
+    def register_subclasses(cls, mapping: Dict[str, type[TSNode]]) -> None:
         """Merge *mapping* (token → subclass) into the global registry."""
         cls._registry.update(mapping)
 
@@ -46,9 +47,14 @@ class TSNode(BaseModel):
     @classmethod
     def from_tree_sitter(cls, node, text_bytes: bytes) -> TSNode:
         """Recursively convert a `tree_sitter.Node` into a validated `TSNode`."""
-
         sub_cls = cls._registry.get(node.type, cls)
-        children = [cls.from_tree_sitter(c, text_bytes) for c in node.children]
+
+        # Process children
+        children = []
+        for child in node.children:
+            child_node = cls.from_tree_sitter(child, text_bytes)
+            children.append(child_node)
+
         text = text_bytes[node.start_byte : node.end_byte].decode(errors="ignore")
         return sub_cls(
             type_name=node.type,
@@ -61,7 +67,65 @@ class TSNode(BaseModel):
             is_named=node.is_named,
         )
 
-    # Convenient JSON dump while preserving child order
+    # Tree navigation helpers
+    def child_by_field_name(self, field_name: str) -> Optional[TSNode]:
+        """Get first child with given field name."""
+        for child in self.children:
+            if child.field_name == field_name:
+                return child
+        return None
+
+    def children_by_field_name(self, field_name: str) -> List[TSNode]:
+        """Get all children with given field name."""
+        return [child for child in self.children if child.field_name == field_name]
+
+    def descendants(self) -> List[TSNode]:
+        """Get all descendant nodes via depth-first traversal."""
+        result = []
+        for child in self.children:
+            result.append(child)
+            result.extend(child.descendants())
+        return result
+
+    def find_by_type(self, type_name: str) -> List[TSNode]:
+        """Find all descendants with given type."""
+        return [node for node in self.descendants() if node.type_name == type_name]
+
+    def find_first_by_type(self, type_name: str) -> Optional[TSNode]:
+        """Find first descendant with given type."""
+        for node in self.descendants():
+            if node.type_name == type_name:
+                return node
+        return None
+
+    # Edit operations (return new immutable nodes)
+    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
+        """Return new node with child replaced."""
+        new_children = [
+            new_child if child == old_child else child for child in self.children
+        ]
+        return self.model_copy(update={"children": new_children})
+
+    def insert_child(self, index: int, new_child: TSNode) -> TSNode:
+        """Return new node with child inserted at index."""
+        new_children = list(self.children)
+        new_children.insert(index, new_child)
+        return self.model_copy(update={"children": new_children})
+
+    def delete_child(self, child: TSNode) -> TSNode:
+        """Return new node with child removed."""
+        new_children = [c for c in self.children if c != child]
+        return self.model_copy(update={"children": new_children})
+
+    def append_child(self, new_child: TSNode) -> TSNode:
+        """Return new node with child appended."""
+        return self.insert_child(len(self.children), new_child)
+
+    def prepend_child(self, new_child: TSNode) -> TSNode:
+        """Return new node with child prepended."""
+        return self.insert_child(0, new_child)
+
+    # Serialization helpers
     def dict(self, *args, **kwargs):
         return super().model_dump(*args, **kwargs)
 
@@ -72,37 +136,25 @@ class TSNode(BaseModel):
         indent_str: str = "  ",
         max_text: int = 40,
     ) -> str:
-        """Return a string that looks like nested `TSNode(…)` constructor calls.
-
-        Example output (truncated):
-        ```
-        TSNode(
-          type_name='module',
-          children=[
-            TSNode(type_name='function_definition', children=[ … ]),
-          ]
-        )
-        ```
-        """
+        """Return a string that looks like nested `TSNode(…)` constructor calls."""
         ind = indent_str * indent
         nxt = indent_str * (indent + 1)
 
         class_name = self.__class__.__name__
-        # print(f"{ind}{class_name}(")
+
         # Core scalar fields – skip `children` for now
-        scalar_parts = [
-            # f"type_name={self.type_name!r}",
-            # f"start_byte={self.start_byte}",
-            # f"end_byte={self.end_byte}",
-            # f"start_point={repr(self.start_point)}",
-            # f"end_point={repr(self.end_point)}",
-        ]
+        scalar_parts = []
+
         # Optional text snippet
         if max_text and self.text.strip():
             snippet = self.text.strip().replace("\n", " ")
             if len(snippet) > max_text:
                 snippet = snippet[: max_text - 1] + "…"
             scalar_parts.append(f"text={snippet!r}")
+
+        # Field name if present
+        if self.field_name:
+            scalar_parts.append(f"field={self.field_name!r}")
 
         # Children
         if self.children:
@@ -121,3 +173,7 @@ class TSNode(BaseModel):
 
     def __repr__(self) -> str:
         return f"TSNode({self.type_name!r}, …)"  # short repr
+
+    def __hash__(self) -> int:
+        """Hash based on position and type for use in sets."""
+        return hash((self.type_name, self.start_byte, self.end_byte))

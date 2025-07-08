@@ -20,13 +20,22 @@ from typing import (
     Iterable,
     Iterator,
     TypeVar,
+    Optional,
+    List,
+    Union,
+    Dict,
+    Any,
 )
 
 from pydantree import Parser, ParsedDocument, TSNode
+from pydantree.nodegroup import NodeGroup, NodeSelector, TypeSelector
+
 from data.python_nodes import (  # generated dataclasses
     ModuleNode,
     FunctionDefinitionNode,
     ClassDefinitionNode,
+    IdentifierNode,
+    ReturnStatementNode,
 )
 from tree_sitter import Language, Parser as _TSParser, Query  # , QueryCursor
 
@@ -78,6 +87,14 @@ class PyView(Generic[_TNode]):
             if cls is None or isinstance(c, cls):
                 yield c
 
+    def to_nodegroup(self) -> NodeGroup[TSNode]:
+        """Convert this view's subtree to a NodeGroup."""
+        return NodeGroup.from_tree(self.node)
+
+    def descendants(self) -> NodeGroup[TSNode]:
+        """Get all descendant nodes as NodeGroup."""
+        return NodeGroup.from_tree(self.node).descendants()
+
 
 # --------------------------------------------------------------------------- #
 # Concrete views
@@ -103,26 +120,34 @@ class PyModule(PyView[ModuleNode]):
     def parse_file(cls, path: str | Path) -> PyModule:
         return cls.parse(Path(path).read_text())
 
-    # --- selectors -------------------------------------------------------
+    # --- selectors using NodeGroup --------------------------------------
     def functions(self) -> QuerySet[PyFunction]:
-        return (
-            QuerySet(self)
-            .filter_type(FunctionDefinitionNode)
-            # .filter(lambda n: n.type_name == "function_definition")
-            .wrap(PyFunction)
-        )
+        """Get all function definitions as QuerySet."""
+        nodegroup = self.to_nodegroup()
+        function_nodes = nodegroup.filter_class(FunctionDefinitionNode)
+        return QuerySet(function_nodes, self._doc, PyFunction)
 
     def classes(self) -> QuerySet[PyClass]:
-        return (
-            QuerySet(self)
-            .filter_type(ClassDefinitionNode)
-            # .filter(lambda n: n.type_name == "class_definition")
-            .wrap(PyClass)
+        """Get all class definitions as QuerySet."""
+        nodegroup = self.to_nodegroup()
+        class_nodes = nodegroup.filter_class(ClassDefinitionNode)
+        return QuerySet(class_nodes, self._doc, PyClass)
+
+    def imports(self) -> QuerySet[PyImport]:
+        """Get all import statements as QuerySet."""
+        nodegroup = self.to_nodegroup()
+        import_nodes = nodegroup.filter_type("import_statement").union(
+            nodegroup.filter_type("import_from_statement")
         )
+        return QuerySet(import_nodes, self._doc, PyImport)
+
+    def statements(self) -> NodeGroup[TSNode]:
+        """Get all top-level statements."""
+        return NodeGroup(self.node.children)
 
 
 # --------------------------------------------------------------------------- #
-# QuerySet – lazy, chainable selectors
+# QuerySet – lazy, chainable selectors with NodeGroup backend
 # --------------------------------------------------------------------------- #
 
 _S = TypeVar("_S", bound=PyView)
@@ -130,111 +155,237 @@ _S = TypeVar("_S", bound=PyView)
 
 class QuerySet(Generic[_S]):
     """
-    Minimal, Django-inspired chainable selector over a subtree.
-
-    Each call returns *self* so you can do:
-
-        module.functions().named("foo").where(lambda f: f.has_return())
+    Enhanced chainable selector built on NodeGroup foundation.
+    Provides Django-inspired API with lazy evaluation.
     """
 
-    def __init__(self, root: PyView):
-        # Traverse the entire subtree so deep-nested defs are included
-        self._iter: Iterable[TSNode] = _walk(root.node)
-        self._root = root
-        # By default, yield raw TSNodes until .wrap() is called
-        self._wrap: Callable[[TSNode, ParsedDocument], _S] = lambda n, d: n  # type: ignore
+    def __init__(
+        self, nodegroup: NodeGroup[TSNode], doc: ParsedDocument, view_cls: type[_S]
+    ):
+        self._nodegroup = nodegroup
+        self._doc = doc
+        self._view_cls = view_cls
 
     # ----- chaining helpers ---------------------------------------------
-    def filter(self, fn: Callable[[TSNode], bool]) -> QuerySet[_S]:
-        self._iter = filter(fn, self._iter)
-        return self
+    def filter(self, selector: NodeSelector) -> QuerySet[_S]:
+        """Add a filter selector (lazy)."""
+        filtered = self._nodegroup.filter(selector)
+        return QuerySet(filtered, self._doc, self._view_cls)
 
-    def filter_type(
-        self, cls: type[TSNode], *, named_only: bool = True
-    ) -> QuerySet[_S]:
-        return self.filter(
-            lambda n: isinstance(n, cls) and (not named_only or n.is_named)
+    def filter_type(self, type_name: str) -> QuerySet[_S]:
+        """Filter by node type name."""
+        return QuerySet(
+            self._nodegroup.filter_type(type_name), self._doc, self._view_cls
+        )
+
+    def filter_class(self, node_class: type[TSNode]) -> QuerySet[_S]:
+        """Filter by Python class."""
+        return QuerySet(
+            self._nodegroup.filter_class(node_class), self._doc, self._view_cls
         )
 
     def named(self, name: str) -> QuerySet[_S]:
-        return self.where(
-            lambda v: (v.name() if hasattr(v, "name") else getattr(v, "text", ""))
-            == name
+        """Filter by name (for named constructs)."""
+        return self.where(lambda v: getattr(v, "name", lambda: "")() == name)
+
+    def where(self, predicate: Callable[[_S], bool]) -> QuerySet[_S]:
+        """Filter using custom predicate."""
+        filtered_nodes = []
+        for node in self._nodegroup:
+            view = self._view_cls(node, self._doc)
+            if predicate(view):
+                filtered_nodes.append(node)
+
+        return QuerySet(NodeGroup(filtered_nodes), self._doc, self._view_cls)
+
+    def containing_text(self, text: str) -> QuerySet[_S]:
+        """Filter nodes containing specific text."""
+        return QuerySet(
+            self._nodegroup.filter_text(text, exact=False), self._doc, self._view_cls
         )
 
-    def where(self, pred: Callable[[_S], bool]) -> QuerySet[_S]:
-        return self.filter(lambda n: pred(self._wrap(n, self._root._doc)))
+    # ----- set operations -----------------------------------------------
+    def union(self, other: QuerySet[_S]) -> QuerySet[_S]:
+        """Union with another QuerySet."""
+        return QuerySet(
+            self._nodegroup.union(other._nodegroup), self._doc, self._view_cls
+        )
 
-    def wrap(self, view_cls: type[_S]) -> QuerySet[_S]:
-        """
-        Specify the view wrapper class to materialise for each node.
-        Must be called *before* iteration if you want view objects back.
-        """
-        self._wrap = lambda n, d: view_cls(n, d)
-        return self
+    def intersection(self, other: QuerySet[_S]) -> QuerySet[_S]:
+        """Intersection with another QuerySet."""
+        return QuerySet(
+            self._nodegroup.intersection(other._nodegroup), self._doc, self._view_cls
+        )
+
+    def difference(self, other: QuerySet[_S]) -> QuerySet[_S]:
+        """Difference from another QuerySet."""
+        return QuerySet(
+            self._nodegroup.difference(other._nodegroup), self._doc, self._view_cls
+        )
 
     # ----- materialisation ---------------------------------------------
     def __iter__(self) -> Iterator[_S]:
-        for n in self._iter:
-            yield self._wrap(n, self._root._doc)
+        """Iterate over view objects."""
+        for node in self._nodegroup:
+            yield self._view_cls(node, self._doc)
 
-    # Pythonic sugar
-    def map(self, fn: Callable[[_S], "T"]) -> list["T"]:
-        return [fn(v) for v in self]
+    def __len__(self) -> int:
+        """Get count of nodes."""
+        return len(self._nodegroup)
+
+    def __bool__(self) -> bool:
+        """True if QuerySet contains any nodes."""
+        return bool(self._nodegroup)
+
+    # ----- collection operations ---------------------------------------
+    def first(self) -> Optional[_S]:
+        """Get first matching view."""
+        node = self._nodegroup.find_first()
+        return self._view_cls(node, self._doc) if node else None
+
+    def all(self) -> List[_S]:
+        """Get all matching views."""
+        return list(self)
+
+    def count(self) -> int:
+        """Count matching views."""
+        return len(self)
+
+    def exists(self) -> bool:
+        """True if any matches exist."""
+        return bool(self)
+
+    # ----- transformation operations -----------------------------------
+    def map(self, func: Callable[[_S], Any]) -> List[Any]:
+        """Apply function to all views."""
+        return [func(view) for view in self]
+
+    def to_nodegroup(self) -> NodeGroup[TSNode]:
+        """Convert back to NodeGroup."""
+        return self._nodegroup
 
 
 # --------------------------------------------------------------------------- #
-# Function / class views
+# Function / class / import views
 # --------------------------------------------------------------------------- #
 
 
 class PyFunction(PyView[FunctionDefinitionNode]):
     """Wrapper around a `function_definition` CST node."""
 
-    # --- semantic helpers ----------------------------------------------
     def name(self) -> str:
-        """
-        Return the function’s identifier, robust to grammar/ABI changes.
+        """Return the function's identifier."""
+        name_child = self.node.child_by_field_name("name")
+        if name_child:
+            return name_child.text
 
-        1. Tree-sitter exposes it via field name ``name``.
-        2. Fallback: scan children for IdentifierNode *or* raw ``identifier``.
-        """
-        # print(f"\nNode: {self.node.dict()}\n")  # "__dir__()}\n")
-        # 1) Field lookup on raw Tree-sitter node
-        if hasattr(self.node, "child_by_field_name"):
-            child = self.node.child_by_field_name("name")
-            if child:
+        # Fallback: scan children for identifier
+        for child in self.node.children:
+            if child.type_name == "identifier" or isinstance(child, IdentifierNode):
                 return child.text
 
-        # 2) Scan immediate children
-        for c in self.node.children:
-            # print(f"    Child: {c.dict()}")  # "__dir__()}\n"
-            if (
-                c.__class__.__name__.endswith("IdentifierNode")
-                or getattr(c, "type", "") == "identifier"
-                or getattr(c, "type_name", "") == "identifier"
-            ):
-                return c.text
-
         return "<anonymous>"
+
+    def parameters(self) -> Optional[TSNode]:
+        """Get parameters node."""
+        return self.node.child_by_field_name("parameters")
+
+    def body(self) -> Optional[TSNode]:
+        """Get function body."""
+        return self.node.child_by_field_name("body")
+
+    def return_type(self) -> Optional[TSNode]:
+        """Get return type annotation."""
+        return self.node.child_by_field_name("return_type")
 
     def has_return(self) -> bool:
         """True if any descendant is a return statement."""
         return any(
-            (
-                getattr(n, "type", "") == "return_statement"
-                or getattr(n, "type_name", "") == "return_statement"
-                or n.__class__.__name__.endswith("ReturnStatementNode")
-            )
-            for n in _walk(self.node)
+            isinstance(node, ReturnStatementNode)
+            or node.type_name == "return_statement"
+            for node in self.node.descendants()
         )
+
+    def decorators(self) -> List[TSNode]:
+        """Get all decorators."""
+        # Look for decorated_definition parent
+        parent_nodes = []  # Would need parent tracking for this
+        # For now, simplified implementation
+        return []
+
+    def is_async(self) -> bool:
+        """True if this is an async function."""
+        # Check for 'async' keyword before 'def'
+        return "async" in self.node.text[:20]  # Simplified check
 
 
 class PyClass(PyView[ClassDefinitionNode]):
     """Wrapper for `class_definition` CST nodes."""
 
-    # Extend as needed
-    pass
+    def name(self) -> str:
+        """Return the class name."""
+        name_child = self.node.child_by_field_name("name")
+        if name_child:
+            return name_child.text
+
+        # Fallback
+        for child in self.node.children:
+            if child.type_name == "identifier" or isinstance(child, IdentifierNode):
+                return child.text
+
+        return "<anonymous>"
+
+    def superclasses(self) -> Optional[TSNode]:
+        """Get superclasses argument list."""
+        return self.node.child_by_field_name("superclasses")
+
+    def body(self) -> Optional[TSNode]:
+        """Get class body."""
+        return self.node.child_by_field_name("body")
+
+    def methods(self) -> QuerySet[PyFunction]:
+        """Get all methods in this class."""
+        body = self.body()
+        if not body:
+            return QuerySet(NodeGroup.empty(), self._doc, PyFunction)
+
+        body_nodegroup = NodeGroup.from_tree(body)
+        method_nodes = body_nodegroup.filter_class(FunctionDefinitionNode)
+        return QuerySet(method_nodes, self._doc, PyFunction)
+
+    def has_init(self) -> bool:
+        """True if class has __init__ method."""
+        return any(method.name() == "__init__" for method in self.methods())
+
+
+class PyImport(PyView[TSNode]):
+    """Wrapper for import statements."""
+
+    def module_name(self) -> str:
+        """Get the imported module name."""
+        if self.node.type_name == "import_statement":
+            # import foo.bar
+            name_child = self.node.child_by_field_name("name")
+            return name_child.text if name_child else ""
+        elif self.node.type_name == "import_from_statement":
+            # from foo import bar
+            module_child = self.node.child_by_field_name("module_name")
+            return module_child.text if module_child else ""
+        return ""
+
+    def imported_names(self) -> List[str]:
+        """Get list of imported names."""
+        names = []
+        if self.node.type_name == "import_from_statement":
+            # Look for name field (can be multiple)
+            for child in self.node.children:
+                if child.field_name == "name":
+                    names.append(child.text)
+        return names
+
+    def is_from_import(self) -> bool:
+        """True if this is a 'from ... import' statement."""
+        return self.node.type_name == "import_from_statement"
 
 
 # --------------------------------------------------------------------------- #
@@ -244,28 +395,91 @@ class PyClass(PyView[ClassDefinitionNode]):
 
 class PyTransformer:
     """
-    Subclass and implement ``visit_<node_type>(self, node)`` methods.
+    Enhanced transformer with NodeGroup integration.
 
-    If a visit_* handler returns a *str*, that slice is spliced into the
-    underlying ParsedDocument via incremental edit; return ``None`` to leave
-    the node unchanged.
+    Subclass and implement ``visit_<node_type>(self, node)`` methods.
+    Can also use NodeGroup operations for bulk transformations.
     """
 
     def __init__(self, mod: PyModule):
         self.mod = mod
+        self.edits: List[Tuple[TSNode, str]] = []
 
-    # ------------------------------------------------------------- main --
     def visit(self) -> str:
-        for node in _walk(self.mod.node):
+        """Apply transformations and return modified source."""
+        nodegroup = self.mod.to_nodegroup()
+
+        # Collect all transformations first
+        for node in nodegroup:
             handler = getattr(self, f"visit_{node.type_name}", None)
             if handler:
                 replacement = handler(node)
                 if replacement is not None:
-                    # Apply incremental edit
-                    self.mod._doc.edit(
-                        node.start_byte,
-                        node.end_byte,
-                        node.start_byte + len(replacement),
-                        replacement,
-                    )
+                    self.edits.append((node, replacement))
+
+        # Apply edits in reverse order (from end to beginning) to avoid position conflicts
+        self.edits.sort(key=lambda edit: edit[0].start_byte, reverse=True)
+
+        for node, replacement in self.edits:
+            self._apply_edit(node, replacement)
+
         return self.mod._doc.text
+
+    def bulk_transform(
+        self, selector: NodeSelector, transformer: Callable[[TSNode], str]
+    ) -> None:
+        """Apply bulk transformation to selected nodes."""
+        nodegroup = self.mod.to_nodegroup()
+        selected = nodegroup.filter(selector)
+
+        edits = []
+        for node in selected:
+            replacement = transformer(node)
+            edits.append((node, replacement))
+
+        # Apply in reverse order
+        edits.sort(key=lambda edit: edit[0].start_byte, reverse=True)
+        for node, replacement in edits:
+            self._apply_edit(node, replacement)
+
+    def _apply_edit(self, node: TSNode, replacement: str) -> None:
+        """Apply incremental edit to document."""
+        self.mod._doc.edit(
+            node.start_byte,
+            node.end_byte,
+            node.start_byte + len(replacement),
+            replacement,
+        )
+
+
+# --------------------------------------------------------------------------- #
+# High-level convenience functions
+# --------------------------------------------------------------------------- #
+
+
+def parse_python(code: str) -> PyModule:
+    """Parse Python code into PyModule."""
+    return PyModule.parse(code)
+
+
+def parse_python_file(path: Union[str, Path]) -> PyModule:
+    """Parse Python file into PyModule."""
+    return PyModule.parse_file(path)
+
+
+def find_functions(code: str, name: Optional[str] = None) -> List[PyFunction]:
+    """Find functions in Python code."""
+    module = parse_python(code)
+    functions = module.functions()
+    if name:
+        functions = functions.named(name)
+    return functions.all()
+
+
+def find_classes(code: str, name: Optional[str] = None) -> List[PyClass]:
+    """Find classes in Python code."""
+    module = parse_python(code)
+    classes = module.classes()
+    if name:
+        classes = classes.named(name)
+    return classes.all()
