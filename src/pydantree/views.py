@@ -89,7 +89,7 @@ class PyModule(PyView[ModuleNode]):
 
     # --- factory helpers -------------------------------------------------
     @classmethod
-    def parse(cls, code: str, lang: Language | None = None) -> "PyModule":
+    def parse(cls, code: str, lang: Language | None = None) -> PyModule:
         if lang is None:
             import tree_sitter_python as tspy
 
@@ -100,15 +100,25 @@ class PyModule(PyView[ModuleNode]):
         return cls(doc.root, doc)
 
     @classmethod
-    def parse_file(cls, path: str | Path) -> "PyModule":
+    def parse_file(cls, path: str | Path) -> PyModule:
         return cls.parse(Path(path).read_text())
 
     # --- selectors -------------------------------------------------------
-    def functions(self) -> "QuerySet[PyFunction]":
-        return QuerySet(self).filter_type(FunctionDefinitionNode).wrap(PyFunction)
+    def functions(self) -> QuerySet[PyFunction]:
+        return (
+            QuerySet(self)
+            .filter_type(FunctionDefinitionNode)
+            # .filter(lambda n: n.type_name == "function_definition")
+            .wrap(PyFunction)
+        )
 
-    def classes(self) -> "QuerySet[PyClass]":
-        return QuerySet(self).filter_type(ClassDefinitionNode).wrap(PyClass)
+    def classes(self) -> QuerySet[PyClass]:
+        return (
+            QuerySet(self)
+            .filter_type(ClassDefinitionNode)
+            # .filter(lambda n: n.type_name == "class_definition")
+            .wrap(PyClass)
+        )
 
 
 # --------------------------------------------------------------------------- #
@@ -135,20 +145,27 @@ class QuerySet(Generic[_S]):
         self._wrap: Callable[[TSNode, ParsedDocument], _S] = lambda n, d: n  # type: ignore
 
     # ----- chaining helpers ---------------------------------------------
-    def filter(self, fn: Callable[[TSNode], bool]) -> "QuerySet[_S]":
+    def filter(self, fn: Callable[[TSNode], bool]) -> QuerySet[_S]:
         self._iter = filter(fn, self._iter)
         return self
 
-    def filter_type(self, cls: type[TSNode]) -> "QuerySet[_S]":
-        return self.filter(lambda n: isinstance(n, cls))
+    def filter_type(
+        self, cls: type[TSNode], *, named_only: bool = True
+    ) -> QuerySet[_S]:
+        return self.filter(
+            lambda n: isinstance(n, cls) and (not named_only or n.is_named)
+        )
 
-    def named(self, name: str) -> "QuerySet[_S]":
-        return self.filter(lambda n: getattr(n, "text", "") == name)
+    def named(self, name: str) -> QuerySet[_S]:
+        return self.where(
+            lambda v: (v.name() if hasattr(v, "name") else getattr(v, "text", ""))
+            == name
+        )
 
-    def where(self, pred: Callable[[_S], bool]) -> "QuerySet[_S]":
+    def where(self, pred: Callable[[_S], bool]) -> QuerySet[_S]:
         return self.filter(lambda n: pred(self._wrap(n, self._root._doc)))
 
-    def wrap(self, view_cls: type[_S]) -> "QuerySet[_S]":
+    def wrap(self, view_cls: type[_S]) -> QuerySet[_S]:
         """
         Specify the view wrapper class to materialise for each node.
         Must be called *before* iteration if you want view objects back.
@@ -182,7 +199,7 @@ class PyFunction(PyView[FunctionDefinitionNode]):
         1. Tree-sitter exposes it via field name ``name``.
         2. Fallback: scan children for IdentifierNode *or* raw ``identifier``.
         """
-        print(f"\nNode: {self.node.dict()}\n")  # "__dir__()}\n")
+        # print(f"\nNode: {self.node.dict()}\n")  # "__dir__()}\n")
         # 1) Field lookup on raw Tree-sitter node
         if hasattr(self.node, "child_by_field_name"):
             child = self.node.child_by_field_name("name")
@@ -191,7 +208,7 @@ class PyFunction(PyView[FunctionDefinitionNode]):
 
         # 2) Scan immediate children
         for c in self.node.children:
-            print(f"    Child: {c.dict()}")  # "__dir__()}\n"
+            # print(f"    Child: {c.dict()}")  # "__dir__()}\n"
             if (
                 c.__class__.__name__.endswith("IdentifierNode")
                 or getattr(c, "type", "") == "identifier"

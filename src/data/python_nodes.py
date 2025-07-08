@@ -900,10 +900,10 @@ class ContinueStatementNode(TSNode):
 
 NODE_MAP['continue'] = ContinueStatementNode
 
-class FunctionDefinitionNode(TSNode):
+class FunctionDefinitionPrefixNode(TSNode):
     pass
 
-NODE_MAP['def'] = FunctionDefinitionNode
+NODE_MAP['def'] = FunctionDefinitionPrefixNode
 
 class DeleteStatementNode(TSNode):
     pass

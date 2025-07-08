@@ -84,6 +84,8 @@ print(f"\n{'=' * 50}\n")
 print(f"Module:\n\n{module.text}\n")
 # print(f"Module:\n\n{[child for child in module.children()]}\n")
 
+print(f"Children:\n\n{[child.__class__.__name__ for child in module.children()]}\n")
+
 print(f"All function names: ")  # "{[fn.name for fn in module.functions()]}\n")
 for fn in module.functions():
     print(f"  - {fn.__class__.__name__} '{fn.name()}'")

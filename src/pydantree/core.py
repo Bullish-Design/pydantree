@@ -26,7 +26,8 @@ class TSNode(BaseModel):
     start_point: TSPoint
     end_point: TSPoint
     text: str
-    children: List["TSNode"] = []
+    children: List[TSNode] = []
+    is_named: bool  # `is_named` is always true for TSNode
 
     # Allow nested models + immutability for structural pattern matching safety
     model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
@@ -34,16 +35,16 @@ class TSNode(BaseModel):
     # Enable `match … case` ergonomics
     __match_args__ = ("type_name", "children")
 
-    _registry: ClassVar[dict[str, type["TSNode"]]] = {}
+    _registry: ClassVar[dict[str, type[TSNode]]] = {}
 
     @classmethod
-    def register_subclasses(cls, mapping: dict[str, type["TSNode"]]) -> None:
+    def register_subclasses(cls, mapping: dict[str, type[TSNode]]) -> None:
         """Merge *mapping* (token → subclass) into the global registry."""
         cls._registry.update(mapping)
 
     # Construction helpers
     @classmethod
-    def from_tree_sitter(cls, node, text_bytes: bytes) -> "TSNode":
+    def from_tree_sitter(cls, node, text_bytes: bytes) -> TSNode:
         """Recursively convert a `tree_sitter.Node` into a validated `TSNode`."""
 
         sub_cls = cls._registry.get(node.type, cls)
@@ -57,6 +58,7 @@ class TSNode(BaseModel):
             end_point=TSPoint(row=node.end_point[0], column=node.end_point[1]),
             text=text,
             children=children,
+            is_named=node.is_named,
         )
 
     # Convenient JSON dump while preserving child order
