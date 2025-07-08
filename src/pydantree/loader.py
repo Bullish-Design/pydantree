@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+NODE_MODULE = "data.pydantree_nodes"
+
 
 class NodeTypesBootstrap:
     """Ensure generated NODE_MAP module is imported and registered exactly once."""
@@ -9,7 +11,7 @@ class NodeTypesBootstrap:
     _loaded: bool = False
 
     @classmethod
-    def ensure(cls, module_name: str = "data.python_nodes") -> None:
+    def ensure(cls, module_name: str = NODE_MODULE) -> None:
         """Attempt to import *module_name* and register its NODE_MAP.
 
         Raises:

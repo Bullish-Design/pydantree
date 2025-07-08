@@ -7,11 +7,13 @@ from tree_sitter import Language, Parser as _TSParser
 from .core import TSNode
 from .loader import NodeTypesBootstrap
 
+NODE_MODULE = "data.pydantree_nodes"
+
 
 class Parser:
     """Thin wrapper around `tree_sitter.Parser` that returns typed nodes."""
 
-    def __init__(self, language: Language, *, module_name: str = "data.python_nodes"):
+    def __init__(self, language: Language, *, module_name: str = NODE_MODULE):
         # ensure the generated classes are available before any parse
         NodeTypesBootstrap.ensure(module_name)
         self._parser = _TSParser(language)
@@ -36,7 +38,7 @@ class Parser:
     # Convenience factory methods
     # ------------------------------------------------------------------
     @classmethod
-    def for_python(cls, module_name: str = "data.python_nodes") -> Parser:
+    def for_python(cls, module_name: str = NODE_MODULE) -> Parser:
         """Create parser for Python language."""
         try:
             import tree_sitter_python as tspy
@@ -55,7 +57,7 @@ class Parser:
     ) -> Parser:
         """Create parser for named language (requires appropriate tree-sitter package)."""
         if language_name == "python":
-            return cls.for_python(module_name or "data.python_nodes")
+            return cls.for_python(module_name or NODE_MODULE)
         else:
             raise NotImplementedError(
                 f"Language '{language_name}' not yet supported. "

@@ -3,7 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = [
 #     "pydantic>=2.11",
-#     "networkx>=3.0",
+#     "rustworkx>=3.0",
 # ]
 # ///
 
@@ -117,36 +117,64 @@ class InheritanceAnalyzer:
 
     def __init__(self, node_specs: List[Dict[str, Any]]):
         self.specs = {spec["type"]: spec for spec in node_specs}
-        self.graph = rx.DiGraph()
+        self.graph = rx.PyDiGraph()
+        self.node_indices = {}  # node_type -> index mapping
         self._build_graph()
 
     def _build_graph(self) -> None:
-        """Build DAG of supertype relationships."""
-        # Add all nodes
+        # Add all nodes and track indices
         for node_type in self.specs:
-            self.graph.add_node(node_type)
+            index = self.graph.add_node(node_type)
+            self.node_indices[node_type] = index
 
-        # Add edges for supertypes
+        # Add edges using indices
         for spec in self.specs.values():
             if "subtypes" in spec:
                 supertype = spec["type"]
+                supertype_idx = self.node_indices[supertype]
+
                 for subtype_spec in spec["subtypes"]:
                     subtype = subtype_spec["type"]
                     if subtype in self.specs:
-                        self.graph.add_edge(subtype, supertype)
+                        subtype_idx = self.node_indices[subtype]
+                        # Add edge with required edge data (can be any object)
+                        self.graph.add_edge(subtype_idx, supertype_idx, {})
+
+    def get_parent(self, node_type: str) -> Optional[str]:
+        if node_type not in self.node_indices:
+            return None
+
+        node_idx = self.node_indices[node_type]
+        parent_indices = list(self.graph.successors(node_idx))
+
+        if parent_indices:
+            parent_idx = parent_indices[0]
+            print(
+                f"            Parent idx type: {type(parent_idx)}, value: {parent_idx}"
+            )
+
+            if isinstance(parent_idx, int):
+                return self.graph.get_node_data(parent_idx)
+            else:
+                # If it's already a string, return it directly
+                return parent_idx
+        return None
 
     def get_inheritance_order(self) -> List[str]:
         """Return nodes in topological order (leaves first)."""
         try:
-            return list(reversed(list(nx.topological_sort(self.graph))))
-        except nx.NetworkXError:
-            # Fallback if cycles exist
+            # Get sorted indices
+            indices = rx.topological_sort(self.graph)
+            print(f"Topological sort order: {indices}")
+            # Convert indices to node names using get_node_data
+            for idx in reversed(indices):
+                print(f"    Checking node index: {idx} | {type(idx)}")
+                print(f"        Node data: {self.graph.get_node_data(idx)}")
+                # if idx not in self.graph.node_weights:
+                #    raise ValueError(f"Node index {idx} not found in graph")
+            return [self.graph.get_node_data(idx) for idx in reversed(indices)]
+        except Exception:
             return list(self.specs.keys())
-
-    def get_parent(self, node_type: str) -> Optional[str]:
-        """Get direct parent type, if any."""
-        parents = list(self.graph.successors(node_type))
-        return parents[0] if parents else None
 
 
 class CodeGenerator:
@@ -172,17 +200,20 @@ class CodeGenerator:
 
     def _generate_class(self, node_type: str) -> str:
         """Generate a single node class."""
+        print(f"\nGenerating Class:")
+        print(f"    Node Type: {node_type}")
         spec = self.specs[node_type]
         class_name = self.class_names[node_type]
-
+        print(f"    Class Name: {class_name}")
         # Determine parent class
         parent_type = self.analyzer.get_parent(node_type)
+        print(f"    Parent Type: {parent_type}")
         parent_class = (
             self.class_names[parent_type]
             if parent_type and parent_type in self.class_names
             else self.base_class
         )
-
+        print(f"    Parent Class: {parent_class}")
         # Get fields for __match_args__
         fields = spec.get("fields", {})
         match_args = ["type_name"] + list(fields.keys())
@@ -327,7 +358,9 @@ class CodeGenerator:
         ]
 
         # Generate classes in inheritance order
+        print(f"\n\nSpecs: {self.specs}\n\n")
         for node_type in self.analyzer.get_inheritance_order():
+            print(f"Generating class for node type: {node_type}")
             if node_type in self.specs:
                 lines.append(self._generate_class(node_type))
 

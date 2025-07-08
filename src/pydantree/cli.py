@@ -26,6 +26,14 @@ import sys
 from pathlib import Path
 from typing import Optional, List
 
+import typer
+from rich.console import Console
+from rich.syntax import Syntax
+from rich.table import Table
+from rich.tree import Tree
+from rich.json import JSON
+
+"""
 try:
     import typer
     from rich.console import Console
@@ -47,6 +55,8 @@ except ImportError:
         Typer = dict
 
     Console = lambda: None
+"""
+
 
 from .codegen import generate_from_node_types
 from .core import TSNode
@@ -58,10 +68,10 @@ from .nodegroup import NodeGroup
 app = typer.Typer(
     name="pydantree",
     help="Typed Tree-sitter wrapper with graph operations",
-    rich_markup_mode="rich" if HAS_RICH else None,
+    rich_markup_mode="rich",  # if HAS_RICH else None,
 )
 
-console = Console() if HAS_RICH else None
+console = Console()  # if HAS_RICH else None
 
 
 def _load_python_language():

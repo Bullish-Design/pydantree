@@ -30,7 +30,7 @@ from typing import (
 from pydantree import Parser, ParsedDocument, TSNode
 from pydantree.nodegroup import NodeGroup, NodeSelector, TypeSelector
 
-from data.python_nodes import (  # generated dataclasses
+from data.pydantree_nodes import (  # generated dataclasses
     ModuleNode,
     FunctionDefinitionNode,
     ClassDefinitionNode,
