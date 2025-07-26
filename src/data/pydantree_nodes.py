@@ -8,8 +8,10 @@ from pydantree.core import TSNode
 # Registry for runtime node creation
 NODE_MAP: dict[str, type[TSNode]] = {}
 
-class CompoundStatementNode(TSNode):
-    """Generated node for _compound_statement."""
+
+class EditableMixin:
+    """Mixin providing edit operations for tree nodes."""
+    
     def insert_child(self, index: int, child: TSNode) -> TSNode:
         """Insert child at index with grammar validation."""
         # TODO: Add grammar validation logic
@@ -30,137 +32,47 @@ class CompoundStatementNode(TSNode):
         new_children = [c for c in self.children if c != child]
         return self.model_copy(update={'children': new_children})
 
+
+class CompoundStatementNode(TSNode, EditableMixin):
+    """Generated node for _compound_statement."""
+    pass
 
 NODE_MAP['_compound_statement'] = CompoundStatementNode
 
-class SimpleStatementNode(TSNode):
+class SimpleStatementNode(TSNode, EditableMixin):
     """Generated node for _simple_statement."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['_simple_statement'] = SimpleStatementNode
 
-class ExpressionNode(TSNode):
+class ExpressionNode(TSNode, EditableMixin):
     """Generated node for expression."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['expression'] = ExpressionNode
 
-class ParameterNode(TSNode):
+class ParameterNode(TSNode, EditableMixin):
     """Generated node for parameter."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['parameter'] = ParameterNode
 
-class PatternNode(TSNode):
+class PatternNode(TSNode, EditableMixin):
     """Generated node for pattern."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['pattern'] = PatternNode
 
-class PrimaryExpressionNode(ExpressionNode):
+class PrimaryExpressionNode(ExpressionNode, EditableMixin):
     """Generated node for primary_expression."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['primary_expression'] = PrimaryExpressionNode
 
-class AliasedImportNode(TSNode):
+class AliasedImportNode(TSNode, EditableMixin):
     """Generated node for aliased_import."""
     __match_args__ = ('type_name', 'alias', 'name')
+
     @property
     def alias(self) -> IdentifierNode:
         """Access alias field."""
@@ -177,57 +89,18 @@ class AliasedImportNode(TSNode):
                 return child
         raise ValueError(f'Required field name not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['aliased_import'] = AliasedImportNode
 
-class ArgumentListNode(TSNode):
+class ArgumentListNode(TSNode, EditableMixin):
     """Generated node for argument_list."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['argument_list'] = ArgumentListNode
 
-class AsPatternNode(ExpressionNode):
+class AsPatternNode(ExpressionNode, EditableMixin):
     """Generated node for as_pattern."""
     __match_args__ = ('type_name', 'alias')
+
     @property
     def alias(self) -> Optional[TSNode]:
         """Access alias field."""
@@ -236,57 +109,18 @@ class AsPatternNode(ExpressionNode):
                 return child
         return None
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['as_pattern'] = AsPatternNode
 
-class AssertStatementNode(SimpleStatementNode):
+class AssertStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for assert_statement."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['assert_statement'] = AssertStatementNode
 
-class AssignmentNode(TSNode):
+class AssignmentNode(TSNode, EditableMixin):
     """Generated node for assignment."""
     __match_args__ = ('type_name', 'left', 'right', 'type')
+
     @property
     def left(self) -> PatternNode | PatternListNode:
         """Access left field."""
@@ -311,32 +145,12 @@ class AssignmentNode(TSNode):
                 return child
         return None
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['assignment'] = AssignmentNode
 
-class AttributeNode(PrimaryExpressionNode):
+class AttributeNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for attribute."""
     __match_args__ = ('type_name', 'attribute', 'object')
+
     @property
     def attribute(self) -> IdentifierNode:
         """Access attribute field."""
@@ -353,32 +167,12 @@ class AttributeNode(PrimaryExpressionNode):
                 return child
         raise ValueError(f'Required field object not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['attribute'] = AttributeNode
 
-class AugmentedAssignmentNode(TSNode):
+class AugmentedAssignmentNode(TSNode, EditableMixin):
     """Generated node for augmented_assignment."""
     __match_args__ = ('type_name', 'left', 'operator', 'right')
+
     @property
     def left(self) -> PatternNode | PatternListNode:
         """Access left field."""
@@ -403,57 +197,18 @@ class AugmentedAssignmentNode(TSNode):
                 return child
         raise ValueError(f'Required field right not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['augmented_assignment'] = AugmentedAssignmentNode
 
-class AwaitTokenNode(PrimaryExpressionNode):
+class AwaitTokenNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for await."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['await'] = AwaitTokenNode
 
-class BinaryOperatorNode(PrimaryExpressionNode):
+class BinaryOperatorNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for binary_operator."""
     __match_args__ = ('type_name', 'left', 'operator', 'right')
+
     @property
     def left(self) -> PrimaryExpressionNode:
         """Access left field."""
@@ -478,32 +233,12 @@ class BinaryOperatorNode(PrimaryExpressionNode):
                 return child
         raise ValueError(f'Required field right not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['binary_operator'] = BinaryOperatorNode
 
-class BlockNode(TSNode):
+class BlockNode(TSNode, EditableMixin):
     """Generated node for block."""
     __match_args__ = ('type_name', 'alternative')
+
     @property
     def alternative(self) -> Optional[List[CaseClauseNode]]:
         """Access alternative field."""
@@ -513,32 +248,12 @@ class BlockNode(TSNode):
                 result.append(child)
         return result
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['block'] = BlockNode
 
-class BooleanOperatorNode(ExpressionNode):
+class BooleanOperatorNode(ExpressionNode, EditableMixin):
     """Generated node for boolean_operator."""
     __match_args__ = ('type_name', 'left', 'operator', 'right')
+
     @property
     def left(self) -> ExpressionNode:
         """Access left field."""
@@ -563,57 +278,18 @@ class BooleanOperatorNode(ExpressionNode):
                 return child
         raise ValueError(f'Required field right not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['boolean_operator'] = BooleanOperatorNode
 
-class BreakStatementNode(SimpleStatementNode):
+class BreakStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for break_statement."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['break_statement'] = BreakStatementNode
 
-class CallNode(PrimaryExpressionNode):
+class CallNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for call."""
     __match_args__ = ('type_name', 'arguments', 'function')
+
     @property
     def arguments(self) -> ArgumentListNode | GeneratorExpressionNode:
         """Access arguments field."""
@@ -630,32 +306,12 @@ class CallNode(PrimaryExpressionNode):
                 return child
         raise ValueError(f'Required field function not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['call'] = CallNode
 
-class CaseClauseNode(TSNode):
+class CaseClauseNode(TSNode, EditableMixin):
     """Generated node for case_clause."""
     __match_args__ = ('type_name', 'consequence', 'guard')
+
     @property
     def consequence(self) -> BlockNode:
         """Access consequence field."""
@@ -672,82 +328,24 @@ class CaseClauseNode(TSNode):
                 return child
         return None
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['case_clause'] = CaseClauseNode
 
-class CasePatternNode(TSNode):
+class CasePatternNode(TSNode, EditableMixin):
     """Generated node for case_pattern."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['case_pattern'] = CasePatternNode
 
-class ChevronNode(TSNode):
+class ChevronNode(TSNode, EditableMixin):
     """Generated node for chevron."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['chevron'] = ChevronNode
 
-class ClassDefinitionNode(CompoundStatementNode):
+class ClassDefinitionNode(CompoundStatementNode, EditableMixin):
     """Generated node for class_definition."""
     __match_args__ = ('type_name', 'body', 'name', 'superclasses', 'type_parameters')
+
     @property
     def body(self) -> BlockNode:
         """Access body field."""
@@ -780,57 +378,18 @@ class ClassDefinitionNode(CompoundStatementNode):
                 return child
         return None
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['class_definition'] = ClassDefinitionNode
 
-class ClassPatternNode(TSNode):
+class ClassPatternNode(TSNode, EditableMixin):
     """Generated node for class_pattern."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['class_pattern'] = ClassPatternNode
 
-class ComparisonOperatorNode(ExpressionNode):
+class ComparisonOperatorNode(ExpressionNode, EditableMixin):
     """Generated node for comparison_operator."""
     __match_args__ = ('type_name', 'operators')
+
     @property
     def operators(self) -> List[NotEqualsTokenNode | LessThanTokenNode | LessEqualsTokenNode | NotEqualsAltTokenNode | EqualityTokenNode | GreaterThanTokenNode | GreaterEqualsTokenNode | InTokenNode | IsTokenNode | IsNotTokenNode | NotInTokenNode]:
         """Access operators field."""
@@ -840,157 +399,42 @@ class ComparisonOperatorNode(ExpressionNode):
                 result.append(child)
         return result
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['comparison_operator'] = ComparisonOperatorNode
 
-class ComplexPatternNode(TSNode):
+class ComplexPatternNode(TSNode, EditableMixin):
     """Generated node for complex_pattern."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['complex_pattern'] = ComplexPatternNode
 
-class ConcatenatedStringNode(PrimaryExpressionNode):
+class ConcatenatedStringNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for concatenated_string."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['concatenated_string'] = ConcatenatedStringNode
 
-class ConditionalExpressionNode(ExpressionNode):
+class ConditionalExpressionNode(ExpressionNode, EditableMixin):
     """Generated node for conditional_expression."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['conditional_expression'] = ConditionalExpressionNode
 
-class ConstrainedTypeNode(TSNode):
+class ConstrainedTypeNode(TSNode, EditableMixin):
     """Generated node for constrained_type."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['constrained_type'] = ConstrainedTypeNode
 
-class ContinueStatementNode(SimpleStatementNode):
+class ContinueStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for continue_statement."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['continue_statement'] = ContinueStatementNode
 
-class DecoratedDefinitionNode(CompoundStatementNode):
+class DecoratedDefinitionNode(CompoundStatementNode, EditableMixin):
     """Generated node for decorated_definition."""
     __match_args__ = ('type_name', 'definition')
+
     @property
     def definition(self) -> ClassDefinitionNode | FunctionDefinitionNode:
         """Access definition field."""
@@ -999,57 +443,18 @@ class DecoratedDefinitionNode(CompoundStatementNode):
                 return child
         raise ValueError(f'Required field definition not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['decorated_definition'] = DecoratedDefinitionNode
 
-class DecoratorNode(TSNode):
+class DecoratorNode(TSNode, EditableMixin):
     """Generated node for decorator."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['decorator'] = DecoratorNode
 
-class DefaultParameterNode(ParameterNode):
+class DefaultParameterNode(ParameterNode, EditableMixin):
     """Generated node for default_parameter."""
     __match_args__ = ('type_name', 'name', 'value')
+
     @property
     def name(self) -> IdentifierNode | TuplePatternNode:
         """Access name field."""
@@ -1066,57 +471,18 @@ class DefaultParameterNode(ParameterNode):
                 return child
         raise ValueError(f'Required field value not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['default_parameter'] = DefaultParameterNode
 
-class DeleteStatementNode(SimpleStatementNode):
+class DeleteStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for delete_statement."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['delete_statement'] = DeleteStatementNode
 
-class DictPatternNode(TSNode):
+class DictPatternNode(TSNode, EditableMixin):
     """Generated node for dict_pattern."""
     __match_args__ = ('type_name', 'key', 'value')
+
     @property
     def key(self) -> Optional[List[MinusTokenNode | UnderscoreTokenNode | ClassPatternNode | ComplexPatternNode | ConcatenatedStringNode | DictPatternNode | DottedNameNode | FalseNode | FloatNode | IntegerNode | ListPatternNode | NoneNode | SplatPatternNode | StringNode | TrueNode | TuplePatternNode | UnionPatternNode]]:
         """Access key field."""
@@ -1135,57 +501,18 @@ class DictPatternNode(TSNode):
                 result.append(child)
         return result
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['dict_pattern'] = DictPatternNode
 
-class DictionaryNode(PrimaryExpressionNode):
+class DictionaryNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for dictionary."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['dictionary'] = DictionaryNode
 
-class DictionaryComprehensionNode(PrimaryExpressionNode):
+class DictionaryComprehensionNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for dictionary_comprehension."""
     __match_args__ = ('type_name', 'body')
+
     @property
     def body(self) -> PairNode:
         """Access body field."""
@@ -1194,107 +521,30 @@ class DictionaryComprehensionNode(PrimaryExpressionNode):
                 return child
         raise ValueError(f'Required field body not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['dictionary_comprehension'] = DictionaryComprehensionNode
 
-class DictionarySplatNode(TSNode):
+class DictionarySplatNode(TSNode, EditableMixin):
     """Generated node for dictionary_splat."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['dictionary_splat'] = DictionarySplatNode
 
-class DictionarySplatPatternNode(ParameterNode):
+class DictionarySplatPatternNode(ParameterNode, EditableMixin):
     """Generated node for dictionary_splat_pattern."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['dictionary_splat_pattern'] = DictionarySplatPatternNode
 
-class DottedNameNode(TSNode):
+class DottedNameNode(TSNode, EditableMixin):
     """Generated node for dotted_name."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['dotted_name'] = DottedNameNode
 
-class ElifClauseNode(TSNode):
+class ElifClauseNode(TSNode, EditableMixin):
     """Generated node for elif_clause."""
     __match_args__ = ('type_name', 'condition', 'consequence')
+
     @property
     def condition(self) -> ExpressionNode:
         """Access condition field."""
@@ -1311,32 +561,12 @@ class ElifClauseNode(TSNode):
                 return child
         raise ValueError(f'Required field consequence not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['elif_clause'] = ElifClauseNode
 
-class ElseClauseNode(TSNode):
+class ElseClauseNode(TSNode, EditableMixin):
     """Generated node for else_clause."""
     __match_args__ = ('type_name', 'body')
+
     @property
     def body(self) -> BlockNode:
         """Access body field."""
@@ -1345,82 +575,24 @@ class ElseClauseNode(TSNode):
                 return child
         raise ValueError(f'Required field body not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['else_clause'] = ElseClauseNode
 
-class ExceptClauseNode(TSNode):
+class ExceptClauseNode(TSNode, EditableMixin):
     """Generated node for except_clause."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['except_clause'] = ExceptClauseNode
 
-class ExceptGroupClauseNode(TSNode):
+class ExceptGroupClauseNode(TSNode, EditableMixin):
     """Generated node for except_group_clause."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['except_group_clause'] = ExceptGroupClauseNode
 
-class ExecStatementNode(SimpleStatementNode):
+class ExecStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for exec_statement."""
     __match_args__ = ('type_name', 'code')
+
     @property
     def code(self) -> IdentifierNode | StringNode:
         """Access code field."""
@@ -1429,107 +601,30 @@ class ExecStatementNode(SimpleStatementNode):
                 return child
         raise ValueError(f'Required field code not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['exec_statement'] = ExecStatementNode
 
-class ExpressionListNode(TSNode):
+class ExpressionListNode(TSNode, EditableMixin):
     """Generated node for expression_list."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['expression_list'] = ExpressionListNode
 
-class ExpressionStatementNode(SimpleStatementNode):
+class ExpressionStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for expression_statement."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['expression_statement'] = ExpressionStatementNode
 
-class FinallyClauseNode(TSNode):
+class FinallyClauseNode(TSNode, EditableMixin):
     """Generated node for finally_clause."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['finally_clause'] = FinallyClauseNode
 
-class ForInClauseNode(TSNode):
+class ForInClauseNode(TSNode, EditableMixin):
     """Generated node for for_in_clause."""
     __match_args__ = ('type_name', 'left', 'right')
+
     @property
     def left(self) -> PatternNode | PatternListNode:
         """Access left field."""
@@ -1547,32 +642,12 @@ class ForInClauseNode(TSNode):
                 result.append(child)
         return result
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['for_in_clause'] = ForInClauseNode
 
-class ForStatementNode(CompoundStatementNode):
+class ForStatementNode(CompoundStatementNode, EditableMixin):
     """Generated node for for_statement."""
     __match_args__ = ('type_name', 'alternative', 'body', 'left', 'right')
+
     @property
     def alternative(self) -> Optional[ElseClauseNode]:
         """Access alternative field."""
@@ -1605,32 +680,12 @@ class ForStatementNode(CompoundStatementNode):
                 return child
         raise ValueError(f'Required field right not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['for_statement'] = ForStatementNode
 
-class FormatExpressionNode(TSNode):
+class FormatExpressionNode(TSNode, EditableMixin):
     """Generated node for format_expression."""
     __match_args__ = ('type_name', 'expression', 'format_specifier', 'type_conversion')
+
     @property
     def expression(self) -> ExpressionNode | ExpressionListNode | PatternListNode | YieldTokenNode:
         """Access expression field."""
@@ -1655,57 +710,18 @@ class FormatExpressionNode(TSNode):
                 return child
         return None
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['format_expression'] = FormatExpressionNode
 
-class FormatSpecifierNode(TSNode):
+class FormatSpecifierNode(TSNode, EditableMixin):
     """Generated node for format_specifier."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['format_specifier'] = FormatSpecifierNode
 
-class FunctionDefinitionNode(CompoundStatementNode):
+class FunctionDefinitionNode(CompoundStatementNode, EditableMixin):
     """Generated node for function_definition."""
     __match_args__ = ('type_name', 'body', 'name', 'parameters', 'return_type', 'type_parameters')
+
     @property
     def body(self) -> BlockNode:
         """Access body field."""
@@ -1746,32 +762,12 @@ class FunctionDefinitionNode(CompoundStatementNode):
                 return child
         return None
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['function_definition'] = FunctionDefinitionNode
 
-class FutureImportStatementNode(SimpleStatementNode):
+class FutureImportStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for future_import_statement."""
     __match_args__ = ('type_name', 'name')
+
     @property
     def name(self) -> List[AliasedImportNode | DottedNameNode]:
         """Access name field."""
@@ -1781,32 +777,12 @@ class FutureImportStatementNode(SimpleStatementNode):
                 result.append(child)
         return result
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['future_import_statement'] = FutureImportStatementNode
 
-class GeneratorExpressionNode(PrimaryExpressionNode):
+class GeneratorExpressionNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for generator_expression."""
     __match_args__ = ('type_name', 'body')
+
     @property
     def body(self) -> ExpressionNode:
         """Access body field."""
@@ -1815,107 +791,30 @@ class GeneratorExpressionNode(PrimaryExpressionNode):
                 return child
         raise ValueError(f'Required field body not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['generator_expression'] = GeneratorExpressionNode
 
-class GenericTypeNode(TSNode):
+class GenericTypeNode(TSNode, EditableMixin):
     """Generated node for generic_type."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['generic_type'] = GenericTypeNode
 
-class GlobalStatementNode(SimpleStatementNode):
+class GlobalStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for global_statement."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['global_statement'] = GlobalStatementNode
 
-class IfClauseNode(TSNode):
+class IfClauseNode(TSNode, EditableMixin):
     """Generated node for if_clause."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['if_clause'] = IfClauseNode
 
-class IfStatementNode(CompoundStatementNode):
+class IfStatementNode(CompoundStatementNode, EditableMixin):
     """Generated node for if_statement."""
     __match_args__ = ('type_name', 'alternative', 'condition', 'consequence')
+
     @property
     def alternative(self) -> Optional[List[ElifClauseNode | ElseClauseNode]]:
         """Access alternative field."""
@@ -1941,32 +840,12 @@ class IfStatementNode(CompoundStatementNode):
                 return child
         raise ValueError(f'Required field consequence not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['if_statement'] = IfStatementNode
 
-class ImportFromStatementNode(SimpleStatementNode):
+class ImportFromStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for import_from_statement."""
     __match_args__ = ('type_name', 'module_name', 'name')
+
     @property
     def module_name(self) -> DottedNameNode | RelativeImportNode:
         """Access module_name field."""
@@ -1984,57 +863,18 @@ class ImportFromStatementNode(SimpleStatementNode):
                 result.append(child)
         return result
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['import_from_statement'] = ImportFromStatementNode
 
-class ImportPrefixNode(TSNode):
+class ImportPrefixNode(TSNode, EditableMixin):
     """Generated node for import_prefix."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['import_prefix'] = ImportPrefixNode
 
-class ImportStatementNode(SimpleStatementNode):
+class ImportStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for import_statement."""
     __match_args__ = ('type_name', 'name')
+
     @property
     def name(self) -> List[AliasedImportNode | DottedNameNode]:
         """Access name field."""
@@ -2044,32 +884,12 @@ class ImportStatementNode(SimpleStatementNode):
                 result.append(child)
         return result
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['import_statement'] = ImportStatementNode
 
-class InterpolationNode(TSNode):
+class InterpolationNode(TSNode, EditableMixin):
     """Generated node for interpolation."""
     __match_args__ = ('type_name', 'expression', 'format_specifier', 'type_conversion')
+
     @property
     def expression(self) -> ExpressionNode | ExpressionListNode | PatternListNode | YieldTokenNode:
         """Access expression field."""
@@ -2094,32 +914,12 @@ class InterpolationNode(TSNode):
                 return child
         return None
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['interpolation'] = InterpolationNode
 
-class KeywordArgumentNode(TSNode):
+class KeywordArgumentNode(TSNode, EditableMixin):
     """Generated node for keyword_argument."""
     __match_args__ = ('type_name', 'name', 'value')
+
     @property
     def name(self) -> IdentifierNode:
         """Access name field."""
@@ -2136,157 +936,42 @@ class KeywordArgumentNode(TSNode):
                 return child
         raise ValueError(f'Required field value not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['keyword_argument'] = KeywordArgumentNode
 
-class KeywordPatternNode(TSNode):
+class KeywordPatternNode(TSNode, EditableMixin):
     """Generated node for keyword_pattern."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['keyword_pattern'] = KeywordPatternNode
 
-class KeywordSeparatorNode(ParameterNode):
+class KeywordSeparatorNode(ParameterNode, EditableMixin):
     """Generated node for keyword_separator."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['keyword_separator'] = KeywordSeparatorNode
 
-class LambdaTokenNode(ExpressionNode):
+class LambdaTokenNode(ExpressionNode, EditableMixin):
     """Generated node for lambda."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['lambda'] = LambdaTokenNode
 
-class LambdaParametersNode(TSNode):
+class LambdaParametersNode(TSNode, EditableMixin):
     """Generated node for lambda_parameters."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['lambda_parameters'] = LambdaParametersNode
 
-class ListNode(PrimaryExpressionNode):
+class ListNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for list."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['list'] = ListNode
 
-class ListComprehensionNode(PrimaryExpressionNode):
+class ListComprehensionNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for list_comprehension."""
     __match_args__ = ('type_name', 'body')
+
     @property
     def body(self) -> ExpressionNode:
         """Access body field."""
@@ -2295,107 +980,30 @@ class ListComprehensionNode(PrimaryExpressionNode):
                 return child
         raise ValueError(f'Required field body not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['list_comprehension'] = ListComprehensionNode
 
-class ListPatternNode(PatternNode):
+class ListPatternNode(PatternNode, EditableMixin):
     """Generated node for list_pattern."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['list_pattern'] = ListPatternNode
 
-class ListSplatNode(PrimaryExpressionNode):
+class ListSplatNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for list_splat."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['list_splat'] = ListSplatNode
 
-class ListSplatPatternNode(PatternNode):
+class ListSplatPatternNode(PatternNode, EditableMixin):
     """Generated node for list_splat_pattern."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['list_splat_pattern'] = ListSplatPatternNode
 
-class MatchStatementNode(CompoundStatementNode):
+class MatchStatementNode(CompoundStatementNode, EditableMixin):
     """Generated node for match_statement."""
     __match_args__ = ('type_name', 'body', 'subject')
+
     @property
     def body(self) -> BlockNode:
         """Access body field."""
@@ -2413,82 +1021,24 @@ class MatchStatementNode(CompoundStatementNode):
                 result.append(child)
         return result
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['match_statement'] = MatchStatementNode
 
-class MemberTypeNode(TSNode):
+class MemberTypeNode(TSNode, EditableMixin):
     """Generated node for member_type."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['member_type'] = MemberTypeNode
 
-class ModuleNode(TSNode):
+class ModuleNode(TSNode, EditableMixin):
     """Generated node for module."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['module'] = ModuleNode
 
-class NamedExpressionNode(ExpressionNode):
+class NamedExpressionNode(ExpressionNode, EditableMixin):
     """Generated node for named_expression."""
     __match_args__ = ('type_name', 'name', 'value')
+
     @property
     def name(self) -> IdentifierNode:
         """Access name field."""
@@ -2505,57 +1055,18 @@ class NamedExpressionNode(ExpressionNode):
                 return child
         raise ValueError(f'Required field value not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['named_expression'] = NamedExpressionNode
 
-class NonlocalStatementNode(SimpleStatementNode):
+class NonlocalStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for nonlocal_statement."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['nonlocal_statement'] = NonlocalStatementNode
 
-class NotOperatorNode(ExpressionNode):
+class NotOperatorNode(ExpressionNode, EditableMixin):
     """Generated node for not_operator."""
     __match_args__ = ('type_name', 'argument')
+
     @property
     def argument(self) -> ExpressionNode:
         """Access argument field."""
@@ -2564,32 +1075,12 @@ class NotOperatorNode(ExpressionNode):
                 return child
         raise ValueError(f'Required field argument not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['not_operator'] = NotOperatorNode
 
-class PairNode(TSNode):
+class PairNode(TSNode, EditableMixin):
     """Generated node for pair."""
     __match_args__ = ('type_name', 'key', 'value')
+
     @property
     def key(self) -> ExpressionNode:
         """Access key field."""
@@ -2606,182 +1097,48 @@ class PairNode(TSNode):
                 return child
         raise ValueError(f'Required field value not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['pair'] = PairNode
 
-class ParametersNode(TSNode):
+class ParametersNode(TSNode, EditableMixin):
     """Generated node for parameters."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['parameters'] = ParametersNode
 
-class ParenthesizedExpressionNode(PrimaryExpressionNode):
+class ParenthesizedExpressionNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for parenthesized_expression."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['parenthesized_expression'] = ParenthesizedExpressionNode
 
-class ParenthesizedListSplatNode(TSNode):
+class ParenthesizedListSplatNode(TSNode, EditableMixin):
     """Generated node for parenthesized_list_splat."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['parenthesized_list_splat'] = ParenthesizedListSplatNode
 
-class PassStatementNode(SimpleStatementNode):
+class PassStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for pass_statement."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['pass_statement'] = PassStatementNode
 
-class PatternListNode(TSNode):
+class PatternListNode(TSNode, EditableMixin):
     """Generated node for pattern_list."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['pattern_list'] = PatternListNode
 
-class PositionalSeparatorNode(ParameterNode):
+class PositionalSeparatorNode(ParameterNode, EditableMixin):
     """Generated node for positional_separator."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['positional_separator'] = PositionalSeparatorNode
 
-class PrintStatementNode(SimpleStatementNode):
+class PrintStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for print_statement."""
     __match_args__ = ('type_name', 'argument')
+
     @property
     def argument(self) -> Optional[List[ExpressionNode]]:
         """Access argument field."""
@@ -2791,32 +1148,12 @@ class PrintStatementNode(SimpleStatementNode):
                 result.append(child)
         return result
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['print_statement'] = PrintStatementNode
 
-class RaiseStatementNode(SimpleStatementNode):
+class RaiseStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for raise_statement."""
     __match_args__ = ('type_name', 'cause')
+
     @property
     def cause(self) -> Optional[ExpressionNode]:
         """Access cause field."""
@@ -2825,107 +1162,30 @@ class RaiseStatementNode(SimpleStatementNode):
                 return child
         return None
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['raise_statement'] = RaiseStatementNode
 
-class RelativeImportNode(TSNode):
+class RelativeImportNode(TSNode, EditableMixin):
     """Generated node for relative_import."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['relative_import'] = RelativeImportNode
 
-class ReturnStatementNode(SimpleStatementNode):
+class ReturnStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for return_statement."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['return_statement'] = ReturnStatementNode
 
-class SetNode(PrimaryExpressionNode):
+class SetNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for set."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['set'] = SetNode
 
-class SetComprehensionNode(PrimaryExpressionNode):
+class SetComprehensionNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for set_comprehension."""
     __match_args__ = ('type_name', 'body')
+
     @property
     def body(self) -> ExpressionNode:
         """Access body field."""
@@ -2934,157 +1194,42 @@ class SetComprehensionNode(PrimaryExpressionNode):
                 return child
         raise ValueError(f'Required field body not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['set_comprehension'] = SetComprehensionNode
 
-class SliceNode(TSNode):
+class SliceNode(TSNode, EditableMixin):
     """Generated node for slice."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['slice'] = SliceNode
 
-class SplatPatternNode(TSNode):
+class SplatPatternNode(TSNode, EditableMixin):
     """Generated node for splat_pattern."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['splat_pattern'] = SplatPatternNode
 
-class SplatTypeNode(TSNode):
+class SplatTypeNode(TSNode, EditableMixin):
     """Generated node for splat_type."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['splat_type'] = SplatTypeNode
 
-class StringNode(PrimaryExpressionNode):
+class StringNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for string."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['string'] = StringNode
 
-class StringContentNode(TSNode):
+class StringContentNode(TSNode, EditableMixin):
     """Generated node for string_content."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['string_content'] = StringContentNode
 
-class SubscriptNode(PrimaryExpressionNode):
+class SubscriptNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for subscript."""
     __match_args__ = ('type_name', 'subscript', 'value')
+
     @property
     def subscript(self) -> List[ExpressionNode | SliceNode]:
         """Access subscript field."""
@@ -3102,32 +1247,12 @@ class SubscriptNode(PrimaryExpressionNode):
                 return child
         raise ValueError(f'Required field value not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['subscript'] = SubscriptNode
 
-class TryStatementNode(CompoundStatementNode):
+class TryStatementNode(CompoundStatementNode, EditableMixin):
     """Generated node for try_statement."""
     __match_args__ = ('type_name', 'body')
+
     @property
     def body(self) -> BlockNode:
         """Access body field."""
@@ -3136,157 +1261,42 @@ class TryStatementNode(CompoundStatementNode):
                 return child
         raise ValueError(f'Required field body not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['try_statement'] = TryStatementNode
 
-class TupleNode(PrimaryExpressionNode):
+class TupleNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for tuple."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['tuple'] = TupleNode
 
-class TuplePatternNode(PatternNode):
+class TuplePatternNode(PatternNode, EditableMixin):
     """Generated node for tuple_pattern."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['tuple_pattern'] = TuplePatternNode
 
-class TypeTokenNode(TSNode):
+class TypeTokenNode(TSNode, EditableMixin):
     """Generated node for type."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['type'] = TypeTokenNode
 
-class TypeAliasStatementNode(SimpleStatementNode):
+class TypeAliasStatementNode(SimpleStatementNode, EditableMixin):
     """Generated node for type_alias_statement."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['type_alias_statement'] = TypeAliasStatementNode
 
-class TypeParameterNode(TSNode):
+class TypeParameterNode(TSNode, EditableMixin):
     """Generated node for type_parameter."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['type_parameter'] = TypeParameterNode
 
-class TypedDefaultParameterNode(ParameterNode):
+class TypedDefaultParameterNode(ParameterNode, EditableMixin):
     """Generated node for typed_default_parameter."""
     __match_args__ = ('type_name', 'name', 'type', 'value')
+
     @property
     def name(self) -> IdentifierNode:
         """Access name field."""
@@ -3311,32 +1321,12 @@ class TypedDefaultParameterNode(ParameterNode):
                 return child
         raise ValueError(f'Required field value not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['typed_default_parameter'] = TypedDefaultParameterNode
 
-class TypedParameterNode(ParameterNode):
+class TypedParameterNode(ParameterNode, EditableMixin):
     """Generated node for typed_parameter."""
     __match_args__ = ('type_name', 'type')
+
     @property
     def type(self) -> TypeTokenNode:
         """Access type field."""
@@ -3345,32 +1335,12 @@ class TypedParameterNode(ParameterNode):
                 return child
         raise ValueError(f'Required field type not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['typed_parameter'] = TypedParameterNode
 
-class UnaryOperatorNode(PrimaryExpressionNode):
+class UnaryOperatorNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for unary_operator."""
     __match_args__ = ('type_name', 'argument', 'operator')
+
     @property
     def argument(self) -> PrimaryExpressionNode:
         """Access argument field."""
@@ -3387,82 +1357,24 @@ class UnaryOperatorNode(PrimaryExpressionNode):
                 return child
         raise ValueError(f'Required field operator not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['unary_operator'] = UnaryOperatorNode
 
-class UnionPatternNode(TSNode):
+class UnionPatternNode(TSNode, EditableMixin):
     """Generated node for union_pattern."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['union_pattern'] = UnionPatternNode
 
-class UnionTypeNode(TSNode):
+class UnionTypeNode(TSNode, EditableMixin):
     """Generated node for union_type."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['union_type'] = UnionTypeNode
 
-class WhileStatementNode(CompoundStatementNode):
+class WhileStatementNode(CompoundStatementNode, EditableMixin):
     """Generated node for while_statement."""
     __match_args__ = ('type_name', 'alternative', 'body', 'condition')
+
     @property
     def alternative(self) -> Optional[ElseClauseNode]:
         """Access alternative field."""
@@ -3487,82 +1399,24 @@ class WhileStatementNode(CompoundStatementNode):
                 return child
         raise ValueError(f'Required field condition not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['while_statement'] = WhileStatementNode
 
-class WildcardImportNode(TSNode):
+class WildcardImportNode(TSNode, EditableMixin):
     """Generated node for wildcard_import."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['wildcard_import'] = WildcardImportNode
 
-class WithClauseNode(TSNode):
+class WithClauseNode(TSNode, EditableMixin):
     """Generated node for with_clause."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['with_clause'] = WithClauseNode
 
-class WithItemNode(TSNode):
+class WithItemNode(TSNode, EditableMixin):
     """Generated node for with_item."""
     __match_args__ = ('type_name', 'value')
+
     @property
     def value(self) -> ExpressionNode:
         """Access value field."""
@@ -3571,32 +1425,12 @@ class WithItemNode(TSNode):
                 return child
         raise ValueError(f'Required field value not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['with_item'] = WithItemNode
 
-class WithStatementNode(CompoundStatementNode):
+class WithStatementNode(CompoundStatementNode, EditableMixin):
     """Generated node for with_statement."""
     __match_args__ = ('type_name', 'body')
+
     @property
     def body(self) -> BlockNode:
         """Access body field."""
@@ -3605,2551 +1439,611 @@ class WithStatementNode(CompoundStatementNode):
                 return child
         raise ValueError(f'Required field body not found')
 
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
-
 NODE_MAP['with_statement'] = WithStatementNode
 
-class YieldTokenNode(TSNode):
+class YieldTokenNode(TSNode, EditableMixin):
     """Generated node for yield."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['yield'] = YieldTokenNode
 
-class NotEqualsTokenNode(TSNode):
+class NotEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for !=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['!='] = NotEqualsTokenNode
 
-class PercentTokenNode(TSNode):
+class PercentTokenNode(TSNode, EditableMixin):
     """Generated node for %."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['%'] = PercentTokenNode
 
-class ModEqualsTokenNode(TSNode):
+class ModEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for %=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['%='] = ModEqualsTokenNode
 
-class AmpersandTokenNode(TSNode):
+class AmpersandTokenNode(TSNode, EditableMixin):
     """Generated node for &."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['&'] = AmpersandTokenNode
 
-class AmpersandEqualsTokenNode(TSNode):
+class AmpersandEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for &=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['&='] = AmpersandEqualsTokenNode
 
-class LeftParenTokenNode(TSNode):
+class LeftParenTokenNode(TSNode, EditableMixin):
     """Generated node for (."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['('] = LeftParenTokenNode
 
-class RightParenTokenNode(TSNode):
+class RightParenTokenNode(TSNode, EditableMixin):
     """Generated node for )."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP[')'] = RightParenTokenNode
 
-class AsteriskTokenNode(TSNode):
+class AsteriskTokenNode(TSNode, EditableMixin):
     """Generated node for *."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['*'] = AsteriskTokenNode
 
-class PowerTokenNode(TSNode):
+class PowerTokenNode(TSNode, EditableMixin):
     """Generated node for **."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['**'] = PowerTokenNode
 
-class PowerEqualsTokenNode(TSNode):
+class PowerEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for **=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['**='] = PowerEqualsTokenNode
 
-class TimesEqualsTokenNode(TSNode):
+class TimesEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for *=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['*='] = TimesEqualsTokenNode
 
-class PlusTokenNode(TSNode):
+class PlusTokenNode(TSNode, EditableMixin):
     """Generated node for +."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['+'] = PlusTokenNode
 
-class PlusEqualsTokenNode(TSNode):
+class PlusEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for +=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['+='] = PlusEqualsTokenNode
 
-class CommaTokenNode(TSNode):
+class CommaTokenNode(TSNode, EditableMixin):
     """Generated node for ,."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP[','] = CommaTokenNode
 
-class MinusTokenNode(TSNode):
+class MinusTokenNode(TSNode, EditableMixin):
     """Generated node for -."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['-'] = MinusTokenNode
 
-class MinusEqualsTokenNode(TSNode):
+class MinusEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for -=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['-='] = MinusEqualsTokenNode
 
-class ArrowTokenNode(TSNode):
+class ArrowTokenNode(TSNode, EditableMixin):
     """Generated node for ->."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['->'] = ArrowTokenNode
 
-class DotTokenNode(TSNode):
+class DotTokenNode(TSNode, EditableMixin):
     """Generated node for .."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['.'] = DotTokenNode
 
-class SlashTokenNode(TSNode):
+class SlashTokenNode(TSNode, EditableMixin):
     """Generated node for /."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['/'] = SlashTokenNode
 
-class FloorDivTokenNode(TSNode):
+class FloorDivTokenNode(TSNode, EditableMixin):
     """Generated node for //."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['//'] = FloorDivTokenNode
 
-class FloorDivEqualsTokenNode(TSNode):
+class FloorDivEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for //=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['//='] = FloorDivEqualsTokenNode
 
-class DivideEqualsTokenNode(TSNode):
+class DivideEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for /=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['/='] = DivideEqualsTokenNode
 
-class ColonTokenNode(TSNode):
+class ColonTokenNode(TSNode, EditableMixin):
     """Generated node for :."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP[':'] = ColonTokenNode
 
-class WalrusTokenNode(TSNode):
+class WalrusTokenNode(TSNode, EditableMixin):
     """Generated node for :=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP[':='] = WalrusTokenNode
 
-class SemicolonTokenNode(TSNode):
+class SemicolonTokenNode(TSNode, EditableMixin):
     """Generated node for ;."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP[';'] = SemicolonTokenNode
 
-class LessThanTokenNode(TSNode):
+class LessThanTokenNode(TSNode, EditableMixin):
     """Generated node for <."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['<'] = LessThanTokenNode
 
-class LeftShiftTokenNode(TSNode):
+class LeftShiftTokenNode(TSNode, EditableMixin):
     """Generated node for <<."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['<<'] = LeftShiftTokenNode
 
-class LeftShiftEqualsTokenNode(TSNode):
+class LeftShiftEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for <<=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['<<='] = LeftShiftEqualsTokenNode
 
-class LessEqualsTokenNode(TSNode):
+class LessEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for <=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['<='] = LessEqualsTokenNode
 
-class NotEqualsAltTokenNode(TSNode):
+class NotEqualsAltTokenNode(TSNode, EditableMixin):
     """Generated node for <>."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['<>'] = NotEqualsAltTokenNode
 
-class EqualsTokenNode(TSNode):
+class EqualsTokenNode(TSNode, EditableMixin):
     """Generated node for =."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['='] = EqualsTokenNode
 
-class EqualityTokenNode(TSNode):
+class EqualityTokenNode(TSNode, EditableMixin):
     """Generated node for ==."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['=='] = EqualityTokenNode
 
-class GreaterThanTokenNode(TSNode):
+class GreaterThanTokenNode(TSNode, EditableMixin):
     """Generated node for >."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['>'] = GreaterThanTokenNode
 
-class GreaterEqualsTokenNode(TSNode):
+class GreaterEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for >=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['>='] = GreaterEqualsTokenNode
 
-class RightShiftTokenNode(TSNode):
+class RightShiftTokenNode(TSNode, EditableMixin):
     """Generated node for >>."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['>>'] = RightShiftTokenNode
 
-class RightShiftEqualsTokenNode(TSNode):
+class RightShiftEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for >>=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['>>='] = RightShiftEqualsTokenNode
 
-class AtTokenNode(TSNode):
+class AtTokenNode(TSNode, EditableMixin):
     """Generated node for @."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['@'] = AtTokenNode
 
-class AtEqualsTokenNode(TSNode):
+class AtEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for @=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['@='] = AtEqualsTokenNode
 
-class LeftBracketTokenNode(TSNode):
+class LeftBracketTokenNode(TSNode, EditableMixin):
     """Generated node for [."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['['] = LeftBracketTokenNode
 
-class BackslashTokenNode(TSNode):
+class BackslashTokenNode(TSNode, EditableMixin):
     """Generated node for \."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['\\'] = BackslashTokenNode
 
-class RightBracketTokenNode(TSNode):
+class RightBracketTokenNode(TSNode, EditableMixin):
     """Generated node for ]."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP[']'] = RightBracketTokenNode
 
-class CaretTokenNode(TSNode):
+class CaretTokenNode(TSNode, EditableMixin):
     """Generated node for ^."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['^'] = CaretTokenNode
 
-class CaretEqualsTokenNode(TSNode):
+class CaretEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for ^=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['^='] = CaretEqualsTokenNode
 
-class UnderscoreTokenNode(TSNode):
+class UnderscoreTokenNode(TSNode, EditableMixin):
     """Generated node for _."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['_'] = UnderscoreTokenNode
 
-class FutureTokenNode(TSNode):
+class FutureTokenNode(TSNode, EditableMixin):
     """Generated node for __future__."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['__future__'] = FutureTokenNode
 
-class AndTokenNode(TSNode):
+class AndTokenNode(TSNode, EditableMixin):
     """Generated node for and."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['and'] = AndTokenNode
 
-class AsTokenNode(TSNode):
+class AsTokenNode(TSNode, EditableMixin):
     """Generated node for as."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['as'] = AsTokenNode
 
-class AssertTokenNode(TSNode):
+class AssertTokenNode(TSNode, EditableMixin):
     """Generated node for assert."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['assert'] = AssertTokenNode
 
-class AsyncTokenNode(TSNode):
+class AsyncTokenNode(TSNode, EditableMixin):
     """Generated node for async."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['async'] = AsyncTokenNode
 
-class BreakTokenNode(TSNode):
+class BreakTokenNode(TSNode, EditableMixin):
     """Generated node for break."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['break'] = BreakTokenNode
 
-class CaseTokenNode(TSNode):
+class CaseTokenNode(TSNode, EditableMixin):
     """Generated node for case."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['case'] = CaseTokenNode
 
-class ClassTokenNode(TSNode):
+class ClassTokenNode(TSNode, EditableMixin):
     """Generated node for class."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['class'] = ClassTokenNode
 
-class CommentNode(TSNode):
+class CommentNode(TSNode, EditableMixin):
     """Generated node for comment."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['comment'] = CommentNode
 
-class ContinueTokenNode(TSNode):
+class ContinueTokenNode(TSNode, EditableMixin):
     """Generated node for continue."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['continue'] = ContinueTokenNode
 
-class DefTokenNode(TSNode):
+class DefTokenNode(TSNode, EditableMixin):
     """Generated node for def."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['def'] = DefTokenNode
 
-class DelTokenNode(TSNode):
+class DelTokenNode(TSNode, EditableMixin):
     """Generated node for del."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['del'] = DelTokenNode
 
-class ElifTokenNode(TSNode):
+class ElifTokenNode(TSNode, EditableMixin):
     """Generated node for elif."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['elif'] = ElifTokenNode
 
-class EllipsisNode(PrimaryExpressionNode):
+class EllipsisNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for ellipsis."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['ellipsis'] = EllipsisNode
 
-class ElseTokenNode(TSNode):
+class ElseTokenNode(TSNode, EditableMixin):
     """Generated node for else."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['else'] = ElseTokenNode
 
-class EscapeInterpolationNode(TSNode):
+class EscapeInterpolationNode(TSNode, EditableMixin):
     """Generated node for escape_interpolation."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['escape_interpolation'] = EscapeInterpolationNode
 
-class EscapeSequenceNode(TSNode):
+class EscapeSequenceNode(TSNode, EditableMixin):
     """Generated node for escape_sequence."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['escape_sequence'] = EscapeSequenceNode
 
-class ExceptTokenNode(TSNode):
+class ExceptTokenNode(TSNode, EditableMixin):
     """Generated node for except."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['except'] = ExceptTokenNode
 
-class ExceptStarTokenNode(TSNode):
+class ExceptStarTokenNode(TSNode, EditableMixin):
     """Generated node for except*."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['except*'] = ExceptStarTokenNode
 
-class ExecTokenNode(TSNode):
+class ExecTokenNode(TSNode, EditableMixin):
     """Generated node for exec."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['exec'] = ExecTokenNode
 
-class FalseNode(PrimaryExpressionNode):
+class FalseNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for false."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['false'] = FalseNode
 
-class FinallyTokenNode(TSNode):
+class FinallyTokenNode(TSNode, EditableMixin):
     """Generated node for finally."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['finally'] = FinallyTokenNode
 
-class FloatNode(PrimaryExpressionNode):
+class FloatNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for float."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['float'] = FloatNode
 
-class ForTokenNode(TSNode):
+class ForTokenNode(TSNode, EditableMixin):
     """Generated node for for."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['for'] = ForTokenNode
 
-class FromTokenNode(TSNode):
+class FromTokenNode(TSNode, EditableMixin):
     """Generated node for from."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['from'] = FromTokenNode
 
-class GlobalTokenNode(TSNode):
+class GlobalTokenNode(TSNode, EditableMixin):
     """Generated node for global."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['global'] = GlobalTokenNode
 
-class IdentifierNode(PrimaryExpressionNode):
+class IdentifierNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for identifier."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['identifier'] = IdentifierNode
 
-class IfTokenNode(TSNode):
+class IfTokenNode(TSNode, EditableMixin):
     """Generated node for if."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['if'] = IfTokenNode
 
-class ImportTokenNode(TSNode):
+class ImportTokenNode(TSNode, EditableMixin):
     """Generated node for import."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['import'] = ImportTokenNode
 
-class InTokenNode(TSNode):
+class InTokenNode(TSNode, EditableMixin):
     """Generated node for in."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['in'] = InTokenNode
 
-class IntegerNode(PrimaryExpressionNode):
+class IntegerNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for integer."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['integer'] = IntegerNode
 
-class IsTokenNode(TSNode):
+class IsTokenNode(TSNode, EditableMixin):
     """Generated node for is."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['is'] = IsTokenNode
 
-class IsNotTokenNode(TSNode):
+class IsNotTokenNode(TSNode, EditableMixin):
     """Generated node for is not."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['is not'] = IsNotTokenNode
 
-class LineContinuationNode(TSNode):
+class LineContinuationNode(TSNode, EditableMixin):
     """Generated node for line_continuation."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['line_continuation'] = LineContinuationNode
 
-class MatchTokenNode(TSNode):
+class MatchTokenNode(TSNode, EditableMixin):
     """Generated node for match."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['match'] = MatchTokenNode
 
-class NoneNode(PrimaryExpressionNode):
+class NoneNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for none."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['none'] = NoneNode
 
-class NonlocalTokenNode(TSNode):
+class NonlocalTokenNode(TSNode, EditableMixin):
     """Generated node for nonlocal."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['nonlocal'] = NonlocalTokenNode
 
-class NotTokenNode(TSNode):
+class NotTokenNode(TSNode, EditableMixin):
     """Generated node for not."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['not'] = NotTokenNode
 
-class NotInTokenNode(TSNode):
+class NotInTokenNode(TSNode, EditableMixin):
     """Generated node for not in."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['not in'] = NotInTokenNode
 
-class OrTokenNode(TSNode):
+class OrTokenNode(TSNode, EditableMixin):
     """Generated node for or."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['or'] = OrTokenNode
 
-class PassTokenNode(TSNode):
+class PassTokenNode(TSNode, EditableMixin):
     """Generated node for pass."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['pass'] = PassTokenNode
 
-class PrintTokenNode(TSNode):
+class PrintTokenNode(TSNode, EditableMixin):
     """Generated node for print."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['print'] = PrintTokenNode
 
-class RaiseTokenNode(TSNode):
+class RaiseTokenNode(TSNode, EditableMixin):
     """Generated node for raise."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['raise'] = RaiseTokenNode
 
-class ReturnTokenNode(TSNode):
+class ReturnTokenNode(TSNode, EditableMixin):
     """Generated node for return."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['return'] = ReturnTokenNode
 
-class StringEndNode(TSNode):
+class StringEndNode(TSNode, EditableMixin):
     """Generated node for string_end."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['string_end'] = StringEndNode
 
-class StringStartNode(TSNode):
+class StringStartNode(TSNode, EditableMixin):
     """Generated node for string_start."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['string_start'] = StringStartNode
 
-class TrueNode(PrimaryExpressionNode):
+class TrueNode(PrimaryExpressionNode, EditableMixin):
     """Generated node for true."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['true'] = TrueNode
 
-class TryTokenNode(TSNode):
+class TryTokenNode(TSNode, EditableMixin):
     """Generated node for try."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['try'] = TryTokenNode
 
-class TypeConversionNode(TSNode):
+class TypeConversionNode(TSNode, EditableMixin):
     """Generated node for type_conversion."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['type_conversion'] = TypeConversionNode
 
-class WhileTokenNode(TSNode):
+class WhileTokenNode(TSNode, EditableMixin):
     """Generated node for while."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['while'] = WhileTokenNode
 
-class WithTokenNode(TSNode):
+class WithTokenNode(TSNode, EditableMixin):
     """Generated node for with."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['with'] = WithTokenNode
 
-class LeftBraceTokenNode(TSNode):
+class LeftBraceTokenNode(TSNode, EditableMixin):
     """Generated node for {."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['{'] = LeftBraceTokenNode
 
-class PipeTokenNode(TSNode):
+class PipeTokenNode(TSNode, EditableMixin):
     """Generated node for |."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['|'] = PipeTokenNode
 
-class PipeEqualsTokenNode(TSNode):
+class PipeEqualsTokenNode(TSNode, EditableMixin):
     """Generated node for |=."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['|='] = PipeEqualsTokenNode
 
-class RightBraceTokenNode(TSNode):
+class RightBraceTokenNode(TSNode, EditableMixin):
     """Generated node for }."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['}'] = RightBraceTokenNode
 
-class TildeTokenNode(TSNode):
+class TildeTokenNode(TSNode, EditableMixin):
     """Generated node for ~."""
-    def insert_child(self, index: int, child: TSNode) -> TSNode:
-        """Insert child at index with grammar validation."""
-        # TODO: Add grammar validation logic
-        new_children = list(self.children)
-        new_children.insert(index, child)
-        return self.model_copy(update={'children': new_children})
-
-    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
-        """Replace child with grammar validation."""
-        new_children = [
-            new_child if c == old_child else c
-            for c in self.children
-        ]
-        return self.model_copy(update={'children': new_children})
-
-    def delete_child(self, child: TSNode) -> TSNode:
-        """Delete child with grammar validation."""
-        new_children = [c for c in self.children if c != child]
-        return self.model_copy(update={'children': new_children})
-
+    pass
 
 NODE_MAP['~'] = TildeTokenNode
 

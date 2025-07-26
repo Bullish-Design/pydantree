@@ -149,9 +149,9 @@ class InheritanceAnalyzer:
 
         if parent_indices:
             parent_idx = parent_indices[0]
-            print(
-                f"            Parent idx type: {type(parent_idx)}, value: {parent_idx}"
-            )
+            # print(
+            #    f"            Parent idx type: {type(parent_idx)}, value: {parent_idx}"
+            # )
 
             if isinstance(parent_idx, int):
                 return self.graph.get_node_data(parent_idx)
@@ -165,13 +165,13 @@ class InheritanceAnalyzer:
         try:
             # Get sorted indices
             indices = rx.topological_sort(self.graph)
-            print(f"Topological sort order: {indices}")
+            # print(f"Topological sort order: {indices}")
             # Convert indices to node names using get_node_data
-            for idx in reversed(indices):
-                print(f"    Checking node index: {idx} | {type(idx)}")
-                print(f"        Node data: {self.graph.get_node_data(idx)}")
-                # if idx not in self.graph.node_weights:
-                #    raise ValueError(f"Node index {idx} not found in graph")
+            # for idx in reversed(indices):
+            # print(f"    Checking node index: {idx} | {type(idx)}")
+            # print(f"        Node data: {self.graph.get_node_data(idx)}")
+            # if idx not in self.graph.node_weights:
+            #    raise ValueError(f"Node index {idx} not found in graph")
             return [self.graph.get_node_data(idx) for idx in reversed(indices)]
         except Exception:
             return list(self.specs.keys())
@@ -200,20 +200,16 @@ class CodeGenerator:
 
     def _generate_class(self, node_type: str) -> str:
         """Generate a single node class."""
-        print(f"\nGenerating Class:")
-        print(f"    Node Type: {node_type}")
         spec = self.specs[node_type]
         class_name = self.class_names[node_type]
-        print(f"    Class Name: {class_name}")
+
         # Determine parent class
         parent_type = self.analyzer.get_parent(node_type)
-        print(f"    Parent Type: {parent_type}")
-        parent_class = (
-            self.class_names[parent_type]
-            if parent_type and parent_type in self.class_names
-            else self.base_class
-        )
-        print(f"    Parent Class: {parent_class}")
+        if parent_type and parent_type in self.class_names:
+            parent_class = f"{self.class_names[parent_type]}, EditableMixin"
+        else:
+            parent_class = f"{self.base_class}, EditableMixin"
+
         # Get fields for __match_args__
         fields = spec.get("fields", {})
         match_args = ["type_name"] + list(fields.keys())
@@ -231,9 +227,6 @@ class CodeGenerator:
         # Add typed field properties
         for field_name, field_spec in fields.items():
             lines.extend(self._generate_field_property(field_name, field_spec))
-
-        # Add edit helper methods
-        lines.extend(self._generate_edit_helpers(node_type, spec))
 
         # Add pass if class is empty
         if len(lines) == 2:  # Only class def and docstring
@@ -266,7 +259,7 @@ class CodeGenerator:
 
         # Generate property
         lines = [
-            f"    @property",
+            f"\n    @property",
             f"    def {field_name}(self) -> {type_hint}:",
             f'        """Access {field_name} field."""',
         ]
@@ -293,51 +286,7 @@ class CodeGenerator:
                 ]
             )
 
-        lines.append("")
-        return lines
-
-    def _generate_edit_helpers(self, node_type: str, spec: Dict[str, Any]) -> List[str]:
-        """Generate grammar-aware edit helper methods."""
-        lines = []
-
-        # insert_child method
-        lines.extend(
-            [
-                "    def insert_child(self, index: int, child: TSNode) -> TSNode:",
-                '        """Insert child at index with grammar validation."""',
-                "        # TODO: Add grammar validation logic",
-                "        new_children = list(self.children)",
-                "        new_children.insert(index, child)",
-                "        return self.model_copy(update={'children': new_children})",
-                "",
-            ]
-        )
-
-        # replace_child method
-        lines.extend(
-            [
-                "    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:",
-                '        """Replace child with grammar validation."""',
-                "        new_children = [",
-                "            new_child if c == old_child else c",
-                "            for c in self.children",
-                "        ]",
-                "        return self.model_copy(update={'children': new_children})",
-                "",
-            ]
-        )
-
-        # delete_child method
-        lines.extend(
-            [
-                "    def delete_child(self, child: TSNode) -> TSNode:",
-                '        """Delete child with grammar validation."""',
-                "        new_children = [c for c in self.children if c != child]",
-                "        return self.model_copy(update={'children': new_children})",
-                "",
-            ]
-        )
-
+        # lines.append("")
         return lines
 
     def generate_module(self) -> str:
@@ -356,6 +305,10 @@ class CodeGenerator:
             "NODE_MAP: dict[str, type[TSNode]] = {}",
             "",
         ]
+
+        # Add the EditableMixin class
+        lines.append(self._generate_editable_mixin_class())
+        lines.append("")
 
         # Generate classes in inheritance order
         print(f"\n\nSpecs: {self.specs}\n\n")
@@ -378,6 +331,33 @@ class CodeGenerator:
         )
 
         return "\n".join(lines)
+
+    def _generate_editable_mixin_class(self) -> str:
+        """Generate the EditableMixin class."""
+        return '''
+class EditableMixin:
+    """Mixin providing edit operations for tree nodes."""
+    
+    def insert_child(self, index: int, child: TSNode) -> TSNode:
+        """Insert child at index with grammar validation."""
+        # TODO: Add grammar validation logic
+        new_children = list(self.children)
+        new_children.insert(index, child)
+        return self.model_copy(update={'children': new_children})
+
+    def replace_child(self, old_child: TSNode, new_child: TSNode) -> TSNode:
+        """Replace child with grammar validation."""
+        new_children = [
+            new_child if c == old_child else c
+            for c in self.children
+        ]
+        return self.model_copy(update={'children': new_children})
+
+    def delete_child(self, child: TSNode) -> TSNode:
+        """Delete child with grammar validation."""
+        new_children = [c for c in self.children if c != child]
+        return self.model_copy(update={'children': new_children})
+'''
 
 
 def generate_from_node_types(

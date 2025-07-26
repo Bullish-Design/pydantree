@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import List, ClassVar, Optional, Dict, Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -44,6 +45,7 @@ class TSNode(BaseModel):
         cls._registry.update(mapping)
 
     # Construction helpers
+    '''
     @classmethod
     def from_tree_sitter(cls, node, text_bytes: bytes) -> TSNode:
         """Recursively convert a `tree_sitter.Node` into a validated `TSNode`."""
@@ -53,6 +55,51 @@ class TSNode(BaseModel):
         children = []
         for child in node.children:
             child_node = cls.from_tree_sitter(child, text_bytes)
+            children.append(child_node)
+
+        text = text_bytes[node.start_byte : node.end_byte].decode(errors="ignore")
+        return sub_cls(
+            type_name=node.type,
+            start_byte=node.start_byte,
+            end_byte=node.end_byte,
+            start_point=TSPoint(row=node.start_point[0], column=node.start_point[1]),
+            end_point=TSPoint(row=node.end_point[0], column=node.end_point[1]),
+            text=text,
+            children=children,
+            is_named=node.is_named,
+        )
+    '''
+
+    @classmethod
+    def from_tree_sitter(cls, node, text_bytes: bytes) -> TSNode:
+        """Recursively convert a `tree_sitter.Node` into a validated `TSNode`."""
+        sub_cls = cls._registry.get(node.type, cls)
+        # print(f"\nConverting node: {node.type}\n{node}\n")
+        # pretty_node = json.dumps(node.__dir__(), indent=2, ensure_ascii=False)
+        # print(f"Node dict:\n{pretty_node}\n")
+        # Process children with field names
+        children = []
+        child_counter = 0
+        for child in node.children:
+            child_node = cls.from_tree_sitter(child, text_bytes)
+            child_dict = child_node.dict()
+            pretty_dict = json.dumps(child_dict, indent=2, ensure_ascii=False)
+            # print(f"\nChild node:\n{pretty_dict}\n")
+            # Get field name from the parent node
+            field_name = None
+            if hasattr(node, "field_name_for_child"):
+                try:
+                    # print(
+                    #    f"\nGetting field name for child node: {child.type}\n{child}\n"
+                    # )
+                    field_name = node.field_name_for_child(child_counter)
+                    child_counter += 1
+                except:
+                    field_name = None
+                # print(f"Field name: {field_name}")
+
+            if field_name:
+                child_node = child_node.model_copy(update={"field_name": field_name})
             children.append(child_node)
 
         text = text_bytes[node.start_byte : node.end_byte].decode(errors="ignore")

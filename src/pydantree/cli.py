@@ -116,7 +116,7 @@ def generate(
 def ast(
     source: Optional[Path] = typer.Argument(None, help="Python source file"),
     code: Optional[str] = typer.Option(None, "--code", "-c", help="Inline code"),
-    max_depth: int = typer.Option(5, "--depth", help="Maximum tree depth"),
+    max_depth: int = typer.Option(4, "--depth", help="Maximum tree depth"),
     show_text: bool = typer.Option(True, "--text/--no-text", help="Show node text"),
     format: str = typer.Option("tree", "--format", help="Output format: tree, json"),
 ) -> None:
@@ -171,6 +171,8 @@ def _add_tree_children(tree, node: TSNode, max_depth: int, show_text: bool, dept
         return
 
     for child in node.children:
+        if not child.is_named:
+            continue
         label = f"[bold]{child.__class__.__name__}[/bold]"
         if show_text and child.text.strip():
             text = child.text.strip().replace("\n", " ")[:40]
