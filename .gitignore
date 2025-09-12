@@ -2,7 +2,8 @@
 .config/
 **.env
 .direnv**
-
+Notes.md
+Tasks.md
 
 
 # Byte-compiled / optimized / DLL files
