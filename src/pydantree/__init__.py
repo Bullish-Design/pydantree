@@ -1,122 +1,63 @@
-"""pydantree – Typed Tree‑sitter wrapper with graph operations.
+# pydantree/__init__.py
+"""
+Pydantree: A high-performance, multi-language AST analysis platform.
 
-This package exposes:
+This library provides a typed, Pydantic-validated wrapper around Tree-sitter
+for robust static analysis, code transformation, and batch processing.
 
-Core primitives:
-* **TSNode / TSPoint** – Pydantic models mirroring tree‑sitter metadata
-* **Parser** – wrapper around `tree_sitter.Parser` returning validated models
-* **ParsedDocument** – incremental‑parsing with text + tree sync
-
-Code generation:
-* **generate_from_node_types** – create typed subclasses from node-types.json
-* **NodeTypesBootstrap** – ensure generated classes are loaded
-
-Collections and graph operations:
-* **NodeGroup** – lazy, set-theoretic collections of nodes
-* **GraphBuilder** – convert NodeGroup to rustworkx graphs for analysis
-* **PatternMatcher** – VF2 isomorphism matching for AST patterns
-
-High-level views:
-* **PyModule / PyFunction / PyClass** – semantic Python wrappers
-* **QuerySet** – chainable selectors with Django-inspired API
-* **PyTransformer** – visitor pattern for codemods
-
-The goal is typed, incrementally-editable AST objects with advanced
-querying and graph analysis capabilities.
+Key Modules:
+- `pydantree.core`: Core data structures like TSNode and parsers.
+- `pydantree.languages`: Language-specific abstractions and implementations.
+- `pydantree.processing`: Tools for batch processing and node collections.
+- `pydantree.export`: A unified engine for exporting ASTs and analysis results.
+- `pydantree.graph`: AST-to-graph conversion and analysis capabilities.
 """
 
-from __future__ import annotations
+# Load and register built-in languages
+from . import languages
 
-from .core import TSNode, TSPoint
-from .parser import Parser
-from .incremental import ParsedDocument
-from .codegen import generate_from_node_types
-from .loader import NodeTypesBootstrap
-from .nodegroup import (
-    NodeGroup,
-    NodeSelector,
-    TypeSelector,
-    ClassSelector,
-    PredicateSelector,
-    TextSelector,
-    nodes,
-    from_tree,
-    empty,
+from .core.nodes import TSNode, TraversalOrder
+from .core.parsers import Parser, parse_file
+from .languages.base import (
+    Language,
+    SemanticNode,
+    SemanticRole,
+    create_language,
+    get_language,
 )
-from .views import (
-    PyView,
-    PyModule,
-    PyFunction,
-    PyClass,
-    PyImport,
-    QuerySet,
-    PyTransformer,
-    parse_python,
-    parse_python_file,
-    find_functions,
-    find_classes,
+from .languages.registry import (
+    get_global_registry,
+    detect_language,
+    get_supported_languages,
+    LanguageFeature,
 )
+from .processing.collections import NodeGroup, nodes, from_tree
 
-# Graph operations (optional - requires rustworkx)
 try:
-    from .graph import (
-        GraphBuilder,
-        PatternMatcher,
-        GraphAnalyzer,
-        build_tree_graph,
-        build_pattern_graph,
-        find_pattern_matches,
-    )
-
-    _HAS_GRAPH = True
+    from ._version import __version__
 except ImportError:
-    _HAS_GRAPH = False
-
+    __version__ = "1.0.0"
 
 __all__ = [
     # Core
     "TSNode",
-    "TSPoint",
+    "TraversalOrder",
     "Parser",
-    "ParsedDocument",
-    # Code generation
-    "generate_from_node_types",
-    "NodeTypesBootstrap",
-    # Collections
+    "parse_file",
+    # Languages
+    "Language",
+    "SemanticNode",
+    "SemanticRole",
+    "create_language",
+    "get_language",
+    "get_global_registry",
+    "detect_language",
+    "get_supported_languages",
+    "LanguageFeature",
+    # Processing
     "NodeGroup",
-    "NodeSelector",
-    "TypeSelector",
-    "ClassSelector",
-    "PredicateSelector",
-    "TextSelector",
     "nodes",
     "from_tree",
-    "empty",
-    # Views
-    "PyView",
-    "PyModule",
-    "PyFunction",
-    "PyClass",
-    "PyImport",
-    "QuerySet",
-    "PyTransformer",
-    "parse_python",
-    "parse_python_file",
-    "find_functions",
-    "find_classes",
+    # Version
+    "__version__",
 ]
-
-# Add graph operations to __all__ if available
-if _HAS_GRAPH:
-    __all__.extend(
-        [
-            "GraphBuilder",
-            "PatternMatcher",
-            "GraphAnalyzer",
-            "build_tree_graph",
-            "build_pattern_graph",
-            "find_pattern_matches",
-        ]
-    )
-
-__version__ = "0.2.0"
