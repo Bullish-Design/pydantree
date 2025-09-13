@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import threading
+import time
 from typing import (
     Callable, Generic, Iterator, TypeVar, Union, Any, List, Set, Optional, 
     Tuple, Dict, FrozenSet, Hashable
@@ -14,10 +15,10 @@ from collections import defaultdict, Counter
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from ..core.nodes import TSNode, TraversalOrder
-from ..core.profiler import PerformanceProfiler
+#from ..core.profiler import PerformanceProfiler
 
 T = TypeVar("T", bound=TSNode)
 
@@ -249,18 +250,27 @@ class PositionSelector(NodeSelector):
 class NodeGroup(BaseModel, Generic[T]):
     """Enhanced lazy, immutable collection of TSNode objects with advanced operations."""
     
-    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, validate_assignment=False, frozen=True, protected_namespaces=())
     
     # Core storage - using frozenset for immutability and fast set operations
-    _nodes: FrozenSet[TSNode] = Field(default_factory=frozenset, alias="nodes")
-    _selectors: Tuple[NodeSelector, ...] = Field(default_factory=tuple, alias="selectors")
-    _cached_results: Optional[FrozenSet[TSNode]] = Field(default=None, exclude=True)
-    _cache_valid: bool = Field(default=False, exclude=True)
-    _metadata: Dict[str, Any] = Field(default_factory=dict)
-    
+    nodes: FrozenSet[TSNode] = Field(default_factory=frozenset) #, alias="nodes")
+    #_nodes: FrozenSet[TSNode] = Field(default_factory=frozenset, alias="nodes")
+    _index: dict[str, int] = PrivateAttr(default_factory=dict)
+    _by_id: dict[str, T] = PrivateAttr(default_factory=dict)
+
+    #_selectors: Tuple[NodeSelector, ...] = Field(default_factory=tuple, alias="selectors")
+    #_cached_results: Optional[FrozenSet[TSNode]] = Field(default=None, exclude=True)
+    #_cache_valid: bool = Field(default=False, exclude=True)
+    #_metadata: Dict[str, Any] = Field(default_factory=dict)
+
+    selectors: Tuple[NodeSelector, ...] = Field(default_factory=tuple)
+    _cached_results: Optional[FrozenSet[TSNode]] = PrivateAttr(default=None)
+    _cache_valid: bool = PrivateAttr(default=False)
+    metadata: Dict[str, Any] = Field(default_factory=dict) #, alias="metadata")
+
     # Performance tracking
-    _creation_time: float = Field(default_factory=lambda: __import__('time').time(), exclude=True)
-    _access_count: int = Field(default=0, exclude=True)
+    _creation_time: float = PrivateAttr(default_factory=time.time) #= Field(default_factory=lambda: __import__('time').time(), exclude=True)
+    _access_count: int = PrivateAttr(default=0) #Field(default=0, exclude=True)
     
     def __init__(self, input_nodes: Union[TSNode, Iterator[TSNode], List[TSNode], Set[TSNode], 
                                         FrozenSet[TSNode], None] = None, **data):
@@ -277,7 +287,23 @@ class NodeGroup(BaseModel, Generic[T]):
             nodes_set = frozenset(input_nodes)
         
         super().__init__(nodes=nodes_set, **data)
-    
+   
+
+
+    # --------------------------------------------------------------------
+    # Back-compat properties for underscored names (no writes via property)
+    # --------------------------------------------------------------------
+    @property
+    def _nodes(self) -> FrozenSet[TSNode]:
+        return self.nodes
+
+    @property
+    def _selectors(self) -> Tuple[NodeSelector, ...]:
+        return self.selectors
+
+    @property
+    def _metadata(self) -> Dict[str, Any]:
+        return self.metadata
     # ========================================================================
     # Enhanced Lazy Evaluation with Caching
     # ========================================================================
@@ -703,7 +729,7 @@ class NodeGroup(BaseModel, Generic[T]):
             'source': 'tree',
             'root_type': root.type_name,
             'traversal_order': traversal.value,
-            'tree_depth': root.max_depth
+            #'tree_depth': root.max_depth
         }
         
         return cls(input_nodes=nodes, metadata=metadata)

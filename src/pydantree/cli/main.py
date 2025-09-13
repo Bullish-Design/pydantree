@@ -20,7 +20,7 @@ from rich.text import Text
 from rich.columns import Columns
 from rich.align import Align
 
-from ..core.parsers import Parser, MultiLanguageParser, LanguageRegistry
+from ..core.parsers import Parser, MultiLanguageParser#, LanguageRegistry
 from ..core.nodes import TSNode
 from ..core.profiler import PerformanceProfiler
 from ..processing.batch import BatchProcessor, ProcessingMode, ProcessingPriority, discover_source_files
@@ -491,17 +491,24 @@ def ast(
 
 def _format_ast_tree(node: TSNode, max_depth: int, show_text: bool, show_metrics: bool) -> str:
     """Format AST as rich tree structure."""
-    tree = RichTree(f"[bold blue]{node.__class__.__name__}[/bold blue]")
+    # Create a console without color for capture
+    from rich.console import Console
+    plain_console = Console(force_terminal=False, width=150)
+    
+    tree = RichTree(f"{node.type_name}")
     
     if show_metrics:
-        metrics = node.get_metrics()
-        tree.label += f" [dim](nodes: {metrics['total_nodes']}, complexity: {metrics['cyclomatic_complexity']})[/dim]"
+        try:
+            metrics = node.get_metrics()
+            tree.label += f" (nodes: {metrics['total_nodes']}, complexity: {metrics['cyclomatic_complexity']})"
+        except (AttributeError, KeyError):
+            pass
     
     _add_tree_children(tree, node, max_depth, show_text, show_metrics, 0)
     
-    # Render to string
-    with console.capture() as capture:
-        console.print(tree)
+    # Render to string without ANSI codes
+    with plain_console.capture() as capture:
+        plain_console.print(tree)
     
     return capture.get()
 
@@ -510,27 +517,31 @@ def _add_tree_children(tree, node: TSNode, max_depth: int, show_text: bool, show
     """Recursively add children to tree display."""
     if depth >= max_depth:
         if node.children:
-            tree.add(f"[dim]... ({len(node.children)} more children)[/dim]")
+            tree.add(f"... ({len(node.children)} more children)")
         return
     
     for child in node.children:
         if not child.is_named:
             continue
         
-        label = f"[bold]{child.__class__.__name__}[/bold]"
+        label = child.type_name
         
         if show_text and child.text.strip():
             text = child.text.strip().replace("\n", " ")[:40]
             if len(text) == 40:
                 text += "..."
-            label += f": [green]{text!r}[/green]"
+            label += f": {text!r}"
         
-        if show_metrics and child.descendants_count > 0:
-            label += f" [blue]({child.descendants_count} nodes)[/blue]"
+        if show_metrics:
+            try:
+                descendant_count = len(list(child.descendants()))
+                if descendant_count > 0:
+                    label += f" ({descendant_count} nodes)"
+            except (AttributeError, TypeError):
+                pass
         
         child_tree = tree.add(label)
         _add_tree_children(child_tree, child, max_depth, show_text, show_metrics, depth + 1)
-
 
 # ========================================================================
 # Main CLI Runner

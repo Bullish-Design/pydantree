@@ -4,13 +4,10 @@
 from .base import (
     Language,
     LanguageAnalyzer,
-    LanguageFormatter,
-    LanguageTransformer,
-    LanguageValidator,
     SemanticNode,
     SemanticRole,
-    LanguageFactory,
     create_language,
+    get_language,
     get_language_factory,
     register_language_class,
 )
@@ -23,18 +20,24 @@ from .registry import (
     detect_language,
 )
 
+# Import and register built-in languages
+from .python import PythonLanguage
+
+register_language_class("python", PythonLanguage)
+
+
 __all__ = [
+    # Base Abstractions
     "Language",
     "LanguageAnalyzer",
-    "LanguageFormatter",
-    "LanguageTransformer",
-    "LanguageValidator",
     "SemanticNode",
     "SemanticRole",
-    "LanguageFactory",
+    # Factory & Instantiation
     "create_language",
+    "get_language",
     "get_language_factory",
     "register_language_class",
+    # Registry & Configuration
     "LanguageConfig",
     "LanguageFeature",
     "LanguagePriority",

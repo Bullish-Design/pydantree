@@ -4,13 +4,13 @@
 from .nodes import TSNode, TSPoint, TraversalOrder, SerializationMode
 from .parsers import (
     Parser,
-    MultiLanguageParser,
-    LanguageSupport,
+    #MultiLanguageParser,
+    #LanguageSupport,
     ParserPool,
     parse_file,
-    get_global_parser,
+    #get_global_parser,
 )
-from .profiler import PerformanceProfiler
+#from .profiler import PerformanceProfiler
 
 __all__ = [
     "TSNode",
@@ -18,10 +18,10 @@ __all__ = [
     "TraversalOrder",
     "SerializationMode",
     "Parser",
-    "MultiLanguageParser",
-    "LanguageSupport",
+    #"MultiLanguageParser",
+    #"LanguageSupport",
     "ParserPool",
     "parse_file",
-    "get_global_parser",
-    "PerformanceProfiler",
+    #"get_global_parser",
+    #"PerformanceProfiler",
 ]

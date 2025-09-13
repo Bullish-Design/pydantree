@@ -15,7 +15,7 @@ from enum import Enum
 
 from pydantic import BaseModel, TypeAdapter, Field
 
-from ..core.parsers import Parser, MultiLanguageParser, LanguageRegistry
+from ..core.parsers import Parser, MultiLanguageParser#, LanguageRegistry
 from ..core.nodes import TSNode
 from ..core.profiler import PerformanceProfiler
 
