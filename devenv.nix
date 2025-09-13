@@ -28,6 +28,15 @@
     echo hello from $GREET
   '';
 
+  scripts.test-cli.exec = ''
+    echo ""
+    echo "Testing CLI Functionality..."
+    echo ""
+    bash examples/07_cli_usage.sh
+    echo ""
+    echo ""
+  '';
+
   enterShell = ''
     hello
     git --version

@@ -63,8 +63,8 @@ DEFAULT_CONFIG = {
 '''
     
     # Parse and analyze
-    ast_root = python_lang.parse_file_from_string(code)
-    semantic_root = python_lang.analyze_file_from_string(code)
+    ast_root = python_lang.parser.parse(code)
+    semantic_root = python_lang.analyzer.analyze_semantics(ast_root)
     
     print("Semantic Analysis Results:")
     print(f"Root semantic role: {semantic_root.role}")
@@ -129,7 +129,8 @@ def module_function():
     return LocalClass()
 '''
     
-    semantic_root = python_lang.analyze_file_from_string(code)
+    semantic_root = python_lang.parser.parse(code)
+    semantic_root = python_lang.analyzer.analyze_semantics(semantic_root)
     
     def print_hierarchy(node: SemanticNode, indent: int = 0):
         """Recursively print semantic hierarchy."""
@@ -200,8 +201,8 @@ def main():
     return backup_url
 '''
     
-    ast_root = python_lang.parse_file_from_string(code)
-    semantic_root = python_lang.analyze_file_from_string(code)
+    ast_root = python_lang.parser.parse(code)
+    semantic_root = python_lang.analyzer.analyze_semantics(ast_root)
     
     # Find all identifiers
     from pydantree import from_tree

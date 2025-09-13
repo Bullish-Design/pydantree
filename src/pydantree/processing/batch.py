@@ -15,9 +15,10 @@ from enum import Enum
 
 from pydantic import BaseModel, TypeAdapter, Field
 
-from ..core.parsers import Parser, MultiLanguageParser#, LanguageRegistry
+from ..core.parsers import Parser, MultiLanguageParser #, LanguageRegistry
 from ..core.nodes import TSNode
 from ..core.profiler import PerformanceProfiler
+from ..languages.registry import get_global_registry
 
 
 class ProcessingPriority(Enum):
@@ -518,7 +519,7 @@ class BatchProcessor:
             metrics = None
             if include_metrics:
                 with self.profiler.profile('extract_metrics'):
-                    metrics = node.get_metrics(include_advanced=True)
+                    metrics = node.get_metrics() #include_advanced=True)
             
             parse_time = time.time() - start_time
             return FileResult(
@@ -645,7 +646,7 @@ def _process_file_worker(file_path: Path, language_name: str, include_metrics: b
         
         metrics = None
         if include_metrics:
-            metrics = node.get_metrics(include_advanced=True)
+            metrics = node.get_metrics() #include_advanced=True)
         
         parse_time = time.time() - start_time
         return FileResult(
@@ -668,48 +669,39 @@ def _process_file_worker(file_path: Path, language_name: str, include_metrics: b
         )
 
 
-# Utility functions
-def discover_source_files(directory: Path,
-                         languages: Optional[List[str]] = None,
-                         include_hidden: bool = False,
-                         max_size_mb: Optional[int] = None) -> List[Path]:
+def discover_source_files(
+    directory: Path,
+    languages: Optional[List[str]] = None,
+    include_hidden: bool = False,
+    max_size_mb: Optional[int] = None,
+    exclude_patterns: Optional[List[str]] = None) -> List[Path]:
     """Enhanced source file discovery."""
     files = []
+    registry = get_global_registry()
     
     if languages:
         for language in languages:
-            config = LanguageRegistry.get_language_config(language)
+            config = registry.get_language_config(language)
             if config:
                 for ext in config.extensions:
                     files.extend(directory.rglob(f"*{ext}"))
     else:
         # All supported languages
-        for lang_name in LanguageRegistry.get_supported_languages():
-            config = LanguageRegistry.get_language_config(lang_name)
+        for lang_name in registry.get_supported_languages():
+            config = registry.get_language_config(lang_name)
             if config:
                 for ext in config.extensions:
                     files.extend(directory.rglob(f"*{ext}"))
     
     # Apply filters
-    filtered_files = []
-    for file_path in files:
-        # Skip hidden files
-        if not include_hidden and any(part.startswith('.') for part in file_path.parts):
-            continue
-        
-        # Size filter
-        if max_size_mb:
-            try:
-                size_mb = file_path.stat().st_size / (1024 * 1024)
-                if size_mb > max_size_mb:
-                    continue
-            except OSError:
-                continue
-        
-        filtered_files.append(file_path)
+    if exclude_patterns:
+        filtered_files = []
+        for file_path in files:
+            if not any(pattern in str(file_path) for pattern in exclude_patterns):
+                filtered_files.append(file_path)
+        files = filtered_files
     
-    return list(set(filtered_files))
-
+    return list(set(files))  # Remove duplicates
 
 @contextmanager
 def batch_processing_session(parser: Union[Parser, MultiLanguageParser],

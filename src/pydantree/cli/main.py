@@ -26,6 +26,9 @@ from ..core.profiler import PerformanceProfiler
 from ..processing.batch import BatchProcessor, ProcessingMode, ProcessingPriority, discover_source_files
 from ..export.engine import ExportEngine, ExportOptions, ExportFormat, OutputFormat, CompressionType
 
+from .commands import batch_app
+
+
 app = typer.Typer(
     name="pydantree",
     help="[bold blue]Pydantree[/bold blue] - High-performance multi-language AST analysis platform",
@@ -63,6 +66,8 @@ def main(
     elif quiet:
         console.quiet = True
 
+#@app.command()
+#batch_app
 
 # ========================================================================
 # Code Generation Commands
