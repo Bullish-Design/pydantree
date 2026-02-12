@@ -31,10 +31,7 @@ This review compares the current repository state against:
 1. **Public command contract is not implemented coherently.**
    The concept/docs promise `just workshop-init`, `scaffold`, `ingest <language> <query-pack>`, etc., but the `justfile` exposes only low-level `codegen-*` tasks and takes raw paths.
 
-2. **CLI entrypoint is currently merged in an invalid way.**
-   `src/pydantree/cli.py` defines one Typer app for `doctor`, then redefines `app` and appends CUE validation commands in the same file. This creates command-surface ambiguity and likely accidental shadowing.
-
-3. **Manifest contract is fragmented.**
+2. **Manifest contract is fragmented.**
    - CUE schema expects `output_file_hashes` and `toolchain_versions`.
    - `doctor` expects `generated_hashes` and `input_hashes`.
    - `build_manifest()` outputs fingerprints and counts but no per-file hash maps expected by doctor/schema.
@@ -60,41 +57,29 @@ This review compares the current repository state against:
 
 ## Key issues found
 
-### A) Build/package integrity issues
 
-1. **`pyproject.toml` declares `[project.scripts]` twice**, which makes tooling fail early (pytest cannot even start).
-2. This is a release-blocker because it breaks basic developer workflows.
-
-### B) Command/API overlap and accidental redefinition
-
-1. **`src/pydantree/cli.py` is effectively two CLIs jammed together**, with two `app = typer.Typer(...)` assignments.
-2. This can silently drop earlier command registrations depending on import/order behavior.
-3. The file appears to conflate:
-   - user-facing product CLI (`doctor`)
-   - generation wrapper CLI (`validate-ir`, `validate-manifest`, `generate`)
-
-### C) Contract drift between docs and implementation
+### A) Contract drift between docs and implementation
 
 1. Docs claim a grammar/query-pack semantic command contract; actual commands still use file paths.
 2. `justfile` does not represent the canonical contract advertised in README/CONCEPT.
 
-### D) Manifest and validation architecture conflicts
+### B) Manifest and validation architecture conflicts
 
 1. Doctor, CUE schema, and manifest builder disagree on manifest shape.
 2. CUE validation likely cannot validate emitted manifest artifacts from the current Python manifest model without adapters.
 3. This blocks trustworthy provenance checks and deterministic validation gates.
 
-### E) Determinism gaps
+### C) Determinism gaps
 
 1. Ingest/emit/manifest include `datetime.now(...)` fields directly in outputs, making artifacts non-reproducible across runs unless those timestamps are intentionally excluded from fingerprints.
 2. Generated module strings are deterministic for identical inputs, but surrounding pipeline artifacts include time-variant data.
 
-### F) Model duplication in generated output
+### D) Model duplication in generated output
 
 1. Every generated module defines local `Capture`, `Pattern`, and `Query` classes.
 2. This hinders composability and cross-pack interoperability compared to shared baseclasses + thin per-pack constants.
 
-### G) Test coverage blind spots
+### E) Test coverage blind spots
 
 1. No tests for CLI command registration or `pydantree` script behavior.
 2. No tests proving manifest schema compatibility across doctor/CUE/builder.
@@ -106,10 +91,9 @@ This review compares the current repository state against:
 
 These are the most concrete places where parts of the codebase step on each other:
 
-1. **CLI toe-stepping:** duplicate Typer app definitions in one file with overlapping responsibilities.
-2. **Manifest toe-stepping:** three incompatible manifest contracts (schema vs doctor vs builder).
-3. **Workflow toe-stepping:** docs assert grammar/query-pack contract while `justfile` and codegen CLI still prioritize path-based execution.
-4. **Entrypoint toe-stepping:** conflicting script table declarations in `pyproject.toml`.
+1. **Manifest toe-stepping:** three incompatible manifest contracts (schema vs doctor vs builder).
+2. **Workflow toe-stepping:** docs assert grammar/query-pack contract while `justfile` and codegen CLI still prioritize path-based execution.
+3. **Entrypoint toe-stepping:** conflicting script table declarations in `pyproject.toml`.
 
 ---
 
@@ -117,26 +101,23 @@ These are the most concrete places where parts of the codebase step on each othe
 
 ## High-value structural changes
 
-1. **Split CLI surfaces explicitly**
-   - `pydantree.cli.app`: user-facing workshop commands (name-based)
-   - `pydantree.codegen.cli`: stage-level engineering commands (artifact/path-based)
-   - `pydantree.validate.cli` (optional): CUE gates as a dedicated CLI
 
-2. **Establish one versioned IR + one versioned manifest contract**
+
+1. **Establish one versioned IR + one versioned manifest contract**
    - Keep schemas in `src/pydantree/cue/` authoritative.
    - Generate Python models from those schemas (or vice versa) to avoid drift.
    - Add explicit `manifest_version` and migration path.
 
-3. **Promote shared generated baseclasses**
+2. **Promote shared generated baseclasses**
    - Emit shared base models once (e.g., `src/pydantree/generated/base.py`).
    - Emit per-pack modules as data payload + lightweight typed wrappers.
    - This improves composability across query packs and reduces duplication.
 
-4. **Make `WorkshopLayout` mandatory in command implementations**
+3. **Make `WorkshopLayout` mandatory in command implementations**
    - All user commands take logical names only.
    - Path-based forms remain internal/developer-only.
 
-5. **Introduce orchestrator library functions for the workshop loop**
+4. **Introduce orchestrator library functions for the workshop loop**
    - `scaffold_pack(language, query_pack)`
    - `ingest_pack(...)`
    - `normalize_pack(...)`
@@ -163,23 +144,19 @@ These are the most concrete places where parts of the codebase step on each othe
 
 ## 5) Simplification and streamlining plan (practical sequence)
 
-1. **Stabilize packaging + CLI integrity first**
-   - Fix duplicate `[project.scripts]`.
-   - Split/clean `src/pydantree/cli.py` so command registration is unambiguous.
-
-2. **Pick a single manifest schema and align all producers/consumers**
+1. **Pick a single manifest schema and align all producers/consumers**
    - Update builder, doctor, and CUE schema together.
    - Add compatibility test fixtures.
 
-3. **Implement the advertised shell-first contract end-to-end**
+2. **Implement the advertised shell-first contract end-to-end**
    - Add grammar/query-pack-based `just` recipes that route through `WorkshopLayout`.
    - Keep old path-based recipes as internal aliases during transition.
 
-4. **Refactor emitter to shared baseclasses + data-centric generated modules**
+3. **Refactor emitter to shared baseclasses + data-centric generated modules**
    - Reduce repeated class definitions.
    - Improve import ergonomics and composability.
 
-5. **Add contract tests around the workshop loop**
+4. **Add contract tests around the workshop loop**
    - Scaffold → ingest → normalize → emit → validate → doctor.
    - Include one successful and one failure-path fixture.
 

@@ -8,8 +8,9 @@ from pathlib import Path
 import typer
 
 from pydantree.doctor import format_human_summary, run_doctor
+from pydantree.cue_validation import CueUnavailableError, run_cue_validation
 
-app = typer.Typer(help="Pydantree command line tools.")
+app = typer.Typer(help="Pydantree generation wrappers with CUE validation gates.")
 
 
 @app.command("doctor")
@@ -32,17 +33,6 @@ def doctor_command(
         typer.echo(format_human_summary(result))
 
     raise typer.Exit(0 if result["ok"] else 1)
-
-
-def main() -> None:
-    app()
-
-
-if __name__ == "__main__":
-    main()
-from pydantree.cue_validation import CueUnavailableError, run_cue_validation
-
-app = typer.Typer(help="Pydantree generation wrappers with CUE validation gates.")
 
 
 def _schema_path(schema_name: str, schema_dir: Path | None = None) -> Path:
@@ -127,6 +117,10 @@ def generate(
     _emit_validation_result("Post-generation manifest validation", post_result.ok, post_result.details)
     if not post_result.ok:
         raise typer.Exit(code=1)
+
+
+def main() -> None:
+    app()
 
 
 if __name__ == "__main__":
