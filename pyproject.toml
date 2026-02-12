@@ -48,6 +48,9 @@ dev = [
   "black>=24.0.0",
 ]
 
+[project.scripts]
+pydantree = "pydantree.cli:app"
+
 [project.urls]
 Homepage = "https://github.com/pydantree/pydantree"
 Repository = "https://github.com/pydantree/pydantree"
@@ -55,6 +58,7 @@ Repository = "https://github.com/pydantree/pydantree"
 
 [project.scripts]
 pydantree = "pydantree.cli:main"
+pydantree-codegen = "pydantree.codegen.cli:main"
 
 [tool.hatch.version]
 source = "vcs"
