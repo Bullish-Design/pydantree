@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import platform
 import json
+import platform
 from hashlib import sha256
 from datetime import UTC, datetime
 
@@ -20,6 +20,7 @@ class ReproducibilityManifest(BaseModel):
     input_hashes: dict[str, str]
     toolchain_versions: dict[str, str]
     output_file_hashes: dict[str, str]
+    pipeline_version: str
     ingest_fingerprint: str
     normalize_fingerprint: str
     emit_fingerprint: str
@@ -52,6 +53,7 @@ def build_manifest(ingest: IngestOutput, normalize: NormalizeOutput, emit: EmitO
             "pydantree.codegen": "1",
         },
         output_file_hashes=dict(sorted(output_file_hashes.items())),
+        pipeline_version="2",
         ingest_fingerprint=_fingerprint(ingest.model_dump(mode="json")),
         normalize_fingerprint=_fingerprint(normalize.model_dump(mode="json")),
         emit_fingerprint=_fingerprint(emit.model_dump(mode="json")),
