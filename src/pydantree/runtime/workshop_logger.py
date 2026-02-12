@@ -17,6 +17,7 @@ from pydantree.models.log_events import (
     ValidationFailedEvent,
     WorkshopEvent,
 )
+from pydantree.registry import WorkshopLayout, resolve_repository_root
 
 
 def resolve_tool_versions() -> ToolVersions:
@@ -62,8 +63,12 @@ def _safe_version(package_name: str) -> str:
 
 
 class WorkshopEventLogger:
-    def __init__(self, log_path: Path | str = Path("logs/workshop.jsonl")) -> None:
-        self.log_path = Path(log_path)
+    def __init__(self, log_path: Path | str | None = None) -> None:
+        if log_path is None:
+            layout = WorkshopLayout.from_path(resolve_repository_root())
+            self.log_path = layout.workshop_log_file()
+        else:
+            self.log_path = Path(log_path)
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
 
     def emit(self, event: WorkshopEvent) -> None:

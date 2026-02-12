@@ -56,6 +56,15 @@ def _discover_scm_files(queries_dir: Path) -> list[Path]:
 def run_doctor(repo_root: Path, queries_dir: Path, manifest_path: Path) -> dict[str, Any]:
     issues: list[DoctorIssue] = []
 
+    if not queries_dir.exists():
+        issues.append(
+            DoctorIssue(
+                code="scm.missing_directory",
+                severity="warning",
+                message=f"Query directory does not exist: {queries_dir}.",
+            )
+        )
+
     scm_files = _discover_scm_files(queries_dir)
     if queries_dir.exists() and not scm_files:
         issues.append(
@@ -68,6 +77,7 @@ def run_doctor(repo_root: Path, queries_dir: Path, manifest_path: Path) -> dict[
 
     capture_occurrences: dict[str, list[str]] = {}
     input_hashes: dict[str, str] = {}
+    discovered_files = {str(path.relative_to(repo_root)) for path in scm_files}
 
     for scm_file in scm_files:
         rel = str(scm_file.relative_to(repo_root))
@@ -96,7 +106,8 @@ def run_doctor(repo_root: Path, queries_dir: Path, manifest_path: Path) -> dict[
                     )
                 )
 
-        for capture in _CAPTURE_PATTERN.findall(content):
+        file_captures = _CAPTURE_PATTERN.findall(content)
+        for capture in file_captures:
             capture_occurrences.setdefault(capture, []).append(rel)
             if not _VALID_CAPTURE_PATTERN.fullmatch(capture):
                 issues.append(
@@ -108,6 +119,18 @@ def run_doctor(repo_root: Path, queries_dir: Path, manifest_path: Path) -> dict[
                         details={"capture": capture},
                     )
                 )
+
+        duplicates_in_file = sorted({name for name in file_captures if file_captures.count(name) > 1})
+        for duplicate_capture in duplicates_in_file:
+            issues.append(
+                DoctorIssue(
+                    code="capture.duplicate_in_file",
+                    severity="warning",
+                    message=f"Capture name '{duplicate_capture}' appears multiple times in a single file.",
+                    file=rel,
+                    details={"capture": duplicate_capture},
+                )
+            )
 
     for capture, files in sorted(capture_occurrences.items()):
         unique_files = sorted(set(files))
@@ -146,6 +169,15 @@ def run_doctor(repo_root: Path, queries_dir: Path, manifest_path: Path) -> dict[
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest_inputs = manifest.get("input_hashes", {})
         for rel, expected_hash in manifest_inputs.items():
+            if rel not in discovered_files:
+                issues.append(
+                    DoctorIssue(
+                        code="scm.missing_file",
+                        severity="error",
+                        message=f"Manifest-referenced .scm file is missing from queries directory: '{rel}'.",
+                        file=rel,
+                    )
+                )
             actual_hash = input_hashes.get(rel)
             if actual_hash is None:
                 issues.append(
@@ -168,7 +200,8 @@ def run_doctor(repo_root: Path, queries_dir: Path, manifest_path: Path) -> dict[
                     )
                 )
 
-        for rel, expected_hash in manifest.get("generated_hashes", {}).items():
+        generated_hashes = manifest.get("output_file_hashes") or manifest.get("generated_hashes", {})
+        for rel, expected_hash in generated_hashes.items():
             generated_path = repo_root / rel
             if not generated_path.exists():
                 issues.append(

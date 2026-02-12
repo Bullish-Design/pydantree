@@ -1,5 +1,15 @@
 """Registry helpers for resolving canonical workshop paths by logical names."""
 
-from .layout import InvalidLayoutNameError, WorkshopLayout
+from .layout import (
+    InvalidLayoutNameError,
+    RepositoryRootNotFoundError,
+    WorkshopLayout,
+    resolve_repository_root,
+)
 
-__all__ = ["InvalidLayoutNameError", "WorkshopLayout"]
+__all__ = [
+    "InvalidLayoutNameError",
+    "RepositoryRootNotFoundError",
+    "WorkshopLayout",
+    "resolve_repository_root",
+]

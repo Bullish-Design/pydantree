@@ -9,6 +9,11 @@ from uuid import uuid4
 
 import typer
 
+from pydantree.codegen.common import CodegenDiagnosticError, read_model, write_model
+from pydantree.codegen.emit import EmitOutput, emit_models
+from pydantree.codegen.ingest import IngestOutput, ingest_scm
+from pydantree.codegen.manifest import build_manifest
+from pydantree.codegen.normalize import NormalizeOutput, normalize_ingested
 from pydantree.doctor import format_human_summary, run_doctor
 from pydantree.cue_validation import CueUnavailableError, run_cue_validation
 from pydantree.models import LogContext
@@ -26,6 +31,73 @@ def _context_for_path(path: Path, *, run_id: str) -> LogContext:
         query_pack=path.stem,
         source_hash=hash_for_path(path),
     )
+@app.command("codegen-ingest")
+def codegen_ingest(
+    root_dir: Path = typer.Argument(..., exists=True, file_okay=False, readable=True),
+    out: Path = typer.Option(Path("build/ingest.json"), help="Output JSON artifact path."),
+    pattern: str = typer.Option("*.scm", help="Glob used for query discovery."),
+) -> None:
+    """Discover .scm files and collect provenance metadata."""
+    try:
+        payload = ingest_scm(root_dir=root_dir, pattern=pattern)
+    except CodegenDiagnosticError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(code=2) from exc
+    write_model(out, payload)
+    typer.echo(f"Wrote ingest artifact: {out}")
+
+
+@app.command("codegen-normalize")
+def codegen_normalize(
+    input_path: Path = typer.Option(Path("build/ingest.json"), "--input", help="Ingest artifact path."),
+    out: Path = typer.Option(Path("build/normalize.json"), help="Output JSON artifact path."),
+) -> None:
+    """Normalize ingested queries into stable pattern IDs."""
+    try:
+        ingest = IngestOutput.model_validate(read_model(input_path, IngestOutput))
+        normalized = normalize_ingested(ingest)
+    except CodegenDiagnosticError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(code=2) from exc
+    write_model(out, normalized)
+    typer.echo(f"Wrote normalize artifact: {out}")
+
+
+@app.command("codegen-emit")
+def codegen_emit(
+    input_path: Path = typer.Option(Path("build/normalize.json"), "--input", help="Normalize artifact path."),
+    output_dir: Path = typer.Option(Path("build/generated"), help="Directory for generated modules."),
+    out: Path = typer.Option(Path("build/emit.json"), help="Output JSON artifact path."),
+) -> None:
+    """Generate deterministic Pydantic modules from normalized queries."""
+    try:
+        normalize = NormalizeOutput.model_validate(read_model(input_path, NormalizeOutput))
+        emitted = emit_models(normalize, output_dir=output_dir)
+    except CodegenDiagnosticError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(code=2) from exc
+    write_model(out, emitted)
+    typer.echo(f"Wrote emit artifact: {out}")
+
+
+@app.command("codegen-manifest")
+def codegen_manifest(
+    ingest_path: Path = typer.Option(Path("build/ingest.json"), "--ingest", help="Ingest artifact path."),
+    normalize_path: Path = typer.Option(Path("build/normalize.json"), "--normalize", help="Normalize artifact path."),
+    emit_path: Path = typer.Option(Path("build/emit.json"), "--emit", help="Emit artifact path."),
+    out: Path = typer.Option(Path("build/manifest.json"), help="Output manifest artifact path."),
+) -> None:
+    """Build reproducibility metadata for the complete codegen pipeline."""
+    try:
+        ingest = IngestOutput.model_validate(read_model(ingest_path, IngestOutput))
+        normalize = NormalizeOutput.model_validate(read_model(normalize_path, NormalizeOutput))
+        emit = EmitOutput.model_validate(read_model(emit_path, EmitOutput))
+        manifest = build_manifest(ingest=ingest, normalize=normalize, emit=emit)
+    except CodegenDiagnosticError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(code=2) from exc
+    write_model(out, manifest)
+    typer.echo(f"Wrote manifest artifact: {out}")
 
 
 @app.command("doctor")

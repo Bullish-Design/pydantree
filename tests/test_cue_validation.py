@@ -1,17 +1,9 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 from pydantree.cue_validation import _map_context
 
 
-def test_map_context_with_capture_information(tmp_path: Path) -> None:
-    ir_file = tmp_path / "ir.json"
-    ir_file.write_text(
-        '{"version":"v1","patterns":[{"pattern":"(function)","captures":[{"name":"function.name","source":{"file":"queries/highlights.scm"}}]}],"query_metadata":{"language":"python","query_type":"highlights","source_scm":"queries/highlights.scm"}}',
-        encoding="utf-8",
-    )
-
+def test_map_context_with_capture_information() -> None:
     ir_data = {
         "version": "v1",
         "patterns": [
@@ -34,3 +26,26 @@ def test_map_context_with_capture_information(tmp_path: Path) -> None:
 
     assert "capture=function.name" in mapped
     assert "scm=queries/highlights.scm" in mapped
+
+
+def test_map_context_with_pattern_capture_path() -> None:
+    ir_data = {
+        "version": "v1",
+        "patterns": [
+            {
+                "pattern": "(class_definition)",
+                "captures": [{"name": "class.name", "source": {"file": "queries/tags.scm"}}],
+            }
+        ],
+        "query_metadata": {
+            "language": "python",
+            "query_type": "tags",
+            "source_scm": "queries/tags.scm",
+        },
+    }
+
+    line = "ir.json: patterns[0].captures[0].name: invalid value"
+    mapped = _map_context(line, ir_data)
+
+    assert "capture=class.name" in mapped
+    assert "scm=queries/tags.scm" in mapped
