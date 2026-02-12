@@ -155,6 +155,17 @@ class Parser:
         """Factory method to create a parser for a specific language."""
         return cls(language_name)
 
+    
+
+    # Add auto_detect method:
+    @classmethod  
+    def auto_detect(cls, file_path: Path) -> Parser:
+        registry = get_global_registry()
+        language = registry.detect_language(file_path)
+        if not language:
+            language = "python"  # fallback
+        return cls.for_language(language)
+
 
 class MultiLanguageParser:
     """Parser that can handle multiple languages with auto-detection."""

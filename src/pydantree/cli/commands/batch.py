@@ -13,7 +13,7 @@ from rich.panel import Panel
 from rich.columns import Columns
 from rich.align import Align
 
-from ...core.parsers import Parser, MultiLanguageParser, LanguageRegistry
+from ...core.parsers import Parser, MultiLanguageParser#, LanguageRegistry
 from ...core.profiler import PerformanceProfiler
 from ...processing.batch import (
     BatchProcessor, ProcessingMode, ProcessingPriority, 

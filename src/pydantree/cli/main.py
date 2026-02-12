@@ -29,6 +29,13 @@ from ..export.engine import ExportEngine, ExportOptions, ExportFormat, OutputFor
 from .commands import batch_app
 
 
+from ..languages.registry import get_global_registry
+
+# Replace LanguageRegistry calls with:
+registry = get_global_registry()
+supported_languages = registry.get_supported_languages()
+
+
 app = typer.Typer(
     name="pydantree",
     help="[bold blue]Pydantree[/bold blue] - High-performance multi-language AST analysis platform",
@@ -39,6 +46,8 @@ app = typer.Typer(
 
 console = Console()
 
+# Add to main app:
+app.add_typer(batch_app, name="batch")
 
 def version_callback(show_version: bool):
     """Show version information."""
@@ -131,7 +140,10 @@ def analyze(
     include_errors: bool = typer.Option(False, "--include-errors", help="Include files with parse errors"),
     max_files: Optional[int] = typer.Option(None, "--max-files", help="Maximum files to process"),
     workers: int = typer.Option(4, "--workers", "-w", help="Number of parallel workers"),
-    show_progress: bool = typer.Option(True, "--progress/--no-progress", help="Show progress bars")
+    show_progress: bool = typer.Option(True, "--progress/--no-progress", help="Show progress bars"),
+    profile: bool = typer.Option(False, "--profile", help="Enable performance profiling"),
+    save_profile: Optional[Path] = typer.Option(None, "--save-profile", help="Save profile to file"),
+    exclude: Optional[str] = typer.Option(None, "--exclude", help="Exclude patterns"),
 ):
     """Analyze code files with comprehensive metrics and multi-language support."""
     
