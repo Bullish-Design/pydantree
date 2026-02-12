@@ -1,0 +1,3 @@
+# Legacy file list removed.
+# This repository is now centered on the roadmap and concept documents
+# for a query-first, `.scm`-driven pydantree implementation.
