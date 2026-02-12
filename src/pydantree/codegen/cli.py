@@ -11,6 +11,7 @@ from pydantree.codegen.ingest import IngestOutput, ingest_scm
 from pydantree.codegen.manifest import build_manifest
 from pydantree.codegen.normalize import NormalizeOutput, normalize_ingested
 from pydantree.cue_validation import CueUnavailableError, ValidationResult, run_cue_validation
+from pydantree.registry import WorkshopLayout, resolve_repository_root
 
 
 def main() -> None:
@@ -33,24 +34,31 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
 
     ingest = subparsers.add_parser("ingest", help="Discover .scm files and collect provenance")
-    ingest.add_argument("root_dir", type=Path)
-    ingest.add_argument("--out", type=Path, default=Path("build/ingest.json"))
+    ingest.add_argument("language")
+    ingest.add_argument("query_pack")
+    ingest.add_argument("--out", type=Path)
     ingest.add_argument("--pattern", default="*.scm")
 
     normalize = subparsers.add_parser("normalize", help="Normalize ingested data into stable pattern IDs")
-    normalize.add_argument("--input", type=Path, default=Path("build/ingest.json"), dest="input_path")
-    normalize.add_argument("--out", type=Path, default=Path("build/normalize.json"))
+    normalize.add_argument("language")
+    normalize.add_argument("query_pack")
+    normalize.add_argument("--input", type=Path, dest="input_path")
+    normalize.add_argument("--out", type=Path)
 
     emit = subparsers.add_parser("emit", help="Generate deterministic Pydantic model modules")
-    emit.add_argument("--input", type=Path, default=Path("build/normalize.json"), dest="input_path")
-    emit.add_argument("--output-dir", type=Path, default=Path("build/generated"))
-    emit.add_argument("--out", type=Path, default=Path("build/emit.json"))
+    emit.add_argument("language")
+    emit.add_argument("query_pack")
+    emit.add_argument("--input", type=Path, dest="input_path")
+    emit.add_argument("--output-dir", type=Path)
+    emit.add_argument("--out", type=Path)
 
     manifest = subparsers.add_parser("manifest", help="Build reproducibility metadata from stage artifacts")
-    manifest.add_argument("--ingest", type=Path, default=Path("build/ingest.json"), dest="ingest_path")
-    manifest.add_argument("--normalize", type=Path, default=Path("build/normalize.json"), dest="normalize_path")
-    manifest.add_argument("--emit", type=Path, default=Path("build/emit.json"), dest="emit_path")
-    manifest.add_argument("--out", type=Path, default=Path("build/manifest.json"))
+    manifest.add_argument("language")
+    manifest.add_argument("query_pack")
+    manifest.add_argument("--ingest", type=Path, dest="ingest_path")
+    manifest.add_argument("--normalize", type=Path, dest="normalize_path")
+    manifest.add_argument("--emit", type=Path, dest="emit_path")
+    manifest.add_argument("--out", type=Path)
 
     generate = subparsers.add_parser(
         "generate",
@@ -105,36 +113,51 @@ def _query_ir_payload(query: object) -> dict[str, object]:
             "generated_by": "pydantree-codegen",
         },
     }
+def _layout() -> WorkshopLayout:
+    return WorkshopLayout.from_path(resolve_repository_root())
 
 
 def _dispatch(args: argparse.Namespace) -> None:
+    layout = _layout()
+
     if args.command == "ingest":
-        payload = ingest_scm(root_dir=args.root_dir, pattern=args.pattern)
-        write_model(args.out, payload)
-        print(f"Wrote ingest artifact: {args.out}")
+        root_dir = layout.queries_pack_dir(language=args.language, query_pack=args.query_pack)
+        out = args.out or (layout.repository_root / "build" / f"ingest.{args.language}.{args.query_pack}.json")
+        payload = ingest_scm(root_dir=root_dir, pattern=args.pattern)
+        write_model(out, payload)
+        print(f"Wrote ingest artifact: {out}")
         return
 
     if args.command == "normalize":
-        ingest = IngestOutput.model_validate(read_model(args.input_path, IngestOutput))
+        input_path = args.input_path or (layout.repository_root / "build" / f"ingest.{args.language}.{args.query_pack}.json")
+        out = args.out or layout.ir_file(language=args.language, query_pack=args.query_pack)
+        ingest = IngestOutput.model_validate(read_model(input_path, IngestOutput))
         normalized = normalize_ingested(ingest)
-        write_model(args.out, normalized)
-        print(f"Wrote normalize artifact: {args.out}")
+        write_model(out, normalized)
+        print(f"Wrote normalize artifact: {out}")
         return
 
     if args.command == "emit":
-        normalize = NormalizeOutput.model_validate(read_model(args.input_path, NormalizeOutput))
-        emitted = emit_models(normalize, output_dir=args.output_dir)
-        write_model(args.out, emitted)
-        print(f"Wrote emit artifact: {args.out}")
+        input_path = args.input_path or layout.ir_file(language=args.language, query_pack=args.query_pack)
+        output_dir = args.output_dir or layout.generated_models_dir(language=args.language, query_pack=args.query_pack)
+        out = args.out or (layout.repository_root / "build" / f"emit.{args.language}.{args.query_pack}.json")
+        normalize = NormalizeOutput.model_validate(read_model(input_path, NormalizeOutput))
+        emitted = emit_models(normalize, output_dir=output_dir)
+        write_model(out, emitted)
+        print(f"Wrote emit artifact: {out}")
         return
 
     if args.command == "manifest":
-        ingest = IngestOutput.model_validate(read_model(args.ingest_path, IngestOutput))
-        normalize = NormalizeOutput.model_validate(read_model(args.normalize_path, NormalizeOutput))
-        emit = EmitOutput.model_validate(read_model(args.emit_path, EmitOutput))
+        ingest_path = args.ingest_path or (layout.repository_root / "build" / f"ingest.{args.language}.{args.query_pack}.json")
+        normalize_path = args.normalize_path or layout.ir_file(language=args.language, query_pack=args.query_pack)
+        emit_path = args.emit_path or (layout.repository_root / "build" / f"emit.{args.language}.{args.query_pack}.json")
+        out = args.out or layout.manifest_file(language=args.language, query_pack=args.query_pack)
+        ingest = IngestOutput.model_validate(read_model(ingest_path, IngestOutput))
+        normalize = NormalizeOutput.model_validate(read_model(normalize_path, NormalizeOutput))
+        emit = EmitOutput.model_validate(read_model(emit_path, EmitOutput))
         manifest = build_manifest(ingest=ingest, normalize=normalize, emit=emit)
-        write_model(args.out, manifest)
-        print(f"Wrote manifest artifact: {args.out}")
+        write_model(out, manifest)
+        print(f"Wrote manifest artifact: {out}")
         return
 
     if args.command == "generate":

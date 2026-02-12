@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import platform
+import json
 from datetime import UTC, datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from pydantree.codegen.common import CodegenDiagnosticError
 from pydantree.codegen.emit import EmitOutput
 from pydantree.codegen.ingest import IngestOutput
 from pydantree.codegen.normalize import NormalizeOutput
@@ -24,6 +26,18 @@ def build_manifest(ingest: IngestOutput, normalize: NormalizeOutput, emit: EmitO
 
     input_hashes = {query.provenance.file_path: query.provenance.source_sha256 for query in ingest.queries}
     output_file_hashes = {module.file_path: module.content_sha256 for module in emit.modules}
+    if len(ingest.queries) != len(normalize.queries):
+        raise CodegenDiagnosticError(
+            "manifest",
+            "Ingest and normalize query counts do not match.",
+            hint="Ensure normalize was produced from the same ingest artifact.",
+        )
+    if len(normalize.queries) != len(emit.modules):
+        raise CodegenDiagnosticError(
+            "manifest",
+            "Normalize and emit counts do not match.",
+            hint="Ensure emit was produced from the same normalize artifact.",
+        )
 
     return ReproducibilityManifest(
         input_hashes=dict(sorted(input_hashes.items())),
@@ -34,3 +48,15 @@ def build_manifest(ingest: IngestOutput, normalize: NormalizeOutput, emit: EmitO
         output_file_hashes=dict(sorted(output_file_hashes.items())),
         generated_at=datetime.now(UTC),
     )
+#         pipeline_version="2",
+#         ingest_fingerprint=_fingerprint(ingest.model_dump(mode="json")),
+#         normalize_fingerprint=_fingerprint(normalize.model_dump(mode="json")),
+#         emit_fingerprint=_fingerprint(emit.model_dump(mode="json")),
+#         query_count=len(normalize.queries),
+#         module_count=len(emit.modules),
+#     )
+
+
+def _fingerprint(payload: object) -> str:
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return sha256(canonical.encode("utf-8")).hexdigest()

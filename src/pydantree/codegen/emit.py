@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from hashlib import sha256
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
@@ -26,8 +27,6 @@ class EmitOutput(BaseModel):
 
 
 def emit_models(payload: NormalizeOutput, output_dir: Path) -> EmitOutput:
-    from hashlib import sha256
-
     if not payload.queries:
         raise CodegenDiagnosticError(
             "emit",
@@ -37,9 +36,18 @@ def emit_models(payload: NormalizeOutput, output_dir: Path) -> EmitOutput:
 
     output_dir.mkdir(parents=True, exist_ok=True)
     modules: list[EmittedModule] = []
+    module_names: set[str] = set()
 
-    for query in payload.queries:
+    for query in sorted(payload.queries, key=lambda item: item.provenance.file_path):
         module_name = f"{query.provenance.language}_{query.provenance.query_type}_models".replace("-", "_")
+        if module_name in module_names:
+            raise CodegenDiagnosticError(
+                "emit",
+                f"Multiple queries map to the same module name: {module_name}",
+                hint="Rename one query file so language/query_type pairs are unique.",
+            )
+        module_names.add(module_name)
+
         file_path = output_dir / f"{module_name}.py"
         body = _render_query_module(query)
         file_path.write_text(body, encoding="utf-8")
@@ -51,7 +59,8 @@ def emit_models(payload: NormalizeOutput, output_dir: Path) -> EmitOutput:
             )
         )
 
-    return EmitOutput(generated_at=datetime.now(UTC), output_dir=output_dir.as_posix(), modules=tuple(modules))
+    modules_sorted = tuple(sorted(modules, key=lambda module: module.module_name))
+    return EmitOutput(generated_at=datetime.now(UTC), output_dir=output_dir.as_posix(), modules=modules_sorted)
 
 
 def _render_query_module(query: object) -> str:
@@ -64,12 +73,11 @@ def _render_query_module(query: object) -> str:
         captures_literal = ",\n            ".join(
             f'Capture(capture_id="{capture.capture_id}", name="{capture.name}")' for capture in pattern.captures
         )
-        if not captures_literal:
-            captures_literal = ""
         patterns_literal.append(
             "Pattern(\n"
+            f"            ordinal={pattern.ordinal},\n"
             f'            pattern_id="{pattern.pattern_id}",\n'
-            f'            source={pattern.source!r},\n'
+            f"            source={pattern.source!r},\n"
             "            captures=(\n"
             f"            {captures_literal}\n"
             "            ),\n"
@@ -85,6 +93,7 @@ def _render_query_module(query: object) -> str:
         "    capture_id: str\n"
         "    name: str\n\n\n"
         "class Pattern(BaseModel):\n"
+        "    ordinal: int\n"
         "    pattern_id: str\n"
         "    source: str\n"
         "    captures: tuple[Capture, ...]\n\n\n"
