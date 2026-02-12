@@ -3,12 +3,14 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+from uuid import uuid4
 
 from pydantree.codegen.common import CodegenDiagnosticError, read_model, write_model
 from pydantree.codegen.emit import EmitOutput, emit_models
 from pydantree.codegen.ingest import IngestOutput, ingest_scm
 from pydantree.codegen.manifest import build_manifest
 from pydantree.codegen.normalize import NormalizeOutput, normalize_ingested
+from pydantree.runtime import WorkshopEventLogger, build_log_context, hash_for_path
 
 
 def main() -> None:
@@ -19,8 +21,11 @@ def main() -> None:
         parser.print_help(sys.stderr)
         raise SystemExit(2)
 
+    logger = WorkshopEventLogger()
+    run_id = str(uuid4())
+
     try:
-        _dispatch(args)
+        _dispatch(args, logger=logger, run_id=run_id)
     except CodegenDiagnosticError as exc:
         print(str(exc), file=sys.stderr)
         raise SystemExit(2) from exc
@@ -53,24 +58,54 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _dispatch(args: argparse.Namespace) -> None:
+def _dispatch(args: argparse.Namespace, *, logger: WorkshopEventLogger, run_id: str) -> None:
     if args.command == "ingest":
+        context = build_log_context(
+            run_id=run_id,
+            language="unknown",
+            query_pack="unknown",
+            source_hash=hash_for_path(args.root_dir),
+        )
+        logger.ingest_started(context)
         payload = ingest_scm(root_dir=args.root_dir, pattern=args.pattern)
         write_model(args.out, payload)
+        logger.ingest_completed(context, files_discovered=len(payload.queries))
         print(f"Wrote ingest artifact: {args.out}")
         return
 
     if args.command == "normalize":
         ingest = IngestOutput.model_validate(read_model(args.input_path, IngestOutput))
+        language = ingest.queries[0].provenance.language
+        query_pack = Path(ingest.queries[0].provenance.file_path).stem
+        context = build_log_context(
+            run_id=run_id,
+            language=language,
+            query_pack=query_pack,
+            source_hash=hash_for_path(args.input_path),
+        )
         normalized = normalize_ingested(ingest)
         write_model(args.out, normalized)
+        logger.normalize_completed(context, records_normalized=len(normalized.queries))
         print(f"Wrote normalize artifact: {args.out}")
         return
 
     if args.command == "emit":
         normalize = NormalizeOutput.model_validate(read_model(args.input_path, NormalizeOutput))
-        emitted = emit_models(normalize, output_dir=args.output_dir)
+        language = normalize.queries[0].provenance.language
+        query_pack = normalize.queries[0].provenance.query_type
+        context = build_log_context(
+            run_id=run_id,
+            language=language,
+            query_pack=query_pack,
+            source_hash=hash_for_path(args.input_path),
+        )
+        try:
+            emitted = emit_models(normalize, output_dir=args.output_dir)
+        except CodegenDiagnosticError as exc:
+            logger.generation_failed(context, error=str(exc))
+            raise
         write_model(args.out, emitted)
+        logger.generation_completed(context, models_generated=len(emitted.modules))
         print(f"Wrote emit artifact: {args.out}")
         return
 
