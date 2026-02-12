@@ -76,6 +76,18 @@ just doctor <language> <query-pack>
 - Implementations must resolve canonical filesystem locations from repository root.
 - Raw path arguments for grammar/query-pack assets are intentionally out of contract.
 
+### Canonical resolution targets
+
+Given `<language>` and `<query-pack>`, command implementations resolve to:
+
+- `workshop/queries/<language>/<query-pack>/*.scm`
+- `build/<language>/<query-pack>/ingest.json`
+- `workshop/ir/<language>/<query-pack>/ir.v1.json`
+- `src/pydantree/generated/<language>/<query-pack>/`
+- `workshop/manifests/<language>/<query-pack>.json`
+
+Given `<source>`, `run-query` resolves a named source alias under `tests/fixtures/<language>/<query-pack>/<source>.*`.
+
 ## Design tenets
 
 1. Typed at every boundary.
