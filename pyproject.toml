@@ -56,6 +56,9 @@ Homepage = "https://github.com/pydantree/pydantree"
 Repository = "https://github.com/pydantree/pydantree"
 "Bug Tracker" = "https://github.com/pydantree/pydantree/issues"
 
+[project.scripts]
+pydantree-codegen = "pydantree.codegen.cli:main"
+
 [tool.hatch.version]
 source = "vcs"
 raw-options = { local_scheme = "no-local-version" }
