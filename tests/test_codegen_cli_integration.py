@@ -5,6 +5,7 @@ from pathlib import Path
 
 from pydantree.codegen import cli
 from pydantree.registry import WorkshopLayout
+from pydantree.runtime import WorkshopEventLogger
 
 
 def test_cli_name_contract_pipeline_via_parsed_args(tmp_path: Path, monkeypatch) -> None:
@@ -25,7 +26,7 @@ def test_cli_name_contract_pipeline_via_parsed_args(tmp_path: Path, monkeypatch)
         ["manifest", "python", "minimal_pack"],
     ):
         args = parser.parse_args(argv)
-        cli._dispatch(args)
+        cli._dispatch(args, logger=WorkshopEventLogger(), run_id="test-run")
 
     ingest_path = tmp_path / "build" / "python" / "minimal_pack" / "ingest.json"
     emit_path = tmp_path / "build" / "python" / "minimal_pack" / "emit.json"

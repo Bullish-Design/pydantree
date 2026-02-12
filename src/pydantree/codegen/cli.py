@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from uuid import uuid4
 from pathlib import Path
 
 from pydantree.codegen.common import CodegenDiagnosticError, read_model, write_model
@@ -12,6 +13,7 @@ from pydantree.codegen.manifest import build_manifest
 from pydantree.codegen.normalize import NormalizeOutput, NormalizedQuery, normalize_ingested
 from pydantree.cue_validation import CueUnavailableError, ValidationResult, run_cue_validation
 from pydantree.registry import WorkshopLayout, resolve_repository_root
+from pydantree.runtime import WorkshopEventLogger, build_log_context, hash_for_path
 
 
 def main() -> None:
@@ -23,7 +25,7 @@ def main() -> None:
         raise SystemExit(2)
 
     try:
-        _dispatch(args)
+        _dispatch(args, logger=WorkshopEventLogger(), run_id=str(uuid4()))
     except CodegenDiagnosticError as exc:
         print(str(exc), file=sys.stderr)
         raise SystemExit(2) from exc
@@ -81,14 +83,12 @@ def _stage_file(layout: WorkshopLayout, *, language: str, query_pack: str, stage
     return layout.repository_root / "build" / language / query_pack / f"{stage}.json"
 
 
-# def _dispatch(args: argparse.Namespace) -> None:
 def _dispatch(args: argparse.Namespace, *, logger: WorkshopEventLogger, run_id: str) -> None:
     layout = _layout()
 
     if args.command == "ingest":
         root_dir = layout.queries_pack_dir(language=args.language, query_pack=args.query_pack)
-#         out = args.out or _stage_file(layout, language=args.language, query_pack=args.query_pack, stage="ingest")
-        out = args.out or (layout.repository_root / "build" / f"ingest.{args.language}.{args.query_pack}.json")
+        out = args.out or _stage_file(layout, language=args.language, query_pack=args.query_pack, stage="ingest")
         context = build_log_context(
             run_id=run_id,
             language=args.language,
