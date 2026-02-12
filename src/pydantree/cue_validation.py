@@ -20,10 +20,11 @@ class CueUnavailableError(RuntimeError):
     """Raised when the CUE CLI is not available."""
 
 
-_CAPTURE_PATTERNS = [
-    re.compile(r"captures\[(\d+)\]"),
-    re.compile(r"captures\.(\d+)"),
+_PATTERN_CAPTURE_PATTERNS = [
+    re.compile(r"patterns\[(\d+)\]\.captures\[(\d+)\]"),
+    re.compile(r"patterns\.(\d+)\.captures\.(\d+)"),
 ]
+_CAPTURE_PATTERNS = [re.compile(r"captures\[(\d+)\]"), re.compile(r"captures\.(\d+)")]
 
 
 def _load_json(path: Path) -> Any:
@@ -33,7 +34,12 @@ def _load_json(path: Path) -> Any:
         return None
 
 
-def _capture_context(ir_data: Any, capture_idx: int) -> tuple[str | None, str | None]:
+def _capture_context(
+    ir_data: Any,
+    capture_idx: int | None = None,
+    pattern_idx: int | None = None,
+    pattern_capture_idx: int | None = None,
+) -> tuple[str | None, str | None]:
     if not isinstance(ir_data, dict):
         return (None, None)
 
@@ -44,6 +50,20 @@ def _capture_context(ir_data: Any, capture_idx: int) -> tuple[str | None, str | 
     if isinstance(patterns, dict):
         patterns = [patterns]
 
+    if pattern_idx is not None and pattern_capture_idx is not None and pattern_idx < len(patterns):
+        pattern = patterns[pattern_idx]
+        if isinstance(pattern, dict):
+            captures = pattern.get("captures", [])
+            if isinstance(captures, list) and pattern_capture_idx < len(captures):
+                capture = captures[pattern_capture_idx]
+                if isinstance(capture, dict):
+                    capture_name = capture.get("name")
+                    src = capture.get("source")
+                    if isinstance(src, dict):
+                        source_scm = src.get("file") or source_scm
+                    if isinstance(capture_name, str):
+                        return (source_scm, capture_name)
+
     captures: list[dict[str, Any]] = []
     for pattern in patterns:
         if not isinstance(pattern, dict):
@@ -52,7 +72,7 @@ def _capture_context(ir_data: Any, capture_idx: int) -> tuple[str | None, str | 
         if isinstance(items, list):
             captures.extend(item for item in items if isinstance(item, dict))
 
-    if capture_idx >= len(captures):
+    if capture_idx is None or capture_idx >= len(captures):
         return (source_scm, None)
 
     capture = captures[capture_idx]
@@ -65,6 +85,23 @@ def _capture_context(ir_data: Any, capture_idx: int) -> tuple[str | None, str | 
 
 
 def _map_context(line: str, ir_data: Any) -> str:
+    for pattern in _PATTERN_CAPTURE_PATTERNS:
+        match = pattern.search(line)
+        if match:
+            source_scm, capture_name = _capture_context(
+                ir_data,
+                pattern_idx=int(match.group(1)),
+                pattern_capture_idx=int(match.group(2)),
+            )
+            context_parts = []
+            if source_scm:
+                context_parts.append(f"scm={source_scm}")
+            if capture_name:
+                context_parts.append(f"capture={capture_name}")
+            if context_parts:
+                return f"{line.strip()} [{' '.join(context_parts)}]"
+            return line.strip()
+
     capture_idx: int | None = None
     for pattern in _CAPTURE_PATTERNS:
         match = pattern.search(line)

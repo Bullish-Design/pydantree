@@ -39,7 +39,7 @@ def test_doctor_checks_manifest_and_generation_hashes(tmp_path: Path) -> None:
 
     manifest = {
         "input_hashes": {"queries/highlights.scm": "wrong"},
-        "generated_hashes": {"generated.py": "also-wrong"},
+        "output_file_hashes": {"generated.py": "also-wrong"},
     }
     manifest_path = tmp_path / "generated" / "manifest.json"
     manifest_path.parent.mkdir()
@@ -53,7 +53,7 @@ def test_doctor_checks_manifest_and_generation_hashes(tmp_path: Path) -> None:
 
     manifest_ok = {
         "input_hashes": {"queries/highlights.scm": _sha(input_contents)},
-        "generated_hashes": {"generated.py": hashlib.sha256(generated.read_bytes()).hexdigest()},
+        "output_file_hashes": {"generated.py": hashlib.sha256(generated.read_bytes()).hexdigest()},
     }
     manifest_path.write_text(json.dumps(manifest_ok), encoding="utf-8")
     result_ok = run_doctor(repo_root=tmp_path, queries_dir=queries, manifest_path=manifest_path)

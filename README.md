@@ -127,6 +127,18 @@ PYTHONPATH=src python -m pydantree.cli validate-manifest build/manifest.json --s
 pytest tests/test_codegen_pipeline.py
 ```
 
+For a single wrapper command that runs CUE validation before/after generation:
+
+```bash
+PYTHONPATH=src python -m pydantree.codegen.cli generate \
+  workshop/queries/python/minimal_pack \
+  --output-dir src/pydantree/generated/python/minimal_pack \
+  --build-dir build \
+  --schema-dir src/pydantree/cue
+```
+
+Validation failures include concise context with mapped `.scm` file and capture name when available.
+
 ### 5) Run query against fixture source
 
 Use the workshop contract command with logical names (no raw query file paths):
