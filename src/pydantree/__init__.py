@@ -1,5 +1,6 @@
 """Pydantree package."""
 
 from .registry import InvalidLayoutNameError, WorkshopLayout
+from pydantree.runtime import WorkshopEventLogger, resolve_tool_versions
 
-__all__ = ["InvalidLayoutNameError", "WorkshopLayout"]
+__all__ = ["WorkshopEventLogger", "resolve_tool_versions", "InvalidLayoutNameError", "WorkshopLayout"]
