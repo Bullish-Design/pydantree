@@ -22,9 +22,12 @@ def test_pipeline_roundtrip(tmp_path: Path) -> None:
     manifest = build_manifest(ingest, normalize, emit)
 
     assert len(ingest.queries) == 1
+    assert ingest.queries[0].provenance.source_bytes > 0
     assert len(normalize.queries[0].patterns) == 1
+    assert normalize.queries[0].patterns[0].ordinal == 1
     assert len(emit.modules) == 1
     assert manifest.query_count == 1
+    assert manifest.pipeline_version == "2"
     assert (tmp_path / "generated" / "python_highlights_models.py").exists()
 
 
@@ -34,3 +37,25 @@ def test_ingest_fails_without_scm(tmp_path: Path) -> None:
 
     with pytest.raises(CodegenDiagnosticError, match="No query files matching pattern"):
         ingest_scm(empty)
+
+
+def test_ingest_fails_on_empty_scm_file(tmp_path: Path) -> None:
+    query_dir = tmp_path / "queries"
+    query_dir.mkdir(parents=True)
+    (query_dir / "empty.scm").write_text("\n", encoding="utf-8")
+
+    with pytest.raises(CodegenDiagnosticError, match="Query file is empty"):
+        ingest_scm(query_dir)
+
+
+def test_manifest_fails_with_mismatched_emit_payload(tmp_path: Path) -> None:
+    query_dir = tmp_path / "queries" / "python"
+    query_dir.mkdir(parents=True)
+    (query_dir / "highlights.scm").write_text("(identifier) @id\n", encoding="utf-8")
+
+    ingest = ingest_scm(tmp_path / "queries")
+    normalize = normalize_ingested(ingest)
+    emit = emit_models(normalize, tmp_path / "generated")
+
+    with pytest.raises(CodegenDiagnosticError, match="Normalize and emit counts do not match"):
+        build_manifest(ingest, normalize, emit.model_copy(update={"modules": tuple()}))

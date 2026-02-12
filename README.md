@@ -76,7 +76,7 @@ Pydantree uses a canonical on-disk layout so generation, manifests, and runtime 
 
 Use `pydantree.registry.WorkshopLayout` path helpers so CLI and recipes can accept only logical names (`language`, `query_pack`) and avoid hard-coded paths.
 
-## Workshop quickstart (scaffold → run → iterate)
+## Workshop quickstart (shell-first)
 
 The steps below follow the shell-first contract and use one minimal, real fixture pack under `tests/fixtures/`:
 
@@ -127,21 +127,34 @@ pytest tests/test_codegen_pipeline.py
 ### 5) Run query against fixture source
 
 Use the workshop contract command with logical names (no raw query file paths):
+The workshop flow uses only the `just` contract with semantic names:
 
 ```bash
+just workshop-init
+just scaffold python minimal_pack
+just ingest python minimal_pack
+just generate-models python minimal_pack
+just validate python minimal_pack
 just run-query python minimal_pack source
+just doctor python minimal_pack
 ```
 
-For this fixture, `source` maps to `tests/fixtures/python/minimal_pack/source.py` and should capture `greet` as `@function.name`.
+### Name → path resolution (internal)
 
-### 6) Inspect logs/manifests and iterate
+For the example `python minimal_pack`, Pydantree resolves repository-root paths internally:
 
-Inspect provenance, fingerprints, and workshop logs, then update `.scm` patterns and rerun the loop.
+- Queries: `workshop/queries/python/minimal_pack/*.scm`
+- Ingest artifact: `build/python/minimal_pack/ingest.json`
+- Normalized IR: `workshop/ir/python/minimal_pack/ir.v1.json`
+- Generated models: `src/pydantree/generated/python/minimal_pack/`
+- Manifest: `workshop/manifests/python/minimal_pack.json`
+- Source alias `source`: `tests/fixtures/python/minimal_pack/source.*`
 
 ```bash
 cat workshop/manifests/python/minimal_pack.json
 cat logs/workshop.jsonl
 ```
+Users pass names (`language`, `query-pack`, `source`) only; raw paths are not part of the public interface.
 
 ## Planning docs
 
