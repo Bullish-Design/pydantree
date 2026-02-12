@@ -76,75 +76,32 @@ Pydantree uses a canonical on-disk layout so generation, manifests, and runtime 
 
 Use `pydantree.registry.WorkshopLayout` path helpers so CLI and recipes can accept only logical names (`language`, `query_pack`) and avoid hard-coded paths.
 
-## Workshop quickstart (scaffold → run → iterate)
+## Workshop quickstart (shell-first)
 
-The steps below follow the shell-first contract and use one minimal, real fixture pack under `tests/fixtures/`:
-
-- Query fixture: `tests/fixtures/python/minimal_pack/highlights.scm`
-- Source fixture: `tests/fixtures/python/minimal_pack/source.py`
-
-### 1) Scaffold a query-pack
-
-Create a query-pack folder for a grammar and drop in at least one generated `.scm` query file.
+The workshop flow uses only the `just` contract with semantic names:
 
 ```bash
-mkdir -p workshop/queries/python/minimal_pack
-cp tests/fixtures/python/minimal_pack/highlights.scm workshop/queries/python/minimal_pack/highlights.scm
-```
-
-### 2) Ingest + normalize
-
-Ingest `.scm` files into a provenance-aware artifact, then normalize pattern/capture IDs into stable IR.
-
-```bash
-PYTHONPATH=src python -m pydantree.codegen.cli ingest workshop/queries --out build/ingest.json
-PYTHONPATH=src python -m pydantree.codegen.cli normalize --input build/ingest.json --out build/normalize.json
-```
-
-### 3) Generate baseclasses/models
-
-Emit deterministic Pydantic query model modules into the canonical generated layout.
-
-```bash
-PYTHONPATH=src python -m pydantree.codegen.cli emit \
-  --input build/normalize.json \
-  --output-dir src/pydantree/generated/python/minimal_pack \
-  --out build/emit.json
-```
-
-Expected generated module path for this minimal pack:
-
-- `src/pydantree/generated/python/minimal_pack/python_highlights_models.py`
-
-### 4) Validate with CUE + Python checks
-
-Run CUE schema validation gates and Python tests/checks.
-
-```bash
-PYTHONPATH=src python -m pydantree.cli validate-ir build/normalize.json --schema-dir src/pydantree/cue
-PYTHONPATH=src python -m pydantree.codegen.cli manifest --ingest build/ingest.json --normalize build/normalize.json --emit build/emit.json --out build/manifest.json
-PYTHONPATH=src python -m pydantree.cli validate-manifest build/manifest.json --schema-dir src/pydantree/cue
-pytest tests/test_codegen_pipeline.py
-```
-
-### 5) Run query against fixture source
-
-Use the workshop contract command with logical names (no raw query file paths):
-
-```bash
+just workshop-init
+just scaffold python minimal_pack
+just ingest python minimal_pack
+just generate-models python minimal_pack
+just validate python minimal_pack
 just run-query python minimal_pack source
+just doctor python minimal_pack
 ```
 
-For this fixture, `source` maps to `tests/fixtures/python/minimal_pack/source.py` and should capture `greet` as `@function.name`.
+### Name → path resolution (internal)
 
-### 6) Inspect logs/manifests and iterate
+For the example `python minimal_pack`, Pydantree resolves repository-root paths internally:
 
-Inspect provenance, fingerprints, and workshop logs, then update `.scm` patterns and rerun the loop.
+- Queries: `workshop/queries/python/minimal_pack/*.scm`
+- Ingest artifact: `build/python/minimal_pack/ingest.json`
+- Normalized IR: `workshop/ir/python/minimal_pack/ir.v1.json`
+- Generated models: `src/pydantree/generated/python/minimal_pack/`
+- Manifest: `workshop/manifests/python/minimal_pack.json`
+- Source alias `source`: `tests/fixtures/python/minimal_pack/source.*`
 
-```bash
-cat build/manifest.json
-cat logs/workshop.jsonl
-```
+Users pass names (`language`, `query-pack`, `source`) only; raw paths are not part of the public interface.
 
 ## Planning docs
 
