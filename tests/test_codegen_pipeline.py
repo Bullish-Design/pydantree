@@ -29,7 +29,11 @@ def test_pipeline_roundtrip(tmp_path: Path) -> None:
     assert manifest.input_hashes["python/highlights.scm"] == ingest.queries[0].provenance.source_sha256
     assert len(manifest.output_file_hashes) == 1
     assert manifest.query_count == 1
+    assert manifest.module_count == 1
     assert manifest.pipeline_version == "2"
+    assert manifest.ingest_fingerprint
+    assert manifest.normalize_fingerprint
+    assert manifest.emit_fingerprint
     assert (tmp_path / "generated" / "python_highlights_models.py").exists()
 
 
@@ -61,3 +65,16 @@ def test_manifest_fails_with_mismatched_emit_payload(tmp_path: Path) -> None:
 
     with pytest.raises(CodegenDiagnosticError, match="Normalize and emit counts do not match"):
         build_manifest(ingest, normalize, emit.model_copy(update={"modules": tuple()}))
+
+
+def test_manifest_fails_with_mismatched_normalize_payload(tmp_path: Path) -> None:
+    query_dir = tmp_path / "queries" / "python"
+    query_dir.mkdir(parents=True)
+    (query_dir / "highlights.scm").write_text("(identifier) @id\n", encoding="utf-8")
+
+    ingest = ingest_scm(tmp_path / "queries")
+    normalize = normalize_ingested(ingest)
+    emit = emit_models(normalize, tmp_path / "generated")
+
+    with pytest.raises(CodegenDiagnosticError, match="Ingest and normalize query counts do not match"):
+        build_manifest(ingest, normalize.model_copy(update={"queries": tuple()}), emit)
