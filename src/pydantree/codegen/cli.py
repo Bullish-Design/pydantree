@@ -79,106 +79,21 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _dispatch(args: argparse.Namespace, *, logger: WorkshopEventLogger, run_id: str) -> None:
-    if args.command == "ingest":
-        context = build_log_context(
-            run_id=run_id,
-            language="unknown",
-            query_pack="unknown",
-            source_hash=hash_for_path(args.root_dir),
-        )
-        logger.ingest_started(context)
-        payload = ingest_scm(root_dir=args.root_dir, pattern=args.pattern)
-        write_model(args.out, payload)
-        logger.ingest_completed(context, files_discovered=len(payload.queries))
-        print(f"Wrote ingest artifact: {args.out}")
-        return
-
-    if args.command == "normalize":
-        ingest = IngestOutput.model_validate(read_model(args.input_path, IngestOutput))
-        language = ingest.queries[0].provenance.language
-        query_pack = Path(ingest.queries[0].provenance.file_path).stem
-        context = build_log_context(
-            run_id=run_id,
-            language=language,
-            query_pack=query_pack,
-            source_hash=hash_for_path(args.input_path),
-        )
-        normalized = normalize_ingested(ingest)
-        write_model(args.out, normalized)
-        logger.normalize_completed(context, records_normalized=len(normalized.queries))
-        print(f"Wrote normalize artifact: {args.out}")
-        return
-
-    if args.command == "emit":
-        normalize = NormalizeOutput.model_validate(read_model(args.input_path, NormalizeOutput))
-        language = normalize.queries[0].provenance.language
-        query_pack = normalize.queries[0].provenance.query_type
-        context = build_log_context(
-            run_id=run_id,
-            language=language,
-            query_pack=query_pack,
-            source_hash=hash_for_path(args.input_path),
-        )
-        try:
-            emitted = emit_models(normalize, output_dir=args.output_dir)
-        except CodegenDiagnosticError as exc:
-            logger.generation_failed(context, error=str(exc))
-            raise
-        write_model(args.out, emitted)
-        logger.generation_completed(context, models_generated=len(emitted.modules))
-        print(f"Wrote emit artifact: {args.out}")
-def _schema_path(schema_dir: Path, name: str) -> Path:
-    return schema_dir / name
-
-
-def _emit_validation(result_name: str, result: ValidationResult) -> None:
-    if result.ok:
-        print(f"{result_name}: ok")
-        return
-    print(f"{result_name}: failed", file=sys.stderr)
-    for detail in result.details:
-        print(f"  - {detail}", file=sys.stderr)
-
-
-def _query_ir_payload(query: object) -> dict[str, object]:
-    from pydantree.codegen.normalize import NormalizedQuery
-
-    normalized = NormalizedQuery.model_validate(query)
-    return {
-        "version": "v1",
-        "patterns": [
-            {
-                "id": pattern.pattern_id,
-                "pattern": pattern.source,
-                "captures": [
-                    {
-                        "name": capture.name,
-                        "source": {"file": normalized.provenance.file_path},
-                    }
-                    for capture in pattern.captures
-                ],
-            }
-            for pattern in normalized.patterns
-        ],
-        "query_metadata": {
-            "language": normalized.provenance.language,
-            "query_type": normalized.provenance.query_type,
-            "source_scm": normalized.provenance.file_path,
-            "generated_by": "pydantree-codegen",
-        },
-    }
-def _layout() -> WorkshopLayout:
-    return WorkshopLayout.from_path(resolve_repository_root())
-
-
-def _dispatch(args: argparse.Namespace) -> None:
     layout = _layout()
 
     if args.command == "ingest":
         root_dir = layout.queries_pack_dir(language=args.language, query_pack=args.query_pack)
         out = args.out or (layout.repository_root / "build" / f"ingest.{args.language}.{args.query_pack}.json")
+        context = build_log_context(
+            run_id=run_id,
+            language=args.language,
+            query_pack=args.query_pack,
+            source_hash=hash_for_path(root_dir),
+        )
+        logger.ingest_started(context)
         payload = ingest_scm(root_dir=root_dir, pattern=args.pattern)
         write_model(out, payload)
+        logger.ingest_completed(context, files_discovered=len(payload.queries))
         print(f"Wrote ingest artifact: {out}")
         return
 
@@ -186,8 +101,15 @@ def _dispatch(args: argparse.Namespace) -> None:
         input_path = args.input_path or (layout.repository_root / "build" / f"ingest.{args.language}.{args.query_pack}.json")
         out = args.out or layout.ir_file(language=args.language, query_pack=args.query_pack)
         ingest = IngestOutput.model_validate(read_model(input_path, IngestOutput))
+        context = build_log_context(
+            run_id=run_id,
+            language=args.language,
+            query_pack=args.query_pack,
+            source_hash=hash_for_path(input_path),
+        )
         normalized = normalize_ingested(ingest)
         write_model(out, normalized)
+        logger.normalize_completed(context, records_normalized=len(normalized.queries))
         print(f"Wrote normalize artifact: {out}")
         return
 
@@ -196,8 +118,19 @@ def _dispatch(args: argparse.Namespace) -> None:
         output_dir = args.output_dir or layout.generated_models_dir(language=args.language, query_pack=args.query_pack)
         out = args.out or (layout.repository_root / "build" / f"emit.{args.language}.{args.query_pack}.json")
         normalize = NormalizeOutput.model_validate(read_model(input_path, NormalizeOutput))
-        emitted = emit_models(normalize, output_dir=output_dir)
+        context = build_log_context(
+            run_id=run_id,
+            language=args.language,
+            query_pack=args.query_pack,
+            source_hash=hash_for_path(input_path),
+        )
+        try:
+            emitted = emit_models(normalize, output_dir=output_dir)
+        except CodegenDiagnosticError as exc:
+            logger.generation_failed(context, error=str(exc))
+            raise
         write_model(out, emitted)
+        logger.generation_completed(context, models_generated=len(emitted.modules))
         print(f"Wrote emit artifact: {out}")
         return
 
@@ -260,7 +193,53 @@ def _dispatch(args: argparse.Namespace) -> None:
         print(f"Wrote manifest artifact: {manifest_out}")
         return
 
-    raise CodegenDiagnosticError("cli", f"Unsupported command: {args.command}")
+    raise CodegenDiagnosticError("codegen", f"Unsupported command: {args.command}")
+
+
+def _schema_path(schema_dir: Path, name: str) -> Path:
+    return schema_dir / name
+
+
+def _emit_validation(result_name: str, result: ValidationResult) -> None:
+    if result.ok:
+        print(f"{result_name}: ok")
+        return
+    print(f"{result_name}: failed", file=sys.stderr)
+    for detail in result.details:
+        print(f"  - {detail}", file=sys.stderr)
+
+
+def _query_ir_payload(query: object) -> dict[str, object]:
+    from pydantree.codegen.normalize import NormalizedQuery
+
+    normalized = NormalizedQuery.model_validate(query)
+    return {
+        "version": "v1",
+        "patterns": [
+            {
+                "id": pattern.pattern_id,
+                "pattern": pattern.source,
+                "captures": [
+                    {
+                        "name": capture.name,
+                        "source": {"file": normalized.provenance.file_path},
+                    }
+                    for capture in pattern.captures
+                ],
+            }
+            for pattern in normalized.patterns
+        ],
+        "query_metadata": {
+            "language": normalized.provenance.language,
+            "query_type": normalized.provenance.query_type,
+            "source_scm": normalized.provenance.file_path,
+            "generated_by": "pydantree-codegen",
+        },
+    }
+
+
+def _layout() -> WorkshopLayout:
+    return WorkshopLayout.from_path(resolve_repository_root())
 
 
 if __name__ == "__main__":
