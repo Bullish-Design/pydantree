@@ -1,3 +1,0 @@
-examples/04_semantic_analysis.py
-src/pydantree/cli/main.py
-src/pydantree/processing/batch.py

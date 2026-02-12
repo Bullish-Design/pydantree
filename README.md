@@ -2,7 +2,9 @@
 
 **Typed Tree-sitter wrapper with graph operations for Python AST analysis and transformation.**
 
-Pydantree combines Tree-sitter's incremental parsing with Pydantic's type safety, providing a powerful toolkit for static analysis, code transformation, and AST pattern matching.
+Pydantree combines Tree-sitter's incremental parsing with Pydantic's type safety, providing a powerful toolkit for static analysis, code transformation, and AST pattern matching. 
+
+**V2:** Hopefully it'll be less out of hand this time?
 
 ## Features
 
