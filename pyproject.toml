@@ -48,6 +48,9 @@ dev = [
   "black>=24.0.0",
 ]
 
+[project.scripts]
+pydantree = "pydantree.cli:app"
+
 [project.urls]
 Homepage = "https://github.com/pydantree/pydantree"
 Repository = "https://github.com/pydantree/pydantree"
