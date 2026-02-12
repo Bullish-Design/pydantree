@@ -81,14 +81,24 @@ def _stage_file(layout: WorkshopLayout, *, language: str, query_pack: str, stage
     return layout.repository_root / "build" / language / query_pack / f"{stage}.json"
 
 
-def _dispatch(args: argparse.Namespace) -> None:
+# def _dispatch(args: argparse.Namespace) -> None:
+def _dispatch(args: argparse.Namespace, *, logger: WorkshopEventLogger, run_id: str) -> None:
     layout = _layout()
 
     if args.command == "ingest":
         root_dir = layout.queries_pack_dir(language=args.language, query_pack=args.query_pack)
-        out = args.out or _stage_file(layout, language=args.language, query_pack=args.query_pack, stage="ingest")
+#         out = args.out or _stage_file(layout, language=args.language, query_pack=args.query_pack, stage="ingest")
+        out = args.out or (layout.repository_root / "build" / f"ingest.{args.language}.{args.query_pack}.json")
+        context = build_log_context(
+            run_id=run_id,
+            language=args.language,
+            query_pack=args.query_pack,
+            source_hash=hash_for_path(root_dir),
+        )
+        logger.ingest_started(context)
         payload = ingest_scm(root_dir=root_dir, pattern=args.pattern)
         write_model(out, payload)
+        logger.ingest_completed(context, files_discovered=len(payload.queries))
         print(f"Wrote ingest artifact: {out}")
         return
 
@@ -101,8 +111,15 @@ def _dispatch(args: argparse.Namespace) -> None:
         )
         out = args.out or layout.ir_file(language=args.language, query_pack=args.query_pack)
         ingest = IngestOutput.model_validate(read_model(input_path, IngestOutput))
+        context = build_log_context(
+            run_id=run_id,
+            language=args.language,
+            query_pack=args.query_pack,
+            source_hash=hash_for_path(input_path),
+        )
         normalized = normalize_ingested(ingest)
         write_model(out, normalized)
+        logger.normalize_completed(context, records_normalized=len(normalized.queries))
         print(f"Wrote normalize artifact: {out}")
         return
 
@@ -111,8 +128,19 @@ def _dispatch(args: argparse.Namespace) -> None:
         output_dir = args.output_dir or layout.generated_models_dir(language=args.language, query_pack=args.query_pack)
         out = args.out or _stage_file(layout, language=args.language, query_pack=args.query_pack, stage="emit")
         normalize = NormalizeOutput.model_validate(read_model(input_path, NormalizeOutput))
-        emitted = emit_models(normalize, output_dir=output_dir)
+        context = build_log_context(
+            run_id=run_id,
+            language=args.language,
+            query_pack=args.query_pack,
+            source_hash=hash_for_path(input_path),
+        )
+        try:
+            emitted = emit_models(normalize, output_dir=output_dir)
+        except CodegenDiagnosticError as exc:
+            logger.generation_failed(context, error=str(exc))
+            raise
         write_model(out, emitted)
+        logger.generation_completed(context, models_generated=len(emitted.modules))
         print(f"Wrote emit artifact: {out}")
         return
 
@@ -180,7 +208,53 @@ def _dispatch(args: argparse.Namespace) -> None:
         print(f"Wrote manifest artifact: {manifest_out}")
         return
 
-    raise CodegenDiagnosticError("cli", f"Unsupported command: {args.command}")
+    raise CodegenDiagnosticError("codegen", f"Unsupported command: {args.command}")
+
+
+def _schema_path(schema_dir: Path, name: str) -> Path:
+    return schema_dir / name
+
+
+def _emit_validation(result_name: str, result: ValidationResult) -> None:
+    if result.ok:
+        print(f"{result_name}: ok")
+        return
+    print(f"{result_name}: failed", file=sys.stderr)
+    for detail in result.details:
+        print(f"  - {detail}", file=sys.stderr)
+
+
+def _query_ir_payload(query: object) -> dict[str, object]:
+    from pydantree.codegen.normalize import NormalizedQuery
+
+    normalized = NormalizedQuery.model_validate(query)
+    return {
+        "version": "v1",
+        "patterns": [
+            {
+                "id": pattern.pattern_id,
+                "pattern": pattern.source,
+                "captures": [
+                    {
+                        "name": capture.name,
+                        "source": {"file": normalized.provenance.file_path},
+                    }
+                    for capture in pattern.captures
+                ],
+            }
+            for pattern in normalized.patterns
+        ],
+        "query_metadata": {
+            "language": normalized.provenance.language,
+            "query_type": normalized.provenance.query_type,
+            "source_scm": normalized.provenance.file_path,
+            "generated_by": "pydantree-codegen",
+        },
+    }
+
+
+def _layout() -> WorkshopLayout:
+    return WorkshopLayout.from_path(resolve_repository_root())
 
 
 def _schema_path(schema_dir: Path, name: str) -> Path:
