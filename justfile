@@ -65,7 +65,6 @@ language = sys.argv[2]
 query_pack = sys.argv[3]
 layout = WorkshopLayout.from_path(repo_root)
 
-pack_dir = layout.queries_pack_dir(language, query_pack)
 out_file = repo_root / "build" / language / query_pack / "ingest.json"
 out_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -75,9 +74,8 @@ subprocess.run(
         "-m",
         "pydantree.codegen.cli",
         "ingest",
-        str(pack_dir),
-        "--out",
-        str(out_file),
+        language,
+        query_pack,
     ],
     check=True,
     cwd=repo_root,
@@ -89,7 +87,6 @@ PY
 generate-models language query_pack:
 	PYTHONPATH="{{repo_root}}/src" python - <<'PY' "{{repo_root}}" "{{language}}" "{{query_pack}}"
 from pathlib import Path
-import shutil
 import subprocess
 import sys
 
@@ -110,7 +107,7 @@ models_dir = layout.generated_models_dir(language, query_pack)
 manifest_path.parent.mkdir(parents=True, exist_ok=True)
 
 subprocess.run(
-    [sys.executable, "-m", "pydantree.codegen.cli", "normalize", "--input", str(ingest_path), "--out", str(normalize_path)],
+    [sys.executable, "-m", "pydantree.codegen.cli", "normalize", language, query_pack],
     check=True,
     cwd=repo_root,
 )
@@ -120,12 +117,8 @@ subprocess.run(
         "-m",
         "pydantree.codegen.cli",
         "emit",
-        "--input",
-        str(normalize_path),
-        "--output-dir",
-        str(models_dir),
-        "--out",
-        str(emit_path),
+        language,
+        query_pack,
     ],
     check=True,
     cwd=repo_root,
@@ -136,24 +129,14 @@ subprocess.run(
         "-m",
         "pydantree.codegen.cli",
         "manifest",
-        "--ingest",
-        str(ingest_path),
-        "--normalize",
-        str(normalize_path),
-        "--emit",
-        str(emit_path),
-        "--out",
-        str(manifest_path),
+        language,
+        query_pack,
     ],
     check=True,
     cwd=repo_root,
 )
-
-ir_path = layout.ir_file(language, query_pack)
-ir_path.parent.mkdir(parents=True, exist_ok=True)
-shutil.copyfile(normalize_path, ir_path)
 print(f"Generated models: {models_dir.relative_to(repo_root)}")
-print(f"IR artifact: {ir_path.relative_to(repo_root)}")
+print(f"IR artifact: {normalize_path.relative_to(repo_root)}")
 print(f"Manifest: {manifest_path.relative_to(repo_root)}")
 PY
 

@@ -101,6 +101,10 @@ PYTHONPATH=src python -m pydantree.codegen.cli ingest python minimal_pack
 PYTHONPATH=src python -m pydantree.codegen.cli normalize python minimal_pack
 ```
 
+Default artifacts are written to:
+- `build/python/minimal_pack/ingest.json`
+- `workshop/ir/python/minimal_pack/ir.v1.json`
+
 ### 3) Generate baseclasses/models
 
 Emit deterministic Pydantic query model modules into the canonical generated layout.
@@ -108,6 +112,9 @@ Emit deterministic Pydantic query model modules into the canonical generated lay
 ```bash
 PYTHONPATH=src python -m pydantree.codegen.cli emit python minimal_pack
 ```
+
+Default emit artifact:
+- `build/python/minimal_pack/emit.json`
 
 Expected generated module path for this minimal pack:
 

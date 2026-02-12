@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import platform
 import json
+import platform
+from hashlib import sha256
 from datetime import UTC, datetime
 
 from pydantic import BaseModel, ConfigDict
@@ -18,12 +19,13 @@ class ReproducibilityManifest(BaseModel):
     input_hashes: dict[str, str]
     toolchain_versions: dict[str, str]
     output_file_hashes: dict[str, str]
+    pipeline_version: str
+    query_count: int
+    module_count: int
     generated_at: datetime
 
 
 def build_manifest(ingest: IngestOutput, normalize: NormalizeOutput, emit: EmitOutput) -> ReproducibilityManifest:
-    del normalize
-
     input_hashes = {query.provenance.file_path: query.provenance.source_sha256 for query in ingest.queries}
     output_file_hashes = {module.file_path: module.content_sha256 for module in emit.modules}
     if len(ingest.queries) != len(normalize.queries):
@@ -46,15 +48,11 @@ def build_manifest(ingest: IngestOutput, normalize: NormalizeOutput, emit: EmitO
             "pydantree.codegen": "1",
         },
         output_file_hashes=dict(sorted(output_file_hashes.items())),
+        pipeline_version="2",
+        query_count=len(normalize.queries),
+        module_count=len(emit.modules),
         generated_at=datetime.now(UTC),
     )
-#         pipeline_version="2",
-#         ingest_fingerprint=_fingerprint(ingest.model_dump(mode="json")),
-#         normalize_fingerprint=_fingerprint(normalize.model_dump(mode="json")),
-#         emit_fingerprint=_fingerprint(emit.model_dump(mode="json")),
-#         query_count=len(normalize.queries),
-#         module_count=len(emit.modules),
-#     )
 
 
 def _fingerprint(payload: object) -> str:
