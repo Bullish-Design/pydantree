@@ -1,5 +1,18 @@
 # Pydantree Code Review
 
+> **Status:** This review's recommendations have been incorporated into the MVP design (2025-02).
+> See [ROADMAP.md](ROADMAP.md), [CONCEPT.md](CONCEPT.md), and [README.md](README.md) for the updated plan.
+>
+> **Key MVP decisions based on this review:**
+> - Single CUE-based manifest format aligned with `manifest_schema.cue`
+> - Shared baseclasses architecture to eliminate duplication
+> - High-level workshop commands implemented via `WorkshopLayout`
+> - Runtime execution deferred to post-MVP
+> - Determinism gaps addressed (timestamps excluded from fingerprints)
+> - Canonical workshop layout enforced throughout
+
+---
+
 ## Review scope and framing
 
 This review compares the current repository state against:
