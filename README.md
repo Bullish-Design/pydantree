@@ -78,6 +78,55 @@ Use `pydantree.registry.WorkshopLayout` path helpers so CLI and recipes can acce
 
 ## Workshop quickstart (shell-first)
 
+The steps below follow the shell-first contract and use one minimal, real fixture pack under `tests/fixtures/`:
+
+- Query fixture: `tests/fixtures/python/minimal_pack/highlights.scm`
+- Source fixture: `tests/fixtures/python/minimal_pack/source.py`
+
+### 1) Scaffold a query-pack
+
+Create a query-pack folder for a grammar and drop in at least one generated `.scm` query file.
+
+```bash
+mkdir -p workshop/queries/python/minimal_pack
+cp tests/fixtures/python/minimal_pack/highlights.scm workshop/queries/python/minimal_pack/highlights.scm
+```
+
+### 2) Ingest + normalize
+
+Ingest `.scm` files into a provenance-aware artifact, then normalize pattern/capture IDs into stable IR.
+
+```bash
+PYTHONPATH=src python -m pydantree.codegen.cli ingest python minimal_pack
+PYTHONPATH=src python -m pydantree.codegen.cli normalize python minimal_pack
+```
+
+### 3) Generate baseclasses/models
+
+Emit deterministic Pydantic query model modules into the canonical generated layout.
+
+```bash
+PYTHONPATH=src python -m pydantree.codegen.cli emit python minimal_pack
+```
+
+Expected generated module path for this minimal pack:
+
+- `src/pydantree/generated/python/minimal_pack/python_highlights_models.py`
+
+### 4) Validate with CUE + Python checks
+
+Run CUE schema validation gates and Python tests/checks.
+
+```bash
+PYTHONPATH=src python -m pydantree.cli validate-ir workshop/ir/python/minimal_pack/ir.v1.json --schema-dir src/pydantree/cue
+PYTHONPATH=src python -m pydantree.codegen.cli manifest python minimal_pack
+PYTHONPATH=src python -m pydantree.cli validate-manifest workshop/manifests/python/minimal_pack.json --schema-dir src/pydantree/cue
+pytest tests/test_codegen_pipeline.py
+```
+
+### 5) Run query against fixture source
+
+Use the workshop contract command with logical names (no raw query file paths):
 The workshop flow uses only the `just` contract with semantic names:
 
 ```bash
@@ -101,6 +150,10 @@ For the example `python minimal_pack`, Pydantree resolves repository-root paths 
 - Manifest: `workshop/manifests/python/minimal_pack.json`
 - Source alias `source`: `tests/fixtures/python/minimal_pack/source.*`
 
+```bash
+cat workshop/manifests/python/minimal_pack.json
+cat logs/workshop.jsonl
+```
 Users pass names (`language`, `query-pack`, `source`) only; raw paths are not part of the public interface.
 
 ## Planning docs
