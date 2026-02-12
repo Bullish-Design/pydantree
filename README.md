@@ -11,6 +11,36 @@ Pydantree is a focused library for turning Tree-sitter query artifacts (for exam
 - Generate deterministic Pydantic model code.
 - Execute queries and return typed, JSON-equivalent results.
 
+## Shell-first command contract
+
+Pydantree's workshop workflow is shell-first. The `just` interface is the canonical public contract, and command arguments use **grammar names** and **query-pack names** (never raw filesystem paths).
+
+### Contract
+
+```bash
+just workshop-init
+just scaffold <language> <query-pack>
+just ingest <language> <query-pack>
+just generate-models <language> <query-pack>
+just validate <language> <query-pack>
+just run-query <language> <query-pack> <source>
+just doctor <language> <query-pack>
+```
+
+### Argument semantics
+
+- `<language>`: a grammar identifier, such as `python`, `typescript`, or `go`.
+- `<query-pack>`: a named query collection for that grammar, such as `highlights`, `tags`, or another pack name exposed by the repository.
+- `<source>`: source input selector for query execution (for example, a fixture key, inline content key, or configured source alias).
+
+### Path-resolution rule
+
+All filesystem paths are resolved **internally from repository root**.
+
+- Users provide only stable names (`<language>`, `<query-pack>`, `<source>`).
+- Command implementations map those names to canonical repository locations.
+- No command in the public contract accepts raw local paths to grammar/query assets.
+
 ## Scope
 
 In scope:
@@ -22,6 +52,18 @@ Out of scope:
 - Graph analysis features.
 - Generic exporter/analyzer frameworks.
 - Broad static-analysis platforms not centered on query execution.
+
+## Canonical workshop layout
+
+Pydantree uses a canonical on-disk layout so generation, manifests, and runtime lookups stay deterministic:
+
+- `workshop/queries/<language>/<query_pack>/*.scm` (source of truth)
+- `workshop/ir/<language>/<query_pack>/ir.v1.json`
+- `src/pydantree/generated/<language>/<query_pack>/`
+- `workshop/manifests/<language>/<query_pack>.json` (hashes, tool versions, source refs)
+- `logs/workshop.jsonl` (append-only event log)
+
+Use `pydantree.registry.WorkshopLayout` path helpers so CLI and recipes can accept only logical names (`language`, `query_pack`) and avoid hard-coded paths.
 
 ## Planning docs
 

@@ -43,6 +43,39 @@ Pydantree provides:
 - Generic metric/security/static-analysis suites.
 - Large framework-level orchestration.
 
+
+## Shell-first command contract
+
+The user-facing workflow is defined by a shell-first `just` contract. Commands accept grammar/query-pack names and resolve all paths internally from repository root.
+
+### Contract
+
+```bash
+just workshop-init
+just scaffold <language> <query-pack>
+just ingest <language> <query-pack>
+just generate-models <language> <query-pack>
+just validate <language> <query-pack>
+just run-query <language> <query-pack> <source>
+just doctor <language> <query-pack>
+```
+
+### Interface guarantees
+
+1. `just workshop-init` prepares workshop-local state and indexes known grammars/query packs.
+2. `just scaffold <language> <query-pack>` creates deterministic starter assets for a named grammar/query pack pair.
+3. `just ingest <language> <query-pack>` loads and normalizes query artifacts into the internal representation.
+4. `just generate-models <language> <query-pack>` emits deterministic Pydantic models from normalized query data.
+5. `just validate <language> <query-pack>` checks schema integrity and runtime readiness for that pair.
+6. `just run-query <language> <query-pack> <source>` executes a named query pack against a named source input and returns typed output.
+7. `just doctor <language> <query-pack>` runs diagnostics for environment, assets, and configuration for that pair.
+
+### Resolution policy
+
+- Public inputs are semantic names, not paths.
+- Implementations must resolve canonical filesystem locations from repository root.
+- Raw path arguments for grammar/query-pack assets are intentionally out of contract.
+
 ## Design tenets
 
 1. Typed at every boundary.
