@@ -16,6 +16,7 @@ class QueryProvenance(BaseModel):
     language: str
     query_type: str
     source_sha256: str
+    source_bytes: int
     discovered_at: datetime
 
 
@@ -49,10 +50,17 @@ def ingest_scm(root_dir: Path, pattern: str = "*.scm") -> IngestOutput:
         )
 
     discovered: list[IngestedQuery] = []
-    for scm_file in sorted(root_dir.rglob(pattern)):
-        if scm_file.suffix != ".scm":
-            continue
+    matching_files = sorted(path for path in root_dir.rglob(pattern) if path.suffix == ".scm")
+    for scm_file in matching_files:
         source_text = scm_file.read_text(encoding="utf-8")
+        if not source_text.strip():
+            rel_path = scm_file.relative_to(root_dir).as_posix()
+            raise CodegenDiagnosticError(
+                "ingest",
+                f"Query file is empty: {rel_path}",
+                hint="Populate the .scm file with at least one query pattern.",
+            )
+
         rel_path = scm_file.relative_to(root_dir)
         language, query_type = _derive_query_metadata(rel_path)
         discovered.append(
@@ -62,6 +70,7 @@ def ingest_scm(root_dir: Path, pattern: str = "*.scm") -> IngestOutput:
                     language=language,
                     query_type=query_type,
                     source_sha256=sha256(source_text.encode("utf-8")).hexdigest(),
+                    source_bytes=len(source_text.encode("utf-8")),
                     discovered_at=datetime.now(UTC),
                 ),
                 source_text=source_text,
