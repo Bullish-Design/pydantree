@@ -31,9 +31,9 @@ def test_pipeline_roundtrip(tmp_path: Path) -> None:
     assert manifest.query_count == 1
     assert manifest.module_count == 1
     assert manifest.pipeline_version == "2"
-    assert manifest.ingest_fingerprint
-    assert manifest.normalize_fingerprint
-    assert manifest.emit_fingerprint
+    assert len(manifest.ingest_fingerprint) == 64
+    assert len(manifest.normalize_fingerprint) == 64
+    assert len(manifest.emit_fingerprint) == 64
     assert (tmp_path / "generated" / "python_highlights_models.py").exists()
 
 
@@ -78,3 +78,38 @@ def test_manifest_fails_with_mismatched_normalize_payload(tmp_path: Path) -> Non
 
     with pytest.raises(CodegenDiagnosticError, match="Ingest and normalize query counts do not match"):
         build_manifest(ingest, normalize.model_copy(update={"queries": tuple()}), emit)
+
+
+def test_manifest_serialized_contract_keys_and_types(tmp_path: Path) -> None:
+    query_dir = tmp_path / "queries" / "python"
+    query_dir.mkdir(parents=True)
+    (query_dir / "highlights.scm").write_text("(identifier) @id\n", encoding="utf-8")
+
+    ingest = ingest_scm(tmp_path / "queries")
+    normalize = normalize_ingested(ingest)
+    emit = emit_models(normalize, tmp_path / "generated")
+
+    payload = build_manifest(ingest, normalize, emit).model_dump(mode="json")
+
+    assert set(payload) == {
+        "pipeline_version",
+        "input_hashes",
+        "toolchain_versions",
+        "output_file_hashes",
+        "ingest_fingerprint",
+        "normalize_fingerprint",
+        "emit_fingerprint",
+        "query_count",
+        "module_count",
+        "generated_at",
+    }
+    assert isinstance(payload["pipeline_version"], str)
+    assert isinstance(payload["input_hashes"], dict)
+    assert isinstance(payload["toolchain_versions"], dict)
+    assert isinstance(payload["output_file_hashes"], dict)
+    assert isinstance(payload["ingest_fingerprint"], str)
+    assert isinstance(payload["normalize_fingerprint"], str)
+    assert isinstance(payload["emit_fingerprint"], str)
+    assert isinstance(payload["query_count"], int)
+    assert isinstance(payload["module_count"], int)
+    assert isinstance(payload["generated_at"], str)

@@ -45,7 +45,7 @@ This roadmap describes a practical, step-by-step path to build a focused **Tree-
 
 1. Create deterministic codegen templates for query and result models.
 2. Emit generated modules by language/query type.
-3. Write a generation manifest (hashes + source revisions) to support reproducible builds.
+3. Write a generation manifest (hashes, stage fingerprints, counts, tool versions, and timestamp) to support reproducible builds.
 4. Ensure generation is idempotent (same inputs => byte-identical outputs).
 
 ## 6) Implement runtime query execution
