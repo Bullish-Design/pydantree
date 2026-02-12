@@ -18,6 +18,10 @@ class InvalidLayoutNameError(ValueError):
     """Raised when a language or query pack name is unsafe for filesystem layout."""
 
 
+class RepositoryRootNotFoundError(ValueError):
+    """Raised when the repository root cannot be inferred from a starting path."""
+
+
 
 def _validate_name_segment(value: str, field_name: str) -> str:
     """Validate and normalize a layout segment.
@@ -38,6 +42,22 @@ def _validate_name_segment(value: str, field_name: str) -> str:
         raise InvalidLayoutNameError(f"{field_name} must not contain path separators")
 
     return segment
+
+
+def resolve_repository_root(start: Path | str | None = None) -> Path:
+    """Infer repository root by searching upward for `pyproject.toml`.
+
+    This keeps CLI commands independent from ad-hoc filesystem paths while still
+    allowing execution from nested working directories.
+    """
+
+    current = Path.cwd() if start is None else Path(start).resolve()
+    for candidate in (current, *current.parents):
+        if (candidate / "pyproject.toml").exists():
+            return candidate
+    raise RepositoryRootNotFoundError(
+        f"Unable to locate repository root from {current}; expected ancestor containing pyproject.toml"
+    )
 
 
 @dataclass(frozen=True)

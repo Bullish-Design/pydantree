@@ -50,3 +50,14 @@ def test_logger_emits_all_workshop_events(tmp_path) -> None:
     ]
     assert all(event["run_id"] == "run-123" for event in events)
     assert all("timestamp" in event for event in events)
+
+
+def test_logger_uses_canonical_default_log_path(monkeypatch, tmp_path) -> None:
+    (tmp_path / "pyproject.toml").write_text("[project]\nname=\"pydantree\"\n", encoding="utf-8")
+    nested = tmp_path / "subdir"
+    nested.mkdir()
+    monkeypatch.chdir(nested)
+
+    logger = WorkshopEventLogger()
+
+    assert logger.log_path == tmp_path / "logs/workshop.jsonl"

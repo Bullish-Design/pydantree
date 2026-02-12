@@ -97,8 +97,8 @@ cp tests/fixtures/python/minimal_pack/highlights.scm workshop/queries/python/min
 Ingest `.scm` files into a provenance-aware artifact, then normalize pattern/capture IDs into stable IR.
 
 ```bash
-PYTHONPATH=src python -m pydantree.codegen.cli ingest workshop/queries --out build/ingest.json
-PYTHONPATH=src python -m pydantree.codegen.cli normalize --input build/ingest.json --out build/normalize.json
+PYTHONPATH=src python -m pydantree.codegen.cli ingest python minimal_pack
+PYTHONPATH=src python -m pydantree.codegen.cli normalize python minimal_pack
 ```
 
 ### 3) Generate baseclasses/models
@@ -106,10 +106,7 @@ PYTHONPATH=src python -m pydantree.codegen.cli normalize --input build/ingest.js
 Emit deterministic Pydantic query model modules into the canonical generated layout.
 
 ```bash
-PYTHONPATH=src python -m pydantree.codegen.cli emit \
-  --input build/normalize.json \
-  --output-dir src/pydantree/generated/python/minimal_pack \
-  --out build/emit.json
+PYTHONPATH=src python -m pydantree.codegen.cli emit python minimal_pack
 ```
 
 Expected generated module path for this minimal pack:
@@ -121,9 +118,9 @@ Expected generated module path for this minimal pack:
 Run CUE schema validation gates and Python tests/checks.
 
 ```bash
-PYTHONPATH=src python -m pydantree.cli validate-ir build/normalize.json --schema-dir src/pydantree/cue
-PYTHONPATH=src python -m pydantree.codegen.cli manifest --ingest build/ingest.json --normalize build/normalize.json --emit build/emit.json --out build/manifest.json
-PYTHONPATH=src python -m pydantree.cli validate-manifest build/manifest.json --schema-dir src/pydantree/cue
+PYTHONPATH=src python -m pydantree.cli validate-ir workshop/ir/python/minimal_pack/ir.v1.json --schema-dir src/pydantree/cue
+PYTHONPATH=src python -m pydantree.codegen.cli manifest python minimal_pack
+PYTHONPATH=src python -m pydantree.cli validate-manifest workshop/manifests/python/minimal_pack.json --schema-dir src/pydantree/cue
 pytest tests/test_codegen_pipeline.py
 ```
 
@@ -142,7 +139,7 @@ For this fixture, `source` maps to `tests/fixtures/python/minimal_pack/source.py
 Inspect provenance, fingerprints, and workshop logs, then update `.scm` patterns and rerun the loop.
 
 ```bash
-cat build/manifest.json
+cat workshop/manifests/python/minimal_pack.json
 cat logs/workshop.jsonl
 ```
 
