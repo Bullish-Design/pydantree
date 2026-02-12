@@ -57,6 +57,7 @@ Repository = "https://github.com/pydantree/pydantree"
 "Bug Tracker" = "https://github.com/pydantree/pydantree/issues"
 
 [project.scripts]
+pydantree = "pydantree.cli:main"
 pydantree-codegen = "pydantree.codegen.cli:main"
 
 [tool.hatch.version]

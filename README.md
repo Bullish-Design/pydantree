@@ -53,6 +53,17 @@ Out of scope:
 - Generic exporter/analyzer frameworks.
 - Broad static-analysis platforms not centered on query execution.
 
+
+## Doctor command
+
+Run diagnostics for query and generation health:
+
+```bash
+pydantree doctor
+pydantree doctor --json
+```
+
+Checks include empty query files, capture-name validation, unsupported query features, manifest/hash drift, generation nondeterminism signals, and required runtime CLIs.
 ## Canonical workshop layout
 
 Pydantree uses a canonical on-disk layout so generation, manifests, and runtime lookups stay deterministic:
