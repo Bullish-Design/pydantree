@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -9,6 +10,7 @@ from pydantree.codegen.emit import EmitOutput, emit_models
 from pydantree.codegen.ingest import IngestOutput, ingest_scm
 from pydantree.codegen.manifest import build_manifest
 from pydantree.codegen.normalize import NormalizeOutput, normalize_ingested
+from pydantree.cue_validation import CueUnavailableError, ValidationResult, run_cue_validation
 from pydantree.registry import WorkshopLayout, resolve_repository_root
 
 
@@ -58,9 +60,59 @@ def _build_parser() -> argparse.ArgumentParser:
     manifest.add_argument("--emit", type=Path, dest="emit_path")
     manifest.add_argument("--out", type=Path)
 
+    generate = subparsers.add_parser(
+        "generate",
+        help="Run ingest/normalize/emit/manifest with CUE validation before and after generation",
+    )
+    generate.add_argument("root_dir", type=Path)
+    generate.add_argument("--pattern", default="*.scm")
+    generate.add_argument("--output-dir", type=Path, default=Path("build/generated"))
+    generate.add_argument("--build-dir", type=Path, default=Path("build"))
+    generate.add_argument("--schema-dir", type=Path, default=Path("src/pydantree/cue"))
+
     return parser
 
 
+def _schema_path(schema_dir: Path, name: str) -> Path:
+    return schema_dir / name
+
+
+def _emit_validation(result_name: str, result: ValidationResult) -> None:
+    if result.ok:
+        print(f"{result_name}: ok")
+        return
+    print(f"{result_name}: failed", file=sys.stderr)
+    for detail in result.details:
+        print(f"  - {detail}", file=sys.stderr)
+
+
+def _query_ir_payload(query: object) -> dict[str, object]:
+    from pydantree.codegen.normalize import NormalizedQuery
+
+    normalized = NormalizedQuery.model_validate(query)
+    return {
+        "version": "v1",
+        "patterns": [
+            {
+                "id": pattern.pattern_id,
+                "pattern": pattern.source,
+                "captures": [
+                    {
+                        "name": capture.name,
+                        "source": {"file": normalized.provenance.file_path},
+                    }
+                    for capture in pattern.captures
+                ],
+            }
+            for pattern in normalized.patterns
+        ],
+        "query_metadata": {
+            "language": normalized.provenance.language,
+            "query_type": normalized.provenance.query_type,
+            "source_scm": normalized.provenance.file_path,
+            "generated_by": "pydantree-codegen",
+        },
+    }
 def _layout() -> WorkshopLayout:
     return WorkshopLayout.from_path(resolve_repository_root())
 
@@ -106,6 +158,52 @@ def _dispatch(args: argparse.Namespace) -> None:
         manifest = build_manifest(ingest=ingest, normalize=normalize, emit=emit)
         write_model(out, manifest)
         print(f"Wrote manifest artifact: {out}")
+        return
+
+    if args.command == "generate":
+        ingest = ingest_scm(root_dir=args.root_dir, pattern=args.pattern)
+        normalize = normalize_ingested(ingest)
+
+        build_dir: Path = args.build_dir
+        build_dir.mkdir(parents=True, exist_ok=True)
+        ir_schema = _schema_path(args.schema_dir, "ir_schema.cue")
+
+        for query in normalize.queries:
+            ir_file = build_dir / f"ir.{query.provenance.language}.{query.provenance.query_type}.json"
+            ir_file.write_text(json.dumps(_query_ir_payload(query), indent=2), encoding="utf-8")
+            try:
+                validation = run_cue_validation(ir_file, ir_schema)
+            except CueUnavailableError as exc:
+                raise CodegenDiagnosticError("generate", str(exc)) from exc
+            _emit_validation(f"Pre-generation IR validation ({query.provenance.file_path})", validation)
+            if not validation.ok:
+                raise CodegenDiagnosticError("generate", f"IR validation failed for {query.provenance.file_path}")
+
+        emitted = emit_models(normalize, output_dir=args.output_dir)
+        manifest = build_manifest(ingest=ingest, normalize=normalize, emit=emitted)
+
+        ingest_out = build_dir / "ingest.json"
+        normalize_out = build_dir / "normalize.json"
+        emit_out = build_dir / "emit.json"
+        manifest_out = build_dir / "manifest.json"
+        write_model(ingest_out, ingest)
+        write_model(normalize_out, normalize)
+        write_model(emit_out, emitted)
+        write_model(manifest_out, manifest)
+
+        manifest_schema = _schema_path(args.schema_dir, "manifest_schema.cue")
+        try:
+            validation = run_cue_validation(manifest_out, manifest_schema)
+        except CueUnavailableError as exc:
+            raise CodegenDiagnosticError("generate", str(exc)) from exc
+        _emit_validation("Post-generation manifest validation", validation)
+        if not validation.ok:
+            raise CodegenDiagnosticError("generate", "Manifest validation failed")
+
+        print(f"Wrote ingest artifact: {ingest_out}")
+        print(f"Wrote normalize artifact: {normalize_out}")
+        print(f"Wrote emit artifact: {emit_out}")
+        print(f"Wrote manifest artifact: {manifest_out}")
         return
 
     raise CodegenDiagnosticError("cli", f"Unsupported command: {args.command}")

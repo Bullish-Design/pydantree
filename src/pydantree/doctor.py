@@ -168,7 +168,8 @@ def run_doctor(repo_root: Path, queries_dir: Path, manifest_path: Path) -> dict[
                     )
                 )
 
-        for rel, expected_hash in manifest.get("generated_hashes", {}).items():
+        generated_hashes = manifest.get("output_file_hashes") or manifest.get("generated_hashes", {})
+        for rel, expected_hash in generated_hashes.items():
             generated_path = repo_root / rel
             if not generated_path.exists():
                 issues.append(

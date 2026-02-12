@@ -26,6 +26,8 @@ def test_pipeline_roundtrip(tmp_path: Path) -> None:
     assert len(normalize.queries[0].patterns) == 1
     assert normalize.queries[0].patterns[0].ordinal == 1
     assert len(emit.modules) == 1
+    assert manifest.input_hashes["python/highlights.scm"] == ingest.queries[0].provenance.source_sha256
+    assert len(manifest.output_file_hashes) == 1
     assert manifest.query_count == 1
     assert manifest.pipeline_version == "2"
     assert (tmp_path / "generated" / "python_highlights_models.py").exists()
