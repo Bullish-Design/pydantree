@@ -1,61 +1,34 @@
-{ pkgs, lib, config, inputs, ... }:
+{ pkgs, ... }:
 
 {
-  # https://devenv.sh/basics/
-  env.GREET = "devenv";
+  env.GREET = "pydantree";
 
-  # https://devenv.sh/packages/
-  packages = [ pkgs.git ];
+  packages = [
+    pkgs.git
+    pkgs.tree-sitter
+  ];
 
-  # https://devenv.sh/languages/
-  # languages.rust.enable = true;
   languages = {
-      python = {
-          enable = true;
-          version = "3.13";
-          venv.enable = true;
-          uv.enable = true;
-        };
+    python = {
+      enable = true;
+      version = "3.13";
+      venv.enable = true;
+      uv.enable = true;
     };
-  # https://devenv.sh/processes/
-  # processes.cargo-watch.exec = "cargo-watch";
+  };
 
-  # https://devenv.sh/services/
-  # services.postgres.enable = true;
-
-  # https://devenv.sh/scripts/
   scripts.hello.exec = ''
-    echo hello from $GREET
-  '';
-
-  scripts.test-cli.exec = ''
-    echo ""
-    echo "Testing CLI Functionality..."
-    echo ""
-    bash examples/07_cli_usage.sh
-    echo ""
-    echo ""
+    echo "hello from $GREET"
   '';
 
   enterShell = ''
     hello
     git --version
+    tree-sitter --version
   '';
 
-  # https://devenv.sh/tasks/
-  # tasks = {
-  #   "myproj:setup".exec = "mytool build";
-  #   "devenv:enterShell".after = [ "myproj:setup" ];
-  # };
-
-  # https://devenv.sh/tests/
   enterTest = ''
-    echo "Running tests"
     git --version | grep --color=auto "${pkgs.git.version}"
+    tree-sitter --version
   '';
-
-  # https://devenv.sh/git-hooks/
-  # git-hooks.hooks.shellcheck.enable = true;
-
-  # See full reference at https://devenv.sh/reference/options/
 }

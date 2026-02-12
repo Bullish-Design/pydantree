@@ -5,319 +5,75 @@ build-backend = "hatchling.build"
 [project]
 name = "pydantree"
 dynamic = ["version"]
-description = "High-performance multi-language AST analysis with Tree-sitter and Pydantic"
+description = "Python + Pydantic models for Tree-sitter query workflows"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 requires-python = ">=3.11"
-
-authors = [
-    {name = "Pydantree Team", email = "maintainers@pydantree.org"},
-]
-
-maintainers = [
-    {name = "Pydantree Team", email = "maintainers@pydantree.org"},
-]
-
-keywords = [
-    "ast", "tree-sitter", "pydantic", "parser", "analysis", 
-    "multi-language", "batch-processing", "performance"
-]
-
+authors = [{ name = "Pydantree Team", email = "maintainers@pydantree.org" }]
+maintainers = [{ name = "Pydantree Team", email = "maintainers@pydantree.org" }]
+keywords = ["tree-sitter", "pydantic", "query", "neovim", "codegen"]
 classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Software Development :: Code Generators",
-    "Topic :: Text Processing :: Linguistic",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Operating System :: OS Independent",
-    "Typing :: Typed",
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Text Processing :: Linguistic",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Operating System :: OS Independent",
+  "Typing :: Typed",
 ]
 
 dependencies = [
-    "pydantic>=2.11,<3.0",
-    "tree-sitter>=0.23.0,<1.0",
-    "typer>=0.16.0,<1.0",
-    "rich>=13.0.0,<14.0",
-    "pydantic-settings>=2.10.1",
-    "lz4>=4.4.4",
-    "zstandard>=0.24.0",
+  "pydantic>=2.11,<3.0",
+  "tree-sitter>=0.23.0,<1.0",
+  "typer>=0.16.0,<1.0",
+  "rich>=13.0.0,<14.0",
 ]
 
 [project.optional-dependencies]
-# Core language support (most commonly used)
-python = [
-    "tree-sitter-python>=0.23.6",
-]
-
-javascript = [
-    "tree-sitter-javascript>=0.23.0",
-]
-
-typescript = [
-    "tree-sitter-typescript>=0.23.0",
-]
-
-# Extended language support
-rust = [
-    "tree-sitter-rust>=0.23.0",
-]
-
-go = [
-    "tree-sitter-go>=0.23.0",
-]
-
-java = [
-    "tree-sitter-java>=0.23.0",
-]
-
-cpp = [
-    "tree-sitter-cpp>=0.23.0",
-]
-
-json = [
-    "tree-sitter-json>=0.23.0",
-]
-
-# Language bundles
-common = [
-    "pydantree[python,javascript,typescript,json]",
-]
-
-systems = [
-    "pydantree[rust,go,cpp]",
-]
-
-all-languages = [
-    "pydantree[python,javascript,typescript,rust,go,java,cpp,json]",
-]
-
-# Performance and monitoring
-performance = [
-    "psutil>=5.9.0",        # Memory and CPU monitoring
-    "orjson>=3.9.0",        # Fast JSON serialization
-    "msgpack>=1.0.5",       # Binary serialization
-]
-
-# Graph operations and analysis
-graph = [
-    "rustworkx>=0.16.0",    # Graph algorithms
-    "networkx>=3.0",        # Graph analysis
-    "graphviz>=0.20.0",     # Graph visualization
-]
-
-# Export and serialization
-export = [
-    "lxml>=4.9.0",          # XML export
-    "xlsxwriter>=3.1.0",    # Excel export
-    "pandas>=2.0.0",        # DataFrame operations
-    "pyarrow>=12.0.0",      # Parquet export
-]
-
-# Development and testing
+python = ["tree-sitter-python>=0.23.6"]
+javascript = ["tree-sitter-javascript>=0.23.0"]
+typescript = ["tree-sitter-typescript>=0.23.0"]
+json = ["tree-sitter-json>=0.23.0"]
+common = ["pydantree[python,javascript,typescript,json]"]
 dev = [
-    "pytest>=8.0.0",
-    "pytest-cov>=4.0.0",
-    "pytest-benchmark>=4.0.0",
-    "pytest-asyncio>=0.23.0",
-    "pytest-xdist>=3.3.0",
-    "hypothesis>=6.82.0",
-    "mypy>=1.10.0",
-    "ruff>=0.4.0",
-    "black>=24.0.0",
-    "pre-commit>=3.5.0",
-]
-
-# Documentation
-docs = [
-    "mkdocs>=1.5.0",
-    "mkdocs-material>=9.4.0",
-    "mkdocstrings[python]>=0.24.0",
-    "pygments>=2.16.0",
-]
-
-# Complete development environment
-full = [
-    "pydantree[all-languages,performance,graph,export,dev,docs]",
+  "pytest>=8.0.0",
+  "pytest-cov>=4.0.0",
+  "mypy>=1.10.0",
+  "ruff>=0.4.0",
+  "black>=24.0.0",
 ]
 
 [project.urls]
 Homepage = "https://github.com/pydantree/pydantree"
-Documentation = "https://pydantree.readthedocs.io/"
 Repository = "https://github.com/pydantree/pydantree"
 "Bug Tracker" = "https://github.com/pydantree/pydantree/issues"
-Changelog = "https://github.com/pydantree/pydantree/blob/main/CHANGELOG.md"
 
-[project.scripts]
-pydantree = "pydantree.cli.main:run_cli"
-
-[project.entry-points."pydantree.languages"]
-python = "pydantree.languages.python:PythonLanguage"
-javascript = "pydantree.languages.javascript:JavaScriptLanguage"
-typescript = "pydantree.languages.typescript:TypeScriptLanguage"
-
-[project.entry-points."pydantree.exporters"]
-json = "pydantree.export.handlers.json:JsonHandler"
-xml = "pydantree.export.handlers.xml:XmlHandler"
-csv = "pydantree.export.handlers.csv:CsvHandler"
-
-[project.entry-points."pydantree.analyzers"]
-metrics = "pydantree.analyzers.metrics:MetricsAnalyzer"
-complexity = "pydantree.analyzers.complexity:ComplexityAnalyzer"
-security = "pydantree.analyzers.security:SecurityAnalyzer"
-
-# Build system configuration
 [tool.hatch.version]
 source = "vcs"
-raw-options = {local_scheme = "no-local-version"}
+raw-options = { local_scheme = "no-local-version" }
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/pydantree/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pydantree"]
-include = [
-    "src/pydantree/**/*.py",
-    "src/pydantree/**/*.pyi",
-    "src/pydantree/py.typed",
-]
-exclude = [
-    "src/pydantree/**/*_test.py",
-    "src/pydantree/**/test_*.py",
-]
 
 [tool.hatch.build.targets.sdist]
-include = [
-    "/src",
-    "/tests",
-    "/docs",
-    "/README.md",
-    "/LICENSE",
-    "/CHANGELOG.md",
-    "/pyproject.toml",
-]
+include = ["/src", "/tests", "/README.md", "/LICENSE", "/pyproject.toml"]
 
-# Development tools configuration
 [tool.ruff]
 target-version = "py311"
 line-length = 120
-select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # pyflakes
-    "I",   # isort
-    "B",   # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "UP",  # pyupgrade
-    "RUF", # Ruff-specific rules
-]
-ignore = [
-    "E501",  # line too long (handled by black)
-    "B008",  # do not perform function calls in argument defaults
-    "C901",  # too complex (handled by complexity tools)
-]
-
-[tool.ruff.per-file-ignores]
-"__init__.py" = ["F401"]  # Allow unused imports in __init__.py
-"tests/**/*.py" = ["B011"]  # Allow assert False in tests
-
-[tool.ruff.isort]
-known-first-party = ["pydantree"]
-split-on-trailing-comma = true
 
 [tool.black]
 line-length = 120
-target-version = ['py311']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-)/
-'''
+target-version = ["py311"]
 
 [tool.mypy]
 python_version = "3.11"
 strict = true
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
-
-[[tool.mypy.overrides]]
-module = [
-    "tree_sitter.*",
-    "rustworkx.*",
-    "orjson.*",
-    "msgpack.*",
-]
-ignore_missing_imports = true
-
-[tool.pytest.ini_options]
-minversion = "8.0"
-addopts = [
-    "-ra",
-    "--strict-markers",
-    "--strict-config",
-    "--cov=pydantree",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-report=xml",
-]
-testpaths = ["tests"]
-filterwarnings = [
-    "error",
-    "ignore::UserWarning",
-    "ignore::DeprecationWarning",
-]
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
-    "benchmark: marks tests as benchmarks",
-]
-
-[tool.coverage.run]
-source = ["pydantree"]
-omit = [
-    "*/tests/*",
-    "*/test_*",
-    "*/__init__.py",
-    "*/cli/*",  # CLI is harder to test in unit tests
-]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod",
-]
-
-[tool.bandit]
-exclude_dirs = ["tests"]
-skips = ["B101", "B601"]  # Allow assert and shell usage in specific contexts

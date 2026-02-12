@@ -2,116 +2,57 @@
 
 ## Vision
 
-Pydantree should be the **user-facing Python side** of Neovim-style Tree-sitter query workflows.
+Pydantree is the user-facing Python layer for Tree-sitter query workflows.
 
-The library's purpose is to let users describe query objects and match results as Pydantic models, execute queries in a conceptually simple way (wrapping Tree-sitter CLI flows), and consume typed JSON-equivalent data in Python.
+It should let users consume generated query `.scm` files, work with typed Pydantic query/match models, run queries through a small CLI wrapper, and consume stable JSON-equivalent results.
 
-## Why This Direction
+## Product definition
 
-The previous direction mixed many concerns (views, transformations, graph analysis, etc.).
-This concept intentionally narrows scope to improve clarity and long-term maintainability:
+Pydantree provides:
 
-- one primary abstraction model,
-- one query execution model,
-- one output style.
+1. **Pydantic schemas for query interactions**
+   - query specifications,
+   - captures/matches,
+   - normalized result envelopes.
 
-## Product Definition
+2. **A Pythonic API aligned with Tree-sitter query semantics**
+   - familiar capture naming,
+   - explicit model boundaries,
+   - straightforward runtime usage.
 
-Pydantree is:
+3. **A deterministic generation pipeline**
+   - `.scm` query inputs,
+   - normalized intermediate representation,
+   - reproducible generated models.
 
-1. **Pydantic schemas for Tree-sitter query interactions**
-   - query specification models,
-   - capture/match/event models,
-   - normalized result envelope models.
+4. **A transparent Tree-sitter CLI execution layer**
+   - minimal process wrapper,
+   - debuggable command behavior,
+   - deterministic output mapping.
 
-2. **A Pythonic Neovim Tree-sitter query API**
-   - familiar naming and behavior for query/capture handling,
-   - ergonomic helpers for common operations,
-   - explicit, inspectable model objects.
+## In scope
 
-3. **A wrapper over Tree-sitter CLI execution**
-   - thin process-invocation layer,
-   - deterministic mapping from CLI output into models,
-   - minimal hidden magic.
+- Query authoring/validation through models.
+- Generation from `.scm` files.
+- Query execution against files/content.
+- Typed output suitable for `model_dump()` and automation.
 
-Pydantree is **not**:
+## Out of scope
 
-- a graph library,
-- a general AST analytics platform,
-- a complex transformation framework.
+- Graph construction and graph algorithms.
+- Generic metric/security/static-analysis suites.
+- Large framework-level orchestration.
 
-## Scope Boundaries
+## Design tenets
 
-### In Scope
+1. Typed at every boundary.
+2. Deterministic generation and reproducible outputs.
+3. Simple API surface over broad abstraction.
+4. CLI-centric integration that is observable and testable.
 
-- Query authoring and validation via Pydantic.
-- Running queries against source files/buffers through CLI-backed workflow.
-- Emitting JSON-equivalent match structures (`model_dump`).
-- Supporting practical local use inside `devenv.sh` personal environments.
+## Success criteria
 
-### Out of Scope
-
-- Graph building, traversal, pattern matching, or graph metrics.
-- Non-query static analysis features not directly tied to query execution (for example: complexity scoring, security linting rule packs, dependency graphing, architectural smell detection, or broad code-quality auditing).
-- Heavy orchestration frameworks.
-
-## Design Tenets
-
-1. **Typed at every boundary**
-   - Input, intermediate, and output data structures should be modeled.
-
-2. **Simple over comprehensive**
-   - Prefer obvious behavior and small APIs over feature sprawl.
-
-3. **CLI-centric integration**
-   - The Tree-sitter CLI integration should remain transparent and debuggable.
-
-4. **Neovim semantics as reference**
-   - Terminology and conceptual model should align with Neovim Tree-sitter usage.
-
-5. **Personal-dev-environment pragmatism**
-   - Optimize for local workflow reliability over enterprise-level extensibility.
-
-## Proposed High-Level API Surface
-
-> Names are conceptual and can evolve.
-
-- `QuerySpec` — language, query text, capture expectations, options.
-- `QueryTarget` — file path or in-memory content target.
-- `QueryRunner` — executes a query spec against a target.
-- `MatchResult` — normalized top-level result object.
-- `MatchItem` / `CaptureItem` — strongly typed result units.
-
-## Execution Model (Conceptual)
-
-1. User creates `QuerySpec` Pydantic model.
-2. User points runner at a file/string target.
-3. Runner invokes Tree-sitter CLI workflow.
-4. Raw output is parsed/normalized into Pydantic result models.
-5. User consumes:
-   - typed Python attributes,
-   - JSON-equivalent payload via `model_dump()`.
-
-## Non-Goals for Initial Iteration
-
-- Cross-language plugin ecosystem.
-- Distributed or remote execution.
-- Large-scale indexing/storage subsystems.
-- Advanced editor-integration frameworks.
-
-## Success Criteria
-
-A successful first release of this concept should make the following easy:
-
-1. Define a query in a typed model in <10 lines.
-2. Run it against a file in one call.
-3. Get stable, typed capture/match objects.
-4. Serialize directly to JSON-equivalent structures for automation scripts.
-
-## Migration Implications
-
-All graph-related documentation and APIs should be considered deprecated for this concept and removed or ignored in future iterations.
-
-## Summary
-
-Pydantree is becoming a **focused Python + Pydantic interface for Neovim Tree-sitter query workflows**, implemented as a **simple wrapper around Tree-sitter CLI behavior**, with **typed JSON-equivalent outputs** as the primary deliverable.
+1. A generated query set can be loaded without hand-written schema glue.
+2. Running a query requires one clear API call.
+3. Output is stable and serializable.
+4. Validation can run against Tree-sitter fixtures for confidence.

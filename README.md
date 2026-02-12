@@ -1,65 +1,33 @@
 # Pydantree
 
-**A user-facing, Pythonic wrapper for Neovim Tree-sitter queries using Pydantic models.**
+**Typed Tree-sitter query workflows in Python, driven by generated `.scm` files.**
 
-Pydantree is being refocused into a small, practical library for personal development environments (`devenv.sh`) where you want to:
+Pydantree is a focused library for turning Tree-sitter query artifacts (for example `highlights.scm` and `tags.scm`) into typed Pydantic models and executing those queries through a thin Tree-sitter CLI wrapper.
 
-- define Tree-sitter query shapes as typed Pydantic models,
-- run those queries through the Tree-sitter CLI workflow,
-- and receive clean JSON-like, model-backed match data in Python.
+## Core idea
 
-This project is intentionally narrowing scope. It is **not** a graph-analysis toolkit.
+- Treat generated `.scm` files as source of truth.
+- Normalize query/capture data into stable internal models.
+- Generate deterministic Pydantic model code.
+- Execute queries and return typed, JSON-equivalent results.
 
-## Project Direction (New Scope)
+## Scope
 
-Pydantree now targets one core job:
+In scope:
+- Query model generation and validation.
+- CLI-backed query execution.
+- Typed capture/match result envelopes.
 
-1. Represent query and match structures with Pydantic.
-2. Provide a Python-first API that maps closely to Neovim Tree-sitter query concepts.
-3. Execute query flows in a simple wrapper around Tree-sitter CLI usage.
-4. Emit structured JSON-equivalent match results for downstream automation.
+Out of scope:
+- Graph analysis features.
+- Generic exporter/analyzer frameworks.
+- Broad static-analysis platforms not centered on query execution.
 
-For the detailed concept and architecture goals, see [CONCEPT.md](CONCEPT.md).
+## Planning docs
 
-## Core Principles
-
-- **User-facing first**: the API should feel natural from Python, not like a thin C binding.
-- **Typed interfaces**: Pydantic models should be the primary data boundary.
-- **Simple operational model**: prioritize direct CLI-backed workflows over heavy abstraction.
-- **Neovim query alignment**: naming and behavior should mirror Tree-sitter query semantics used in Neovim.
-- **No graph layer**: graph-specific APIs and concepts are out of scope.
-
-## Intended Usage (Conceptual)
-
-```python
-from pydantree import QuerySpec, QueryRunner
-
-spec = QuerySpec(
-    language="python",
-    query="""
-    (function_definition
-      name: (identifier) @function.name) @function.def
-    """,
-    captures=["function.def", "function.name"],
-)
-
-runner = QueryRunner()
-result = runner.match_file("example.py", spec)
-
-# JSON-equivalent typed output
-print(result.model_dump())
-```
-
-## What is Explicitly Out of Scope
-
-- AST graph construction
-- Graph algorithms or isomorphism matching
-- Graph visualization
-- Multi-purpose static analysis platform ambitions (e.g., complexity analyzers, security scanners, or architecture-level auditing unrelated to query matches)
-
-## Development Notes
-
-This repository is currently in a concept-first transition. As implementation evolves, the README will track concrete APIs and installation details aligned to the narrowed scope.
+- [ROADMAP.md](ROADMAP.md): step-by-step implementation plan.
+- [AGENT.md](AGENT.md): contributor/agent execution guide.
+- [CONCEPT.md](CONCEPT.md): product intent and design principles.
 
 ## License
 
