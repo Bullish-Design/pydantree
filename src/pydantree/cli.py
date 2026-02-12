@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 import shlex
 import subprocess
+import time
 from pathlib import Path
+from uuid import uuid4
 
 import typer
 
@@ -14,10 +16,21 @@ from pydantree.codegen.manifest import build_manifest
 from pydantree.codegen.normalize import NormalizeOutput, normalize_ingested
 from pydantree.doctor import format_human_summary, run_doctor
 from pydantree.cue_validation import CueUnavailableError, run_cue_validation
+from pydantree.models import LogContext
+from pydantree.runtime import WorkshopEventLogger, build_log_context, hash_for_path
 
 app = typer.Typer(help="Pydantree generation wrappers with CUE validation gates.")
 
 
+
+
+def _context_for_path(path: Path, *, run_id: str) -> LogContext:
+    return build_log_context(
+        run_id=run_id,
+        language="unknown",
+        query_pack=path.stem,
+        source_hash=hash_for_path(path),
+    )
 @app.command("codegen-ingest")
 def codegen_ingest(
     root_dir: Path = typer.Argument(..., exists=True, file_okay=False, readable=True),
@@ -130,14 +143,20 @@ def validate_ir(
     schema_dir: Path | None = typer.Option(None, help="Optional directory containing CUE schemas."),
 ) -> None:
     schema_file = _schema_path("ir_schema.cue", schema_dir)
+    logger = WorkshopEventLogger()
+    context = _context_for_path(ir_file, run_id=str(uuid4()))
     try:
         result = run_cue_validation(ir_file, schema_file)
     except CueUnavailableError as exc:
         typer.echo(str(exc))
+        logger.validation_failed(context, error=str(exc))
         raise typer.Exit(code=2) from exc
 
     _emit_validation_result("IR validation", result.ok, result.details)
-    if not result.ok:
+    if result.ok:
+        logger.validation_completed(context, checks_run=1)
+    else:
+        logger.validation_failed(context, error="; ".join(result.details) or "validation failed")
         raise typer.Exit(code=1)
 
 
@@ -147,14 +166,20 @@ def validate_manifest(
     schema_dir: Path | None = typer.Option(None, help="Optional directory containing CUE schemas."),
 ) -> None:
     schema_file = _schema_path("manifest_schema.cue", schema_dir)
+    logger = WorkshopEventLogger()
+    context = _context_for_path(manifest_file, run_id=str(uuid4()))
     try:
         result = run_cue_validation(manifest_file, schema_file)
     except CueUnavailableError as exc:
         typer.echo(str(exc))
+        logger.validation_failed(context, error=str(exc))
         raise typer.Exit(code=2) from exc
 
     _emit_validation_result("Manifest validation", result.ok, result.details)
-    if not result.ok:
+    if result.ok:
+        logger.validation_completed(context, checks_run=1)
+    else:
+        logger.validation_failed(context, error="; ".join(result.details) or "validation failed")
         raise typer.Exit(code=1)
 
 
@@ -167,29 +192,49 @@ def generate(
 ) -> None:
     ir_schema = _schema_path("ir_schema.cue", schema_dir)
     manifest_schema = _schema_path("manifest_schema.cue", schema_dir)
+    logger = WorkshopEventLogger()
+    run_id = str(uuid4())
+    context = _context_for_path(ir_file, run_id=run_id)
 
     try:
         pre_result = run_cue_validation(ir_file, ir_schema)
     except CueUnavailableError as exc:
         typer.echo(str(exc))
+        logger.validation_failed(context, error=str(exc))
         raise typer.Exit(code=2) from exc
 
     _emit_validation_result("Pre-generation IR validation", pre_result.ok, pre_result.details)
-    if not pre_result.ok:
+    if pre_result.ok:
+        logger.validation_completed(context, checks_run=1)
+    else:
+        logger.validation_failed(context, error="; ".join(pre_result.details) or "pre-generation validation failed")
         raise typer.Exit(code=1)
 
     command_parts = shlex.split(generator_cmd)
+    started = time.perf_counter()
     generation = subprocess.run(command_parts, check=False, text=True, capture_output=True)
+    elapsed_ms = int((time.perf_counter() - started) * 1000)
+    logger.query_runtime_execution(context, target=generator_cmd, elapsed_ms=elapsed_ms)
+
     if generation.stdout:
         typer.echo(generation.stdout.rstrip())
     if generation.returncode != 0:
         if generation.stderr:
             typer.echo(generation.stderr.rstrip())
+        logger.generation_failed(context, error=f"exit code {generation.returncode}")
         raise typer.Exit(code=generation.returncode)
+
+    logger.generation_completed(context, models_generated=1)
 
     post_result = run_cue_validation(manifest_file, manifest_schema)
     _emit_validation_result("Post-generation manifest validation", post_result.ok, post_result.details)
-    if not post_result.ok:
+    if post_result.ok:
+        logger.validation_completed(_context_for_path(manifest_file, run_id=run_id), checks_run=1)
+    else:
+        logger.validation_failed(
+            _context_for_path(manifest_file, run_id=run_id),
+            error="; ".join(post_result.details) or "post-generation validation failed",
+        )
         raise typer.Exit(code=1)
 
 
