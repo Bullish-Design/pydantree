@@ -1,3 +1,3 @@
-from pydantree.runtime.workshop_logger import WorkshopEventLogger, resolve_tool_versions
+from pydantree.runtime.workshop_logger import WorkshopEventLogger, build_log_context, hash_for_path, resolve_tool_versions
 
-__all__ = ["WorkshopEventLogger", "resolve_tool_versions"]
+__all__ = ["WorkshopEventLogger", "build_log_context", "hash_for_path", "resolve_tool_versions"]
