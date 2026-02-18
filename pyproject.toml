@@ -9,8 +9,7 @@ description = "Python + Pydantic models for Tree-sitter query workflows"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
-authors = [{ name = "Pydantree Team", email = "maintainers@pydantree.org" }]
-maintainers = [{ name = "Pydantree Team", email = "maintainers@pydantree.org" }]
+authors = [{ name = "Bullish Design", email = "bullishdesignengineeringllc@gmail.com" }]
 keywords = ["tree-sitter", "pydantic", "query", "neovim", "codegen"]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -51,7 +50,6 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/pydantree/pydantree"
 Repository = "https://github.com/pydantree/pydantree"
-"Bug Tracker" = "https://github.com/pydantree/pydantree/issues"
 
 [project.scripts]
 pydantree = "pydantree.cli:main"
