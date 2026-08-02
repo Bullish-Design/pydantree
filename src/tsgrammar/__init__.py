@@ -27,6 +27,7 @@ from __future__ import annotations
 from .builder import (
     B,
     Grammar,
+    Ladder,
     RuleSite,
     alias,
     blank,
@@ -61,6 +62,7 @@ from .conflicts import (
     parse_conflict_json,
     remap_from_proc,
 )
+from .expressions import expression
 from .grammar import (
     AliasNode,
     BlankNode,
@@ -93,7 +95,9 @@ from .pipeline import (
     PipelineError,
     build,
     build_builder,
+    build_loop,
     compile_parser,
+    debug_states,
     default_cache_dir,
     detect_toolchain,
     generate,
@@ -108,7 +112,7 @@ __all__ = [
     "Grammar", "rule", "seq", "choice", "repeat", "repeat1", "opt", "field",
     "token", "tok", "immediate_token", "ref", "pattern", "alias", "blank",
     "prec", "prec_left", "prec_right", "prec_dynamic", "grammar",
-    "RuleSite", "B",
+    "RuleSite", "B", "Ladder",
     # IR
     "GrammarModel", "Rule", "RuleNode",
     "SymbolNode", "StrNode", "PatternNode", "BlankNode", "SeqNode",
@@ -121,9 +125,12 @@ __all__ = [
     # conflicts
     "GrammarConflictError", "Conflict", "parse_conflict_json", "remap_from_proc",
     # pipeline
-    "build", "build_builder", "generate", "run_generate", "compile_parser",
-    "detect_toolchain", "grammar_hash", "default_cache_dir", "BuildResult",
-    "PipelineError", "GenerateError", "CompileError",
+    "build", "build_builder", "build_loop", "generate", "run_generate",
+    "compile_parser", "debug_states", "detect_toolchain", "grammar_hash",
+    "default_cache_dir", "BuildResult", "PipelineError", "GenerateError",
+    "CompileError",
+    # expression helper
+    "expression",
     # language
     "load_language", "parse",
 ]

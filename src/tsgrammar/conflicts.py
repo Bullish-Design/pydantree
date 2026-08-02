@@ -79,7 +79,9 @@ def parse_conflict_json(raw: str) -> Conflict | None:
 
 class GrammarConflictError(Exception):
     """Raised when tree-sitter generate reports an unresolved GLR conflict.
-    Names the offending `g.rule(...)` calls with their Python source sites."""
+    Names the offending productions with their per-production Python source
+    sites — the exact `seq(...)` alternative line, not just the `rule(...)`
+    call (Phase 3; Phase 2 was per-rule only)."""
 
     def __init__(self, grammar: Grammar, conflict: Conflict,
                  raw_report: str | None = None):
@@ -104,7 +106,7 @@ class GrammarConflictError(Exception):
             else:
                 lines.append(f"  - rule {name!r} (no recorded source site)")
         lines.append("")
-        lines.append("Competing parses:")
+        lines.append("Competing parses (per-production source sites):")
         for i, interp in enumerate(c.interpretations, 1):
             prod = "  ".join(interp.get("production_step_symbols", []))
             prec = interp.get("precedence")
@@ -112,7 +114,14 @@ class GrammarConflictError(Exception):
             extra = ""
             if prec or assoc:
                 extra = f"   [precedence={prec}, associativity={assoc}]"
-            lines.append(f"  {i}. {interp.get('variable_name')}: {prod}{extra}")
+            name = interp.get("variable_name")
+            # per-production site: the exact seq(...) alternative, if any
+            prodsite = None
+            if name is not None:
+                prodsite = g.matching_alternative(
+                    name, tuple(interp.get("production_step_symbols", [])))
+            site_txt = f"   at {prodsite}" if prodsite else ""
+            lines.append(f"  {i}. {name}: {prod}{extra}{site_txt}")
         lines.append("")
         lines.append("Suggested fixes from the generator:")
         for i, res in enumerate(c.resolutions, 1):

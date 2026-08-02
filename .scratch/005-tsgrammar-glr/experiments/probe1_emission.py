@@ -182,7 +182,7 @@ def run_candidate(name, build_fn):
             print("  analyzer issues:")
             for i in issues:
                 print(f"    ! {i}")
-    except Exception as e:
+    except ValueError as e:
         print(f"  analyzer exception: {e}")
     g = build_fn()
     try:
@@ -191,7 +191,7 @@ def run_candidate(name, build_fn):
         print(f"  GENERATE FAILED (exit {e.proc.returncode})")
         print("  " + "\n  ".join(e.proc.stderr.strip().splitlines()[:15]))
         return False
-    lang, lib = tg.load_language(res.so_path, g.name)
+    lang, _lib = tg.load_language(res.so_path, g.name)
     failures = 0
     for src, expected, note in CORPUS:
         tree = tg.parse(lang, src)

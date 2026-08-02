@@ -44,10 +44,12 @@ from dataclasses import dataclass
 from .builder import Grammar as BuilderGrammar
 from .builder import RuleSite
 from .grammar import (
+    AliasNode,
     BlankNode,
     ChoiceNode,
     ImmediateTokenNode,
     PatternNode,
+    PrecDynamicNode,
     PrecLeftNode,
     PrecNode,
     PrecRightNode,
@@ -431,6 +433,50 @@ def check_start_defined(g) -> list[CheckIssue]:
     return []
 
 
+def check_nullable_non_start_rule(g) -> list[CheckIssue]:
+    """Non-start rules must not be nullable — the CLI rejects them with
+    `EmptyString` (Phase-2 appendix fact 2; only the START rule may be
+    nullable, e.g. tree-sitter-bash's `program`). The nullable part belongs in
+    the caller: `seq("(", opt(params), ")")` with `params` non-nullable."""
+    view = _view(g)
+    issues = []
+    for name, rule in view.rules.items():
+        if name == view.start:
+            continue
+        if _nullable(rule, view, set()):
+            issues.append(CheckIssue(
+                name,
+                "rule is nullable — the CLI rejects nullable non-start rules "
+                "(`EmptyString`); move the optional part into the caller "
+                "(e.g. `seq('(', opt(params), ')')` with `params` non-nullable)",
+                view.site(name)))
+    return issues
+
+
+def check_alias_on_seq(g) -> list[CheckIssue]:
+    """alias over a bare SEQ aliases every named child (Phase-2 kitsink
+    footgun §1.3.3). The builder raises at `alias()` construction; this check
+    catches imported IR grammars and any alias the builder could not see. The
+    canonical pattern aliases a single hidden symbol."""
+    view = _view(g)
+    issues = []
+    for name, rule in view.rules.items():
+        for n in iter_all(rule):
+            if isinstance(n, AliasNode):
+                content = n.content
+                while isinstance(content, (PrecNode, PrecLeftNode, PrecRightNode,
+                                           PrecDynamicNode)):
+                    content = content.content
+                if isinstance(content, SeqNode):
+                    issues.append(CheckIssue(
+                        name,
+                        f"alias {n.value!r} wraps a SEQ — the generator aliases "
+                        "EVERY named child (kitsink footgun). Alias a single "
+                        "hidden symbol: alias('x', True, ref('_contents'))",
+                        view.site(name), warning=True))
+    return issues
+
+
 # ---------------------------------------------------------------------------
 # entry point
 # ---------------------------------------------------------------------------
@@ -442,10 +488,12 @@ def run_checks(g) -> list[CheckIssue]:
         + check_undefined_symbols(g)
         + check_unused_rules(g)
         + check_nullable_in_repeat(g)
+        + check_nullable_non_start_rule(g)
         + check_symbol_inside_token(g)
         + check_pattern_flags(g)
         + check_precedence_mixing(g)
         + check_extras_token_prefix_overlap(g)
+        + check_alias_on_seq(g)
     )
 
 

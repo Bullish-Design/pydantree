@@ -91,7 +91,7 @@ def base_rules(g: tg.Grammar):
     g.extra(tg.pattern(r"\s"))
 
 
-def _ops(l: "L", *, postfix_level):
+def _ops(l, *, postfix_level):
     """The shared operator alternative list for a ladder object l."""
     return [
         tg.prec_left(l("or"), tg.seq(tg.ref("expr"), "or", tg.ref("expr"))),
@@ -208,7 +208,7 @@ def run_candidate(name, build_fn):
         print("  GENERATE FAILED:")
         print("  " + "\n  ".join(e.proc.stderr.strip().splitlines()[:20]))
         return False
-    lang, lib = tg.load_language(res.so_path, g.name)
+    lang, _lib = tg.load_language(res.so_path, g.name)
     failures = 0
     for src, expected, note in CORPUS:
         tree = tg.parse(lang, src)

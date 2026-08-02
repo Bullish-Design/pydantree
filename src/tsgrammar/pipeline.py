@@ -236,8 +236,87 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
 
 
 def build_builder(g, *, cache_dir=None, **kw) -> BuildResult:
-    """build() for a builder DSL Grammar (builds the IR first)."""
-    return build(g.build(), cache_dir=cache_dir, **kw)
+    """build() for a builder DSL Grammar (builds the IR first).
+
+    When `tree-sitter generate` fails on an unresolved conflict, re-runs with
+    `--json` and raises `GrammarConflictError` (remapped to the author's
+    per-production DSL source sites) instead of a bare `GenerateError` — the
+    fix-one-rerun loop depends on this.
+    """
+    model = g.build()
+    try:
+        return build(model, cache_dir=cache_dir, **kw)
+    except GenerateError as e:
+        if e.proc is not None and e.proc.returncode == 1:
+            import tempfile
+
+            from .conflicts import parse_conflict_json, remap_from_proc
+            with tempfile.TemporaryDirectory(prefix="tsgrammar-remap-") as td:
+                json_path = model.emit_bundle(Path(td))
+                proc = run_generate(json_path, json_report=True)
+                if parse_conflict_json(proc.stderr) is not None:
+                    _conflict, err = remap_from_proc(g, proc)
+                    raise err from None
+        raise
+
+
+def build_loop(g, *, fix=None, cache_dir=None, max_attempts: int = 8,
+               **kw):
+    """The fix-one-rerun loop (first-class Phase-3 API).
+
+    Yields a `GrammarConflictError` for each conflicted generate attempt — the
+    error names the per-production DSL site and the generator's suggested
+    fixes — then calls `fix(error, g)` (which should mutate `g`, e.g. via
+    `g.replace_rule(...)` or `g.conflict(...)`) and re-runs. Generate is
+    sub-second, so one conflict per iteration is the natural cadence (the CLI
+    is fail-fast: first conflict only). On a clean generate, yields the
+    `BuildResult` and returns. Raises after `max_attempts` without a clean
+    generate.
+
+    Usage:
+        def fix(error, g):
+            ...  # apply the suggested fix, one at a time
+        for event in tg.build_loop(g, fix=fix):
+            if isinstance(event, tg.GrammarConflictError):
+                print(event)          # the bite, local and actionable
+            else:
+                result = event        # clean generate -> .so
+    """
+    from .conflicts import GrammarConflictError
+    for attempt in range(max_attempts):
+        try:
+            result = build_builder(g, cache_dir=cache_dir, **kw)
+            yield result
+            return
+        except GrammarConflictError as e:
+            yield e
+            if fix is not None:
+                fix(e, g)
+    raise RuntimeError(
+        f"build_loop: no clean generate after {max_attempts} attempts "
+        f"(grammar {g.name!r})")
+
+
+def debug_states(g, rule_name: str, *, workdir: Path | None = None,
+                 json_report: bool = False):
+    """Wrapper over `tree-sitter generate --report-states-for-rule <name>` —
+    the 'why is my unary/^ interaction wrong?' surface. Emits the grammar into
+    `workdir` (a temp dir by default) and returns the raw CLI output text.
+    Rule name `-` reports every rule."""
+    import tempfile
+
+    work = Path(workdir) if workdir is not None \
+        else Path(tempfile.mkdtemp(prefix="tsgrammar-states-"))
+    work.mkdir(parents=True, exist_ok=True)
+    json_path = g.emit_bundle(work)
+    cmd = ["tree-sitter", "generate", str(json_path),
+           "--report-states-for-rule", rule_name]
+    if json_report:
+        cmd.append("--json")
+    proc = subprocess.run(cmd, capture_output=True, text=True,
+                          cwd=str(work), check=False)
+    body = proc.stdout if proc.stdout.strip() else proc.stderr
+    return proc.returncode, body, proc
 
 
 # ---------------------------------------------------------------------------
