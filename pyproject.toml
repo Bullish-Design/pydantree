@@ -28,6 +28,7 @@ dev = [
   "ruff>=0.4",
   "mypy>=1.10",
   "coverage>=7.0",
+  "tree-sitter-json>=0.24",  # Phase 1 (Product A) spike target grammar
 ]
 # 👉 Language bundle for Python examples.
 python = [
