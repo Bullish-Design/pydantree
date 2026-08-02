@@ -1,0 +1,5 @@
+Error when generating parser
+
+Caused by:
+    Error processing rule source_file_token1: Grammar error: Unexpected rule UnexpectedRule(Symbol(Symbol { kind: NonTerminal, index: 1 }))
+    

@@ -315,18 +315,23 @@ def check_nullable_in_repeat(g) -> list[CheckIssue]:
 
 
 def check_symbol_inside_token(g) -> list[CheckIssue]:
-    """SYMBOL inside TOKEN is an error in the CLI (`UnexpectedRule`).
-    IMMEDIATE_TOKEN propagates the current is_token flag (CLI quirk) so a bare
-    top-level SYMBOL there is tolerated by the CLI — we mirror that: only TOKEN
-    (and IMMEDIATE_TOKEN nested inside a TOKEN) is checked."""
+    """SYMBOL inside TOKEN is an error in the CLI (`UnexpectedRule`). Phase 2
+    verified empirically that IMMEDIATE_TOKEN with a bare SYMBOL is ALSO
+    rejected: `parse_grammar.rs` propagates the current is_token flag for
+    IMMEDIATE_TOKEN (so the parse-grammar check passes), but the later
+    token-extraction/expansion phase (`extract_tokens`/`expand_tokens`,
+    `UnexpectedRule`) rejects the extracted token's Symbol content. So the
+    Phase-0 claim of a top-level IMMEDIATE_TOKEN exemption is corrected here:
+    both wrappers are checked."""
     view = _view(g)
     issues = []
     for name, rule in view.rules.items():
         for n in iter_all(rule):
-            if isinstance(n, TokenNode):
+            if isinstance(n, TokenNode | ImmediateTokenNode):
                 for s in find_symbols(n.content):
                     issues.append(CheckIssue(
-                        name, f"SYMBOL {s.name!r} inside TOKEN — not allowed",
+                        name, f"SYMBOL {s.name!r} inside {n.type} — not "
+                        f"allowed by the generator",
                         view.site(name)))
     return issues
 

@@ -160,12 +160,13 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     hit, skip generate+gcc entirely. `grammar_name` defaults to the grammar's
     `name` (the .so export symbol must match).
     """
-    cache_dir = cache_dir or default_cache_dir()
+    cache_dir = Path(cache_dir) if cache_dir is not None else default_cache_dir()
     toolchain = toolchain or detect_toolchain()
     name = grammar_name or model.name
 
     h = grammar_hash(model)
-    key = f"{h}-{toolchain.key}"
+    tc_digest = hashlib.sha256(toolchain.key.encode()).hexdigest()[:12]
+    key = f"{h}-{tc_digest}"
     entry = cache_dir / key
     so_path = entry / f"{name}.so"
     grammar_json = entry / "grammar.json"
@@ -203,12 +204,15 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     # workdir root for hand-authored layouts.
     scanner = (src_dir / "scanner.c") if (src_dir / "scanner.c").exists() \
         else work / "scanner.c"
-    cc = compile_parser(src_dir, so_path, scanner=scanner)
+    work_so = work / f"{name}.so"
+    cc = compile_parser(src_dir, work_so, scanner=scanner)
     if cc.returncode != 0:
         raise CompileError(model, cc)
 
     # promote into the cache (atomic-ish: rename the work dir)
     entry.parent.mkdir(parents=True, exist_ok=True)
+    if entry.exists():
+        shutil.rmtree(entry)
     work.rename(entry)
 
     node_types = entry / "src" / "node-types.json"
@@ -216,7 +220,7 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
         grammar_json=entry / "grammar.json",
         src_dir=entry / "src",
         parser_c=entry / "src" / "parser.c",
-        so_path=so_path,
+        so_path=entry / f"{name}.so",
         node_types_json=node_types,
         generate_proc=gen,
         compile_proc=cc,
