@@ -1,0 +1,541 @@
+# Pydantic ⇄ Tree-sitter — Revised Concept
+
+**Status:** concept / pre-spike
+**Supersedes (in spirit):** `017-pydantic-winnow-parser`
+**Decision baked in:** static grammars, GLR backend (tree-sitter). We are *not*
+building a dynamic-grammar VM or a parser-combinator engine. The whole design
+leans into tree-sitter's model instead of fighting it.
+
+---
+
+## 0. One-paragraph pitch
+
+Two cooperating Python libraries put a Pydantic face on tree-sitter. **Product B**
+(`tsgrammar`, working name) lets a developer *author* a tree-sitter grammar as a
+composable Pydantic DSL that compiles down to tree-sitter's `grammar.json`, then
+runs the standard generate + compile pipeline for them — its whole reason to
+exist is to make GLR grammar authoring *as painless as tree-sitter allows*.
+**Product A** (`tsquery`, working name) lets a developer *consume* a grammar —
+either one built by B or any of the hundreds of prebuilt community grammars —
+through a friendly Pydantic query DSL that maps captured nodes into typed
+`OutputModel` instances. A is useful on its own; B makes new grammars possible;
+together they give an end-to-end, compile-time-checked pipeline from grammar
+definition to typed output.
+
+The two libraries are deliberately **separate packages with a narrow, data-only
+interface** between them. You can adopt A without ever touching B.
+
+---
+
+## 1. Why two libraries, not one
+
+The authoring side and the consumption side have almost nothing in common except
+that they both talk about tree-sitter.
+
+| | **Product B — `tsgrammar`** | **Product A — `tsquery`** |
+|---|---|---|
+| User | Grammar author (needs a format that doesn't exist yet) | Data extractor (a grammar already exists) |
+| Verb | *Define* a grammar | *Query* a parse tree |
+| Runs at | **Build time** | **Run time** |
+| Heavy deps | Rust `tree-sitter-cli`, C/wasm toolchain | None — just the C runtime + our mapping layer |
+| Output | A distributable grammar artifact (`.so`/`.wasm` + schema) | Typed `OutputModel` instances |
+| Failure mode it fights | GLR conflicts, precedence, scanners | Untyped CST, stringly-typed queries |
+| Can ship without the other? | Yes (emits a normal grammar package) | **Yes** (works over community grammars) |
+
+Collapsing them into one package would force every A user to carry B's Rust +
+compiler toolchain for no reason. Keeping them split means the *consumer* runtime
+stays as light as `py-tree-sitter` itself, while the *author* toolchain can be as
+heavy as it needs to be — exactly mirroring how tree-sitter itself separates the
+CLI (generate) from the runtime (parse).
+
+---
+
+## 2. What we own vs. what we inherit
+
+We are wrappers. Being honest about the seam is the difference between a good
+library and a leaky one.
+
+**We inherit (do not reimplement):**
+- The `grammar.json` schema — the stable IR that `grammar.js` merely emits.
+- `tree-sitter-cli` (Rust) — the generator: `grammar.json → parser.c` + parse tables.
+- `libtree-sitter` (C) — the runtime: parsing, the node/tree CST, the query engine,
+  incremental reparse, error recovery.
+- The community grammar ecosystem (~hundreds of languages already built).
+
+**We own (the value-add):**
+- **B:** a Pydantic DSL that emits valid `grammar.json`, an author-time static
+  analyzer, a GLR-ergonomics layer (precedence ladders, expression helper,
+  conflict diagnostics remapped to Python source), and a build/distribute pipeline.
+- **A:** a Pydantic query DSL that emits tree-sitter S-expression queries, a
+  capture→`OutputModel` materialization layer with coercion/validation, and
+  friendly result/error surfaces.
+- **Shared (`tscore`):** Pydantic models mirroring the `grammar.json` schema, the
+  **grammar node-schema** format (see §7), and the artifact-loading contract.
+
+The load-bearing insight from prior analysis stands: **`grammar.js` is not
+load-bearing.** It only `console.log(JSON.stringify(grammar))`s. So B targets
+`grammar.json` directly and never touches JavaScript or Node.
+
+---
+
+## 3. The tree-sitter pipeline, and where each library plugs in
+
+```
+                    ┌──────────────  Product B (tsgrammar, build time)  ──────────────┐
+  Pydantic          │                                                                  │
+  GrammarModels ──► grammar.json ──► parser.c ──► .so / .wasm  +  node-schema.json      │
+      ▲             │  (we emit)     (ts-cli,      (compiler /     (we derive)          │
+      │             │                 Rust)         emscripten)                         │
+   builder DSL      └───────────────────────────────────────────────┬──────────────────┘
+                                                                     │  grammar artifact
+                                                                     ▼
+                    ┌──────────────  Product A (tsquery, run time)  ──────────────────┐
+   text ──────────► load grammar ──► parse (C runtime) ──► CST ──► query (.scm) ──► OutputModel
+                    │  (.so/.wasm)                          │        ▲                 ▲          │
+                    │                                       │     query DSL     mapping layer     │
+                    └───────────────────────────────────────┴─────────────────────────┴──────────┘
+                          ▲
+                          └── OR: a prebuilt community grammar wheel (no B involved)
+```
+
+The artifact boundary (`.so`/`.wasm` + `node-schema.json`) is the *only* coupling
+between B and A. A never imports B.
+
+---
+
+## 4. Product B — `tsgrammar` (authoring)
+
+### 4.1 Goal & target user
+
+A developer who needs to parse a format that has no tree-sitter grammar yet —
+a config language, a DSL, a log format, a query language — and who does not want
+to write `grammar.js`, hand-tune magic precedence integers, or decode raw
+generator conflict dumps. They want to describe the grammar in typed, composable
+Python and get a working parser out.
+
+We promise: **"author in Pydantic, we handle the toolchain, and when GLR bites we
+make the bite land on *your Python source* with an actionable message."** We do
+**not** promise the bite never happens (see §4.6 — this is the honesty line).
+
+### 4.2 The core: GrammarModels → `grammar.json`
+
+`grammar.json` is already a discriminated union of node types. We mirror it as a
+Pydantic discriminated union, one model per rule node:
+
+```python
+# tscore.grammar — the canonical, validated, serializable IR
+class Symbol(RuleNode):    type: Literal["SYMBOL"];     name: str
+class Str(RuleNode):       type: Literal["STRING"];     value: str
+class Pattern(RuleNode):   type: Literal["PATTERN"];    value: str          # regex
+class Seq(RuleNode):       type: Literal["SEQ"];        members: list[Rule]
+class Choice(RuleNode):    type: Literal["CHOICE"];     members: list[Rule]
+class Repeat(RuleNode):    type: Literal["REPEAT"];     content: Rule       # 0+
+class Repeat1(RuleNode):   type: Literal["REPEAT1"];    content: Rule       # 1+
+class Optional_(RuleNode): type: Literal["CHOICE"];     ...                 # sugar → CHOICE(x, blank)
+class Prec(RuleNode):      type: Literal["PREC"];       value: int; content: Rule
+class PrecLeft(RuleNode):  type: Literal["PREC_LEFT"];  value: int; content: Rule
+class PrecRight(RuleNode): type: Literal["PREC_RIGHT"]; value: int; content: Rule
+class Token(RuleNode):     type: Literal["TOKEN"];      content: Rule
+class ImmediateToken(...): type: Literal["IMMEDIATE_TOKEN"]; ...
+class Alias(RuleNode):     type: Literal["ALIAS"];      value: str; named: bool; content: Rule
+class Field_(RuleNode):    type: Literal["FIELD"];      name: str; content: Rule
+Rule = Annotated[Union[...], Field(discriminator="type")]
+```
+
+A grammar is a **registry of named rules + a start rule + grammar-level options**
+(`extras`, `word`, `conflicts`, `inline`, `supertypes`, `externals`). Recursion is
+expressed by `Symbol` (a `RuleRef` by name), never by cyclic instances — so the IR
+stays a serializable DAG-of-references. `Grammar.model_dump_json()` *is*
+`grammar.json`.
+
+Because both sides are Pydantic:
+- `model_validate` gives free structural validation of hand-built grammars.
+- `@model_validator` runs well-formedness checks at construction (§4.5).
+- Round-tripping to/from `grammar.json` is free, so we can also **import existing
+  community grammars into GrammarModels** for inspection or extension.
+
+### 4.3 The builder DSL (never hand-instantiate the IR)
+
+Raw node construction is unusable. The public authoring surface is a thin fluent
+builder that *emits* GrammarModels:
+
+```python
+from tsgrammar import Grammar, rule, seq, choice, repeat, opt, field, token, tok
+
+g = Grammar("mylang")
+
+# leaf tokens
+ident  = g.token("ident", r"[a-zA-Z_]\w*")
+number = g.token("number", r"\d+(\.\d+)?")
+
+# a rule; `+` = seq, `|` = choice, .star()/.plus()/.opt() = repetition
+g.rule("assignment",
+    field("name", ident) + tok("=") + field("value", g.ref("expr")))
+
+g.start("source_file", repeat(g.ref("assignment")))
+artifact = g.build()          # emit json → generate → compile → package
+```
+
+The builder is sugar; every operator lands on the same validated GrammarModel.
+Advanced authors can drop to raw nodes; both paths converge on one IR that we
+serialize, hash, cache, and inspect.
+
+### 4.4 **Minimizing GLR authoring misery** (the reason B exists)
+
+This is the heart of Product B. We can't delete GLR's constraints, but we can move
+almost all of the pain from *cryptic, post-hoc, integer-encoded* to *typed,
+declarative, and pointed at your source*. Concrete techniques:
+
+1. **Declarative precedence ladders, not magic integers.** Tree-sitter's
+   `prec(4, …)` forces authors to hand-pick and constantly re-balance integers. We
+   let authors declare a *relative ordering* and compute the integers:
+   ```python
+   prec = g.precedence(["or", "and", "compare", "add", "mul", "unary", "call"])
+   # low ────────────────────────────────────────────────► high
+   g.rule("add", prec.left("add", g.ref("expr") + tok("+") + g.ref("expr")))
+   ```
+   Adding a level in the middle renumbers everything automatically. Associativity
+   is attached at the operator, not smeared across integers.
+
+2. **A first-class `ExpressionGrammar` (Pratt-style) helper.** Hand-writing binary
+   expression rules is the single largest source of tree-sitter conflict pain. We
+   generate the correct `prec.left/right` binary/unary rules and the `choice` ladder
+   from a table:
+   ```python
+   expr = g.expression("expr",
+       primary = choice(number, ident, tok("(") + g.ref("expr") + tok(")")),
+       infix = [
+           ("+", "left", "add"), ("-", "left", "add"),
+           ("*", "left", "mul"), ("/", "left", "mul"),
+           ("^", "right", "pow"),
+       ],
+       prefix = [("-", "unary"), ("!", "unary")],
+   )
+   ```
+   Emits conflict-free expression rules for the common case; escape to raw rules
+   when the language is weird.
+
+3. **Conflicts remapped to *your Python source*.** We capture the definition site
+   (`file`, `lineno`, and the builder call) of every rule at construction. When
+   `tree-sitter generate` reports a shift/reduce or reduce/reduce conflict, we parse
+   its structured output, map the involved symbols back to the GrammarModels, and
+   raise a `GrammarConflictError` that says *which of your `g.rule(...)` lines
+   collide*, shows the ambiguous input shape, and suggests the canonical fix
+   (add precedence / mark intentional ambiguity / use `token`). Raw generator text
+   becomes a Python traceback into your grammar.
+
+4. **Intentional ambiguity as a typed opt-in.** GLR can legitimately keep
+   ambiguity (resolved by `conflicts` + dynamic precedence). Instead of hand-editing
+   the `conflicts` array, authors mark a choice:
+   ```python
+   choice(a, b, ambiguous=True, dynamic=prec.dynamic("prefer_a", 1))
+   ```
+   and we synthesize the correct `conflicts` entry + `prec.dynamic` wrapper.
+
+5. **Visibility & structure as typed attributes, not naming conventions.**
+   Tree-sitter's `_hidden` rules, `alias`, `inline`, `supertypes`, and `field`
+   are all just options: `g.rule(..., hidden=True)`, `.alias("name")`,
+   `inline=True`, `supertype=True`. No more leading-underscore folklore.
+
+6. **`extras`, `word`, keywords — sane defaults, declarative overrides.** Whitespace
+   and comments in `extras` default on; `word` (keyword extraction, which fixes a
+   whole class of keyword/identifier conflicts) is a one-liner:
+   `g.word(ident)`. We *default* to the settings that avoid beginner conflicts.
+
+7. **Author-time regex validation for tokens.** Tree-sitter's lexer accepts only a
+   regular subset (no backreferences, limited lookaround). We validate `token`
+   patterns against that subset *in Python, before* the slow Rust generate, and
+   point at the offending construct.
+
+8. **Lean into left recursion.** Unlike PEG/combinators, GLR *allows* left
+   recursion — a genuine ergonomic win. The DSL encourages the natural
+   left-recursive expression form instead of the awkward right-recursive
+   rewrites PEG forces. We advertise this as a feature.
+
+### 4.5 Author-time static analysis (fast Python errors before the slow Rust step)
+
+Before ever invoking the generator, we validate the GrammarModel graph and emit
+Pythonic diagnostics with source locations:
+
+- Undefined rule reference (`Symbol` names a rule that doesn't exist).
+- Unused / unreachable rules (not reachable from start).
+- Nullable rule inside `repeat` (infinite-loop hazard).
+- Direct/indirect left-recursion report (allowed, but flagged so authors know
+  they'll need precedence).
+- `token(...)` whose content references a non-terminal (illegal in tree-sitter —
+  we catch it before the generator does, with a clearer message).
+- Duplicate rule names; `field` names that don't correspond to any capture.
+- First-set overlap warnings that predict likely conflicts *before* generate runs.
+
+This is the cheap, fast feedback loop; `generate` is the slow authoritative one.
+
+### 4.6 The honesty line (what we will NOT hide)
+
+- **Conflicts can still require you to understand precedence.** The helpers cover
+  the common cases; a genuinely ambiguous language still needs author judgement.
+  We make the judgement *informed and local*, not *cryptic and global*.
+- **External scanners.** Some grammars (indentation-sensitive languages, heredocs,
+  string interpolation, contextual keywords) require an external scanner that must
+  be written in C. We provide a **typed escape hatch**: declare `externals` in the
+  DSL, supply a C scanner file (or one of a small library of prebuilt common
+  scanners — indentation, matched-delimiter), and we wire it into the build. We do
+  **not** claim to author scanners in Pydantic. This is the one place "you only
+  write the grammar" is explicitly false, and we say so up front.
+
+### 4.7 Build & distribute pipeline
+
+`g.build()` performs, with content-addressed caching keyed on
+`hash(grammar.json) + ABI version + toolchain version`:
+
+1. Emit `grammar.json` (+ `node-schema.json`, see §7).
+2. Invoke the bundled `tree-sitter-cli` → `parser.c` (+ compile the scanner if any).
+3. Compile to a target:
+   - **native `.so`/`.dylib`/`.pyd`** (needs a C compiler) — fastest at runtime.
+   - **`.wasm`** (needs clang/emscripten at build time) — portable, sandboxed,
+     no per-platform native build, loadable by A's wasm runtime. **wasm removes the
+     compiler-at-load-time problem, not the compiler-at-build-time problem.**
+4. Package as either a Python wheel (à la `tree-sitter-python`) or a standalone
+   grammar bundle (`.wasm` + `node-schema.json` + metadata).
+
+The toolchain (Rust CLI + a C/wasm compiler) is B's problem and lives as a
+*build/dev dependency*. It is acceptable for B to be heavy; A stays light.
+
+### 4.8 Testing support
+
+Wrap tree-sitter's corpus test format: authors write `(input, expected sexp)`
+cases in Python, we run them against the freshly built grammar and diff the CST.
+Snapshot the `grammar.json` + node-schema so grammar changes show up as reviewable
+diffs.
+
+---
+
+## 5. Product A — `tsquery` (consumption)
+
+### 5.1 Goal & target user
+
+Anyone who wants structured, typed data out of text for which a grammar exists —
+a community grammar (Python, JSON, Bash, Rust, SQL, …) or one built by B. They
+should never see a raw `TSNode`, never hand-write an S-expression query, and never
+manually coerce a byte-range into an `int`.
+
+A is deliberately shippable **on day one over community grammars, with zero
+dependency on B.** That's what de-risks the whole project (§9).
+
+### 5.2 Loading grammars
+
+One uniform `Language.load(...)` accepting:
+- a prebuilt community grammar wheel (`tree-sitter-json`, …),
+- a native `.so`/`.dylib` built by B,
+- a `.wasm` grammar bundle (via a bundled wasm runtime),
+
+each optionally paired with a `node-schema.json` that unlocks compile-time query
+checking (§7). Loading is the light runtime — no toolchain required.
+
+### 5.3 The query DSL → `.scm`
+
+Tree-sitter's native query language is S-expressions in `.scm` files with
+`@captures` and `#predicates`. We expose a typed builder that emits it:
+
+```python
+from tsquery import Query, node, cap
+
+q = (node("assignment")
+        .child(field="name", capture="name")
+        .child(field="value", node="expr", capture="value")
+        .where(cap("name").matches(r"^[A-Z]")))   # → #match? predicate
+```
+
+Predicates (`#eq?`, `#match?`, `#any-of?`) become typed method calls. If a
+`node-schema` is present, `node("assigment")` (typo) or `.child(field="valeu")`
+is a **compile-time error**, not a silent empty match.
+
+### 5.4 Capture → `OutputModel` materialization
+
+The value-add over raw tree-sitter. An `OutputModel` is an ordinary Pydantic model;
+a binding maps query captures to its fields with coercion and validation:
+
+```python
+class Assignment(OutputModel):
+    name: str
+    value: int                    # coerced from node text
+    line: int = source_meta()     # span/position injectable
+
+results: list[Assignment] = q.extract(tree, into=Assignment)
+```
+
+Materialization handles: text slicing from byte spans, primitive coercion
+(int/float/bool), enum lookup, string unescaping, `Optional`/missing captures,
+repeated captures → `list`, and nested `OutputModel`s from sub-queries. Pydantic
+validation runs at the end, so malformed captures surface as `ValidationError`.
+
+**Crucially, materialization is one result mode among several** — you opt in.
+The default is lazy (§5.5) so we don't reintroduce "construct a million Python
+objects" as a default cost.
+
+### 5.5 Result modes
+
+- **Lazy CST cursor** (default): iterate matches, read spans/text on demand; no
+  model construction. For large trees or "just find the thing" tasks.
+- **Typed materialization** (opt-in): `into=Model` builds `OutputModel`s eagerly.
+- **Streaming/visitor**: callback per match, for pipelines that don't want a list.
+- **Validate/recognize**: boolean "does this parse cleanly?" using the error surface.
+
+### 5.6 Error & recovery surface
+
+Tree-sitter *always* returns a tree, inserting `ERROR`/`MISSING` nodes rather than
+throwing. We expose that as typed diagnostics (`Diagnostic{kind, span, expected}`),
+and let each extraction choose:
+- **strict** — any `ERROR`/`MISSING` in the matched region → `ParseError`,
+- **lenient** — collect diagnostics alongside best-effort `OutputModel`s.
+
+We also expose the **incremental reparse** API (apply an edit → reparse) cleanly,
+for editor-ish / re-run-on-change consumers — one of tree-sitter's real strengths.
+
+---
+
+## 6. Where the two libraries meet (and where they don't)
+
+They meet at **exactly one data artifact** and never in code:
+
+```
+   B.build()  ──►  { grammar.so | grammar.wasm ,  node-schema.json }  ──►  A.Language.load()
+```
+
+- A depends only on the artifact + schema, produced equally well by B or by the
+  community. So A has no idea B exists, and vice versa.
+- If you own *both* halves (your grammar + your queries + your output models), you
+  get an **end-to-end typed, compile-time-checked pipeline** (§7) that neither jc,
+  TextFSM, nor raw tree-sitter can offer.
+
+---
+
+## 7. The bridge feature: the grammar node-schema (the real differentiator)
+
+`grammar.json` fully determines what node kinds, fields, and supertypes a grammar
+can produce. From it we derive a **`node-schema.json`**: the closed set of node
+kinds, each node's possible fields and child types, and supertype relationships.
+This small schema is the second half of the artifact B emits — and it's what makes
+A *typed*:
+
+1. **Query validation against the grammar.** A query referencing a node kind or
+   field that the grammar cannot produce is rejected at query-build time, not
+   discovered as a silent empty result at runtime.
+2. **Autocomplete / typed node access.** A can generate typed node accessors (or
+   `.pyi` stubs) from the schema, so consuming a grammar feels like using a typed
+   API rather than stringly-typed CST spelunking.
+3. **Grammar ↔ output cross-validation.** When an `OutputModel` field is fed from a
+   capture, we can check the capture's node type against the field's Python type
+   and flag mismatches (e.g. binding a node that yields text into an `int` field
+   with no coercion path) *before* parsing anything.
+
+This is the same "both sides are Pydantic ⇒ validate the seam at compile time"
+capability discussed for the grammar↔output binding, now spanning
+grammar → query → output. It is the strongest argument for doing this in our stack
+rather than telling people to use `py-tree-sitter` directly.
+
+Community grammars ship without a node-schema, but we can **derive one from their
+`grammar.json`** (or, weaker, sample it from `node-types.json` which tree-sitter
+already generates). So even community-grammar users get most of the typing benefit.
+
+---
+
+## 8. Distribution strategy
+
+- **`tscore`** — tiny, pure-Python: the `grammar.json` Pydantic models, the
+  node-schema format, the artifact-loading contract. Shared dependency of A and B.
+- **`tsquery` (A)** — light runtime: `tscore` + the C runtime binding + a wasm
+  runtime + the query/mapping layer. **No Rust CLI, no compiler.** This is what most
+  users install.
+- **`tsgrammar` (B)** — heavy build tool: `tscore` + bundled `tree-sitter-cli`
+  (Rust) + a C/wasm toolchain hook. A developer/build-time dependency; fine to be
+  large. Produces artifacts consumed by A.
+
+This mirrors tree-sitter's own runtime-vs-CLI split and keeps the cost where the
+value is: authors pay the toolchain tax once at build time; consumers pay nothing.
+
+---
+
+## 9. Sequencing (build order that de-risks)
+
+The risky, novel part is *ergonomics*, not runtime — the C runtime already works.
+So build the piece that delivers value soonest and validates the interface:
+
+- **Phase 0 — spike the emission.** Hand-write GrammarModels for one nontrivial
+  grammar (a small expression language with precedence), emit `grammar.json`, run
+  `generate` + compile, confirm a working parser. Prove the conflict-diagnostic
+  remapping (§4.4.3) is mechanically possible from real generator output. This is
+  the single most important go/no-go experiment.
+- **Phase 1 — Product A MVP over community grammars.** Query DSL → `.scm`, and
+  capture → `OutputModel`. Ships something genuinely useful (typed extraction over
+  Python/JSON/Bash/…) **independent of B**, and stress-tests the consumption
+  ergonomics against real trees.
+- **Phase 2 — Product B core.** GrammarModel hierarchy + `grammar.json` emitter +
+  §4.5 static analysis + native build pipeline.
+- **Phase 3 — the GLR ergonomics layer.** Precedence ladders, `ExpressionGrammar`,
+  conflicts-remapped-to-Python. This is where B earns its name; treat it as the
+  make-or-break UX work, not a nicety.
+- **Phase 4 — the bridge.** node-schema emission from B + compile-time query
+  validation and typed node access in A (§7).
+- **Phase 5 — polish & reach.** wasm distribution, incremental reparse API,
+  external-scanner escape hatch + a small prebuilt-scanner library, corpus testing.
+
+A is valuable after Phase 1. B is valuable after Phase 3. The bridge (Phase 4) is
+the capability nobody else has — but it depends on both halves existing, so it
+comes last.
+
+---
+
+## 10. Explicit non-goals
+
+- **Dynamic / runtime-constructed grammars.** Generate + compile is a build step;
+  doing it per-request means shipping a Rust generator + C compiler to end users
+  and eating seconds of latency. Tree-sitter is the most anti-dynamic backend
+  possible; we embrace static and say so.
+- **Binary / bytes parsing.** Tree-sitter is UTF-8/text-oriented. Out of scope.
+- **Unbounded streaming.** Tree-sitter loads whole documents; it does incremental
+  *editing*, not incremental *streaming*. Out of scope.
+- **Being a parser-combinator / PEG engine.** We are GLR + CST. Ordered-choice /
+  lookahead semantics are not our model.
+- **Authoring external scanners in Pydantic.** C escape hatch only.
+- **Guaranteeing conflict-free grammars.** We minimize and localize conflict pain;
+  we don't eliminate the possibility.
+
+---
+
+## 11. Risks & open questions
+
+1. **Conflict diagnostics quality (highest risk / highest value).** The entire B
+   value proposition rests on §4.4.3 turning generator conflict output into
+   actionable, source-located Python errors. If the generator's machine-readable
+   conflict output is too coarse to map back to specific rules reliably, B
+   degrades toward "prettier grammar.js" — still useful, but far less compelling.
+   *Phase 0 must test this against real conflicts.*
+2. **External-scanner frequency.** How many *target* grammars actually need a C
+   scanner? If it's most nontrivial ones, the "just write the grammar" story is
+   weaker than hoped. Survey representative target formats early.
+3. **Toolchain packaging for B** across Linux/macOS/Windows (Rust CLI + a C or
+   emscripten compiler). wasm helps consumers, not authors.
+4. **Upstream churn.** tree-sitter's language ABI version, `grammar.json` schema,
+   `node-types.json`, and query API all evolve. We pin ABI versions and treat
+   `grammar.json`/node-schema as versioned artifacts.
+5. **wasm runtime perf** (typically ~1.5–2× slower than native). Offer both; let
+   the consumer pick portability vs speed.
+6. **Regex-subset friction.** Author-time validation (§4.4.7) mitigates, but some
+   authors will still be surprised by what the tree-sitter lexer won't accept.
+7. **node-schema completeness.** How faithfully can we derive typed node access
+   from `grammar.json` alone for community grammars that ship no schema? Determines
+   how much of the Phase-4 typing benefit non-B users get.
+
+---
+
+## 12. Bottom line
+
+The `grammar.js`-bypass makes B genuinely feasible; the node-schema bridge makes
+the A+B combination something raw tree-sitter cannot match. The project lives or
+dies on **two ergonomic bets**: (1) that we can turn GLR conflict/precedence pain
+into typed, source-located, declarative Python (Product B), and (2) that
+capture→`OutputModel` with schema-checked queries is meaningfully nicer than
+`py-tree-sitter` (Product A). Ship A first over community grammars to prove bet 2
+and earn users cheaply; invest B's effort disproportionately in the GLR-ergonomics
+layer, because that — not the emitter, not the build pipeline — is the whole reason
+Product B deserves to exist.
