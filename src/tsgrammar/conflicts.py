@@ -95,7 +95,7 @@ class GrammarConflictError(Exception):
             f"GLR conflict in grammar {g.name!r} — cannot generate a parser.",
             "",
             f"Ambiguous shape: {c.ambiguous_shape()}",
-            f"Conflicting rules (from your Python source):",
+            "Conflicting rules (from your Python source):",
         ]
         for name in c.involved_rules:
             site = g.sites.get(name)

@@ -35,7 +35,8 @@ Schema facts pinned to 0.25.3 (see `cli/generate/src/parse_grammar.rs`):
 
 from __future__ import annotations
 
-from typing import Annotated, Literal, Union
+from pathlib import Path
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
@@ -79,54 +80,54 @@ class BlankNode(RuleNode):
 
 class SeqNode(RuleNode):
     type: Literal["SEQ"] = "SEQ"
-    members: list["Rule"]
+    members: list[Rule]
 
 
 class ChoiceNode(RuleNode):
     type: Literal["CHOICE"] = "CHOICE"
-    members: list["Rule"]
+    members: list[Rule]
 
 
 class RepeatNode(RuleNode):
     """REPEAT — 0+ repetitions. NOTE: the CLI desugars this internally to
     choice(repeat(content), BLANK) during parsing (parse_grammar.rs)."""
     type: Literal["REPEAT"] = "REPEAT"
-    content: "Rule"
+    content: Rule
 
 
 class Repeat1Node(RuleNode):
     """REPEAT1 — 1+ repetitions."""
     type: Literal["REPEAT1"] = "REPEAT1"
-    content: "Rule"
+    content: Rule
 
 
 class FieldNode(RuleNode):
     type: Literal["FIELD"] = "FIELD"
     name: str
-    content: "Rule"
+    content: Rule
 
 
 class AliasNode(RuleNode):
     type: Literal["ALIAS"] = "ALIAS"
     value: str
     named: bool
-    content: "Rule"
+    content: Rule
 
 
 class TokenNode(RuleNode):
     """TOKEN — force the content to lex as a single token. SYMBOL inside a
     TOKEN is an error in the CLI (parse_grammar.rs `UnexpectedRule`)."""
     type: Literal["TOKEN"] = "TOKEN"
-    content: "Rule"
+    content: Rule
 
 
 class ImmediateTokenNode(RuleNode):
-    """IMMEDIATE_TOKEN — like TOKEN but only matches with no preceding
+    r"""IMMEDIATE_TOKEN — like TOKEN but only matches with no preceding
     whitespace (no implicit `\s*` boundary). CLI quirk: propagates the current
     `is_token` flag rather than forcing true, so a bare SYMBOL at the top level
     of an IMMEDIATE_TOKEN is tolerated by the CLI."""
     type: Literal["IMMEDIATE_TOKEN"] = "IMMEDIATE_TOKEN"
-    content: "Rule"
+    content: Rule
 
 
 # --- precedence wrappers ---------------------------------------------------
@@ -137,19 +138,19 @@ class PrecNode(RuleNode):
     Named vs integer precedence do not compare against each other."""
     type: Literal["PREC"] = "PREC"
     value: int | str
-    content: "Rule"
+    content: Rule
 
 
 class PrecLeftNode(RuleNode):
     type: Literal["PREC_LEFT"] = "PREC_LEFT"
     value: int | str
-    content: "Rule"
+    content: Rule
 
 
 class PrecRightNode(RuleNode):
     type: Literal["PREC_RIGHT"] = "PREC_RIGHT"
     value: int | str
-    content: "Rule"
+    content: Rule
 
 
 class PrecDynamicNode(RuleNode):
@@ -157,7 +158,7 @@ class PrecDynamicNode(RuleNode):
     intentional ambiguity). value is always an integer."""
     type: Literal["PREC_DYNAMIC"] = "PREC_DYNAMIC"
     value: int
-    content: "Rule"
+    content: Rule
 
 
 class ReservedNode(RuleNode):
@@ -167,19 +168,13 @@ class ReservedNode(RuleNode):
     context (must be declared in the grammar-level `reserved` map)."""
     type: Literal["RESERVED"] = "RESERVED"
     context_name: str
-    content: "Rule"
+    content: Rule
 
 
 # The tagged union — the load-bearing structure. Serialize/deserialize
 # reconstructs the correct subtype via the `type` discriminator.
 Rule = Annotated[
-    Union[
-        SymbolNode, StrNode, PatternNode, BlankNode,
-        SeqNode, ChoiceNode, RepeatNode, Repeat1Node,
-        FieldNode, AliasNode, TokenNode, ImmediateTokenNode,
-        PrecNode, PrecLeftNode, PrecRightNode, PrecDynamicNode,
-        ReservedNode,
-    ],
+    SymbolNode | StrNode | PatternNode | BlankNode | SeqNode | ChoiceNode | RepeatNode | Repeat1Node | FieldNode | AliasNode | TokenNode | ImmediateTokenNode | PrecNode | PrecLeftNode | PrecRightNode | PrecDynamicNode | ReservedNode,
     Field(discriminator="type"),
 ]
 

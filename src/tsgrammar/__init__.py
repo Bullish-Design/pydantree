@@ -20,30 +20,85 @@ Public surface:
     )
 """
 
+# ruff: noqa: RUF022  (grouped-by-layer __all__, not flat-sorted)
+
 from __future__ import annotations
 
 from .builder import (
-    B, Grammar, RuleSite, alias, blank, choice, field, grammar, immediate_token,
-    opt, pattern, prec, prec_dynamic, prec_left, prec_right, ref, repeat,
-    repeat1, seq, tok, token,
+    B,
+    Grammar,
+    RuleSite,
+    alias,
+    blank,
+    choice,
+    field,
+    grammar,
+    immediate_token,
+    opt,
+    pattern,
+    prec,
+    prec_dynamic,
+    prec_left,
+    prec_right,
+    ref,
+    repeat,
+    repeat1,
+    seq,
+    tok,
+    token,
 )
 from .checks import (
-    CheckIssue, GrammarCheckError, assert_clean, errors, run_checks, warnings,
+    CheckIssue,
+    GrammarCheckError,
+    assert_clean,
+    errors,
+    run_checks,
+    warnings,
 )
 from .conflicts import (
-    Conflict, GrammarConflictError, parse_conflict_json, remap_from_proc,
+    Conflict,
+    GrammarConflictError,
+    parse_conflict_json,
+    remap_from_proc,
 )
 from .grammar import (
-    AliasNode, BlankNode, ChoiceNode, FieldNode, Grammar as GrammarModel,
-    ImmediateTokenNode, PatternNode, PrecDynamicNode, PrecLeftNode, PrecNode,
-    PrecRightNode, Repeat1Node, RepeatNode, ReservedNode, Rule, RuleNode,
-    SeqNode, StrNode, SymbolNode, TokenNode,
+    AliasNode,
+    BlankNode,
+    ChoiceNode,
+    FieldNode,
+    ImmediateTokenNode,
+    PatternNode,
+    PrecDynamicNode,
+    PrecLeftNode,
+    PrecNode,
+    PrecRightNode,
+    Repeat1Node,
+    RepeatNode,
+    ReservedNode,
+    Rule,
+    RuleNode,
+    SeqNode,
+    StrNode,
+    SymbolNode,
+    TokenNode,
+)
+from .grammar import (
+    Grammar as GrammarModel,
 )
 from .language import load_language, parse
 from .pipeline import (
-    BuildResult, CompileError, GenerateError, PipelineError, build,
-    build_builder, compile_parser, default_cache_dir, detect_toolchain,
-    generate, grammar_hash, run_generate,
+    BuildResult,
+    CompileError,
+    GenerateError,
+    PipelineError,
+    build,
+    build_builder,
+    compile_parser,
+    default_cache_dir,
+    detect_toolchain,
+    generate,
+    grammar_hash,
+    run_generate,
 )
 
 __version__ = "0.1.0"

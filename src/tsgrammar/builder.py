@@ -33,12 +33,28 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .grammar import (
-    AliasNode, BlankNode, ChoiceNode, FieldNode, Grammar as GrammarModel,
-    ImmediateTokenNode, PatternNode, PrecDynamicNode, PrecLeftNode,
-    PrecNode, PrecRightNode, Repeat1Node, RepeatNode, ReservedNode, Rule,
-    RuleNode, SeqNode, StrNode, SymbolNode, TokenNode,
+    AliasNode,
+    BlankNode,
+    ChoiceNode,
+    FieldNode,
+    ImmediateTokenNode,
+    PatternNode,
+    PrecDynamicNode,
+    PrecLeftNode,
+    PrecNode,
+    PrecRightNode,
+    Repeat1Node,
+    RepeatNode,
+    Rule,
+    RuleNode,
+    SeqNode,
+    StrNode,
+    SymbolNode,
+    TokenNode,
 )
-
+from .grammar import (
+    Grammar as GrammarModel,
+)
 
 # ---------------------------------------------------------------------------
 # definition-site recording
@@ -76,7 +92,7 @@ def _caller_site(depth: int = 2) -> RuleSite:
 Node = Rule  # type alias used by the DSL
 
 
-def as_node(x: "B | Rule | str") -> Rule:
+def as_node(x: B | Rule | str) -> Rule:
     if isinstance(x, B):
         return x.node
     if isinstance(x, str):
@@ -94,7 +110,7 @@ def ref(name: str) -> B:
     return B(SymbolNode(name=name))
 
 
-def seq(*parts: "B | Rule | str") -> B:
+def seq(*parts: B | Rule | str) -> B:
     members = []
     for p in parts:
         node = as_node(p)
@@ -105,7 +121,7 @@ def seq(*parts: "B | Rule | str") -> B:
     return B(SeqNode(members=members))
 
 
-def choice(*parts: "B | Rule | str") -> B:
+def choice(*parts: B | Rule | str) -> B:
     members = []
     for p in parts:
         node = as_node(p)
@@ -116,24 +132,24 @@ def choice(*parts: "B | Rule | str") -> B:
     return B(ChoiceNode(members=members))
 
 
-def repeat(x: "B | Rule | str") -> B:
+def repeat(x: B | Rule | str) -> B:
     return B(RepeatNode(content=as_node(x)))
 
 
-def repeat1(x: "B | Rule | str") -> B:
+def repeat1(x: B | Rule | str) -> B:
     return B(Repeat1Node(content=as_node(x)))
 
 
-def opt(x: "B | Rule | str") -> B:
+def opt(x: B | Rule | str) -> B:
     """opt(x) is sugar for choice(x, BLANK) — grammar.json has no OPTIONAL node."""
     return B(ChoiceNode(members=[as_node(x), BlankNode()]))
 
 
-def field(name: str, x: "B | Rule | str") -> B:
+def field(name: str, x: B | Rule | str) -> B:
     return B(FieldNode(name=name, content=as_node(x)))
 
 
-def token(x: "B | Rule | str") -> B:
+def token(x: B | Rule | str) -> B:
     return B(TokenNode(content=as_node(x)))
 
 
@@ -141,7 +157,7 @@ def token(x: "B | Rule | str") -> B:
 tok = token
 
 
-def immediate_token(x: "B | Rule | str") -> B:
+def immediate_token(x: B | Rule | str) -> B:
     return B(ImmediateTokenNode(content=as_node(x)))
 
 
@@ -149,23 +165,23 @@ def pattern(value: str, flags: str | None = None) -> B:
     return B(PatternNode(value=value, flags=flags))
 
 
-def alias(value: str, named: bool, x: "B | Rule | str") -> B:
+def alias(value: str, named: bool, x: B | Rule | str) -> B:
     return B(AliasNode(value=value, named=named, content=as_node(x)))
 
 
-def prec(value: int | str, x: "B | Rule | str") -> B:
+def prec(value: int | str, x: B | Rule | str) -> B:
     return B(PrecNode(value=value, content=as_node(x)))
 
 
-def prec_left(value: int | str, x: "B | Rule | str") -> B:
+def prec_left(value: int | str, x: B | Rule | str) -> B:
     return B(PrecLeftNode(value=value, content=as_node(x)))
 
 
-def prec_right(value: int | str, x: "B | Rule | str") -> B:
+def prec_right(value: int | str, x: B | Rule | str) -> B:
     return B(PrecRightNode(value=value, content=as_node(x)))
 
 
-def prec_dynamic(value: int, x: "B | Rule | str") -> B:
+def prec_dynamic(value: int, x: B | Rule | str) -> B:
     return B(PrecDynamicNode(value=value, content=as_node(x)))
 
 
@@ -178,30 +194,30 @@ class B:
         self.node = node
 
     # a + b  ->  sequence (flattening nested seqs)
-    def __add__(self, other: "B | Rule | str") -> "B":
+    def __add__(self, other: B | Rule | str) -> B:
         left = self.node.members if isinstance(self.node, SeqNode) else [self.node]
         right_node = as_node(other)
         right = right_node.members if isinstance(right_node, SeqNode) else [right_node]
         return B(SeqNode(members=[*left, *right]))
 
     # a | b  ->  choice (flattening)
-    def __or__(self, other: "B | Rule | str") -> "B":
+    def __or__(self, other: B | Rule | str) -> B:
         left = self.node.members if isinstance(self.node, ChoiceNode) else [self.node]
         right_node = as_node(other)
         right = right_node.members if isinstance(right_node, ChoiceNode) else [right_node]
         return B(ChoiceNode(members=[*left, *right]))
 
     # sugar methods
-    def opt(self) -> "B":
+    def opt(self) -> B:
         return opt(self)
 
-    def star(self) -> "B":
+    def star(self) -> B:
         return repeat(self)
 
-    def plus(self) -> "B":
+    def plus(self) -> B:
         return repeat1(self)
 
-    def capture(self, name: str) -> "B":
+    def capture(self, name: str) -> B:
         return field(name, self)
 
     def __repr__(self) -> str:
@@ -237,16 +253,16 @@ class Grammar:
         self._reserved: dict[str, list[Rule]] = {}
 
     # -- authoring ----------------------------------------------------------
-    def start(self, name: str) -> "Grammar":
+    def start(self, name: str) -> Grammar:
         """Declare the start rule. There is no `start` field in grammar.json
         (0.25.3) — the start rule is the FIRST entry of `rules` (Symbol index
         0). We reorder emission so the start rule is first."""
         self._start = name
         return self
 
-    def rule(self, name: str, body: "B | Rule | str", *,
+    def rule(self, name: str, body: B | Rule | str, *,
              hidden: bool = False, inline: bool = False,
-             supertype: bool = False, alias: str | None = None) -> "Grammar":
+             supertype: bool = False, alias: str | None = None) -> Grammar:
         """Register `name -> body`, recording the call site for conflict
         remapping.
 
@@ -259,9 +275,8 @@ class Grammar:
         - alias: add an `inline` entry under an alias name (convenience for
           the common `inline` + rename pattern).
         """
-        if hidden:
-            if not name.startswith("_"):
-                name = f"_{name}"
+        if hidden and not name.startswith("_"):
+            name = f"_{name}"
         if name in self.rules:
             raise ValueError(f"duplicate rule {name!r}")
         self.rules[name] = as_node(body)
@@ -274,22 +289,22 @@ class Grammar:
             self._inline.append(alias)
         return self
 
-    def word(self, rule_name: str) -> "Grammar":
+    def word(self, rule_name: str) -> Grammar:
         """Declare the word token rule (keyword extraction; avoids
         keyword/identifier conflicts). The referenced rule must be a token."""
         self._word = rule_name
         return self
 
-    def extra(self, x: "B | Rule | str") -> "Grammar":
+    def extra(self, x: B | Rule | str) -> Grammar:
         self._extras.append(as_node(x))
         return self
 
-    def conflict(self, *rule_names: str) -> "Grammar":
+    def conflict(self, *rule_names: str) -> Grammar:
         """Whitelist an intentional ambiguity between the named rules."""
         self._conflicts.append(list(rule_names))
         return self
 
-    def precedence_ordering(self, *names: str) -> "Grammar":
+    def precedence_ordering(self, *names: str) -> Grammar:
         """Declare a named precedence ordering, **highest first** (descending)
         — mirroring the CLI's `precedences` schema (STRING/SYMBOL entries only;
         the first entry binds tightest, per tree-sitter's own test grammars).
@@ -297,14 +312,14 @@ class Grammar:
         self._precedences.append([StrNode(value=n) for n in names])
         return self
 
-    def external(self, x: "B | Rule | str") -> "Grammar":
+    def external(self, x: B | Rule | str) -> Grammar:
         """Declare an external token (provided by a C scanner at runtime).
         No scanner authoring here — the IR accepts the declaration; the
         pipeline compiles a user-supplied scanner.c if one is present."""
         self._externals.append(as_node(x))
         return self
 
-    def reserved_word(self, context_name: str, x: "B | Rule | str") -> "Grammar":
+    def reserved_word(self, context_name: str, x: B | Rule | str) -> Grammar:
         """Declare a reserved word set: when `context_name` is active, the
         given rule(s) are disabled from matching (tree-sitter 0.25+)."""
         self._reserved.setdefault(context_name, []).append(as_node(x))

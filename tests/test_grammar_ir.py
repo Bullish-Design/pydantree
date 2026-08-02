@@ -7,11 +7,26 @@ import json
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from tsgrammar.grammar import (
-    AliasNode, BlankNode, ChoiceNode, FieldNode, Grammar, ImmediateTokenNode,
-    PatternNode, PrecDynamicNode, PrecLeftNode, PrecNode, PrecRightNode,
-    Repeat1Node, RepeatNode, ReservedNode, SeqNode, StrNode, SymbolNode,
+    AliasNode,
+    BlankNode,
+    ChoiceNode,
+    FieldNode,
+    Grammar,
+    ImmediateTokenNode,
+    PatternNode,
+    PrecDynamicNode,
+    PrecLeftNode,
+    PrecNode,
+    PrecRightNode,
+    Repeat1Node,
+    RepeatNode,
+    ReservedNode,
+    SeqNode,
+    StrNode,
+    SymbolNode,
     TokenNode,
 )
 
@@ -74,7 +89,7 @@ def test_precedence_value_accepts_int_or_name():
     """PREC* value is an untagged int|name union."""
     assert PrecNode(value=4, content=BlankNode()).value == 4
     assert PrecNode(value="or", content=BlankNode()).value == "or"
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         PrecDynamicNode(value="or", content=BlankNode())  # dynamic is int-only
 
 

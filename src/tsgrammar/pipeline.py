@@ -29,7 +29,7 @@ import json
 import os
 import shutil
 import subprocess
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 from .grammar import Grammar as GrammarModel
@@ -57,10 +57,10 @@ def detect_toolchain() -> Toolchain:
     if detect_toolchain._cache is not None:  # type: ignore[attr-defined]
         return detect_toolchain._cache  # type: ignore[attr-defined]
     ts = subprocess.run(
-        ["tree-sitter", "--version"], capture_output=True, text=True)
+        ["tree-sitter", "--version"], capture_output=True, text=True, check=False)
     ts_version = ts.stdout.strip() or ts.stderr.strip() or "unknown"
     gcc = subprocess.run(
-        ["gcc", "--version"], capture_output=True, text=True)
+        ["gcc", "--version"], capture_output=True, text=True, check=False)
     gcc_version = gcc.stdout.splitlines()[0].strip() if gcc.stdout else "unknown"
     tc = Toolchain(
         tree_sitter_version=ts_version,
@@ -97,7 +97,7 @@ def run_generate(grammar_json: Path, *, json_report: bool = False,
     cmd = ["tree-sitter", "generate", str(grammar_json)]
     if json_report:
         cmd.append("--json")
-    return subprocess.run(cmd, capture_output=True, text=True, cwd=str(dirpath))
+    return subprocess.run(cmd, capture_output=True, text=True, cwd=str(dirpath), check=False)
 
 
 def generate(model: GrammarModel, workdir: Path,
@@ -123,7 +123,7 @@ def compile_parser(src_dir: Path, so_path: Path, *,
     if scanner is not None and scanner.exists():
         cmd.append(str(scanner))
     cmd += ["-o", str(so_path)]
-    return subprocess.run(cmd, capture_output=True, text=True)
+    return subprocess.run(cmd, capture_output=True, text=True, check=False)
 
 
 # ---------------------------------------------------------------------------

@@ -9,8 +9,15 @@ import pytest
 
 import tsgrammar as tg
 from tsgrammar.grammar import (
-    AliasNode, BlankNode, ChoiceNode, FieldNode, PatternNode, RepeatNode,
-    SeqNode, StrNode, SymbolNode, TokenNode,
+    AliasNode,
+    BlankNode,
+    ChoiceNode,
+    FieldNode,
+    RepeatNode,
+    SeqNode,
+    StrNode,
+    SymbolNode,
+    TokenNode,
 )
 
 
@@ -58,7 +65,7 @@ def test_start_rule_emitted_first():
     g.rule("source_file", tg.repeat(tg.ref("a")))
     g.start("source_file")
     model = g.build()
-    assert list(model.rules)[0] == "source_file"
+    assert next(iter(model.rules)) == "source_file"
     assert model.start_rule == "source_file"
     # default start is source_file even without explicit start()
     g2 = tg.Grammar("t2")

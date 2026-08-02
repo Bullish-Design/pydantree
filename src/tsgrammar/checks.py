@@ -38,15 +38,30 @@ Checks (mirroring Phase-0 findings + §4.5):
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
-from .builder import B, Grammar as BuilderGrammar, RuleSite
+from .builder import Grammar as BuilderGrammar
+from .builder import RuleSite
 from .grammar import (
-    AliasNode, BlankNode, ChoiceNode, FieldNode, Grammar as GrammarModel,
-    ImmediateTokenNode, PatternNode, PrecDynamicNode, PrecLeftNode, PrecNode,
-    PrecRightNode, Repeat1Node, RepeatNode, ReservedNode, Rule, RuleNode,
-    SeqNode, StrNode, SymbolNode, TokenNode,
+    BlankNode,
+    ChoiceNode,
+    ImmediateTokenNode,
+    PatternNode,
+    PrecLeftNode,
+    PrecNode,
+    PrecRightNode,
+    Repeat1Node,
+    RepeatNode,
+    Rule,
+    RuleNode,
+    SeqNode,
+    StrNode,
+    SymbolNode,
+    TokenNode,
+)
+from .grammar import (
+    Grammar as GrammarModel,
 )
 
 VALID_PATTERN_FLAGS = frozenset("i")
@@ -136,7 +151,7 @@ class _GrammarView:
 
     @property
     def rules(self) -> dict[str, Rule]:
-        return self._g.rules if isinstance(self._g, BuilderGrammar) else self._g.rules
+        return self._g.rules
 
     @property
     def extras(self) -> list[Rule]:
@@ -266,9 +281,6 @@ def check_unused_rules(g) -> list[CheckIssue]:
     externals, and not the word rule — the CLI prunes these SILENTLY."""
     view = _view(g)
 
-    def referenced(rule: Rule, target: str) -> bool:
-        return any(s.name == target for s in find_symbols(rule))
-
     used: set[str] = set()
     frontier = [view.start]
     while frontier:
@@ -386,7 +398,7 @@ def check_extras_token_prefix_overlap(g) -> list[CheckIssue]:
     SYMBOL in extras are the documented fix and are exempt."""
     view = _view(g)
     token_firsts: set[str] = set()
-    for name, rule in view.rules.items():
+    for rule in view.rules.values():
         for key in _first_set(rule, view, set()):
             token_firsts |= _first_literal_chars(key)
 

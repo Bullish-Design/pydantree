@@ -5,8 +5,6 @@ content-addressed cache."""
 from __future__ import annotations
 
 import shutil
-import subprocess
-from pathlib import Path
 
 import pytest
 
@@ -59,7 +57,7 @@ def test_full_pipeline_generate_compile_load_parse(cache_dir):
     assert result.compile_proc is not None
     assert result.compile_proc.returncode == 0
     assert result.so_path.exists()
-    lang, lib = tg.load_language(result.so_path, "pipeline_t")
+    lang, _lib = tg.load_language(result.so_path, "pipeline_t")
     assert lang.abi_version == 15
 
     tree = tg.parse(lang, "1 2 3.5")
@@ -99,9 +97,8 @@ def test_generate_conflict_raises_named_error(cache_dir):
         tg.ref("number")))
     g.rule("source_file", tg.repeat(tg.ref("expr")))
     g.start("source_file")
-    from tsgrammar.pipeline import GenerateError
-    from tsgrammar.conflicts import remap_from_proc
     import tsgrammar as tgm
+    from tsgrammar.conflicts import remap_from_proc
     json_path = g.emit_bundle(cache_dir / "conflict_t")
     proc = tgm.run_generate(json_path, json_report=True)
     assert proc.returncode == 1
