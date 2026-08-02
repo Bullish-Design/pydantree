@@ -186,9 +186,45 @@ def main() -> int:
         print(f"  FAIL  {'let x = if':18} parsed?! (reserved words not applied)")
         failures += 1
 
-    print("\nDONE — Experiment A gate passed" if failures == 0 else
-          f"\n{FAILURES} assertion failure(s)")
-    return 0 if failures == 0 else 1
+    if failures:
+        return 1
+    return stage_4_community_import()
+
+
+def stage_4_community_import() -> int:
+    """Bonus fidelity check: import a REAL published grammar (tree-sitter-bash
+    0.25.1, 101 rules — from the nix store or the committed fixture) into the
+    IR, re-emit, and confirm the stock CLI still generates from the
+    re-emitted form."""
+    banner("STAGE 4: real community grammar (tree-sitter-bash) import test")
+    import subprocess as sp
+    import tempfile
+
+    src = (Path("/nix/store/b32k2xw617bh4zjlf7hagkki27c0y71v-tree-sitter-bash"
+                "-0.25.1/src/grammar.json"))
+    if not src.exists():
+        src = ROOT / "community" / "bash" / "grammar.json"
+    raw = src.read_text()
+    ref = json.loads(raw)
+    ref.pop("$schema", None)
+    model = Grammar.model_validate_json(raw)
+    print(f"imported: name={model.name!r} rules={len(model.rules)} "
+          f"start={model.start_rule!r} word={model.word!r}")
+    re_emitted = json.loads(model.model_dump_json(indent=2, exclude_none=True))
+    equal = norm(re_emitted) == norm(ref)
+    print(f"semantic equality vs published grammar.json: "
+          f"{'OK' if equal else 'MISMATCH'}")
+    if not equal:
+        return 1
+    with tempfile.TemporaryDirectory() as d:
+        json_path = model.emit_bundle(d)
+        proc = sp.run(["tree-sitter", "generate", str(json_path)],
+                      capture_output=True, text=True, cwd=d, check=False)
+        (EVIDENCE / "a3_community_bash_generate_stdout.txt").write_text(proc.stdout)
+        (EVIDENCE / "a3_community_bash_generate_stderr.txt").write_text(proc.stderr)
+        print(f"re-emitted bash grammar -> tree-sitter generate exit "
+              f"{proc.returncode} (evidence saved)")
+        return 0 if proc.returncode == 0 else 1
 
 
 if __name__ == "__main__":

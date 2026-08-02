@@ -36,11 +36,9 @@ Schema facts pinned to 0.25.3 (see `cli/generate/src/parse_grammar.rs`):
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Union
 
-from pydantic import BaseModel, Field
-
-
+from pydantic import BaseModel, Field, model_validator
 class RuleNode(BaseModel):
     """Base for all rule nodes. `type` is the serde tag in grammar.json."""
 
@@ -204,6 +202,16 @@ class Grammar(BaseModel):
     supertypes: list[str] = Field(default_factory=list)
     word: str | None = None
     reserved: dict[str, list[Rule]] = Field(default_factory=dict)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _drop_schema_key(cls, data):
+        """Published grammar.json files (e.g. tree-sitter-bash) carry a
+        `$schema` pointer; it is not part of the schema and must not break
+        import. Everything else stays strict (`extra=forbid`)."""
+        if isinstance(data, dict):
+            data.pop("$schema", None)
+        return data
 
     @property
     def start_rule(self) -> str:

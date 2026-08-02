@@ -135,7 +135,61 @@ def test_full_schema_reference_roundtrip():
     }
 
 
+def test_grammar_level_fields_reject_unknowns():
+    import pytest
+    with pytest.raises(Exception):
+        Grammar.model_validate_json(json.dumps({
+            "name": "s", "rules": {"a": {"type": "BLANK"}},
+            "start": "a",  # no such field in 0.25.3
+        }))
+
+
+def test_schema_pointer_key_tolerated():
+    """Published grammar.json files carry `$schema`; import must drop it
+    while staying strict about everything else."""
+    g = Grammar.model_validate_json(json.dumps({
+        "$schema": "https://example.com/schema.json",
+        "name": "s",
+        "rules": {"a": {"type": "BLANK"}, "b": {"type": "BLANK"}},
+    }))
+    assert g.name == "s"
+    assert "$schema" not in json.loads(g.model_dump_json())
+
+
 def test_start_rule_is_first_entry():
     g = Grammar.model_validate(
         {"name": "s", "rules": {"a": {"type": "BLANK"}, "b": {"type": "BLANK"}}})
     assert g.start_rule == "a"
+
+
+COMMUNITY_BASH = REPO_ROOT / ".scratch" / "004-tsgrammar" / "community" / "bash" / "grammar.json"
+
+
+@pytest.mark.skipif(not COMMUNITY_BASH.exists(),
+                    reason="community grammar fixture not checked out")
+def test_community_bash_roundtrips_semantically():
+    """A REAL published grammar (tree-sitter-bash 0.25.1, 101 rules) imports,
+    re-emits semantically equal, and the re-emitted form regenerates with the
+    stock CLI (exit 0) — the strongest fidelity check available offline."""
+    import shutil
+    import subprocess
+
+    raw = COMMUNITY_BASH.read_text()
+    ref = json.loads(raw)
+    ref.pop("$schema", None)
+    model = Grammar.model_validate_json(raw)
+    assert len(model.rules) == 101
+    assert model.start_rule == "program"
+
+    re_emitted = json.loads(model.model_dump_json(indent=2, exclude_none=True))
+    assert _norm(re_emitted) == _norm(ref)
+
+    if not shutil.which("tree-sitter"):
+        pytest.skip("tree-sitter CLI not on PATH")
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        json_path = model.emit_bundle(d)
+        proc = subprocess.run(
+            ["tree-sitter", "generate", str(json_path)],
+            capture_output=True, text=True, cwd=d, check=False)
+        assert proc.returncode == 0, proc.stderr[-800:]

@@ -62,6 +62,16 @@ The schema was re-confirmed directly against the CLI source at
 `/tmp/tree-sitter/cli/generate/src/parse_grammar.rs` (`GrammarJSON`,
 `RuleJSON`, `PrecedenceValueJSON = Integer | Name` untagged).
 
+**A real published grammar also round-trips** (the kickoff's preferred
+additional import test, found offline in the nix store): `tree-sitter-bash`
+0.25.1 (101 rules, 179 KB, committed under `community/bash/`) imports into
+the IR, re-emits **semantically equal** to the published file, and the
+re-emitted form regenerates with the stock CLI (exit 0). Two details this
+surfaced: published grammars carry a `$schema` key (not part of the schema —
+the IR drops it via a before-validator while staying strict about everything
+else), and bash's start rule `program` is nullable — confirming the
+start-rule-nullable exception in the wild.
+
 ### 1.1 What the full-schema reference actually does (all verified at parse time)
 
 | Construct | Exercise | Result |
