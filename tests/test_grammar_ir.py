@@ -136,8 +136,7 @@ def test_full_schema_reference_roundtrip():
 
 
 def test_grammar_level_fields_reject_unknowns():
-    import pytest
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         Grammar.model_validate_json(json.dumps({
             "name": "s", "rules": {"a": {"type": "BLANK"}},
             "start": "a",  # no such field in 0.25.3

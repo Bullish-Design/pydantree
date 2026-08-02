@@ -36,9 +36,11 @@ Schema facts pinned to 0.25.3 (see `cli/generate/src/parse_grammar.rs`):
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, model_validator
+
+
 class RuleNode(BaseModel):
     """Base for all rule nodes. `type` is the serde tag in grammar.json."""
 
