@@ -1,0 +1,4 @@
+work-*/
+experiments/work-*/
+*.so
+__pycache__/
