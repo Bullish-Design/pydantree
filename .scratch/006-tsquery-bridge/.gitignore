@@ -1,0 +1,6 @@
+work-*/
+experiments/work-*/
+experiments/probe-work/
+experiments/phase4-work/
+*.so
+__pycache__/
