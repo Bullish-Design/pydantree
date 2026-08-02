@@ -153,16 +153,20 @@ class BuildResult:
 
 def build(model: GrammarModel, *, cache_dir: Path | None = None,
           toolchain: Toolchain | None = None,
-          grammar_name: str | None = None) -> BuildResult:
+          grammar_name: str | None = None,
+          scanner: Path | str | None = None) -> BuildResult:
     """Full pipeline with content-addressed caching.
 
     Cache key: sha256(grammar.json) + ABI version + toolchain version. On a
     hit, skip generate+gcc entirely. `grammar_name` defaults to the grammar's
-    `name` (the .so export symbol must match).
+    `name` (the .so export symbol must match). `scanner` optionally points at
+    an external-scanner scanner.c to copy into the build (grammars with
+    `externals` need one to link).
     """
     cache_dir = Path(cache_dir) if cache_dir is not None else default_cache_dir()
     toolchain = toolchain or detect_toolchain()
     name = grammar_name or model.name
+    scanner = Path(scanner) if scanner is not None else None
 
     h = grammar_hash(model)
     tc_digest = hashlib.sha256(toolchain.key.encode()).hexdigest()[:12]
@@ -201,7 +205,10 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
             detail=f"generate exited 0 but wrote no parser.c (check stdout:\n{gen.stdout})")
 
     # scanner.c sits beside parser.c (canonical location); fall back to the
-    # workdir root for hand-authored layouts.
+    # workdir root for hand-authored layouts; an explicit `scanner=` arg
+    # (for grammars with externals) is copied into the build first.
+    if scanner is not None:
+        shutil.copy(scanner, work / "scanner.c")
     scanner = (src_dir / "scanner.c") if (src_dir / "scanner.c").exists() \
         else work / "scanner.c"
     work_so = work / f"{name}.so"

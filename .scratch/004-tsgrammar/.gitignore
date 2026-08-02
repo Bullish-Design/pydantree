@@ -1,6 +1,8 @@
 # generated build artifacts (reproducible via the pipeline / experiment scripts)
 work-a/
 work-b/
-reference/src/
 reference/gen_*.txt
 reference/kitsink.so
+# the generated parser.c etc. — but the HAND-WRITTEN scanner.c is load-bearing
+reference/src/*
+!reference/src/scanner.c
