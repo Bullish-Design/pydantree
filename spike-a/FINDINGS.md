@@ -1,7 +1,16 @@
 # Phase 1 Spike — Findings & Verdict (Product A: tsquery)
 
+> **Superseded in direction (2026-08-02).** This spike validated the raw-API
+> substrate (0.26 semantics, predicate placement, per-match repeats, the
+> materializer) — all of which carries over unchanged — but its **query-DSL
+> surface was rejected** by `spike-a2/` in favor of **model-only extraction**:
+> the `OutputModel` class itself is the query; no `.scm`, no builder, no query
+> string. The side-by-side comparison below is still the honest evidence for
+> *why*: lazy mode ≈ raw, and typed materialization is where the value lives.
+> See `spike-a2/FINDINGS.md` for the adopted design.
+
 **Date:** 2026-08-02
-**Status:** COMPLETE
+**Status:** COMPLETE (superseded — see note above)
 **Verdict:** **GO-WITH-CHANGES** (bet #2 is real, but the win is the
 materializer, not the query DSL; scope the DSL thin)
 

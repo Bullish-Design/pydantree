@@ -1,5 +1,13 @@
 # KICKOFF — pydantree Phase 1 spike (Product A: typed extraction over community grammars)
 
+> **STATUS: COMPLETE — superseded direction.** This brief scoped Product A as a
+> "query DSL → `.scm`" surface. The spike ran it (spike-a) and then rejected
+> that surface in favor of **model-only extraction** (spike-a2): the
+> `OutputModel` class IS the query; no `.scm`, no builder, no query string.
+> The mission text below is preserved as the historical brief. The adopted
+> design and evidence: `spike-a2/FINDINGS.md` (repo root), and the updated
+> product definition in `.scratch/002-pydantic-treesitter/CONCEPT.md` §5.
+
 ## Mission
 
 You are working in the **`pydantree`** repo. **Phase 0 is done and passed** —

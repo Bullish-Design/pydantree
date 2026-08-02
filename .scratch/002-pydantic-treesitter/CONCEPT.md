@@ -1,7 +1,14 @@
 # Pydantic ⇄ Tree-sitter — Revised Concept
 
-**Status:** concept / pre-spike
+**Status:** concept / post-Phase-1
 **Supersedes (in spirit):** `017-pydantic-winnow-parser`
+**Phase-1 update (2026-08-02):** Product A's surface was redefined by the
+Phase-1 spikes (`spike-a/`, `spike-a2/` at the repo root). The pre-Phase-1
+"query DSL → `.scm`" version of §5 was **rejected** in favor of a
+**model-only declaration**: the `OutputModel` class itself IS the query — no
+`.scm`, no query builder, no query string. §5 below reflects the validated
+design; evidence and the rejected-alternative analysis live in
+`spike-a/FINDINGS.md` and `spike-a2/FINDINGS.md`.
 **Decision baked in:** static grammars, GLR backend (tree-sitter). We are *not*
 building a dynamic-grammar VM or a parser-combinator engine. The whole design
 leans into tree-sitter's model instead of fighting it.
@@ -17,10 +24,12 @@ runs the standard generate + compile pipeline for them — its whole reason to
 exist is to make GLR grammar authoring *as painless as tree-sitter allows*.
 **Product A** (`tsquery`, working name) lets a developer *consume* a grammar —
 either one built by B or any of the hundreds of prebuilt community grammars —
-through a friendly Pydantic query DSL that maps captured nodes into typed
-`OutputModel` instances. A is useful on its own; B makes new grammars possible;
-together they give an end-to-end, compile-time-checked pipeline from grammar
-definition to typed output.
+by declaring a Pydantic `OutputModel` whose field names, types, defaults, and a
+one-line `__match__` path are the entire query. A derives the tree-sitter
+`.scm`, compiles and runs it, and returns typed `OutputModel` instances; the
+user never writes an S-expression or a query DSL. A is useful on its own; B
+makes new grammars possible; together they give an end-to-end,
+compile-time-checked pipeline from grammar definition to typed output.
 
 The two libraries are deliberately **separate packages with a narrow, data-only
 interface** between them. You can adopt A without ever touching B.
@@ -39,7 +48,7 @@ that they both talk about tree-sitter.
 | Runs at | **Build time** | **Run time** |
 | Heavy deps | Rust `tree-sitter-cli`, C/wasm toolchain | None — just the C runtime + our mapping layer |
 | Output | A distributable grammar artifact (`.so`/`.wasm` + schema) | Typed `OutputModel` instances |
-| Failure mode it fights | GLR conflicts, precedence, scanners | Untyped CST, stringly-typed queries |
+| Failure mode it fights | GLR conflicts, precedence, scanners | Untyped CST, manual coercion/glue, hand-written `.scm` |
 | Can ship without the other? | Yes (emits a normal grammar package) | **Yes** (works over community grammars) |
 
 Collapsing them into one package would force every A user to carry B's Rust +
@@ -66,9 +75,9 @@ library and a leaky one.
 - **B:** a Pydantic DSL that emits valid `grammar.json`, an author-time static
   analyzer, a GLR-ergonomics layer (precedence ladders, expression helper,
   conflict diagnostics remapped to Python source), and a build/distribute pipeline.
-- **A:** a Pydantic query DSL that emits tree-sitter S-expression queries, a
-  capture→`OutputModel` materialization layer with coercion/validation, and
-  friendly result/error surfaces.
+- **A:** a model-only typed extraction layer — the `OutputModel` is the query
+  declaration, the `.scm` is derived and never seen — plus capture→`OutputModel`
+  materialization (coercion/validation/spans/nesting) and a diagnostic surface.
 - **Shared (`tscore`):** Pydantic models mirroring the `grammar.json` schema, the
   **grammar node-schema** format (see §7), and the artifact-loading contract.
 
@@ -90,10 +99,11 @@ load-bearing.** It only `console.log(JSON.stringify(grammar))`s. So B targets
                                                                      │  grammar artifact
                                                                      ▼
                     ┌──────────────  Product A (tsquery, run time)  ──────────────────┐
-   text ──────────► load grammar ──► parse (C runtime) ──► CST ──► query (.scm) ──► OutputModel
-                    │  (.so/.wasm)                          │        ▲                 ▲          │
-                    │                                       │     query DSL     mapping layer     │
-                    └───────────────────────────────────────┴─────────────────────────┴──────────┘
+   text ──────────► load grammar ──► parse (C runtime) ──► CST ──► derived query ──► OutputModel
+                    │  (.so/.wasm)                          │        ▲   (.scm,    ▲          │
+                    │                                       │     internal)  mapping layer     │
+                    │                                       │   (model = query)                │
+                    └───────────────────────────────────────┴─────────────────────────────────┘
                           ▲
                           └── OR: a prebuilt community grammar wheel (no B involved)
 ```
@@ -331,65 +341,114 @@ One uniform `Language.load(...)` accepting:
 each optionally paired with a `node-schema.json` that unlocks compile-time query
 checking (§7). Loading is the light runtime — no toolchain required.
 
-### 5.3 The query DSL → `.scm`
+### 5.3 The model IS the declaration (validated design)
 
-Tree-sitter's native query language is S-expressions in `.scm` files with
-`@captures` and `#predicates`. We expose a typed builder that emits it:
+Phase 1 (spike-a2) rejected a query DSL: for simple queries a builder is
+ceremony, and the materialization value lives in the *model*, not the query. A's
+surface is therefore just the `OutputModel`. The user writes one class; A
+derives the `.scm`, compiles it, runs it, and materializes instances. No `.scm`
+is ever written or seen.
 
-```python
-from tsquery import Query, node, cap
-
-q = (node("assignment")
-        .child(field="name", capture="name")
-        .child(field="value", node="expr", capture="value")
-        .where(cap("name").matches(r"^[A-Z]")))   # → #match? predicate
-```
-
-Predicates (`#eq?`, `#match?`, `#any-of?`) become typed method calls. If a
-`node-schema` is present, `node("assigment")` (typo) or `.child(field="valeu")`
-is a **compile-time error**, not a silent empty match.
-
-### 5.4 Capture → `OutputModel` materialization
-
-The value-add over raw tree-sitter. An `OutputModel` is an ordinary Pydantic model;
-a binding maps query captures to its fields with coercion and validation:
+**Field mode** — structured nodes, bound by CST field:
 
 ```python
 class Assignment(OutputModel):
-    name: str
-    value: int                    # coerced from node text
-    line: int = source_meta()     # span/position injectable
+    __match__ = M("module", "expression_statement", "assignment")
+    name: Annotated[str, Matches(r"^[A-Z][A-Z_]*$")] = capture("left")
+    value: Annotated[int, NodeKind("integer")] = capture("right")
+    line: int = source_meta()
 
-results: list[Assignment] = q.extract(tree, into=Assignment)
+rows = Assignment.extract(text, language=tree_sitter_python)
 ```
 
-Materialization handles: text slicing from byte spans, primitive coercion
-(int/float/bool), enum lookup, string unescaping, `Optional`/missing captures,
-repeated captures → `list`, and nested `OutputModel`s from sub-queries. Pydantic
-validation runs at the end, so malformed captures surface as `ValidationError`.
+**Record mode** — order-independent key/value documents (JSON records, config
+files, …); the field name IS the key:
 
-**Crucially, materialization is one result mode among several** — you opt in.
-The default is lazy (§5.5) so we don't reintroduce "construct a million Python
-objects" as a default cost.
+```python
+class Person(OutputModel):
+    __match__ = M("document", "array", "object", record=True)
+    name: str
+    age: int
+    tags: list[str]
+    nickname: str | None = None
+    active: bool = False
+    line: int = source_meta()
+
+people = Person.extract(text, language=tree_sitter_json)
+```
+
+The binding rules are mechanical, not conventional (all verified in spike-a2):
+
+| Model element | Derived meaning |
+|---|---|
+| attr name | capture name (field mode) / JSON key (record mode) |
+| pydantic type | coercion (`"1920"→int`, `"true"→bool`) |
+| `Optional[T]` / defaults | missing-capture handling |
+| `list[X]` | repeated capture → list (missing → `[]`) |
+| `= source_meta()` | span/line injection from the match anchor |
+| `= capture("field")` | CST field position (field mode); no-arg = attr name |
+| `Annotated[..., Matches/Eq/AnyOf]` | `#match?` / `#eq?` / `#any-of?` predicates |
+| `Annotated[..., NodeKind("k")]` | constrain the matched node kind (tuple = alternation) |
+| field typed as another `OutputModel` | nested sub-query materialization |
+| `__match__ = M("a", "b", "c")` | the one structural declaration: anchored ancestor path |
+
+Structure derivation and validation run at **class creation** (a `ModelMetaclass`
+hook — `model_fields` is available there, unlike `__init_subclass__`). Grammar
+validation (node kinds, fields) needs the grammar, so it runs at
+`Model.validate_with(language)` or the first `extract`; either way the emitted
+`.scm` is in the error message.
+
+### 5.4 Capture → `OutputModel` materialization
+
+The value-add over raw tree-sitter — and, per Phase 1, the reason A exists. The
+captures derived from the model are mapped onto its fields with **pydantic as
+the coercion engine**: the materializer hands raw capture text to
+`Model(**kwargs)` and pydantic's lax mode coerces `"1920"→int`, `"98.5"→float`,
+`"true"→bool`, `"admin"→enum`, raising a per-field `ValidationError` for
+malformed input. Materialization handles: text slicing from byte spans, primitive
+coercion, enum lookup, `Optional`/missing captures (defaults, or `[]` for lists),
+repeated captures → `list`, span/line injection via `source_meta()`, and nested
+`OutputModel`s from sub-queries (a field typed as another model materializes the
+value node with that model's machinery).
+
+One honest limit (spike-a2 §2.1): record mode maps each field type to a
+grammar's node shape (JSON: `str` → `string_content` inside `string`, `int` →
+`number`, `bool` → `true|false`, `list[str]` → array of `string_content`). That
+map is grammar knowledge; it is hardcoded per grammar (or overridden per field
+with `NodeKind`) until the node-schema bridge (§7) derives it.
 
 ### 5.5 Result modes
 
-- **Lazy CST cursor** (default): iterate matches, read spans/text on demand; no
-  model construction. For large trees or "just find the thing" tasks.
-- **Typed materialization** (opt-in): `into=Model` builds `OutputModel`s eagerly.
-- **Streaming/visitor**: callback per match, for pipelines that don't want a list.
-- **Validate/recognize**: boolean "does this parse cleanly?" using the error surface.
+The public surface is **typed extraction** (`Model.extract(text,
+language=...)`) — one call, no opt-in ladder. The 0.26 bindings' `matches()` is
+eager anyway (no streaming cursor exists), so "lazy" is at most an internal mode
+that defers text reads while skipping model construction; it is not a pitched
+feature. Two knobs remain:
+
+- **strict / lenient**: strict raises an `ExtractionError` summarizing every
+  failing match (pydantic `ValidationError` with `loc`/`type`); lenient returns
+  the good rows and reports the rest.
+- **parse-cleanliness**: `validate()` reports `ERROR`/`MISSING` nodes with
+  kind/line/span/snippet.
 
 ### 5.6 Error & recovery surface
 
-Tree-sitter *always* returns a tree, inserting `ERROR`/`MISSING` nodes rather than
-throwing. We expose that as typed diagnostics (`Diagnostic{kind, span, expected}`),
-and let each extraction choose:
-- **strict** — any `ERROR`/`MISSING` in the matched region → `ParseError`,
-- **lenient** — collect diagnostics alongside best-effort `OutputModel`s.
+Mistakes surface early, at the cheapest layer that can catch them (spike-a2 §3):
 
-We also expose the **incremental reparse** API (apply an edit → reparse) cleanly,
-for editor-ish / re-run-on-change consumers — one of tree-sitter's real strengths.
+| Mistake | Surfaces at | Kind |
+|---|---|---|
+| typo node kind / field in `__match__` / `capture()` | class creation + `validate_with()` / first extract | `QueryBuildError` (tree-sitter `Query()` rejects) |
+| unmapped record shape (`list[bool]`, unknown type) | **class creation** | `UnsupportedShapeError` |
+| annotation not resolvable (e.g. function-local model) | **class creation** | clear `CoercionError` with a fix hint |
+| required field with no capture binding | class creation (warning) + extract | pydantic `Field required` |
+| non-numeric text into an `int` field | extract | `ValidationError` with `loc`/`type` |
+| scalar field fed by multiple captures | extract | `AmbiguousCaptureError` (strict) |
+| malformed input (`ERROR`/`MISSING` nodes) | `validate()` | typed diagnostics |
+
+Tree-sitter *always* returns a tree, inserting `ERROR`/`MISSING` nodes rather
+than throwing; `validate()` exposes those as typed diagnostics
+(`Diagnostic{kind, span, expected}`). The **incremental reparse** API (apply an
+edit → reparse) is available for editor-ish consumers; we do not wrap it.
 
 ---
 
@@ -403,7 +462,7 @@ They meet at **exactly one data artifact** and never in code:
 
 - A depends only on the artifact + schema, produced equally well by B or by the
   community. So A has no idea B exists, and vice versa.
-- If you own *both* halves (your grammar + your queries + your output models), you
+- If you own *both* halves (your grammar + your extraction models), you
   get an **end-to-end typed, compile-time-checked pipeline** (§7) that neither jc,
   TextFSM, nor raw tree-sitter can offer.
 
@@ -417,16 +476,23 @@ kinds, each node's possible fields and child types, and supertype relationships.
 This small schema is the second half of the artifact B emits — and it's what makes
 A *typed*:
 
-1. **Query validation against the grammar.** A query referencing a node kind or
-   field that the grammar cannot produce is rejected at query-build time, not
-   discovered as a silent empty result at runtime.
+1. **Model ↔ grammar validation.** A derived query referencing a node kind or
+   field that the grammar cannot produce is rejected at `validate_with()` time,
+   not discovered as a silent empty result at runtime. (Phase 1 already gets
+   this from tree-sitter's own `Query()` constructor, which validates node kinds
+   and field names.)
 2. **Autocomplete / typed node access.** A can generate typed node accessors (or
    `.pyi` stubs) from the schema, so consuming a grammar feels like using a typed
    API rather than stringly-typed CST spelunking.
-3. **Grammar ↔ output cross-validation.** When an `OutputModel` field is fed from a
-   capture, we can check the capture's node type against the field's Python type
-   and flag mismatches (e.g. binding a node that yields text into an `int` field
-   with no coercion path) *before* parsing anything.
+3. **Value-shape derivation.** The record-mode shape map (§5.4) — "a JSON `str`
+   is a `string_content` inside `string`" — is grammar knowledge. The schema is
+   what lets A *derive* the map (and per-type defaults such as "`int`-typed
+   captures match numeric kinds") instead of hardcoding it, for community
+   grammars that ship no schema.
+4. **Capture ↔ output type cross-validation.** When an `OutputModel` field is fed
+   from a capture, we can check the capture's possible node types against the
+   field's Python type and flag mismatches (e.g. a capture that can only ever be
+   non-numeric feeding an `int` field) at class creation, not at first extract.
 
 This is the same "both sides are Pydantic ⇒ validate the seam at compile time"
 capability discussed for the grammar↔output binding, now spanning
@@ -444,8 +510,8 @@ already generates). So even community-grammar users get most of the typing benef
 - **`tscore`** — tiny, pure-Python: the `grammar.json` Pydantic models, the
   node-schema format, the artifact-loading contract. Shared dependency of A and B.
 - **`tsquery` (A)** — light runtime: `tscore` + the C runtime binding + a wasm
-  runtime + the query/mapping layer. **No Rust CLI, no compiler.** This is what most
-  users install.
+  runtime + the model→query derivation and mapping layer. **No Rust CLI, no
+  compiler.** This is what most users install.
 - **`tsgrammar` (B)** — heavy build tool: `tscore` + bundled `tree-sitter-cli`
   (Rust) + a C/wasm toolchain hook. A developer/build-time dependency; fine to be
   large. Produces artifacts consumed by A.
@@ -465,10 +531,13 @@ So build the piece that delivers value soonest and validates the interface:
   `generate` + compile, confirm a working parser. Prove the conflict-diagnostic
   remapping (§4.4.3) is mechanically possible from real generator output. This is
   the single most important go/no-go experiment.
-- **Phase 1 — Product A MVP over community grammars.** Query DSL → `.scm`, and
-  capture → `OutputModel`. Ships something genuinely useful (typed extraction over
-  Python/JSON/Bash/…) **independent of B**, and stress-tests the consumption
-  ergonomics against real trees.
+- **Phase 1 — Product A MVP over community grammars (DONE: `spike-a/`,
+  `spike-a2/`).** Proved the **model-only declaration** (the `OutputModel` IS the
+  query — §5.3), derived `.scm`, capture→`OutputModel` materialization, nested
+  models, and the failure surface over Python + JSON, **independent of B**. The
+  spike rejected the query-DSL version of A (ceremony without value for simple
+  patterns) and settled on §5. Remaining Phase-1 gaps are bridge-shaped:
+  field-mode lists, non-JSON record shapes, JSON string unescaping (§5.4/§7).
 - **Phase 2 — Product B core.** GrammarModel hierarchy + `grammar.json` emitter +
   §4.5 static analysis + native build pipeline.
 - **Phase 3 — the GLR ergonomics layer.** Precedence ladders, `ExpressionGrammar`,
@@ -522,9 +591,13 @@ comes last.
    the consumer pick portability vs speed.
 6. **Regex-subset friction.** Author-time validation (§4.4.7) mitigates, but some
    authors will still be surprised by what the tree-sitter lexer won't accept.
-7. **node-schema completeness.** How faithfully can we derive typed node access
-   from `grammar.json` alone for community grammars that ship no schema? Determines
-   how much of the Phase-4 typing benefit non-B users get.
+7. **node-schema completeness.** Phase 1 sharpened this: the schema's real jobs
+   are (a) deriving the record value-shape map (§5.4) and (b) capture↔type
+   cross-validation (§7.4), for community grammars that ship no schema. The
+   Phase-1 stand-ins (hardcoded JSON shape map, `NodeKind` overrides, runtime
+   `ValidationError`) work but are not derived; how faithfully the schema can be
+   derived from `grammar.json` / `node-types.json` determines how much of the
+   Phase-4 benefit non-B users get.
 
 ---
 
@@ -534,8 +607,10 @@ The `grammar.js`-bypass makes B genuinely feasible; the node-schema bridge makes
 the A+B combination something raw tree-sitter cannot match. The project lives or
 dies on **two ergonomic bets**: (1) that we can turn GLR conflict/precedence pain
 into typed, source-located, declarative Python (Product B), and (2) that
-capture→`OutputModel` with schema-checked queries is meaningfully nicer than
-`py-tree-sitter` (Product A). Ship A first over community grammars to prove bet 2
+declaring an `OutputModel` and getting schema-checked typed extraction — the
+model IS the query — is meaningfully nicer than `py-tree-sitter` (Product A).
+Phase 1 (spike-a2) validated bet 2 for typed materialization over Python + JSON.
+Ship A first over community grammars to prove bet 2
 and earn users cheaply; invest B's effort disproportionately in the GLR-ergonomics
 layer, because that — not the emitter, not the build pipeline — is the whole reason
 Product B deserves to exist.
