@@ -1,0 +1,442 @@
+expr               	33
+if_stmt            	13
+fn_def             	7
+let_stmt           	5
+assign             	4
+block              	4
+args_repeat1       	4
+params_repeat1     	4
+source_file_repeat1	3
+args               	2
+expr_stmt          	2
+params             	2
+source_file        	1
+statement          	1
+
+state index: 8
+state id: 2
+symbol sequence: number
+items:
+expr → number •	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 24
+state id: 3
+symbol sequence: identifier
+items:
+expr → identifier •	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+assign → identifier • = expr ;	[number, identifier, string, -, not, (, let, if, fn, source_file]
+
+state index: 50
+state id: 4
+symbol sequence: -
+items:
+expr → - • ( ) expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 46
+state id: 5
+symbol sequence: not
+items:
+expr → not • ( ) expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 40
+state id: 6
+symbol sequence: (
+items:
+expr → ( • expr )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 25
+state id: 11
+symbol sequence: expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr_stmt → expr • ;	[number, identifier, string, -, not, (, let, if, fn, source_file]
+
+state index: 9
+state id: 16
+symbol sequence: - expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → - expr • (7)	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 10
+state id: 17
+symbol sequence: not expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → not expr • (3)	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 27
+state id: 22
+symbol sequence: ( expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → ( expr • )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 48
+state id: 26
+symbol sequence: expr or
+items:
+expr → expr or • ( Left ) expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 51
+state id: 27
+symbol sequence: expr and
+items:
+expr → expr and • ( Left ) expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 47
+state id: 28
+symbol sequence: expr <
+items:
+expr → expr < • ( Left ) expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 49
+state id: 29
+symbol sequence: expr +
+items:
+expr → expr + • ( Left ) expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 53
+state id: 30
+symbol sequence: expr *
+items:
+expr → expr * • ( Left ) expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 41
+state id: 31
+symbol sequence: expr ^
+items:
+expr → expr ^ • ( Right ) expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 39
+state id: 32
+symbol sequence: expr (
+items:
+expr → expr ( • ( ) )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr ( • ( ) args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 71
+state id: 33
+symbol sequence: expr .
+items:
+expr → expr . • ( ) identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 28
+state id: 36
+symbol sequence: identifier = expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+assign → identifier = expr • ;	[number, identifier, string, -, not, (, let, if, fn, source_file]
+
+state index: 11
+state id: 47
+symbol sequence: ( expr )
+items:
+expr → ( expr ) •	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 26
+state id: 50
+symbol sequence: if ( expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+if_stmt → if ( expr • ) statement	[number, identifier, string, -, not, (, let, if, fn, source_file]
+if_stmt → if ( expr • ) statement else statement	[number, identifier, string, -, not, (, let, if, fn, source_file]
+
+state index: 30
+state id: 129
+symbol sequence: if ( expr ) if ( expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+if_stmt → if ( expr • ) statement	[number, identifier, string, -, not, (, let, if, else, fn, source_file]
+if_stmt → if ( expr • ) statement else statement	[number, identifier, string, -, not, (, let, if, else, fn, source_file]
+
+state index: 6
+state id: 52
+symbol sequence: expr or expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr or expr • (1 Left)	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 12
+state id: 53
+symbol sequence: expr and expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr and expr • (2 Left)	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 13
+state id: 54
+symbol sequence: expr < expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr < expr • (4 Left)	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 14
+state id: 55
+symbol sequence: expr + expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr + expr • (5 Left)	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 15
+state id: 56
+symbol sequence: expr * expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr * expr • (6 Left)	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 16
+state id: 57
+symbol sequence: expr ^ expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr ^ expr • (8 Right)	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 17
+state id: 62
+symbol sequence: expr ( )
+items:
+expr → expr ( ) • (9)	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 73
+state id: 63
+symbol sequence: expr ( args
+items:
+expr → expr ( args • ( ) )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 18
+state id: 64
+symbol sequence: expr ( expr
+items:
+args → expr •	[)]
+args → expr • args_repeat1	[)]
+expr → expr • ( Left ) or expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) and expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) < expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) > expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) == expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) != expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) + expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) - expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) * expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) / expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Right ) ^ expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) ( )	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) . identifier	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) ( args )	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+
+state index: 29
+state id: 75
+symbol sequence: let identifier = expr
+items:
+expr → expr • ( Left ) or expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) and expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) < expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) > expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) == expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) != expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) + expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) - expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) * expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Left ) / expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( Right ) ^ expr	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) . identifier	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+expr → expr • ( ) ( args )	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+let_stmt → let identifier = expr • ;	[number, identifier, string, -, not, (, let, if, fn, source_file]
+
+state index: 20
+state id: 82
+symbol sequence: expr ( args )
+items:
+expr → expr ( args ) • (9)	[or, and, <, >, ==, !=, +, -, *, /, ^, (, ., ;]
+
+state index: 23
+state id: 106
+symbol sequence: expr ( expr , expr
+items:
+expr → expr • ( Left ) or expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) and expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) < expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) > expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) == expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) != expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) + expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) - expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) * expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Left ) / expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( Right ) ^ expr	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) ( )	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) . identifier	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+expr → expr • ( ) ( args )	[,, or, and, <, >, ==, !=, +, -, *, /, ^, (, ), .]
+args_repeat1 → , expr •	[,, )]
+
