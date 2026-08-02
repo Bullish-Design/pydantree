@@ -208,3 +208,7 @@ devenv.local.nix
 
 # pre-commit
 .pre-commit-config.yaml
+
+# Phase 0 spike: generated build artifacts (code is committed, outputs are throwaway)
+/spike/work/
+/spike/probe/src/

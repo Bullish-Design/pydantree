@@ -1,0 +1,68 @@
+{
+  "BuildTables": {
+    "Conflict": {
+      "symbol_sequence": [
+        "'if'",
+        "expr",
+        "'if'",
+        "expr",
+        "statement"
+      ],
+      "conflicting_lookahead": "'else'",
+      "possible_interpretations": [
+        {
+          "preceding_symbols": [
+            "'if'",
+            "expr"
+          ],
+          "variable_name": "if_statement",
+          "production_step_symbols": [
+            "'if'",
+            "expr",
+            "statement"
+          ],
+          "step_index": 3,
+          "done": true,
+          "conflicting_lookahead": "'else'",
+          "precedence": null,
+          "associativity": null
+        },
+        {
+          "preceding_symbols": [
+            "'if'",
+            "expr"
+          ],
+          "variable_name": "if_statement",
+          "production_step_symbols": [
+            "'if'",
+            "expr",
+            "statement",
+            "'else'",
+            "statement"
+          ],
+          "step_index": 3,
+          "done": false,
+          "conflicting_lookahead": "'else'",
+          "precedence": null,
+          "associativity": null
+        }
+      ],
+      "possible_resolutions": [
+        {
+          "Associativity": {
+            "symbols": [
+              "if_statement"
+            ]
+          }
+        },
+        {
+          "AddConflict": {
+            "symbols": [
+              "if_statement"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

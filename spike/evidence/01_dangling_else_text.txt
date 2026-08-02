@@ -1,0 +1,17 @@
+Error when generating parser
+
+Caused by:
+    Unresolved conflict for symbol sequence:
+    
+      'if'  expr  'if'  expr  statement  •  'else'  …
+    
+    Possible interpretations:
+    
+      1:  'if'  expr  (if_statement  'if'  expr  statement  •  'else'  statement)
+      2:  'if'  expr  (if_statement  'if'  expr  statement)  •  'else'  …
+    
+    Possible resolutions:
+    
+      1:  Specify a left or right associativity in `if_statement`
+      2:  Add a conflict for these rules: `if_statement`
+    
