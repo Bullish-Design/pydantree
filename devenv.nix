@@ -5,7 +5,13 @@
   env.GREET = "devenv";
 
   # https://devenv.sh/packages/
-  packages = [ pkgs.git ];
+  # Phase 0 spike needs the Rust tree-sitter generator (grammar.json -> parser.c)
+  # and a C compiler to build parser.c into a shared library.
+  packages = [
+    pkgs.git
+    pkgs.tree-sitter
+    pkgs.gcc
+  ];
 
   # https://devenv.sh/languages/
   # languages.rust.enable = true;
