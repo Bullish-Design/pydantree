@@ -210,5 +210,7 @@ devenv.local.nix
 .pre-commit-config.yaml
 
 # Phase 0 spike: generated build artifacts (code is committed, outputs are throwaway)
-/spike/work/
-/spike/probe/src/
+/.scratch/002-pydantic-treesitter/spike/work/
+/.scratch/002-pydantic-treesitter/spike/probe/src/
+# Phase 1 spike (Product A): generated artifacts, same policy
+/spike-a/work/

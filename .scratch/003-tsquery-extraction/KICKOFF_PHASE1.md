@@ -16,13 +16,13 @@ code, everything committed.
 
 ## Context: where we are
 
-- **Phase 0 (done, committed):** `spike/` proved Product B's core mechanics —
+- **Phase 0 (done, committed):** `.scratch/002-pydantic-treesitter/spike/` proved Product B's core mechanics —
   Pydantic GrammarModel IR → `grammar.json` → `tree-sitter generate` → gcc →
   `.so` → parse, plus conflict remapping via `tree-sitter generate --json`.
-  Read `spike/FINDINGS.md` for the verdict and the **durable technical facts**
-  below. The `spike/` code is throwaway — reference it for patterns, don't
+  Read `.scratch/002-pydantic-treesitter/spike/FINDINGS.md` for the verdict and the **durable technical facts**
+  below. The `.scratch/002-pydantic-treesitter/spike/` code is throwaway — reference it for patterns, don't
   extend it.
-- **Concept:** `scratch/018-pydantic-treesitter/CONCEPT.md`. Product A is §5;
+- **Concept:** `.scratch/002-pydantic-treesitter/CONCEPT.md`. Product A is §5;
   the two-product design, artifact boundary, sequencing, and risks are §0–§12.
   The concept's **bet #2** (the one Phase 1 must test): *"capture→OutputModel
   with schema-checked queries is meaningfully nicer than py-tree-sitter."*
@@ -33,13 +33,13 @@ code, everything committed.
 
 ## Required reading (in this order — do not skip)
 
-1. **`scratch/018-pydantic-treesitter/CONCEPT.md`** — full read, but focus on
+1. **`.scratch/002-pydantic-treesitter/CONCEPT.md`** — full read, but focus on
    §5 (Product A: loading, query DSL, materialization, result modes, error
    surface), §6 (the artifact boundary), §9 (sequencing), §11 (risks), §12
    (bottom line: the two bets).
-2. **`spike/FINDINGS.md`** — Phase 0's verdict and the durable technical facts
+2. **`.scratch/002-pydantic-treesitter/spike/FINDINGS.md`** — Phase 0's verdict and the durable technical facts
    (toolchain versions, ABI, loading path). Some facts carry into Phase 1.
-3. **`spike/main.py` + `spike/pipeline.py`** — skim. The **PyCapsule loading
+3. **`.scratch/002-pydantic-treesitter/spike/main.py` + `.scratch/002-pydantic-treesitter/spike/pipeline.py`** — skim. The **PyCapsule loading
    pattern** and the staged-test discipline are the carry-over; the grammar IR
    and builder are not (they're Product B's).
 4. **The installed API ground truth** (do not trust docs from memory):
@@ -47,7 +47,7 @@ code, everything committed.
      — the 0.26 `Query`/`QueryCursor`/`Node`/`Tree` surfaces.
    - `.../site-packages/tree_sitter_python/__init__.pyi` + `__init__.py` —
      the wheel's loading surface.
-5. (Optional) `scratch/017-pydantic-winnow-parser/sketch.py` — the
+5. (Optional) `.scratch/001-pydantic-winnow-parser/sketch.py` — the
    compile-time grammar↔output bridge-validation *style* (§4.7/§7 of the
    concept); the full bridge is Phase 4, but the type-compatibility thinking
    informs the Phase-1 capture↔model binding checks.
@@ -197,9 +197,9 @@ comparison**, not vibes:
 
 ## Working agreement
 
-- **Spike code goes in `spike-a/`** at the repo root — isolated from `spike/`
-  (Phase 0) and `src/`. Reference docs stay in `scratch/`; the Phase-0
-  evidence stays untouched in `spike/`.
+- **Spike code goes in `spike-a/`** at the repo root — isolated from
+  `.scratch/002-pydantic-treesitter/spike/` (Phase 0) and `src/`. Reference docs
+  stay in `.scratch/`; the Phase-0 evidence stays untouched where it is.
 - **Commit after each meaningful step**, with clear messages (e.g.
   `spike-a: query DSL emits .scm accepted by Query()`,
   `spike-a: captures materialize into OutputModels`).

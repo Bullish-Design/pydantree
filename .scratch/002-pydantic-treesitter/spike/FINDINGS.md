@@ -340,7 +340,7 @@ site recording, emission, and conflict remapping already exist in spike form.
 ## Appendix A — how to re-run
 
 ```bash
-devenv shell -- python spike/main.py
+devenv shell -- python .scratch/002-pydantic-treesitter/spike/main.py
 ```
 
 Stages: (1) IR round-trip, (2) emit-vs-hand-written-reference, (3) static
