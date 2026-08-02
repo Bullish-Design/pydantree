@@ -116,15 +116,21 @@ def _unwrap_optional(t: Any) -> Any:
 
 
 def binding_warnings(query, model: type[BaseModel], *,
-                     record_mode: bool = False) -> list[str]:
-    """Warn before parsing when the model and query disagree on captures."""
+                     record_mode: bool = False,
+                     span_query=None) -> list[str]:
+    """Warn before parsing when the model and query disagree on captures.
+
+    `span_query` is the query that must provide source_meta captures (in
+    record mode this is the OUTER record query, not the field query).
+    """
     warnings: list[str] = []
     query_caps = query.capture_names()
+    span_caps = (span_query or query).capture_names()
     for name, field in model.model_fields.items():
         marker = field.default
         cap_name = marker.name if isinstance(marker, _CaptureMarker) else name
         if isinstance(marker, _SourceMeta):
-            if marker.capture not in query_caps:
+            if marker.capture not in span_caps:
                 warnings.append(
                     f"field {name!r}: source_meta(capture={marker.capture!r}) "
                     f"but the query never captures {marker.capture!r}")
@@ -278,7 +284,8 @@ def extract_records(tree: tree_sitter.Tree, record_query, field_query,
     from dsl import Cursor
     rec_compiled = record_query.compile(tree.language)
     fld_compiled = field_query.compile(tree.language)
-    for w in binding_warnings(field_query, into, record_mode=True):
+    for w in binding_warnings(field_query, into, record_mode=True,
+                              span_query=record_query):
         _warn(w)
 
     results: list = []
