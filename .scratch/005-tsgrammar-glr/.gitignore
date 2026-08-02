@@ -1,4 +1,6 @@
 work-*/
+probe-work/
 experiments/work-*/
+experiments/probe-work/
 *.so
 __pycache__/

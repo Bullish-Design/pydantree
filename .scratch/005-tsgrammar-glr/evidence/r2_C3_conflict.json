@@ -1,0 +1,79 @@
+{
+  "BuildTables": {
+    "Conflict": {
+      "symbol_sequence": [
+        "'if'",
+        "expr",
+        "'('",
+        "expr"
+      ],
+      "conflicting_lookahead": "')'",
+      "possible_interpretations": [
+        {
+          "preceding_symbols": [
+            "'if'",
+            "expr",
+            "'('"
+          ],
+          "variable_name": "args",
+          "production_step_symbols": [
+            "expr"
+          ],
+          "step_index": 1,
+          "done": true,
+          "conflicting_lookahead": "')'",
+          "precedence": null,
+          "associativity": null
+        },
+        {
+          "preceding_symbols": [
+            "'if'",
+            "expr"
+          ],
+          "variable_name": "expr",
+          "production_step_symbols": [
+            "'('",
+            "expr",
+            "')'"
+          ],
+          "step_index": 2,
+          "done": false,
+          "conflicting_lookahead": "')'",
+          "precedence": null,
+          "associativity": null
+        }
+      ],
+      "possible_resolutions": [
+        {
+          "Precedence": {
+            "symbols": [
+              "expr"
+            ]
+          }
+        },
+        {
+          "Precedence": {
+            "symbols": [
+              "args"
+            ]
+          }
+        },
+        {
+          "Associativity": {
+            "symbols": [
+              "args"
+            ]
+          }
+        },
+        {
+          "AddConflict": {
+            "symbols": [
+              "expr",
+              "args"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
