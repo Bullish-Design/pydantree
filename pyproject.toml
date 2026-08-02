@@ -40,7 +40,7 @@ python = [
 # ─────────────────────────────────────────────
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/pydantree", "src/examples", "data"]
+packages = ["src/pydantree", "src/examples", "data", "src/tsgrammar"]
 
 [project.scripts]
 pydantree = "pydantree.cli:main"

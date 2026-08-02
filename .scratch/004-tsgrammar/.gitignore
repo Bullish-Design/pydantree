@@ -1,0 +1,6 @@
+# generated build artifacts (reproducible via the pipeline / experiment scripts)
+work-a/
+work-b/
+reference/src/
+reference/gen_*.txt
+reference/kitsink.so
