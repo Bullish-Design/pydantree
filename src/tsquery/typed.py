@@ -411,36 +411,73 @@ class OutputModel(BaseModel, metaclass=DerivingMeta):
     # -- entry points ------------------------------------------------------
 
     @classmethod
-    def extract(cls, text, language=None, *, strict: bool = True) -> list:
-        lang = _resolve_language(language)
+    def extract(cls, text, language=None, *, strict: bool = True,
+                schema=None) -> list:
+        """Extract typed rows from `text`. With a node-schema (a
+        node-schema.json path/dict, a tscore.NodeSchema, or a tsquery.Language
+        carrying one), the Jobs 1/3/4 checks run and the query is rebuilt for
+        the grammar (derived value shapes, record-level anchoring, derived
+        kind constraints) before any match is materialized."""
+        lang, schema = _resolve_language(language, schema)
+        derived = cls._resolve_derived(schema, lang.name)
         if not isinstance(text, bytes):
             text = text.encode("utf-8")
         tree = tree_sitter.Parser(lang).parse(text)
-        return cls.extract_tree(tree, strict=strict)
+        return cls._extract_tree(tree, derived, strict=strict)
 
     @classmethod
-    def extract_tree(cls, tree: tree_sitter.Tree, *, strict: bool = True) -> list:
-        derived: _Derived = cls._derived_cache
+    def extract_tree(cls, tree: tree_sitter.Tree, *, strict: bool = True,
+                     schema=None) -> list:
+        lang_name = getattr(tree.language, "name", None)
+        derived = cls._resolve_derived(schema, lang_name)
+        return cls._extract_tree(tree, derived, strict=strict)
+
+    @classmethod
+    def _extract_tree(cls, tree, derived: _Derived, *, strict: bool) -> list:
         for w in cls._binding_warnings:
             print(f"  [model-warning] {cls.__name__}: {w}", file=sys.stderr)
         if derived.mode == "record":
-            return _extract_record(cls, tree, derived, strict)
+            return _extract_record(cls, tree, derived, strict, derived.record_kind)
         return _extract_field(cls, tree, derived, strict)
 
     @classmethod
-    def compiled_source(cls) -> str:
-        """The derived .scm (for diagnostics/tests)."""
-        d = cls._derived_cache
+    def _resolve_derived(cls, schema, lang_name: str | None) -> _Derived:
+        """The derived query for the bound schema (cached per grammar), or the
+        base schema-less derivation when no schema is in play."""
+        if schema is None:
+            return cls._derived_cache
+        from .schema import schema_derive
+        return schema_derive(cls, schema, lang_name or "?")
+
+    @classmethod
+    def compiled_source(cls, *, schema=None, language=None) -> str:
+        """The derived .scm (for diagnostics/tests). With a schema bound,
+        shows the schema-rebuilt query."""
+        if schema is None and language is None:
+            d = cls._derived_cache
+            if d.mode == "record":
+                return d.records.source + "\n\n-- inner --\n\n" + d.fields.source
+            return d.query.source
+        if language is not None:
+            lang, schema = _resolve_language(language, schema)
+            d = cls._resolve_derived(schema, lang.name)
+        else:
+            d = cls._resolve_derived(schema, None)
         if d.mode == "record":
             return d.records.source + "\n\n-- inner --\n\n" + d.fields.source
         return d.query.source
 
     @classmethod
-    def validate_with(cls, language) -> None:
+    def validate_with(cls, language, schema=None) -> None:
         """Compile the derived query against a grammar now (import-time-ish
-        grammar validation, since node kinds/fields are grammar-specific)."""
-        lang = _resolve_language(language)
-        d = cls._derived_cache
+        grammar validation, since node kinds/fields are grammar-specific).
+
+        With a node-schema, ALSO runs the model↔grammar and capture↔type
+        checks (Jobs 1/3/4) and rebuilds the query for the grammar — every
+        planted Phase-4 failure surfaces here, before any text is parsed.
+        """
+        lang, schema = _resolve_language(language, schema)
+        d = cls._resolve_derived(schema, lang.name)
         if d.mode == "record":
             d.records.compile(lang)
             d.fields.compile(lang)
@@ -449,17 +486,83 @@ class OutputModel(BaseModel, metaclass=DerivingMeta):
 
 
 # --------------------------------------------------------------------------
-# language resolution (Phase 4 extends this with a schema registry)
+# language resolution + the schema registry (Phase 4)
 # --------------------------------------------------------------------------
 
-def _resolve_language(language):
+_SCHEMA_REGISTRY: dict[str, object] = {}
+
+
+class Language:
+    """A tree_sitter.Language + an optionally-bound node-schema.
+
+    `Language.load(lang, schema=...)` is the Phase-4 way to carry the schema
+    next to the grammar; `validate_with(language=..., schema=...)` and
+    `extract(..., schema=...)` also accept it directly. When a schema is
+    bound it is registered under the language name so later calls that pass
+    only the language find it (the "small registry" from the kickoff).
+    """
+
+    __slots__ = ("_lang", "_schema")
+
+    def __init__(self, lang, schema=None):
+        raw, schema = _resolve_language(lang, schema)
+        self._lang = raw
+        self._schema = schema
+        if schema is not None:
+            _SCHEMA_REGISTRY[self._lang.name] = schema
+
+    @classmethod
+    def load(cls, lang, schema=None) -> "Language":
+        return cls(lang, schema)
+
+    @property
+    def schema(self):
+        return self._schema
+
+    @property
+    def name(self) -> str:
+        return self._lang.name
+
+    @property
+    def language(self) -> tree_sitter.Language:
+        return self._lang
+
+
+def _load_schema(schema) -> object | None:
+    """Accept a node-schema.json path/dict, a tscore.NodeSchema, or None."""
+    if schema is None:
+        return None
+    if hasattr(schema, "node_types"):          # already a NodeSchema
+        return schema
+    from tscore.schema import NodeSchema
+    if isinstance(schema, (str, Path)):
+        return NodeSchema.from_node_types_json(schema)
+    if isinstance(schema, dict):
+        return NodeSchema.from_list(schema.get("node_types", schema))
+    raise TypeError(f"cannot build a node-schema from {type(schema)!r}")
+
+
+def _resolve_language(language, schema=None):
+    """Return (tree_sitter.Language, schema_or_None). Resolves the schema
+    from (in order): the explicit `schema=` argument; a tsquery.Language
+    wrapper; the registry keyed by language name."""
+    if isinstance(language, Language):
+        schema = schema if schema is not None else language._schema
+        language = language._lang
     if isinstance(language, tree_sitter.Language):
-        return language
-    if callable(language):                   # tree_sitter_python.language
-        return tree_sitter.Language(language())
-    if hasattr(language, "language") and callable(language.language):
-        return tree_sitter.Language(language.language())
-    return tree_sitter.Language(language)    # a bare PyCapsule
+        lang = language
+    elif callable(language):                   # tree_sitter_python.language
+        lang = tree_sitter.Language(language())
+    elif hasattr(language, "language") and callable(language.language):
+        lang = tree_sitter.Language(language.language())
+    else:
+        lang = tree_sitter.Language(language)  # a bare PyCapsule
+    if schema is not None:
+        schema = _load_schema(schema)
+        _SCHEMA_REGISTRY[lang.name] = schema
+    elif lang.name in _SCHEMA_REGISTRY:
+        schema = _SCHEMA_REGISTRY[lang.name]
+    return lang, schema
 
 
 # --------------------------------------------------------------------------
@@ -534,14 +637,28 @@ def _extract_field(model_cls, tree, derived: _Derived, strict):
     return results
 
 
-def _record_kwargs(model_cls, derived: _Derived, rec, tree):
-    """Merge a record node's field captures into model kwargs (incl. nested)."""
+def _record_kwargs(model_cls, derived: _Derived, rec, tree,
+                  record_kind=None):
+    """Merge a record node's field captures into model kwargs (incl. nested).
+
+    With record-level anchoring (`record_kind` set — the schema-derived
+    inner query names the record node and captures @__anchor__), only matches
+    anchored at `rec` itself contribute: pairs inside NESTED record nodes are
+    dropped. This kills the AmbiguousCaptureError nested-collision class
+    (spike-a §3) at the query level instead of flagging it at extract.
+    """
     from .dsl import Cursor
     fld_q = derived.fields.compile(tree.language)
     merged: dict[str, list] = {}
     for fm in Cursor(fld_q, derived.fields._quant_maps or [], tree) \
             .matches_on(rec):
+        if record_kind is not None:
+            anc = fm.nodes(ANCHOR)
+            if not anc or anc[0].id != rec.id:
+                continue  # a nested record's pair — not a record-level key
         for cname in set(fm._caps):
+            if cname == ANCHOR:
+                continue
             merged.setdefault(cname, []).extend(fm.nodes(cname))
     # record-level predicate semantics: a predicate field that did not match
     # (absent) filters the WHOLE record, like the field-mode query engine.
@@ -559,14 +676,15 @@ def _record_kwargs(model_cls, derived: _Derived, rec, tree):
         nodes = merged.get(b.capture, [])
         out = []
         for n in nodes:
-            inner = _record_kwargs(b.nested, b.nested._derived_cache, n, tree)
+            inner = _record_kwargs(b.nested, b.nested._derived_cache, n, tree,
+                                   record_kind)
             if inner is not None:
                 out.append(b.nested(**inner))
         merged[b.capture] = out
     return _build_kwargs(model_cls, derived.bindings, merged)
 
 
-def _extract_record(model_cls, tree, derived: _Derived, strict):
+def _extract_record(model_cls, tree, derived: _Derived, strict, record_kind=None):
     from .dsl import Cursor
     rec_q = derived.records.compile(tree.language)
     results: list = []
@@ -576,7 +694,8 @@ def _extract_record(model_cls, tree, derived: _Derived, strict):
         if not recs:
             continue
         try:
-            kwargs = _record_kwargs(model_cls, derived, recs[0], tree)
+            kwargs = _record_kwargs(model_cls, derived, recs[0], tree,
+                                    record_kind)
             if kwargs is not None:
                 results.append(model_cls(**kwargs))
         except ValidationError as e:

@@ -39,7 +39,7 @@ from .typed import (
     M,
     AnyOf,
     Eq,
-
+    Language,
     Matches,
     NodeKind,
     OutputModel,
@@ -54,8 +54,8 @@ __version__ = "0.1.0"
 __all__ = [
     "OutputModel", "M", "capture", "source_meta",
     "Matches", "Eq", "AnyOf", "NodeKind",
-    "UnsupportedShapeError",
-    "Query", "QueryBuildError", "Span",
+    "UnsupportedShapeError", "SchemaCheckError",
+    "Language", "Query", "QueryBuildError", "Span",
     "AmbiguousCaptureError", "CoercionError", "ExtractionError",
     "NodeSpec", "NodeView", "MatchView", "Pred", "cap", "node",
 ]
