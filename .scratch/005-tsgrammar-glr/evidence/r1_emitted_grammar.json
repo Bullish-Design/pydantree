@@ -722,6 +722,10 @@
         {
           "type": "SYMBOL",
           "name": "fn_def"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "block"
         }
       ]
     }

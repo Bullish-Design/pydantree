@@ -222,6 +222,25 @@ class NodeSchema(BaseModel):
     def is_possible_descent(self, parent: str, child: str) -> bool:
         return child in self.possible_children(parent)
 
+    def is_possible_descendant(self, ancestor: str, descendant: str) -> bool:
+        """Can `descendant` occur at ANY depth under `ancestor` (transitive
+        closure over possible_children)? The Job-1 check for the `...` path
+        element — a gap allows arbitrary depth between the kinds it
+        separates."""
+        if ancestor == descendant:
+            return True
+        frontier = set(self.possible_children(ancestor))
+        seen: set[str] = set()
+        while frontier:
+            k = frontier.pop()
+            if k in seen:
+                continue
+            seen.add(k)
+            if k == descendant:
+                return True
+            frontier |= self.possible_children(k)
+        return False
+
     def can_occur(self, kind: str) -> bool:
         """Is `kind` a real, named, producible node kind?"""
         t = self.get(kind)
