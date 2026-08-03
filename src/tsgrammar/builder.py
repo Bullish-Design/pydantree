@@ -467,11 +467,15 @@ class Grammar:
         self._precedences.append([StrNode(value=n) for n in names])
         return self
 
-    def external(self, x: B | Rule | str) -> Grammar:
-        """Declare an external token (provided by a C scanner at runtime).
+    def external(self, *x) -> Grammar:
+        """Declare external token(s) (provided by a C scanner at runtime).
         No scanner authoring here — the IR accepts the declaration; the
-        pipeline compiles a user-supplied scanner.c if one is present."""
-        self._externals.append(as_node(x))
+        pipeline compiles a user-supplied scanner.c if one is present (and
+        raises ExternalScannerRequiredError when a grammar declares externals
+        without one).
+        """
+        for tok_ in x:
+            self._externals.append(as_node(tok_))
         return self
 
     def reserved_word(self, context_name: str, x: B | Rule | str) -> Grammar:

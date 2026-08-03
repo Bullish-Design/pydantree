@@ -129,6 +129,7 @@ def compile_parser(src_dir: Path, so_path: Path, *,
     """gcc -O2 -fPIC -shared parser.c (+ optional scanner.c) -> .so."""
     cmd = [
         "gcc", "-O2", "-fPIC", "-shared",
+        "-I", str(src_dir),
         "-I", str(src_dir / "tree_sitter"),
         str(src_dir / "parser.c"),
     ]
@@ -237,6 +238,11 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     h = grammar_hash(model)
     tc_digest = hashlib.sha256(toolchain.key.encode()).hexdigest()[:12]
     key = f"{h}-{tc_digest}"
+    if scanner is not None and scanner.exists():
+        # the .so depends on the scanner.c too — content-address it in the
+        # cache key so a scanner build and a scanner-less build don't collide
+        scanner_digest = hashlib.sha256(scanner.read_bytes()).hexdigest()[:12]
+        key = f"{h}-{scanner_digest}-{tc_digest}"
     entry = cache_dir / key
     so_path = entry / f"{name}.so"
     grammar_json = entry / "grammar.json"
@@ -280,6 +286,16 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
         shutil.copy(scanner, work / "scanner.c")
     scanner = (src_dir / "scanner.c") if (src_dir / "scanner.c").exists() \
         else work / "scanner.c"
+    if model.externals and not scanner.exists():
+        # the airtight escape hatch: a grammar with externals MUST link a C
+        # scanner, and the error says so before gcc produces a link failure
+        raise ExternalScannerRequiredError(
+            model,
+            externals=[_external_name(e) for e in model.externals],
+            detail=(f"grammar {model.name!r} declares externals but no "
+                    f"scanner.c was supplied — pass scanner=<path> to "
+                    f"build()/build_builder() (external tokens are provided "
+                    f"by a C scanner at runtime; see the pymini example)."))
     work_so = work / f"{name}.so"
     cc = compile_parser(src_dir, work_so, scanner=scanner)
     if cc.returncode != 0:
@@ -405,6 +421,19 @@ class PipelineError(Exception):
             self.raw_stderr = proc.stderr
 
 
+def _external_name(e) -> str:
+    """The external token's visible name: TOKEN(content) unwraps to the
+    content's value; a bare STRING is its literal; a SYMBOL its rule name."""
+    from .grammar import StrNode, SymbolNode, TokenNode
+    if isinstance(e, TokenNode):
+        e = e.content
+    if isinstance(e, StrNode):
+        return e.value
+    if isinstance(e, SymbolNode):
+        return e.name
+    return str(e)
+
+
 class GenerateError(PipelineError):
     def __init__(self, model: GrammarModel, proc: subprocess.CompletedProcess,
                  detail: str = ""):
@@ -424,3 +453,17 @@ class CompileError(PipelineError):
             f"\n--- stderr ---\n{proc.stderr}"
         )
         super().__init__(msg, proc)
+
+
+class ExternalScannerRequiredError(PipelineError):
+    """A grammar declares `externals` but no scanner.c was supplied (Phase 5:
+    the external-scanner escape hatch made airtight — before gcc fails with a
+    link error, the author gets the fix)."""
+
+    def __init__(self, model: GrammarModel, *, externals: list[str],
+                 detail: str = ""):
+        self.externals = externals
+        super().__init__(
+            f"external scanner required: grammar {model.name!r} declares "
+            f"external token(s) {externals} but no scanner.c was provided. "
+            f"{detail}")

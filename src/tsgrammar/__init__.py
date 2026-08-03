@@ -92,6 +92,7 @@ from .language import load_language, parse
 from .pipeline import (
     BuildResult,
     CompileError,
+    ExternalScannerRequiredError,
     GenerateError,
     PipelineError,
     build,
@@ -105,6 +106,7 @@ from .pipeline import (
     grammar_hash,
     run_generate,
 )
+from .scanners import indent_scanner_path, scanner_for
 
 __version__ = "0.1.0"
 
@@ -132,7 +134,9 @@ __all__ = [
     "build", "build_builder", "build_loop", "generate", "run_generate",
     "compile_parser", "debug_states", "detect_toolchain", "grammar_hash",
     "default_cache_dir", "BuildResult", "PipelineError", "GenerateError",
-    "CompileError",
+    "CompileError", "ExternalScannerRequiredError",
+    # scanner library seed
+    "indent_scanner_path", "scanner_for",
     # expression helper
     "expression", "semantic_smoke", "DEFAULT_PRECEDENCE_CORPUS",
     # language
