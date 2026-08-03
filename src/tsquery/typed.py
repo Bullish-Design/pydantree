@@ -515,6 +515,15 @@ class Language:
     def load(cls, lang, schema=None) -> "Language":
         return cls(lang, schema)
 
+    @classmethod
+    def load_bundle(cls, dir) -> "Language":
+        """Consume a packaged grammar bundle (BuildResult.package() output)
+        in one call: grammar.so + node-schema.json + metadata via tscore's
+        shared loader — no tsgrammar in the process, checks bound."""
+        from tscore.loader import load_bundle as _load_bundle
+        bundle = _load_bundle(dir)
+        return cls(bundle.language, schema=bundle.schema)
+
     @property
     def schema(self):
         return self._schema

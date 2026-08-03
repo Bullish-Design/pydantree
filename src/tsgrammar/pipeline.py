@@ -36,6 +36,18 @@ from .grammar import Grammar as GrammarModel
 
 ABI_15_CONFIG = {"metadata": {"version": "0.1.0"}}
 
+# the loader shim shipped inside a packaged bundle: it delegates to tscore's
+# shared loading contract (the ONE implementation, CONCEPT §8)
+BUNDLE_LOADER_SOURCE = '''\
+"""Load this bundle's grammar into a tree_sitter.Language (B-free)."""
+from pathlib import Path
+from tscore.loader import load_bundle
+
+
+def language():
+    return load_bundle(Path(__file__).resolve().parent).language
+'''
+
 
 # ---------------------------------------------------------------------------
 # toolchain probing
@@ -158,6 +170,41 @@ class BuildResult:
             return None
         from tscore.schema import NodeSchema
         return NodeSchema.from_node_types_json(self.node_schema_json)
+
+    def package(self, dir: Path | str, *,
+                include_loader: bool = True) -> Path:
+        """Package the build into a shippable bundle directory (Phase 5 — the
+        artifact seam in production):
+
+            grammar.so        the compiled parser (export tree_sitter_<name>)
+            node-schema.json  the derived node-schema (bridge artifact)
+            tree-sitter.json  bundle metadata (name = the export symbol)
+            loader.py         a thin shim over tscore.loader.load_bundle
+
+        The bundle is consumed B-free — tsquery.Language.load_bundle(dir) —
+        or by anyone with tscore + tree_sitter (loader.py delegates to
+        tscore's shared loading contract, CONCEPT §8). Returns the bundle dir.
+        """
+        import shutil as _shutil
+        bundle = Path(dir)
+        bundle.mkdir(parents=True, exist_ok=True)
+        _shutil.copyfile(self.so_path, bundle / "grammar.so")
+        schema_rel = None
+        if self.node_schema_json is not None and self.node_schema_json.exists():
+            _shutil.copyfile(self.node_schema_json, bundle / "node-schema.json")
+            schema_rel = "node-schema.json"
+        metadata = {
+            "name": self.so_path.stem,
+            "artifact": "grammar.so",
+            "schema": schema_rel,
+            "abi": os.environ.get("TSGRAMMAR_ABI", "15"),
+            "toolchain": detect_toolchain().tree_sitter_version,
+        }
+        (bundle / "tree-sitter.json").write_text(
+            json.dumps(metadata, indent=2))
+        if include_loader:
+            (bundle / "loader.py").write_text(BUNDLE_LOADER_SOURCE)
+        return bundle
 
 
 def _ensure_node_schema(model: GrammarModel, path: Path) -> None:

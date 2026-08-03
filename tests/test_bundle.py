@@ -1,0 +1,183 @@
+"""Phase-5 bundle tests: the artifact seam in production.
+
+Covers: BuildResult.package() emits a shippable bundle (grammar.so +
+node-schema.json + tree-sitter.json metadata + a 7-line loader that delegates
+to tscore's shared loading contract); tsquery.Language.load_bundle consumes
+it in ONE call; the bundle is consumed in a SEPARATE process where tsgrammar
+is NOT importable (sitecustomize strips the editable src/ install) with the
+Phase-4 ground truth passing and the checks active; the community-schema tool
+(grammar dir -> CLI generate -> node-types.json -> derive_from_node_types ->
+node-schema.json) agrees with derive_from_ir and feeds a B-free community
+consumer over the tree_sitter_json wheel; A's surface is byte-identical
+in-process vs B-free.
+"""
+
+from __future__ import annotations
+
+import json
+import shutil
+import sys
+from pathlib import Path
+
+import pytest
+
+import tsgrammar as tg
+from tsquery import Language, M, OutputModel, capture, source_meta
+
+BRIDGE_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "006-tsquery-bridge"
+P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "007-tsquery-distribution"
+sys.path.insert(0, str(BRIDGE_DIR))
+sys.path.insert(0, str(P5_DIR))
+
+TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
+    shutil.which("gcc") is not None
+
+pytestmark = pytest.mark.skipif(
+    not TOOLCHAIN_AVAILABLE, reason="tree-sitter CLI / gcc not on PATH")
+
+from bfree import run_bfree  # noqa: E402
+from cfg_grammar import (  # noqa: E402
+    CORPUS,
+    LISTEN_GROUND_TRUTH,
+    SECTION_GROUND_TRUTH,
+    build as build_cfg,
+)
+from json_grammar import build as build_json  # noqa: E402
+from tsgrammar.language import load_language  # noqa: E402
+from tsquery.schema import check_model_schema  # noqa: E402
+from tscore.schema import NodeSchema, derive_from_ir  # noqa: E402
+
+
+class ServerSection(OutputModel):
+    __match__ = M("source_file", "section", record=True)
+    host: str
+    port: int
+    debug: bool = False
+    title: str | None = None
+    line: int = source_meta()
+
+
+class Listen(OutputModel):
+    __match__ = M("source_file", "directive")
+    name: str = capture("name")
+    port: int = capture("arg")
+    line: int = source_meta()
+
+
+def _cfg_bundle(tmp_path) -> tuple[Path, tg.BuildResult]:
+    g = build_cfg()
+    result = tg.build_builder(g)
+    bundle = result.package(tmp_path / "bundle")
+    return bundle, result
+
+
+# ---------------------------------------------------------------------------
+# the bundle + the in-process round trip
+# ---------------------------------------------------------------------------
+
+def test_package_bundle_layout_and_loader():
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        g = build_cfg()
+        result = tg.build_builder(g)
+        bundle = result.package(Path(td) / "bundle")
+        files = {p.name: p.stat().st_size for p in bundle.iterdir()}
+        assert set(files) == {"grammar.so", "node-schema.json",
+                              "tree-sitter.json", "loader.py"}
+        meta = json.loads((bundle / "tree-sitter.json").read_text())
+        assert meta["name"] == "cfg"
+        assert meta["artifact"] == "grammar.so"
+        assert meta["schema"] == "node-schema.json"
+        loader_lines = (bundle / "loader.py").read_text().splitlines()
+        assert len(loader_lines) <= 8, loader_lines
+        assert "tscore.loader" in (bundle / "loader.py").read_text()
+        assert "tsgrammar" not in (bundle / "loader.py").read_text()
+
+
+def test_load_bundle_one_liner_checks_and_truth(tmp_path):
+    bundle, _ = _cfg_bundle(tmp_path)
+    lang = Language.load_bundle(bundle)          # the one-liner
+    ServerSection.validate_with(lang)            # checks active
+    Listen.validate_with(lang)
+    secs = [r.model_dump() for r in ServerSection.extract(CORPUS, language=lang)]
+    listens = [r.model_dump() for r in Listen.extract(CORPUS, language=lang)]
+    assert secs == SECTION_GROUND_TRUTH
+    assert listens == LISTEN_GROUND_TRUTH
+    # the schema rides the bundle (the bridge artifact)
+    assert lang.schema is not None
+    check_model_schema(ServerSection, lang.schema)
+
+
+# ---------------------------------------------------------------------------
+# the B-free subprocess (Run 2)
+# ---------------------------------------------------------------------------
+
+def test_bundle_consumed_in_bfree_subprocess(tmp_path):
+    bundle, _ = _cfg_bundle(tmp_path)
+    rc, out = run_bfree(P5_DIR / "consumer.py", str(bundle), workdir=tmp_path)
+    assert rc == 0, out
+    data = json.loads(out)
+    assert data["ok"] is True
+    assert data["sections"] == SECTION_GROUND_TRUTH
+    assert data["directives"] == LISTEN_GROUND_TRUTH
+    assert data["schema_bound"] is True
+    assert "tsgrammar" not in out  # the consumer asserts B is unimportable
+
+
+def test_bfree_consumer_surface_byte_identical(tmp_path):
+    """A's extract output is byte-identical with and without B in the process
+    (the same model code, same language, two processes)."""
+    bundle, _ = _cfg_bundle(tmp_path)
+    lang = Language.load_bundle(bundle)
+    inproc = [r.model_dump() for r in ServerSection.extract(CORPUS, language=lang)]
+    rc, out = run_bfree(P5_DIR / "consumer.py", str(bundle), workdir=tmp_path)
+    assert rc == 0
+    bfree = json.loads(out)["sections"]
+    assert inproc == bfree == SECTION_GROUND_TRUTH
+
+
+# ---------------------------------------------------------------------------
+# the community path (schema tool -> wheel -> B-free consumer)
+# ---------------------------------------------------------------------------
+
+def test_community_schema_tool_agrees_and_feeds_bfree_consumer(tmp_path):
+    from tsgrammar.schema_tool import derive_schema_for_dir
+    json_model = build_json().build()
+    # materialize the json grammar source dir (grammar.json + tree-sitter.json)
+    src_dir = tmp_path / "json_grammar"
+    json_model.emit_bundle(src_dir)
+    derived = derive_schema_for_dir(src_dir, name="json",
+                                    workdir=tmp_path / "cw",
+                                    out=tmp_path / "cw" / "node-schema.json",
+                                    keep=True)
+    # agreement with the exact path on the shared subset (the Phase-4 check)
+    from_ir = NodeSchema.from_list(derive_from_ir(json_model), name="json")
+    assert derived.to_json() == from_ir.to_json()
+
+    # the B-free community consumer: wheel + derived schema, no B
+    schema_path = tmp_path / "cw" / "node-schema.json"
+    rc, out = run_bfree(P5_DIR / "consumer_community.py", str(schema_path),
+                        workdir=tmp_path)
+    assert rc == 0, out
+    data = json.loads(out)
+    assert data["ok"] is True
+    assert data["rows"][0]["name"] == "alice"
+    assert data["rows"][2] == {"name": "carol", "age": 25, "tags": [],
+                               "nickname": None, "active": False, "line": 15}
+
+
+def test_community_schema_tool_cli(tmp_path):
+    """The one-command tool: `python -m tsgrammar.schema_tool <dir>`."""
+    import os
+    import subprocess
+    json_model = build_json().build()
+    src_dir = tmp_path / "cli_grammar"
+    json_model.emit_bundle(src_dir)
+    env = dict(os.environ)
+    proc = subprocess.run(
+        [sys.executable, "-m", "tsgrammar.schema_tool", str(src_dir),
+         "-o", str(tmp_path / "out.json"), "-n", "json"],
+        capture_output=True, text=True, env=env, check=False)
+    assert proc.returncode == 0, proc.stderr
+    schema = NodeSchema.from_node_types_json(tmp_path / "out.json", name="json")
+    assert "object" in schema.kinds() and "pair" in schema.kinds()
