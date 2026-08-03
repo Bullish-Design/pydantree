@@ -14,14 +14,29 @@ authors = [
 license = { file = "LICENSE" }
 keywords = ["tree-sitter", "pydantic", "parser", "ast"]
 
+# Phase 6 (the consumer seam): this root project is now the LEGACY
+# distribution only (the deprecated first-principles wrapper — frozen,
+# untouched) plus the dev flow. The real products ship separately under src/:
+#
+#   src/tscore/pyproject.toml      light — the shared seam
+#   src/tsquery/pyproject.toml     light — Product A (no toolchain)
+#   src/tsgrammar/pyproject.toml   heavy — Product B (Rust CLI + C toolchain)
+#
+# A consumer installs tscore + tsquery ONLY and gets the full checked
+# extraction; tsgrammar (and the scanner package data) ships separately.
 dependencies = [
   "pydantic>=2.11",
-  "tree-sitter>=0.23", # official Python bindings
+  "tree-sitter>=0.26",  # the 0.26 floor (was >=0.23 while the code used
+                        # 0.26-only APIs)
   "tree-sitter-python>=0.23.6",
 ]
 
 [project.optional-dependencies]
-# Development tooling (tests, lint, type‑check, coverage)
+# Development tooling (tests, lint, type‑check, coverage). The dev editable
+# install covers the whole suite:
+#
+#   uv pip install -e . -e src/tscore -e src/tsquery -e src/tsgrammar
+#
 dev = [
   "pytest>=8.0",
   "black>=24.0",
@@ -40,7 +55,9 @@ python = [
 # ─────────────────────────────────────────────
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/pydantree", "src/examples", "data", "src/tsgrammar", "src/tscore", "src/tsquery"]
+# the legacy wrapper + examples + data ONLY — tsgrammar/tsquery/tscore are
+# excluded from this wheel (they ship as their own distributions)
+packages = ["src/pydantree", "src/examples", "data"]
 
 [project.scripts]
 pydantree = "pydantree.cli:main"

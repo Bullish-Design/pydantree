@@ -1,0 +1,25 @@
+=== post-split wheels (Phase 6 Run 1) ===
+
+=== pydantree-0.1.2-py3-none-any.whl (18 files) ===
+    packages: ['examples', 'pydantree']
+    scanner .c present: False
+    size: 20865 bytes
+    deps: ['pydantic>=2.11', 'tree-sitter-python>=0.23.6', 'tree-sitter>=0.26']
+
+=== tscore-0.1.0-py3-none-any.whl (13 files) ===
+    packages: ['tscore']
+    scanner .c present: False
+    size: 23693 bytes
+    deps: ['pydantic>=2.11', 'tree-sitter>=0.26']
+
+=== tsgrammar-0.1.0-py3-none-any.whl (21 files) ===
+    packages: ['tsgrammar']
+    scanner .c present: True
+    size: 49438 bytes
+    deps: ['pydantic>=2.11', 'tree-sitter>=0.26', 'tscore>=0.1']
+
+=== tsquery-0.1.0-py3-none-any.whl (15 files) ===
+    packages: ['tsquery']
+    scanner .c present: False
+    size: 37696 bytes
+    deps: ['pydantic>=2.11', 'tree-sitter>=0.26', 'tscore>=0.1']

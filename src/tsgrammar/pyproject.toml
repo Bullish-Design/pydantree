@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tsgrammar"
+version = "0.1.0"
+description = "Product B — author tree-sitter grammars in Pydantic. Heavy build tool: tscore + the tree-sitter CLI + a C toolchain; produces the artifacts A consumes (CONCEPT §8)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+keywords = ["tree-sitter", "pydantic", "parser", "grammar", "GLR"]
+
+dependencies = [
+  "tscore>=0.1",
+  "pydantic>=2.11",
+  "tree-sitter>=0.26",  # the 0.26 floor
+]
+
+[tool.hatch.build.targets.wheel.force-include]
+# per-package pyproject inside the package dir (see tscore/pyproject.toml).
+# the external-scanner library rides as package data: scanners/indent_scanner.c
+# must be present in THIS (heavy) wheel and absent from the light installs.
+"." = "tsgrammar"
