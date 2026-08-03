@@ -195,11 +195,12 @@ tests/
    newlines, EOF flushes DEDENTs, blocks are `INDENT statements DEDENT`.
 5. Two scanner gotchas: mid-whitespace scans; multiple externals valid in
    one parser state.
-6. Dev flow: no pip, uv only; the editable installs are COPY-based in this
-   devenv (site-packages holds a copy that shadows the `src/` .pth entry —
-   ANY change under `src/` needs `uv pip install -e ...` re-run to be visible
-   to plain imports); `tests/conftest.py` resolves `src/` first so the suite
-   is always current.
+6. Dev flow: no pip, uv only; the devenv manages the venv with `uv sync`
+   (uv workspace in `pyproject.toml`, `--no-install-workspace` so the src/*
+   members are never copied) and a `_pydantree_src.pth` resolves
+   tscore/tsquery/tsgrammar straight from `src/` — edits are live
+   immediately, staleness is impossible; `tests/conftest.py` resolves `src/`
+   first as belt-and-suspenders. `uv lock` after dependency changes.
 7. The exact-path derivation is byte-for-byte with CLI 0.25.3 over FOUR real
    grammars — a newer CLI's node-types.json can drift (the community tool
    path sidesteps this by using the installed CLI's own byproduct).

@@ -19,7 +19,7 @@ design argument). This directory is the working reference.
   the three packages, the seams, the pipeline, the schema bridge, the module
   map, the durable facts.
 - [development.md](development.md) — the day-to-day workflow: devenv, uv
-  (no pip), editable-install staleness, running tests, evidence + commit
+  (uv sync, no pip, edits live via a venv .pth), running tests, evidence + commit
   conventions, debugging.
 - [scanner-library.md](scanner-library.md) — the external-scanner mechanism:
   the airtight contract, the two gotchas, the five seeds, and the step-by-step

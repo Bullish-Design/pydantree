@@ -37,11 +37,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Development tooling (tests, lint, type‑check, coverage). The dev editable
-# install covers the whole suite:
-#
-#   uv pip install -e . -e src/tscore -e src/tsquery -e src/tsgrammar
-#
+# Development tooling (tests, lint, type‑check, coverage). With the uv
+# workspace below, `devenv shell` runs `uv sync --all-extras` automatically
+# (languages.python.uv.sync.enable in devenv.nix) — the root project + these
+# extras land in the managed venv; the three src/ packages are resolved
+# straight from `src/` via the venv's `_pydantree_src.pth` (no editable
+# copies → no staleness). Run `uv lock` after changing dependencies.
 dev = [
   "pytest>=8.0",
   "black>=24.0",
@@ -67,3 +68,18 @@ packages = ["src/pydantree", "src/examples", "data"]
 [project.scripts]
 pydantree = "pydantree.cli:main"
 demo = "examples.demo:main"
+
+[tool.uv.workspace]
+# the three real products under src/ are uv workspace members — `uv sync`
+# resolves them (and their pydantree-tscore/… inter-deps) in one lockfile.
+# devenv installs them with --no-install-workspace (devenv's default): the
+# dev venv resolves tscore/tsquery/tsgrammar straight from src/ via the
+# venv's _pydantree_src.pth, so edits are always live (no stale copies).
+members = ["src/tscore", "src/tsquery", "src/tsgrammar"]
+
+[tool.uv.sources]
+# cross-member dependencies (e.g. src/tsgrammar depends on
+# pydantree-tscore>=0.1) resolve to the workspace members, not PyPI
+pydantree-tscore = { workspace = true }
+pydantree-tsquery = { workspace = true }
+pydantree-tsgrammar = { workspace = true }

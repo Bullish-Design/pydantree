@@ -48,5 +48,6 @@ capture↔type checks run **before any text is parsed**.
 - Imports are `tscore` / `tsquery` / `tsgrammar`; the distributions are
   pydantree-branded (the bare `tsquery` name is taken on PyPI).
 - A never imports B: `import tsgrammar` fails in a light install by design.
-- Dev environment: `devenv shell`; uv only (no pip); the test suite resolves
-  `src/` first. Baseline: 170 green + 1 skip.
+- Dev environment: `devenv shell`; `uv sync` manages the venv (uv workspace,
+  no pip); the venv resolves `src/` via a `_pydantree_src.pth`, so edits are
+  live immediately (no stale-copy reinstall). Baseline: 170 green + 1 skip.

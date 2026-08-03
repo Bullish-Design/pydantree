@@ -84,9 +84,8 @@ Each seed has a mini-grammar in `../../.scratch/` + corpus + parse-error tests i
 5. Register: `*_scanner_path()` + `_CANONICAL` entry in
    `src/tsgrammar/scanners/__init__.py`; re-export from
    `tsgrammar/__init__.py` (`__all__` too).
-6. **Re-run the editable install** (`uv pip install -e . -e src/tscore -e
-   src/tsquery -e src/tsgrammar`) — NEW files are invisible to the
-   copy-based editable install.
+6. **Nothing to reinstall** — the dev venv resolves `src/` directly (the
+   `_pydantree_src.pth`), so the new scanner is immediately importable.
 7. Verify the wheel: `tests/test_packaging.py` asserts the `.c` rides the
    heavy wheel.
 

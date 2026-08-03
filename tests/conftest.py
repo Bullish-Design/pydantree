@@ -1,13 +1,11 @@
 """Development flow: resolve the packages from `src/` FIRST.
 
-The per-package editable installs (hatchling, flat-layout) place a COPY of
-each package in site-packages (a `_editable_impl_*.pth` also adds `src/` to
-sys.path, but site-packages precedes it, so the COPY is what plain imports
-resolve to). ANY change under `src/` — in-place, a rewrite, or a new module
-— is invisible to plain imports until the editable install is re-run. Putting
-the repo's `src/` ahead of site-packages makes the suite always exercise the
-current code (the same resolution the `.scratch` experiments use via
-`sys.path.insert(0, "src")`).
+The devenv venv resolves tscore/tsquery/tsgrammar straight from `src/` via a
+`_pydantree_src.pth` (see devenv.nix — uv sync with --no-install-workspace,
+so no copies exist to go stale). This conftest does the same resolution as
+belt-and-suspenders (and keeps the suite honest when the devenv is bypassed
+or a bare venv with editable copies is used) — the same resolution the
+`.scratch` experiments use via `sys.path.insert(0, "src")`.
 
 The PACKAGING claims are still tested against the installed/wheel artifacts:
 `tests/test_packaging.py` builds and inspects the actual wheels, the

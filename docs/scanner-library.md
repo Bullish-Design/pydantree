@@ -120,9 +120,8 @@ EOF (strict, not silently swallowed).
 5. **Register**: add a `*_scanner_path()` helper + a `_CANONICAL` entry in
    `src/tsgrammar/scanners/__init__.py`, re-export from
    `tsgrammar/__init__.py` (`__all__` too).
-6. **Re-run the editable install** (`uv pip install -e . -e src/tscore -e
-   src/tsquery -e src/tsgrammar`) — NEW files are invisible to the
-   copy-based editable install otherwise.
+6. **Nothing to reinstall** — the dev venv resolves `src/` directly (the
+   `_pydantree_src.pth`), so new scanner files are immediately importable.
 7. **Verify the wheel**: `tests/test_packaging.py` builds the heavy wheel
    and asserts the scanner `.c` rides as package data.
 

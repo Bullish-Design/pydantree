@@ -1,6 +1,6 @@
 ---
 name: pydantree-dev
-description: Develop the pydantree library itself (tscore/tsquery/tsgrammar). Use when editing library code, running the test suite, debugging builds or scanners, or making changes that touch the package layout, pipeline, loader, or schema. Includes the devenv/uv workflow, the editable-install staleness caveat, module map, and evidence/commit conventions.
+description: Develop the pydantree library itself (tscore/tsquery/tsgrammar). Use when editing library code, running the test suite, debugging builds or scanners, or making changes that touch the package layout, pipeline, loader, or schema. Includes the devenv/uv-sync workflow, module map, and evidence/commit conventions.
 ---
 
 # pydantree — developing the library
@@ -21,18 +21,19 @@ Work on the pydantree codebase: `src/tscore` (shared seam), `src/tsquery`
   ```bash
   devenv shell -- python -m pytest tests/
   ```
-- **No pip. uv only.** Packages are installed editable:
-  ```bash
-  uv pip install -e . -e src/tscore -e src/tsquery -e src/tsgrammar
-  ```
-- **Editable-install staleness caveat (it WILL bite):** the editable installs
-  place a COPY of each package in site-packages that shadows the `src/` .pth
-  entry — ANY change under `src/` (in-place, rewrite, or NEW file) is
-  invisible to plain `import` until you re-run the `uv pip install` line. The
-  test suite resolves `src/` first via `tests/conftest.py`, so the SUITE is
-  always current — ad-hoc `python -c` probes outside the suite are what get
-  bitten. When a probe disagrees with the suite, suspect this before the
-  code.
+- **The venv is managed by `uv sync`** (devenv.nix
+  `languages.python.uv.sync.enable`): on shell entry devenv runs
+  `uv sync --all-extras` (checksum-cached), installing the root project +
+  dev extras. After changing dependencies, run `uv lock` (the sync is
+  `--frozen`). No pip; no manual editable installs.
+- **No staleness possible**: the devenv syncs with `--no-install-workspace`
+  (the src/* packages are never copied into the venv) and the
+  `pydantree:venv-src-pth` task writes a `_pydantree_src.pth` that puts
+  `<repo>/src` FIRST on sys.path — so every process resolves
+  tscore/tsquery/tsgrammar straight from `src/` and edits are live
+  immediately. `tests/conftest.py` does the same as belt-and-suspenders.
+  (If a probe still disagrees with the suite, suspect the pipeline build
+  cache before the code.)
 
 ## Commands
 
@@ -69,7 +70,8 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
   `tsgrammar: ...`, `tscore: ...`, `phase7: ...`.
 - Adding a NEW package file (e.g. a scanner .c or a module) requires: the
   file, the registration (scanner_for table / __all__ / pyproject
-  force-include), the tests, and the editable reinstall.
+  force-include), and the tests — the venv resolves src/ directly, so no
+  reinstall is needed.
 
 ## Debugging
 

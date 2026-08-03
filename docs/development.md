@@ -14,25 +14,35 @@ first for the map; this is the "how do I actually run things" doc.
   devenv shell -- python -c "import tsgrammar as tg; ..."
   ```
 
-- **There is NO pip.** `uv` is the package manager. Packages are installed
-  editable:
+- **The venv is managed by `uv sync`** (`languages.python.uv.sync.enable` in
+  devenv.nix). On shell entry devenv runs `uv sync --all-extras` against the
+  uv workspace (`pyproject.toml` → `uv.lock`), checksum-cached on
+  `pyproject.toml` + interpreter + args, so it only actually syncs when
+  those change. The root project (the legacy wrapper) + dev extras (pytest,
+  ruff, mypy, black, coverage, tree-sitter-json/python) land in the managed
+  venv (`.devenv/state/venv` — devenv points uv there via
+  `UV_PROJECT_ENVIRONMENT`; there is no `.venv` in the repo root).
+- **After changing dependencies** (in `pyproject.toml` or a member's), run
+  `uv lock` once — the devenv sync uses `--frozen` and will fail loudly if
+  the lockfile is stale (that's the signal to lock).
 
-  ```bash
-  uv pip install -e . -e src/tscore -e src/tsquery -e src/tsgrammar
-  ```
+### The staleness non-issue (how it's prevented)
 
-- **The editable-install staleness caveat (it WILL bite you):** hatchling's
-  editable install places a **copy** of each package in site-packages (a
-  `_editable_impl_*.pth` also adds `src/` to sys.path, but site-packages
-  precedes it, so the copy is what plain imports resolve to). ANY change to a
-  file under `src/` — in-place, a rewrite, or a NEW file — is invisible to
-  plain `import` until you re-run the `uv pip install -e ...` line above
-  (which refreshes the copy). The test suite resolves `src/` first via
-  `tests/conftest.py`, so the SUITE always sees current code — it's ad-hoc
-  `python -c` probes and `.scratch` scripts outside the suite that get the
-  stale copy. (This repo's actual mechanism is copy-based; the older
-  hard-link description appears in earlier phase docs — either way the rule
-  is the same: reinstall after touching package files.)
+The old flow (`uv pip install -e . -e src/tscore -e src/tsquery -e
+src/tsgrammar`) placed a COPY of each package in site-packages, so ANY
+change under `src/` was invisible to plain imports until you re-ran the
+install — a chronic dev-flow trap. The devenv now prevents it by
+construction:
+
+- devenv syncs with **`--no-install-workspace`** (its default): the three
+  `src/*` packages are NEVER copied into the venv.
+- The `pydantree:venv-src-pth` task writes a `_pydantree_src.pth` into the
+  venv whose `import` line runs `sys.path.insert(0, "<repo>/src")` during
+  site-packages processing — so every process using the venv resolves
+  tscore/tsquery/tsgrammar **straight from `src/`**, and edits are live
+  immediately (no reinstall, no stale copy).
+- `tests/conftest.py` still resolves `src/` first (belt-and-suspenders, and
+  it keeps the suite honest if the devenv is bypassed).
 
 ## 2. Tests
 
@@ -74,8 +84,9 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
   (harmless, documented).
 - **Adding a scanner**: put the `.c` in `src/tsgrammar/scanners/`, add a
   `*_scanner_path()` helper + a `scanner_for()` entry, re-export from
-  `tsgrammar/__init__.py` (`__all__` too), then RE-RUN the editable install
-  (new files!). Verify the heavy wheel carries it (see
+  `tsgrammar/__init__.py` (`__all__` too). The dev venv resolves `src/`
+  directly (the `_pydantree_src.pth`), so new files are immediately
+  importable — no reinstall. Verify the heavy wheel carries it (see
   `tests/test_packaging.py::test_heavy_wheel_carries_the_scanner_and_0_26_pin`).
 - **The mini-grammar pattern**: every scanner seed has a mini-grammar module
   in `../.scratch/` (pymini, hmini, dmini, pyindent, bashmini) with
