@@ -1,0 +1,54 @@
+{
+  "ok": true,
+  "fns": [
+    {
+      "name": "add",
+      "line": 4
+    },
+    {
+      "name": "main",
+      "line": 8
+    },
+    {
+      "name": "greet",
+      "line": 14
+    },
+    {
+      "name": "no_return",
+      "line": 26
+    }
+  ],
+  "fns_with_return": [
+    {
+      "name": "add",
+      "return_type": "u32",
+      "line": 4
+    },
+    {
+      "name": "greet",
+      "return_type": "String",
+      "line": 14
+    }
+  ],
+  "tuple_structs": [
+    {
+      "name": "Point",
+      "types": [
+        "f64",
+        "f64"
+      ],
+      "line": 18
+    },
+    {
+      "name": "Tuple",
+      "types": [
+        "i32",
+        "String",
+        "bool"
+      ],
+      "line": 24
+    }
+  ],
+  "schema_bound": true,
+  "schema_kinds": 278
+}

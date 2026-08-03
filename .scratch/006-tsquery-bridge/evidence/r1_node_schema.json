@@ -2,9 +2,6 @@
   {
     "type": "statement",
     "named": true,
-    "root": false,
-    "extra": false,
-    "fields": {},
     "subtypes": [
       {
         "type": "directive",
@@ -19,9 +16,6 @@
   {
     "type": "value",
     "named": true,
-    "root": false,
-    "extra": false,
-    "fields": {},
     "subtypes": [
       {
         "type": "boolean",
@@ -46,10 +40,13 @@
     ]
   },
   {
+    "type": "boolean",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "directive",
     "named": true,
-    "root": false,
-    "extra": false,
     "fields": {
       "arg": {
         "multiple": false,
@@ -74,10 +71,13 @@
     }
   },
   {
+    "type": "directive_name",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "entry",
     "named": true,
-    "root": false,
-    "extra": false,
     "fields": {
       "key": {
         "multiple": false,
@@ -104,8 +104,6 @@
   {
     "type": "section",
     "named": true,
-    "root": false,
-    "extra": false,
     "fields": {
       "name": {
         "multiple": false,
@@ -133,7 +131,6 @@
     "type": "source_file",
     "named": true,
     "root": true,
-    "extra": false,
     "fields": {},
     "children": {
       "multiple": true,
@@ -149,8 +146,6 @@
   {
     "type": "string",
     "named": true,
-    "root": false,
-    "extra": false,
     "fields": {},
     "children": {
       "multiple": true,
@@ -169,121 +164,63 @@
   },
   {
     "type": "\"",
-    "named": false,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": false
   },
   {
     "type": "=",
-    "named": false,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": false
   },
   {
     "type": "[",
-    "named": false,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": false
   },
   {
     "type": "]",
-    "named": false,
-    "root": false,
-    "extra": false,
-    "fields": {}
-  },
-  {
-    "type": "boolean",
-    "named": true,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": false
   },
   {
     "type": "comment",
     "named": true,
-    "root": false,
-    "extra": true,
-    "fields": {}
-  },
-  {
-    "type": "directive_name",
-    "named": true,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "extra": true
   },
   {
     "type": "escape_sequence",
-    "named": true,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": true
   },
   {
     "type": "false",
-    "named": false,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": false
   },
   {
     "type": "float",
-    "named": true,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": true
   },
   {
     "type": "identifier",
-    "named": true,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": true
   },
   {
     "type": "include",
-    "named": false,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": false
   },
   {
     "type": "integer",
-    "named": true,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": true
   },
   {
     "type": "listen",
-    "named": false,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": false
   },
   {
     "type": "reload",
-    "named": false,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": false
   },
   {
     "type": "string_content",
-    "named": true,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": true
   },
   {
     "type": "true",
-    "named": false,
-    "root": false,
-    "extra": false,
-    "fields": {}
+    "named": false
   }
 ]

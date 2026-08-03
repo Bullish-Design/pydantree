@@ -1,0 +1,6 @@
+{
+  "grammar.so": 1128008,
+  "node-schema.json": 98985,
+  "tree-sitter.json": 123,
+  "loader.py": 217
+}
