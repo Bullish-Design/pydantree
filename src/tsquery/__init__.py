@@ -29,7 +29,7 @@ from .dsl import (
 from .materialize import (
     AmbiguousCaptureError,
     CoercionError,
-    ExtractionError,
+    Diagnostic,
     Span,
     OutputModel as _MaterializeOutputModel,
     capture as _m_capture,
@@ -39,11 +39,14 @@ from .typed import (
     M,
     AnyOf,
     Eq,
+    ExtractionError,
     Language,
+    MatchFailure,
     Matches,
     NodeKind,
     OutputModel,
     SchemaCheckError,
+    Unescaped,
     UnsupportedShapeError,
     capture,
     source_meta,
@@ -53,9 +56,10 @@ __version__ = "0.1.0"
 
 __all__ = [
     "OutputModel", "M", "capture", "source_meta",
-    "Matches", "Eq", "AnyOf", "NodeKind",
+    "Matches", "Eq", "AnyOf", "NodeKind", "Unescaped",
     "UnsupportedShapeError", "SchemaCheckError",
-    "Language", "Query", "QueryBuildError", "Span",
+    "Language", "Query", "QueryBuildError", "Span", "Diagnostic",
     "AmbiguousCaptureError", "CoercionError", "ExtractionError",
+    "MatchFailure",
     "NodeSpec", "NodeView", "MatchView", "Pred", "cap", "node",
 ]

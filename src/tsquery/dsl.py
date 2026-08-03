@@ -308,18 +308,21 @@ class Query:
         return materialize_matches(self, tree, into, strict=strict)
 
     def validate(self, tree: tree_sitter.Tree) -> tuple[bool, list]:
-        """Does the tree parse cleanly? Reports ERROR/MISSING diagnostics."""
-        diags = []
+        """Does the tree parse cleanly? Returns (clean, diagnostics) with
+        typed `Diagnostic{kind, span, expected?, snippet}` objects (CONCEPT
+        §5.6 promised them): one per ERROR/MISSING node, Span-typed, with the
+        offending snippet. `expected` is set for MISSING nodes (the kind the
+        parser expected) and None for ERRORs."""
+        from .materialize import Diagnostic, Span
+        diags: list[Diagnostic] = []
 
         def walk(node, depth=0):
             if node.type == "ERROR" or node.is_missing:
-                diags.append({
-                    "kind": "MISSING" if node.is_missing else "ERROR",
-                    "type": node.type,
-                    "byte_range": node.byte_range,
-                    "line": node.start_point.row + 1,
-                    "snippet": _snippet(tree, node),
-                })
+                diags.append(Diagnostic(
+                    kind="MISSING" if node.is_missing else "ERROR",
+                    node_type=node.type,
+                    span=Span.from_node(node),
+                    snippet=_snippet(tree, node)))
             for c in node.children:
                 walk(c)
         walk(tree.root_node)
@@ -329,7 +332,11 @@ class Query:
 def _snippet(tree, node, width=40) -> str:
     src = _source_of(tree)
     if src is None:
-        return ""
+        # no retained source: the node carries its own text in 0.26
+        b = node.text
+        if b is None:
+            return ""
+        return b.decode("utf-8", "replace")[:width]
     s, e = node.byte_range
     return src[s:e][:width].decode("utf-8", "replace")
 

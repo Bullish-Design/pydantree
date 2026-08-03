@@ -95,6 +95,71 @@ class NodeKind:
         self.kinds = kinds if isinstance(kinds, tuple) else (kinds,)
 
 
+class Unescaped:
+    """Annotated[str, Unescaped()] — decode the grammar string literal's
+    escape sequences (Phase 5 polish; JSON first: \\n, \\t, \\", \\\\,
+    \\uXXXX — exactly what the json/cfg grammars' escape_sequence rules
+    produce). The captured node must be a string WRAPPER's content (the
+    schema check enforces a string-wrapper shape); the decode is applied to
+    the captured text at materialization.
+
+    NOTE: this is new annotation vocabulary — the Phase-4 surface is frozen;
+    treat it as a go-with-changes finding, not a license to expand.
+    """
+
+    __slots__ = ()
+
+    def __init__(self):
+        pass
+
+
+def _has_unescaped(metadata) -> bool:
+    return any(m.__class__.__name__ == "Unescaped" for m in metadata)
+
+
+def _unescape_json_string(text: str) -> str:
+    """Decode a grammar string literal's content (JSON escape syntax first:
+    \\n \\t \\" \\\\ \\uXXXX — the json/cfg escape_sequence rules). Accepts
+    either the string WRAPPER's full text (with quotes: `"A\nB"` — the
+    Unescaped() shape captures the wrapper wholesale so escapes can't split
+    across string_content pieces) or the bare content. Falls back to a manual
+    decode when the strict JSON round-trip fails (a grammar lenient about raw
+    newlines)."""
+    import json as _json
+    try:
+        if text.startswith('"') and text.endswith('"') and len(text) >= 2:
+            return _json.loads(text)
+        return _json.loads('"' + text + '"')
+    except ValueError:
+        pass
+    if text.startswith('"') and text.endswith('"') and len(text) >= 2:
+        text = text[1:-1]
+    out: list[str] = []
+    i = 0
+    mapping = {"n": "\n", "t": "\t", "r": "\r", '"': '"',
+               "\\": "\\", "b": "\b", "f": "\f", "/": "/"}
+    while i < len(text):
+        if text[i] == "\\" and i + 1 < len(text):
+            nxt = text[i + 1]
+            if nxt in mapping:
+                out.append(mapping[nxt])
+                i += 2
+                continue
+            if nxt == "u" and i + 5 <= len(text):
+                try:
+                    out.append(chr(int(text[i + 2:i + 6], 16)))
+                    i += 6
+                    continue
+                except ValueError:
+                    pass
+            out.append(text[i])
+            i += 1
+        else:
+            out.append(text[i])
+            i += 1
+    return "".join(out)
+
+
 class _Capture:
     """`= capture("left")` binds the field to CST field `left`. No-arg means
     the attr name IS the CST field name."""
@@ -129,6 +194,16 @@ class M:
     M("module", "expression_statement", "assignment") -> anchored pattern
     (module (expression_statement (assignment ...))).
 
+    A `"..."` element (Phase 5) matches ANY depth between the kinds it
+    separates — descendant matching: M("module", ..., "assignment") is
+    every assignment anywhere under a module. Implemented by walking the
+    match anchor's ancestors at materialization (the `#has-ancestor?`
+    assessment: it cannot express the anchor's own ancestor constraint in a
+    single pattern and cannot bound depth — the walk is exact and handles
+    any number of gaps); Job 1 checks the path against the schema as a
+    possible descent (child chain) with possible-descendant checks across
+    the gaps.
+
     record=True switches to key/value record semantics (see module docstring).
     """
 
@@ -137,8 +212,28 @@ class M:
     def __init__(self, *path: str, record: bool = False):
         if not path:
             raise ValueError("M() needs at least one node kind")
+        # the '...' descendant gap: accept the Python Ellipsis literal OR the
+        # string "..." (normalize to the string)
+        path = [p if p is not Ellipsis and p != "..." else "..."
+                for p in path]
+        if path[0] == "..." or path[-1] == "...":
+            raise ValueError(
+                "M(): '...' must sit BETWEEN node kinds (a leading/trailing "
+                "gap is meaningless)")
         self.path = list(path)
         self.record = record
+
+
+def _split_path(path: list[str]) -> tuple[list[str], list[str]]:
+    """Split an M() path on the LAST '...' into (prefix, suffix). The suffix
+    is the direct-child chain ending at the anchor (what the emitted query
+    nests); the prefix is enforced by walking the anchor's ancestors at
+    materialization. No '...' -> ([] , path)."""
+    try:
+        idx = len(path) - 1 - path[::-1].index("...")
+    except ValueError:
+        return [], path
+    return path[:idx], path[idx + 1:]
 
 
 class UnsupportedShapeError(CoercionError):
@@ -188,6 +283,7 @@ class _Derived:
     bindings: dict = dc_field(default_factory=dict)
     record_kind: Optional[str] = None   # record mode: the record node kind
     pair_kind: Optional[str] = None     # record mode: the pair/key-value kind
+    match_path: Optional[list] = None   # the M() path when it has '...' gaps
 
 
 def _unwrap_optional(t):
@@ -264,7 +360,8 @@ def _derive(model_cls) -> _Derived:
 
 def _derive_field(model_cls, m: M, bindings) -> _Derived:
     from .dsl import node
-    specs = [node(k) for k in m.path]
+    _prefix, suffix = _split_path(m.path)
+    specs = [node(k) for k in suffix]
     cur = specs[-1]  # innermost node: captures + predicates go here
 
     for fname, f in model_cls.model_fields.items():
@@ -284,13 +381,16 @@ def _derive_field(model_cls, m: M, bindings) -> _Derived:
     for s in reversed(specs[:-1]):
         cur = s.child(node=cur)
     q = Query(cur)
-    return _Derived("field", q, bindings=bindings)
+    return _Derived("field", q, bindings=bindings,
+                    match_path=m.path if "..." in m.path else None)
 
 
 def _derive_record(model_cls, m: M, bindings) -> _Derived:
     from .dsl import node
-    # outer: anchored path with the record node captured
-    specs = [node(k) for k in m.path]
+    # outer: anchored path with the record node captured (the suffix chain;
+    # a '...' prefix is enforced by the ancestor walk at materialization)
+    _prefix, suffix = _split_path(m.path)
+    specs = [node(k) for k in suffix]
     cur = specs[-1].capture(RECORD_CAP)
     for s in reversed(specs[:-1]):
         cur = s.child(node=cur)
@@ -319,7 +419,33 @@ def _derive_record(model_cls, m: M, bindings) -> _Derived:
                     query=None,
                     records=Query(cur),
                     fields=Query(*patterns),
-                    bindings=bindings)
+                    bindings=bindings,
+                    match_path=m.path if "..." in m.path else None)
+
+
+def _match_ancestor_path(node, path: list[str]) -> bool:
+    """Does the anchor's ancestor chain satisfy the M() path, with '...'
+    allowing any depth between the kinds it separates? Consumes path
+    elements right-to-left while walking the anchor's parents; a gap lets
+    intermediate ancestors pass through. The anchor's own kind (path[-1]) is
+    already guaranteed by the query."""
+    ptr = len(path) - 2
+    gap = False
+    parent = node.parent
+    while parent is not None:
+        if ptr >= 0 and path[ptr] == "...":
+            ptr -= 1
+            gap = True
+            continue
+        if ptr < 0:
+            return True
+        if parent.type == path[ptr]:
+            ptr -= 1
+            gap = False
+        elif not gap:
+            return False
+        parent = parent.parent
+    return ptr < 0
 
 
 def _dsl_cap(name: str):
@@ -345,6 +471,10 @@ def _value_specs(target, cap_name: str, metadata) -> list:
     kind = _kind_from_metadata(metadata)
     if kind is not None:
         return [node(k).capture(cap_name) for k in kind.kinds]
+    if _has_unescaped(metadata):
+        # Unescaped(): capture the string WRAPPER wholesale (escaped strings
+        # split across string_content pieces; the wrapper decodes as one value)
+        return [node("string").capture(cap_name)]
     base = _unwrap_optional(target)
     origin = get_origin(base)
     if origin is list:
@@ -536,6 +666,28 @@ class Language:
     def language(self) -> tree_sitter.Language:
         return self._lang
 
+    # -- parsing (Phase 5: incremental reparse) ----------------------------
+
+    def parse(self, source: str | bytes) -> tree_sitter.Tree:
+        """Parse `source` from scratch with the bound grammar."""
+        if isinstance(source, str):
+            source = source.encode("utf-8")
+        return tree_sitter.Parser(self._lang).parse(source)
+
+    def reparse(self, old_tree: tree_sitter.Tree, source: str | bytes,
+                old_source: str | bytes | None = None) -> tree_sitter.Tree:
+        """Incremental reparse (the 0.26 API, wrapped): ``Parser.parse(new
+        source, old_tree)``. The binding applies the edit internally from the
+        old tree's byte ranges — callers just re-give the full new source
+        (CONCEPT §5.6: 'available, we do not wrap it' — Phase 5 wraps it).
+
+        Returns a new tree whose unchanged subtrees are shared with
+        `old_tree` (tree-sitter's incremental machinery).
+        """
+        if isinstance(source, str):
+            source = source.encode("utf-8")
+        return tree_sitter.Parser(self._lang).parse(source, old_tree)
+
 
 def _load_schema(schema) -> object | None:
     """Accept a node-schema.json path/dict, a tscore.NodeSchema, or None."""
@@ -617,13 +769,19 @@ def _build_kwargs(model_cls, bindings, captures, anchor_nodes=None):
                 kwargs[fname] = f.default
             continue
         if b.is_list:
-            kwargs[fname] = [_text_of(n) for n in nodes]
+            if _has_unescaped(f.metadata):
+                kwargs[fname] = [_unescape_json_string(_text_of(n))
+                                 for n in nodes]
+            else:
+                kwargs[fname] = [_text_of(n) for n in nodes]
         else:
             if len(nodes) > 1:
                 raise AmbiguousCaptureError(
                     f"field {fname!r} is scalar but capture {b.capture!r} "
                     f"matched {len(nodes)} nodes (nested key collision?)")
-            kwargs[fname] = _text_of(nodes[0])
+            text = _text_of(nodes[0])
+            kwargs[fname] = _unescape_json_string(text) \
+                if _has_unescaped(f.metadata) else text
     return kwargs
 
 
@@ -632,18 +790,84 @@ def _extract_field(model_cls, tree, derived: _Derived, strict):
     q = derived.query.compile(tree.language)
     results: list = []
     errors: list = []
+    has_lists = any(b.is_list for b in derived.bindings.values())
+    if has_lists:
+        # field-mode lists (Phase 5): one match per repeated-field occurrence
+        # sharing the same anchor — merge by anchor node id (the record-mode
+        # anchor-merge machinery, reused), dedup scalar captures by node id.
+        groups: dict = {}
+        order: list = []
+        for m in Cursor(q, derived.query._quant_maps or [], tree).matches():
+            caps = {name: m.nodes(name) for name in set(m._caps)}
+            anc = caps.get(ANCHOR)
+            if not anc:
+                groups.setdefault(0, []).append(caps)
+                order.append(0)
+                continue
+            g = groups.setdefault(anc[0].id, [])
+            if anc[0].id not in order:
+                order.append(anc[0].id)
+            g.append(caps)
+        for anc_id in order:
+            merged: dict = {}
+            for caps in groups[anc_id]:
+                for name, nodes in caps.items():
+                    merged.setdefault(name, []).extend(nodes)
+            for fname, b in derived.bindings.items():
+                if b.span or b.is_list:
+                    continue
+                nodes = merged.get(b.capture, [])
+                if len(nodes) > 1:
+                    merged[b.capture] = _dedup_by_id(nodes)
+            try:
+                results.append(model_cls(**
+                                          _build_kwargs(model_cls,
+                                                        derived.bindings,
+                                                        merged)))
+            except ValidationError as e:
+                errors.append(_failure(None,
+                                       f"pydantic ValidationError: {e.errors()}",
+                                       anchor=_first_anchor(merged),
+                                       pydantic_errors=e.errors()))
+            except CoercionError as e:
+                errors.append(_failure(None, str(e),
+                                       anchor=_first_anchor(merged)))
+        if errors and strict:
+            raise ExtractionError(errors, model_cls)
+        return results
     for m in Cursor(q, derived.query._quant_maps or [], tree).matches():
         caps = {name: m.nodes(name) for name in set(m._caps)}
+        if derived.match_path is not None:
+            anc = caps.get(ANCHOR)
+            if not anc or not _match_ancestor_path(anc[0], derived.match_path):
+                continue  # a '...' path: the anchor's ancestors miss the chain
         try:
             results.append(model_cls(**_build_kwargs(model_cls, derived.bindings,
                                                      caps)))
         except ValidationError as e:
-            errors.append((m, f"pydantic ValidationError: {e.errors()}"))
+            errors.append(_failure(m, f"pydantic ValidationError: {e.errors()}",
+                                   pydantic_errors=e.errors()))
         except CoercionError as e:
-            errors.append((m, str(e)))
+            errors.append(_failure(m, str(e)))
     if errors and strict:
-        raise _ExtractionError(errors, model_cls)
+        raise ExtractionError(errors, model_cls)
     return results
+
+
+def _dedup_by_id(nodes) -> list:
+    """Dedupe capture nodes by their stable C node id (across matches the
+    bindings may hand out distinct Python wrappers for the same node)."""
+    seen: set = set()
+    out = []
+    for n in nodes:
+        if n.id not in seen:
+            seen.add(n.id)
+            out.append(n)
+    return out
+
+
+def _first_anchor(caps: dict):
+    return (caps.get(ANCHOR) or caps.get(RECORD_CAP) or [None])[0]
 
 
 def _record_kwargs(model_cls, derived: _Derived, rec, tree,
@@ -702,25 +926,74 @@ def _extract_record(model_cls, tree, derived: _Derived, strict, record_kind=None
         recs = rm.nodes(RECORD_CAP)
         if not recs:
             continue
+        if derived.match_path is not None and \
+                not _match_ancestor_path(recs[0], derived.match_path):
+            continue  # a '...' path: the record's ancestors miss the chain
         try:
             kwargs = _record_kwargs(model_cls, derived, recs[0], tree,
                                     record_kind)
             if kwargs is not None:
                 results.append(model_cls(**kwargs))
         except ValidationError as e:
-            errors.append((recs[0], f"pydantic ValidationError: {e.errors()}"))
+            errors.append(_failure(rm, f"pydantic ValidationError: {e.errors()}",
+                                   anchor=recs[0], pydantic_errors=e.errors()))
         except CoercionError as e:
-            errors.append((recs[0], str(e)))
+            errors.append(_failure(rm, str(e), anchor=recs[0]))
     if errors and strict:
-        raise _ExtractionError(errors, model_cls)
+        raise ExtractionError(errors, model_cls)
     return results
 
 
-class _ExtractionError(Exception):
-    def __init__(self, errors, into):
-        self.errors = errors
+@dataclass
+class MatchFailure:
+    """One failed match, with per-match detail (spike-a §4 gap 1, Phase 5).
+
+    Carries the match's pattern index, its anchor node (the match site), the
+    Span-typed source range, the offending snippet, and the structured
+    pydantic errors when the failure was a validation error — so an
+    ExtractionError can report every failing match, not just the first.
+    """
+
+    pattern: int
+    anchor: object | None
+    span: "Span | None"
+    snippet: str
+    detail: str
+    pydantic_errors: list | None = None
+
+
+class ExtractionError(Exception):
+    """One or more matches failed to materialize; `.failures` carries
+    per-match detail (pattern index, anchor span, snippet, pydantic errors)
+    instead of only the first error (spike-a §4 gap 1)."""
+
+    def __init__(self, failures: list[MatchFailure], into):
+        self.failures = failures
         self.into = into
-        first = errors[0]
-        super().__init__(
-            f"{len(errors)} match(es) failed to materialize "
-            f"{into.__name__}:\n  - {first[1]}")
+        lines = [
+            f"{len(failures)} match(es) failed to materialize "
+            f"{into.__name__}:"]
+        for f in failures:
+            where = f"line {f.span.line}" if f.span is not None else "?"
+            lines.append(
+                f"  - pattern {f.pattern} @ {where} {f.snippet!r}: {f.detail}")
+        super().__init__("\n".join(lines))
+
+
+# compatibility alias (the pre-Phase-5 name; tests/older code may import it)
+_ExtractionError = ExtractionError
+
+
+def _failure(match, detail: str, *, anchor=None,
+             pydantic_errors=None) -> MatchFailure:
+    """Build a MatchFailure from a MatchView (or a record node anchor)."""
+    from .materialize import Span
+    node = anchor
+    if node is None:
+        ns = match.nodes(ANCHOR) or match.nodes(RECORD_CAP)
+        node = ns[0] if ns else None
+    span = Span.from_node(node) if node is not None else None
+    snippet = span.text if span is not None else ""
+    return MatchFailure(pattern=getattr(match, "pi", 0), anchor=node,
+                        span=span, snippet=snippet, detail=detail,
+                        pydantic_errors=pydantic_errors)

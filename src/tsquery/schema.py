@@ -74,8 +74,10 @@ def check_model_schema(model_cls, schema) -> None:
     m: M = model_cls.__match__
     d: _Derived = model_cls._derived_cache
 
-    # every path element is a real named kind
+    # every path element is a real named kind ('...' is the descendant gap)
     for i, kind in enumerate(m.path):
+        if kind == "...":
+            continue
         t = schema.get(kind)
         if t is None:
             _raise(model_cls, f"__match__ kind {kind!r} does not exist in "
@@ -85,15 +87,28 @@ def check_model_schema(model_cls, schema) -> None:
             _raise(model_cls, f"__match__ kind {kind!r} is not a named node "
                               f"in the grammar", entry=kind)
 
-    # the ancestor chain is a possible descent
-    for parent, child in zip(m.path, m.path[1:]):
-        if not schema.is_possible_descent(parent, child):
-            _raise(
-                model_cls,
-                f"__match__ chain {m.path!r}: {child!r} cannot occur as a "
-                f"child of {parent!r} in the grammar (possible children of "
-                f"{parent!r}: {sorted(schema.possible_children(parent))})",
-                entry=f"{parent} -> {child}")
+    # the ancestor chain is a possible descent — with '...' gaps allowed to
+    # span ANY depth (checked as a possible descendant instead of a child)
+    prev = None
+    gap = False
+    for el in m.path:
+        if el == "...":
+            gap = True
+            continue
+        if prev is not None:
+            possible = schema.is_possible_descendant(prev, el) if gap \
+                else schema.is_possible_descent(prev, el)
+            if not possible:
+                kind_of = "a descendant of" if gap else "a child of"
+                _raise(
+                    model_cls,
+                    f"__match__ chain {m.path!r}: {el!r} cannot occur as "
+                    f"{kind_of} {prev!r} in the grammar (possible children "
+                    f"of {prev!r}: "
+                    f"{sorted(schema.possible_children(prev))})",
+                    entry=f"{prev} -> {el}")
+        prev = el
+        gap = False
 
     if d.mode == "field":
         _check_field_mode(model_cls, schema, d)
@@ -119,7 +134,7 @@ def _check_field_mode(model_cls, schema, d: _Derived) -> None:
         possible = schema.expand(r.type for r in
                                  schema.field_types(anchor_kind, field_name))
         _check_capture_type(model_cls, schema, fname, f.annotation,
-                            f.metadata, possible, field_name)
+                            f.metadata, possible, field_name, field_mode=True)
 
 
 def _check_record_mode(model_cls, schema, d: _Derived) -> None:
@@ -140,8 +155,15 @@ def _check_record_mode(model_cls, schema, d: _Derived) -> None:
 # ---------------------------------------------------------------------------
 
 def _check_capture_type(model_cls, schema, fname, annotation, metadata,
-                        possible: set[str], where: str) -> None:
-    """Compare a capture's possible node kinds against the Python type."""
+                        possible: set[str], where: str,
+                        field_mode: bool = False) -> None:
+    """Compare a capture's possible node kinds against the Python type.
+
+    `field_mode=True` changes list[X] semantics: a field-mode list capture is
+    the REPEATED field's occurrences (the field nodes themselves are the
+    elements, one match each) — so list[X] is compatible when the field's
+    kinds coerce to X, NOT when they are array-like (the record-mode value
+    shape)."""
     override = None
     for meta in metadata:
         if meta.__class__.__name__ == "NodeKind":
@@ -149,7 +171,7 @@ def _check_capture_type(model_cls, schema, fname, annotation, metadata,
             break
 
     target = _unwrap_optional(annotation)
-    from typing import get_origin
+    from typing import get_args, get_origin
     is_list = get_origin(target) is list
 
     if override is not None:
@@ -169,17 +191,74 @@ def _check_capture_type(model_cls, schema, fname, annotation, metadata,
         return
 
     if get_origin(target) is list:
-        pass  # compatible_kinds handles list[X] via its origin
+        if field_mode:
+            # list[X] field-mode capture: the repeated field's nodes are the
+            # elements — X-compatible when the field's kinds coerce to X
+            elem = _unwrap_optional(get_args(target)[0]) \
+                if get_args(target) else str
+            if not _element_ok(schema, elem, possible):
+                _raise(
+                    model_cls,
+                    f"field {fname!r} is list[{_name(elem)}] but the {where} "
+                    f"capture can only ever yield {sorted(possible) or 'none'} "
+                    f"(schema entry: {where})",
+                    entry=where)
+        else:
+            compatible = compatible_kinds(schema, target, kinds=possible)
+            if not compatible:
+                _raise(
+                    model_cls,
+                    f"field {fname!r} is list[{_name(_unwrap_optional(get_args(target)[0]) if get_args(target) else str)}] "
+                    f"but the {where} capture can only ever yield kinds that "
+                    f"do not express it: {sorted(possible) or 'none'} "
+                    f"(schema entry: {where})",
+                    entry=where)
+        pass  # element/array compatibility checked above
     elif target not in (str, int, float, bool):
         return  # opaque types (enums, custom) — runtime coercion decides
+    else:
+        compatible = compatible_kinds(schema, target, kinds=possible)
+        if not compatible:
+            _raise(
+                model_cls,
+                f"field {fname!r} is {_name(target)} but the {where} capture can "
+                f"only ever yield kinds that do not coerce to it: "
+                f"{sorted(possible) or 'none'} (schema entry: {where})",
+                entry=where)
+    if any(m.__class__.__name__ == "Unescaped" for m in metadata):
+        _check_unescaped_shape(model_cls, schema, fname, target, possible,
+                               where)
 
-    compatible = compatible_kinds(schema, target, kinds=possible)
-    if not compatible:
+
+def _element_ok(schema, elem, kinds: set[str]) -> bool:
+    """Do any of `kinds` coerce to the list element type? (field-mode lists:
+    the repeated field's nodes are the elements)."""
+    from .shapes import _element_shapes
+    return bool(_element_shapes(schema, elem, kinds))
+
+
+def _check_unescaped_shape(model_cls, schema, fname, target, possible, where):
+    """Unescaped() decodes a grammar string literal's content, so the
+    capture must be able to be a string WRAPPER (string -> string_content,
+    not a bare identifier) — the schema-validated part of the marker."""
+    from .shapes import text_shapes_for
+    base = _unwrap_optional(target)
+    from typing import get_args, get_origin as _go
+    if _go(base) is list:
+        base = _unwrap_optional(get_args(base)[0]) if get_args(base) else str
+    if base is not str:
         _raise(
             model_cls,
-            f"field {fname!r} is {_name(target)} but the {where} capture can "
-            f"only ever yield kinds that do not coerce to it: "
-            f"{sorted(possible) or 'none'} (schema entry: {where})",
+            f"field {fname!r}: Unescaped() applies to str fields (JSON string "
+            f"escape decoding), not {_name(target)}",
+            entry=where)
+    if not any(wrapper is not None
+               for wrapper, _leaf in text_shapes_for(schema, possible)):
+        _raise(
+            model_cls,
+            f"field {fname!r}: Unescaped() requires a string-WRAPPER capture "
+            f"(a grammar string literal whose content carries escapes), but "
+            f"the {where} capture can only yield {sorted(possible)}",
             entry=where)
 
 
@@ -278,8 +357,11 @@ def _derive_record_schema(model_cls, schema, bindings) -> _Derived:
     else:
         key_spec = node(leaf).capture("key")
 
-    # outer query (unchanged): the anchored path capturing the record node
-    specs = [node(k) for k in m.path]
+    # outer query: anchored path capturing the record node (the suffix chain;
+    # a '...' prefix is enforced by the ancestor walk at materialization)
+    from .typed import _split_path
+    _prefix, suffix = _split_path(m.path)
+    specs = [node(k) for k in suffix]
     cur = specs[-1].capture("record")
     for s in reversed(specs[:-1]):
         cur = s.child(node=cur)
@@ -311,14 +393,17 @@ def _derive_record_schema(model_cls, schema, bindings) -> _Derived:
                     fields=Query(*patterns),
                     bindings=bindings,
                     record_kind=record_kind,
-                    pair_kind=pair_kind)
+                    pair_kind=pair_kind,
+                    match_path=m.path if "..." in m.path else None)
 
 
 def _derive_field_schema(model_cls, schema, bindings) -> _Derived:
     from .shapes import _kind_set_for, text_shapes_for
+    from .typed import _split_path
     m: M = model_cls.__match__
     anchor_kind = m.path[-1]
-    specs = [node(k) for k in m.path]
+    _prefix, suffix = _split_path(m.path)
+    specs = [node(k) for k in suffix]
     cur = specs[-1]
 
     for fname, f in model_cls.model_fields.items():
@@ -337,7 +422,8 @@ def _derive_field_schema(model_cls, schema, bindings) -> _Derived:
     cur.capture(ANCHOR)
     for s in reversed(specs[:-1]):
         cur = s.child(node=cur)
-    return _Derived("field", Query(cur), bindings=bindings)
+    return _Derived("field", Query(cur), bindings=bindings,
+                    match_path=m.path if "..." in m.path else None)
 
 
 def _field_constraint_kind(schema, possible: set[str], annotation, metadata) -> str:

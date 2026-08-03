@@ -191,6 +191,21 @@ def shape_for(target, cap_name: str, metadata, *, schema,
     value_kinds = _value_kinds(schema, pair_kind)
 
     base = _unwrap_optional(target)
+    if _has_unescaped(metadata):
+        # Unescaped(): capture the string WRAPPER wholesale — an escaped
+        # string's content is split across string_content pieces by the
+        # escape_sequence rule, so leaf captures would split the value. The
+        # wrapper's text (with quotes) is unescaped at materialization.
+        shapes = _unescaped_shapes(schema, base, cap_name, value_kinds)
+        if not shapes:
+            raise UnsupportedShapeError(
+                f"field type {_name(base)} with Unescaped() has no "
+                f"string-wrapper shape in grammar {schema.name or '?'}: "
+                f"the value kinds under {pair_kind!r} "
+                f"({sorted(value_kinds) or 'none'}) contain no string "
+                f"wrapper (schema entry: {pair_kind!r} value field)")
+        return shapes
+
     origin = get_origin(base)
     if origin is list:
         elem = get_args(base)[0] if get_args(base) else str
@@ -220,6 +235,37 @@ def shape_for(target, cap_name: str, metadata, *, schema,
     raise UnsupportedShapeError(
         f"field type {_name(base)} has no derivable shape (use "
         f"Annotated[..., NodeKind(...)] to declare it)")
+
+
+def _has_unescaped(metadata) -> bool:
+    return any(m.__class__.__name__ == "Unescaped" for m in metadata)
+
+
+def _unescaped_shapes(schema, base, cap_name: str,
+                      value_kinds: set[str]) -> list[NodeSpec]:
+    """String-WRAPPER shapes for Unescaped() fields: the wrapper node is
+    captured wholesale (escaped content can't split across string_content
+    pieces). list[str] -> the array's string-wrapper children."""
+    if base is str:
+        return [node(wrapper).capture(cap_name)
+                for wrapper, leaf in text_shapes_for(schema, value_kinds)
+                if wrapper is not None]
+    if get_origin(base) is list:
+        elem = get_args(base)[0] if get_args(base) else str
+        elem = _unwrap_optional(elem)
+        if elem is str:
+            out = []
+            for arr in sorted(value_kinds):
+                if not is_array_kind(arr):
+                    continue
+                child_kinds = schema.expand(r.type
+                                            for r in schema.children_types(arr))
+                for wrapper, leaf in text_shapes_for(schema, child_kinds):
+                    if wrapper is not None:
+                        out.append(node(arr).child(
+                            node(wrapper).capture(cap_name)))
+            return out
+    return []
 
 
 def _list_shapes(schema, elem, cap_name: str, value_kinds: set[str]) -> list[NodeSpec]:

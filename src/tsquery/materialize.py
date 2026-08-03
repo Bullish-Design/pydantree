@@ -41,7 +41,6 @@ class OutputModel(BaseModel):
 
 class Span:
     """A source span (line/column, 1-based lines)."""
-
     __slots__ = ("line", "column", "end_line", "end_column",
                  "start_byte", "end_byte", "text")
 
@@ -66,6 +65,31 @@ class Span:
     def __repr__(self) -> str:  # pragma: no cover
         return (f"Span({self.line}:{self.column}-"
                 f"{self.end_line}:{self.end_column} {self.text!r})")
+
+
+class Diagnostic:
+    """One ERROR/MISSING node in a parse (CONCEPT §5.6, Phase 5).
+
+    `kind` is "ERROR" or "MISSING"; `node_type` is the offending node's type
+    (ERROR) or the kind the parser expected (MISSING); `expected` mirrors
+    node_type for MISSING nodes and is None for ERRORs (tree-sitter always
+    returns a tree with these nodes instead of throwing); `span` is the
+    Span-typed source range and `snippet` the offending text.
+    """
+
+    __slots__ = ("kind", "node_type", "expected", "span", "snippet")
+
+    def __init__(self, kind: str, node_type: str, span: "Span",
+                 snippet: str):
+        self.kind = kind
+        self.node_type = node_type
+        self.expected = node_type if kind == "MISSING" else None
+        self.span = span
+        self.snippet = snippet
+
+    def __repr__(self) -> str:  # pragma: no cover
+        return (f"Diagnostic({self.kind}, {self.node_type!r}, "
+                f"line {self.span.line}, {self.snippet!r})")
 
 
 class _CaptureMarker:
