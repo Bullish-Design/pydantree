@@ -62,7 +62,7 @@ from .conflicts import (
     parse_conflict_json,
     remap_from_proc,
 )
-from .expressions import expression
+from .expressions import expression, semantic_smoke, DEFAULT_PRECEDENCE_CORPUS
 from .grammar import (
     AliasNode,
     BlankNode,
@@ -130,7 +130,7 @@ __all__ = [
     "default_cache_dir", "BuildResult", "PipelineError", "GenerateError",
     "CompileError",
     # expression helper
-    "expression",
+    "expression", "semantic_smoke", "DEFAULT_PRECEDENCE_CORPUS",
     # language
     "load_language", "parse",
 ]
