@@ -1,0 +1,289 @@
+[
+  {
+    "type": "statement",
+    "named": true,
+    "root": false,
+    "extra": false,
+    "fields": {},
+    "subtypes": [
+      {
+        "type": "directive",
+        "named": true
+      },
+      {
+        "type": "section",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "value",
+    "named": true,
+    "root": false,
+    "extra": false,
+    "fields": {},
+    "subtypes": [
+      {
+        "type": "boolean",
+        "named": true
+      },
+      {
+        "type": "float",
+        "named": true
+      },
+      {
+        "type": "identifier",
+        "named": true
+      },
+      {
+        "type": "integer",
+        "named": true
+      },
+      {
+        "type": "string",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "directive",
+    "named": true,
+    "root": false,
+    "extra": false,
+    "fields": {
+      "arg": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "value",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "directive_name",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "entry",
+    "named": true,
+    "root": false,
+    "extra": false,
+    "fields": {
+      "key": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "value",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "section",
+    "named": true,
+    "root": false,
+    "extra": false,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "entry",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "source_file",
+    "named": true,
+    "root": true,
+    "extra": false,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "statement",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "string",
+    "named": true,
+    "root": false,
+    "extra": false,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "escape_sequence",
+          "named": true
+        },
+        {
+          "type": "string_content",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "\"",
+    "named": false,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "=",
+    "named": false,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "[",
+    "named": false,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "]",
+    "named": false,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "boolean",
+    "named": true,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "comment",
+    "named": true,
+    "root": false,
+    "extra": true,
+    "fields": {}
+  },
+  {
+    "type": "directive_name",
+    "named": true,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "escape_sequence",
+    "named": true,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "false",
+    "named": false,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "float",
+    "named": true,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "identifier",
+    "named": true,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "include",
+    "named": false,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "integer",
+    "named": true,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "listen",
+    "named": false,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "reload",
+    "named": false,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "string_content",
+    "named": true,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  },
+  {
+    "type": "true",
+    "named": false,
+    "root": false,
+    "extra": false,
+    "fields": {}
+  }
+]

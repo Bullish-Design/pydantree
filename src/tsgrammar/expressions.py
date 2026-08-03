@@ -269,7 +269,6 @@ def _render(n, source: bytes) -> str:
     return f"({inner})" if n.type == "expr" else f"{n.type}({inner})"
 
 
-_ = _render  # (kept private; _render used above)
 
 
 def _require_level(ladder: Ladder, level: str, what: str) -> None:

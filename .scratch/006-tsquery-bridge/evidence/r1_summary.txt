@@ -1,0 +1,24 @@
+RUN 1 — the pitch (evidence)
+
+config grammar: 14 rules, analyzer CLEAN, generate exit 0 (ABI 15)
+node-schema: 24 kinds derived from the IR
+record mode rows vs hand-computed ground truth: PASS
+field mode rows vs hand-computed ground truth: PASS
+JSON v1 map reproduced over tree_sitter_json: PASS
+
+surface-layer table (where each check surfaces):
+  __match__ chain descent / capture field-on-kind / capture-type mismatch
+    -> validate_with(language, schema=...)  (class-creation-adjacent, NO parsing)
+  derived record value shapes / kind constraints
+    -> validate_with (rebuilds the query), invisible when it works
+  kind/field typos                         -> Query() constructor (free, Phase 1)
+  value coercion ("x" -> int)              -> extract (pydantic, runtime)
+
+shape-map metric:
+  _json_value_specs-style code that became a schema lookup: ALL of it
+  (tsquery/shapes.py shape_for: one generic kind-name inference, restricted by
+  the pair's value field types — no per-grammar table, no hand-written lines)
+  NodeKind overrides the non-JSON record task needs: 0
+
+model surface: identical to spike-a2 (OutputModel, __match__=M(...), capture(),
+source_meta(), Matches/Eq/AnyOf/NodeKind) — the schema is invisible when it works.

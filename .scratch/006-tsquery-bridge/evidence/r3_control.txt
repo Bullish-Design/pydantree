@@ -1,0 +1,28 @@
+RUN 3 — the control (Phase-1 stand-ins, no schema)
+
+  hardcoded JSON shape map on the config grammar: cannot express the record
+    task at all (its patterns name JSON kinds: pair/string/string_content).
+    The Phase-1 'escape hatch' is a per-field NodeKind override for every
+    field of every unmapped shape.
+  per-field NodeKind overrides: 4 for the two-record task (vs 0 in Run 1)
+  list[str] record field: the hardcoded JSON map's patterns name kinds cfg
+    lacks (pair/string) -> QueryBuildError at validate_with — Run 1/2 gets a
+    schema-cited SchemaCheckError at validate_with (the schema says cfg has no
+    array-like value kind).
+  capture/type mistakes (int fed identifier): silent until extract-time
+    pydantic ValidationError (or lenient-skipped row) — Run 2 F1 gets it at
+    validate_with.
+
+comparison (same two tasks):
+
+  metric                          Phase-1 stand-in   Phase 4 (schema)
+  -----------------------------   ----------------   ---------------
+  record shape map                hardcoded JSON      derived (0 lines
+                                  table (per-grammar) hand-written)
+  NodeKind overrides needed       4 (per field)       0
+  bad capture kind vs type        extract-time        validate_with
+  record field with no shape      import (hardcoded)  validate_with (schema
+                                                      entry cited)
+  nested-record collision         AmbiguousCapture    record-level anchoring
+                                  (extract, runtime)  (query level, no error)
+  model surface                   identical           identical

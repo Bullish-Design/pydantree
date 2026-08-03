@@ -1,0 +1,15 @@
+F1
+  schema entry: NodeKind(('identifier',)) vs int
+  error: F1 (/home/andrew/Documents/Projects/pydantree/.scratch/006-tsquery-bridge/experiment_phase4.py:223): field 'value': NodeKind(('identifier',)) constrains the capture to kind(s) that cannot feed a int field — the arg capture can only yield ['identifier'] (numeric kinds in this grammar: ['integer']; boolean kinds: ['boolean', 'false', 'true'])
+
+F2
+  schema entry: section.value
+  error: F2 (/home/andrew/Documents/Projects/pydantree/.scratch/006-tsquery-bridge/experiment_phase4.py:228): capture('value') on field 'name': kind 'section' has no CST field 'value' (its fields: ['name'])
+
+F3
+  schema entry: value-under-entry
+  error: F3 (/home/andrew/Documents/Projects/pydantree/.scratch/006-tsquery-bridge/experiment_phase4.py:232): field 'tags' is list but the value-under-entry capture can only ever yield kinds that do not coerce to it: ['boolean', 'float', 'identifier', 'integer', 'string'] (schema entry: value-under-entry)
+
+F4
+  schema entry: source_file -> entry
+  error: F4 (/home/andrew/Documents/Projects/pydantree/.scratch/006-tsquery-bridge/experiment_phase4.py:237): __match__ chain ['source_file', 'entry']: 'entry' cannot occur as a child of 'source_file' in the grammar (possible children of 'source_file': ['directive', 'section'])
