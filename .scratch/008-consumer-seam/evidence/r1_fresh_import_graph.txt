@@ -1,0 +1,2 @@
+{"tscore": "/tmp/phase6-run1-adidblkz/fresh-venv/lib/python3.13/site-packages/tscore/__init__.py", "tsquery": "/tmp/phase6-run1-adidblkz/fresh-venv/lib/python3.13/site-packages/tsquery/__init__.py"}
+(rc 0)

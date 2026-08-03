@@ -1,0 +1,67 @@
+{
+  "fresh_vs_inproc_cfg_sections": true,
+  "fresh_vs_inproc_cfg_directives": true,
+  "fresh_vs_inproc_json_people": true,
+  "cfg_ground_truth": true,
+  "fresh_cfg_sections": [
+    {
+      "host": "example.com",
+      "port": 8080,
+      "debug": true,
+      "title": "My App",
+      "line": 2
+    },
+    {
+      "host": "localhost",
+      "port": 9090,
+      "debug": false,
+      "title": null,
+      "line": 9
+    }
+  ],
+  "fresh_json_rows": [
+    {
+      "name": "alice",
+      "age": 30,
+      "tags": [
+        "red",
+        "blue",
+        "green"
+      ],
+      "nickname": "ali",
+      "active": true,
+      "line": 2
+    },
+    {
+      "name": "bob",
+      "age": 41,
+      "tags": [
+        "dev"
+      ],
+      "nickname": null,
+      "active": false,
+      "line": 9
+    },
+    {
+      "name": "carol",
+      "age": 25,
+      "tags": [],
+      "nickname": null,
+      "active": false,
+      "line": 15
+    },
+    {
+      "name": "dave",
+      "age": 55,
+      "tags": [
+        "x",
+        "y",
+        "z",
+        "w"
+      ],
+      "nickname": null,
+      "active": true,
+      "line": 22
+    }
+  ]
+}
