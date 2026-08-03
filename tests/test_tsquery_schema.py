@@ -220,7 +220,7 @@ def test_field_mode_int_constraint_derived():
     # the derived query constrains the arg to integer kinds (no NodeKind needed)
     assert "arg:(integer) @port" in Listen.compiled_source(schema=schema)
     from cfg_grammar import CORPUS
-    rows = Listen.extract(CORPUS, language=lang)
+    rows = Listen.extract(CORPUS, language=lang, schema=schema)
     # include "base.conf" (string arg) is excluded at query level
     assert [(r.name, r.port) for r in rows] == [("listen", 8080), ("reload", 5)]
 
@@ -239,11 +239,39 @@ def test_language_load_registry_finds_schema():
 
     bound = Language.load(lang, schema=schema)
     Server.validate_with(bound)  # schema rides on the language object
-    # registry: a later call passing only the language still finds it
+    # per-instance binding: a later schema-less call with the WRAPPER finds
+    # the schema; a later call with the BARE language does NOT (Phase 6: the
+    # automatic name-keyed registry is gone — the leak it caused: a bound
+    # schema silently applied to every later schema-less consumer).
     from cfg_grammar import CORPUS
-    rows = Server.extract(CORPUS, language=lang)
+    rows = Server.extract(CORPUS, language=bound)
     assert [(r.host, r.port) for r in rows] == [("example.com", 8080),
                                                 ("localhost", 9090)]
+
+
+def test_language_load_registry_is_opt_in():
+    """Phase 6: the name-keyed convenience survives as an EXPLICIT opt-in
+    (register=True) — a named language's schema is found by later bare-
+    language calls only when the caller opted in; a nameless language is
+    refused (the Phase-6 leak: rust's bundle registered under None and hit
+    every wheel-loaded language)."""
+    schema, lang, _g = cfg_schema()
+    from tsquery.typed import _SCHEMA_REGISTRY, _maybe_register
+    # a nameless language is refused
+    _maybe_register(None, schema)
+    assert None not in _SCHEMA_REGISTRY
+
+    class Server(OutputModel):
+        __match__ = M("source_file", "section", record=True)
+        host: str
+        port: int
+
+    bound = Language.load(lang, schema=schema, register=True)
+    from cfg_grammar import CORPUS
+    rows = Server.extract(CORPUS, language=lang)  # bare lang, opted-in
+    assert [(r.host, r.port) for r in rows] == [("example.com", 8080),
+                                                ("localhost", 9090)]
+    assert _SCHEMA_REGISTRY.get(lang.name) is schema
 
 
 def test_community_path_node_types_schema():

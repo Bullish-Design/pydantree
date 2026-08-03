@@ -181,3 +181,71 @@ def test_community_schema_tool_cli(tmp_path):
     assert proc.returncode == 0, proc.stderr
     schema = NodeSchema.from_node_types_json(tmp_path / "out.json", name="json")
     assert "object" in schema.kinds() and "pair" in schema.kinds()
+
+
+# ---------------------------------------------------------------------------
+# Phase 6 — Run 2: the community seam over a REAL grammar (tree-sitter-rust)
+# ---------------------------------------------------------------------------
+
+RUST_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "rust"
+P8_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "008-consumer-seam"
+
+
+def test_schema_tool_over_real_rust_source_byte_for_byte(tmp_path):
+    """The community tool over the REAL tree-sitter-rust source (182 rules,
+    11 externals): derive_schema_for_dir accepts the community layout, runs
+    the CLI, and the derived schema is byte-for-byte the CLI's own
+    node-types.json — no normalization, no shape differences."""
+    from tsgrammar.schema_tool import derive_schema_for_dir
+    out = tmp_path / "rust-schema.json"
+    derived = derive_schema_for_dir(RUST_FIXTURE, name="rust",
+                                    workdir=tmp_path / "cw",
+                                    out=out, keep=True)
+    assert derived.name == "rust"
+    cli = (RUST_FIXTURE / "node-types.json").read_text()
+    assert out.read_text() == cli
+
+
+def test_community_bundle_build_and_bfree_extraction(tmp_path):
+    """The full Run-2 path over a grammar we don't own: community source ->
+    build_community_bundle (generate + gcc + schema + metadata + loader) ->
+    B-free consumer (tsgrammar unimportable) -> hand-authored rust ground
+    truth, checks active."""
+    from tsgrammar.schema_tool import build_community_bundle
+    bundle = build_community_bundle(RUST_FIXTURE, tmp_path / "bundle",
+                                    name="rust", keep=True)
+    assert set(p.name for p in bundle.iterdir()) == {
+        "grammar.so", "node-schema.json", "tree-sitter.json", "loader.py"}
+    rc, out = run_bfree(P8_DIR / "consumer_rust.py", str(bundle),
+                        workdir=tmp_path / "bfree")
+    assert rc == 0, out
+    data = json.loads(out)
+    assert data["ok"] is True
+    assert data["schema_bound"] is True
+    assert [r["name"] for r in data["fns"]] == \
+        ["add", "main", "greet", "no_return"]
+    assert data["tuple_structs"][0] == {
+        "name": "Point", "types": ["f64", "f64"], "line": 18}
+    assert "tsgrammar" not in out
+
+
+def test_community_job1_catches_bad_path_over_real_rust(tmp_path):
+    """The bridge check (Job 1) over a real grammar: a model whose M() chain
+    names a kind the grammar cannot produce (tuple_type is not a node kind in
+    rust — struct_item -> ordered_field_declaration_list directly) is
+    rejected at validate_with, before any text is parsed."""
+    from tsgrammar.schema_tool import build_community_bundle
+    from tsquery import SchemaCheckError
+    bundle = build_community_bundle(RUST_FIXTURE, tmp_path / "bundle",
+                                    name="rust", keep=True)
+    lang = Language.load_bundle(bundle)
+
+    class BadChain(OutputModel):
+        __match__ = M("source_file", "struct_item", "tuple_type",
+                      "ordered_field_declaration_list")
+        types: list[str] = capture("type")
+
+    with pytest.raises(SchemaCheckError) as exc:
+        BadChain.validate_with(lang)
+    assert "tuple_type" in str(exc.value)
+    assert "struct_item" in str(exc.value)

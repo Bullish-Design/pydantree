@@ -622,28 +622,42 @@ class OutputModel(BaseModel, metaclass=DerivingMeta):
 _SCHEMA_REGISTRY: dict[str, object] = {}
 
 
+def _maybe_register(name: str | None, schema: object) -> None:
+    """The opt-in name-keyed registry (Phase 6: made explicit). A language
+    with NO name must not be registered — the Phase-6 leak: wheel-loaded
+    languages report `name=None`, so a bundle's schema registered under None
+    silently applied to EVERY schema-less consumer of any nameless language.
+    Per-Language-instance binding is the default; registering is the opt-in
+    convenience for callers who pass bare languages later."""
+    if name is None:
+        return
+    _SCHEMA_REGISTRY[name] = schema
+
+
 class Language:
     """A tree_sitter.Language + an optionally-bound node-schema.
 
     `Language.load(lang, schema=...)` is the Phase-4 way to carry the schema
     next to the grammar; `validate_with(language=..., schema=...)` and
-    `extract(..., schema=...)` also accept it directly. When a schema is
-    bound it is registered under the language name so later calls that pass
-    only the language find it (the "small registry" from the kickoff).
+    `extract(..., schema=...)` also accept it directly. The schema is bound
+    to THIS instance (Phase 6: the name-keyed global registry is gone — a
+    bound schema previously leaked into every later schema-less consumer of
+    the same language name, and a nameless language leaked into all of them).
+    `register=True` opts into the name-keyed convenience: the schema is also
+    placed in the registry so LATER calls passing the BARE language (not this
+    wrapper) find it. Requires a named language (a nameless one is refused).
     """
 
     __slots__ = ("_lang", "_schema")
 
-    def __init__(self, lang, schema=None):
-        raw, schema = _resolve_language(lang, schema)
+    def __init__(self, lang, schema=None, *, register: bool = False):
+        raw, schema = _resolve_language(lang, schema, register=register)
         self._lang = raw
         self._schema = schema
-        if schema is not None:
-            _SCHEMA_REGISTRY[self._lang.name] = schema
 
     @classmethod
-    def load(cls, lang, schema=None) -> "Language":
-        return cls(lang, schema)
+    def load(cls, lang, schema=None, *, register: bool = False) -> "Language":
+        return cls(lang, schema, register=register)
 
     @classmethod
     def load_bundle(cls, dir) -> "Language":
@@ -703,10 +717,14 @@ def _load_schema(schema) -> object | None:
     raise TypeError(f"cannot build a node-schema from {type(schema)!r}")
 
 
-def _resolve_language(language, schema=None):
+def _resolve_language(language, schema=None, *, register: bool = False):
     """Return (tree_sitter.Language, schema_or_None). Resolves the schema
     from (in order): the explicit `schema=` argument; a tsquery.Language
-    wrapper; the registry keyed by language name."""
+    wrapper's bound schema; the opt-in registry keyed by language name (only
+    entries placed via Language.load(..., register=True) — Phase 6: the
+    automatic name-keyed lookup is gone, so a schema bound for one consumer
+    can never silently apply to a later schema-less consumer of the same
+    language, and a nameless language can never collide)."""
     if isinstance(language, Language):
         schema = schema if schema is not None else language._schema
         language = language._lang
@@ -720,8 +738,9 @@ def _resolve_language(language, schema=None):
         lang = tree_sitter.Language(language)  # a bare PyCapsule
     if schema is not None:
         schema = _load_schema(schema)
-        _SCHEMA_REGISTRY[lang.name] = schema
-    elif lang.name in _SCHEMA_REGISTRY:
+        if register:
+            _maybe_register(lang.name, schema)
+    elif lang.name is not None and lang.name in _SCHEMA_REGISTRY:
         schema = _SCHEMA_REGISTRY[lang.name]
     return lang, schema
 
