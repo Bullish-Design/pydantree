@@ -8,7 +8,7 @@ F2
 
 F3
   schema entry: value-under-entry
-  error: F3 (/home/andrew/Documents/Projects/pydantree/.scratch/006-tsquery-bridge/experiment_phase4.py:232): field 'tags' is list but the value-under-entry capture can only ever yield kinds that do not coerce to it: ['boolean', 'float', 'identifier', 'integer', 'string'] (schema entry: value-under-entry)
+  error: F3 (/home/andrew/Documents/Projects/pydantree/.scratch/006-tsquery-bridge/experiment_phase4.py:232): field 'tags' is list[str] but the value-under-entry capture can only ever yield kinds that do not express it: ['boolean', 'float', 'identifier', 'integer', 'string'] (schema entry: value-under-entry)
 
 F4
   schema entry: source_file -> entry
