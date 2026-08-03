@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "tscore"
+name = "pydantree-tscore"
 version = "0.1.0"
 description = "The tiny shared seam between tsgrammar (B) and tsquery (A): the grammar node-schema + the artifact-loading contract (CONCEPT §8). Pure Python, no toolchain."
 readme = "README.md"

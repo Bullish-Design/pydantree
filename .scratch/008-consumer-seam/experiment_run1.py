@@ -151,7 +151,7 @@ def _fresh_venv_setup(tmp: Path, wheels: Path) -> Path:
     inst = subprocess.run(
         ["uv", "pip", "install", "--python", str(venv / "bin" / "python"),
          "--find-links", str(wheels),
-         "tscore==0.1.0", "tsquery==0.1.0", "tree-sitter-json"],
+         "pydantree-tscore==0.1.0", "pydantree-tsquery==0.1.0", "tree-sitter-json"],
         capture_output=True, text=True, check=False)
     if inst.returncode != 0:
         raise RuntimeError(f"uv pip install failed: {inst.stderr or inst.stdout}")

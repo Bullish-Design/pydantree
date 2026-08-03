@@ -61,9 +61,9 @@ The root `pyproject.toml` is now the LEGACY distribution only (the deprecated
 
 | wheel | contents | deps |
 |---|---|---|
-| `tscore-0.1.0` | 4 modules (`schema`, `loader`, `_ir_derive`, `__init__`) | pydantic>=2.11, **tree-sitter>=0.26** — **no tsgrammar** |
-| `tsquery-0.1.0` | 6 modules | tscore>=0.1, pydantic, **tree-sitter>=0.26** — **no tsgrammar** |
-| `tsgrammar-0.1.0` | heavy: all modules + **`scanners/indent_scanner.c`** (package data) | tscore>=0.1, pydantic, **tree-sitter>=0.26** |
+| `pydantree-tscore-0.1.0` | 4 modules (`schema`, `loader`, `_ir_derive`, `__init__`) | pydantic>=2.11, **tree-sitter>=0.26** — **no tsgrammar** |
+| `pydantree-tsquery-0.1.0` | 6 modules | pydantree-tscore>=0.1, pydantic, **tree-sitter>=0.26** — **no tsgrammar** |
+| `pydantree-tsgrammar-0.1.0` | heavy: all modules + **`scanners/indent_scanner.c`** (package data) | pydantree-tscore>=0.1, pydantic, **tree-sitter>=0.26** |
 | `pydantree-0.1.2` | legacy wrapper + examples + data only | pydantic, tree-sitter>=0.26, tree-sitter-python |
 
 The `tree-sitter>=0.23` → `>=0.26` pin is tightened everywhere (the code uses
@@ -85,15 +85,15 @@ Results, all in the fresh venv with tsgrammar genuinely absent:
 
 **Two real distribution findings:**
 
-1. **The `tsquery` name is TAKEN on PyPI** — there is a real, GPL-licensed
-   `tsquery` (Greg Werbin, 0.1.1) that won the resolution against our 0.1.0
-   wheelhouse wheel. The fresh-venv install silently pulled it and the 
-   consumer broke with `cannot import name 'Language'`. The harness now pins
-   `tsquery==0.1.0` (+ `--find-links`), but this is an honest claim-level
-   problem for the distribution: the light `tsquery` distribution either
-   needs a different name or must be published deliberately to outrank the
-   existing package. Say so plainly — the CONCEPT's package name needs a
-   decision before any real publishing.
+1. **The `tsquery` name is TAKEN on PyPI — RESOLVED by keeping pydantree.**
+   A real, GPL-licensed `tsquery` (Greg Werbin, 0.1.1) won the resolution
+   against our wheelhouse wheel (the fresh-venv install silently pulled it
+   and the consumer broke). The Phase-6.5 decision: the distributions are
+   pydantree-BRANDED — `pydantree-tscore`, `pydantree-tsquery`,
+   `pydantree-tsgrammar` — while the import packages stay `tscore`/`tsquery`/
+   `tsgrammar` (no code churn; the dependency graph becomes
+   pydantree-tscore). The project identity is pydantree and the bare
+   `tsquery` collision no longer blocks publishing.
 2. **The dev flow has a hardlink-staleness caveat.** Hatchling's editable
    install for the flat-layout packages hard-links the package files into
    site-packages. In-place edits propagate, but adding NEW files or rewriting

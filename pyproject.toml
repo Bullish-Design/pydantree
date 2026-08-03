@@ -22,6 +22,11 @@ keywords = ["tree-sitter", "pydantic", "parser", "ast"]
 #   src/tsquery/pyproject.toml     light — Product A (no toolchain)
 #   src/tsgrammar/pyproject.toml   heavy — Product B (Rust CLI + C toolchain)
 #
+# The distributions are pydantree-BRANDED (pydantree-tscore / -tsquery /
+# -tsgrammar) while the import packages stay tscore/tsquery/tsgrammar — the
+# bare `tsquery` name is taken on PyPI by an unrelated GPL package, and the
+# project identity is pydantree.
+#
 # A consumer installs tscore + tsquery ONLY and gets the full checked
 # extraction; tsgrammar (and the scanner package data) ships separately.
 dependencies = [

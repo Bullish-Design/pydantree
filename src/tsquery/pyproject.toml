@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "tsquery"
+name = "pydantree-tsquery"
 version = "0.1.0"
 description = "Product A — model-only typed extraction over tree-sitter grammars. Light runtime: tscore + the C runtime binding; no Rust CLI, no compiler (CONCEPT §8)."
 readme = "README.md"
@@ -12,7 +12,7 @@ license = { file = "LICENSE" }
 keywords = ["tree-sitter", "pydantic", "parser", "ast", "extraction"]
 
 dependencies = [
-  "tscore>=0.1",
+  "pydantree-tscore>=0.1",
   "pydantic>=2.11",
   "tree-sitter>=0.26",  # the 0.26 floor: reparse, field_name_for_child, ...
 ]

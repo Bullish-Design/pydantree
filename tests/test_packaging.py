@@ -22,6 +22,11 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 
+# the pydantree-branded distribution names (imports stay tscore/tsquery/…)
+DIST = {"tscore": "pydantree-tscore",
+        "tsquery": "pydantree-tsquery",
+        "tsgrammar": "pydantree-tsgrammar"}
+
 
 def _uv_available() -> bool:
     import shutil
@@ -37,7 +42,7 @@ def _build_wheel(pkg: str, out: Path) -> Path:
         ["uv", "build", "--out-dir", str(out)],
         capture_output=True, text=True, cwd=str(SRC / pkg), check=False)
     assert proc.returncode == 0, proc.stderr or proc.stdout
-    whl = next(out.glob(f"{pkg}-*.whl"))
+    whl = next(out.glob(f"{DIST[pkg].replace('-', '_')}-*.whl"))
     return whl
 
 
@@ -68,11 +73,12 @@ def test_light_wheels_carry_no_tsgrammar_and_no_scanner(tmp_path):
             f"{whl.name} leaks tsgrammar"
         assert not any("scanner" in n for n in contents), \
             f"{whl.name} leaks scanner package data"
-        assert not any("pydantree" in n for n in contents), \
+        assert not any("pydantree/" in n for n in contents), \
             f"{whl.name} leaks the legacy wrapper"
-    assert "tscore>=0.1" in _wheel_requires(tsquery)
+    assert "pydantree-tscore>=0.1" in _wheel_requires(tsquery)
     for dep in _wheel_requires(tscore):
-        assert not dep.startswith("tsgrammar"), "tscore depends on tsgrammar"
+        assert not dep.startswith("pydantree-tsgrammar"), \
+            "tscore depends on tsgrammar"
 
 
 def test_heavy_wheel_carries_the_scanner_and_0_26_pin(tmp_path):
@@ -83,7 +89,7 @@ def test_heavy_wheel_carries_the_scanner_and_0_26_pin(tmp_path):
     contents = _wheel_contents(tsg)
     assert "tsgrammar/scanners/indent_scanner.c" in contents
     deps = _wheel_requires(tsg)
-    assert "tscore>=0.1" in deps
+    assert "pydantree-tscore>=0.1" in deps
     assert any(d.startswith("tree-sitter>=") for d in deps)
     tree_pin = [d for d in deps if d.startswith("tree-sitter>=")][0]
     major = tree_pin.split(">=")[1].split(".")[0]
@@ -144,7 +150,7 @@ def test_fresh_venv_light_install_delivers_a_without_b(tmp_path):
     proc = subprocess.run(
         ["uv", "pip", "install", "--python", str(venv / "bin" / "python"),
          "--find-links", str(wheels),
-         "tscore==0.1.0", "tsquery==0.1.0"],
+         "pydantree-tscore==0.1.0", "pydantree-tsquery==0.1.0"],
         capture_output=True, text=True, check=False)
     assert proc.returncode == 0, proc.stderr or proc.stdout
     # the seam does not leak: tsgrammar is not importable in the light install
