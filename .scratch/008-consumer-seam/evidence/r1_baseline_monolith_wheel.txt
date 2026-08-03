@@ -1,0 +1,64 @@
+=== pre-split wheel: pydantree-0.1.2-py3-none-any.whl (40 files) ===
+  examples   3 files
+  pydantree  10 files
+  pydantree-0.1.2.dist-info 5 files
+  tscore     4 files
+  tsgrammar  12 files
+  tsquery    6 files
+
+top-level entries:
+  examples/demo.py
+  examples/file_parse_demo.py
+  examples/view_demo.py
+  pydantree/__init__.py
+  pydantree/cli.py
+  pydantree/core.py
+  pydantree/generator.py
+  pydantree/incremental.py
+  pydantree/loader.py
+  pydantree/parser.py
+  pydantree/views.py
+  pydantree/cli/cli_module.py
+  pydantree/main/main_init.py
+  tscore/__init__.py
+  tscore/_ir_derive.py
+  tscore/loader.py
+  tscore/schema.py
+  tsgrammar/__init__.py
+  tsgrammar/builder.py
+  tsgrammar/checks.py
+  tsgrammar/conflicts.py
+  tsgrammar/corpus.py
+  tsgrammar/expressions.py
+  tsgrammar/grammar.py
+  tsgrammar/language.py
+  tsgrammar/pipeline.py
+  tsgrammar/schema_tool.py
+  tsgrammar/scanners/__init__.py
+  tsgrammar/scanners/indent_scanner.c
+  tsquery/__init__.py
+  tsquery/dsl.py
+  tsquery/materialize.py
+  tsquery/schema.py
+  tsquery/shapes.py
+  tsquery/typed.py
+  pydantree-0.1.2.dist-info/METADATA
+  pydantree-0.1.2.dist-info/WHEEL
+  pydantree-0.1.2.dist-info/entry_points.txt
+  pydantree-0.1.2.dist-info/licenses/LICENSE
+  pydantree-0.1.2.dist-info/RECORD
+
+=== dependencies ===
+  Requires-Dist: pydantic>=2.11
+  Requires-Dist: tree-sitter-python>=0.23.6
+  Requires-Dist: tree-sitter>=0.23
+  Requires-Dist: black>=24.0; extra == 'dev'
+  Requires-Dist: coverage>=7.0; extra == 'dev'
+  Requires-Dist: mypy>=1.10; extra == 'dev'
+  Requires-Dist: pytest>=8.0; extra == 'dev'
+  Requires-Dist: ruff>=0.4; extra == 'dev'
+  Requires-Dist: tree-sitter-json>=0.24; extra == 'dev'
+  Requires-Dist: tree-sitter-python>=0.23; extra == 'python'
+
+scanner .c shipped in the monolith wheel: True
+wheel size: 102795 bytes
