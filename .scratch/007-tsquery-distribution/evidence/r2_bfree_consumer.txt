@@ -1,0 +1,33 @@
+exit=0
+{
+  "ok": true,
+  "sections": [
+    {
+      "host": "example.com",
+      "port": 8080,
+      "debug": true,
+      "title": "My App",
+      "line": 2
+    },
+    {
+      "host": "localhost",
+      "port": 9090,
+      "debug": false,
+      "title": null,
+      "line": 9
+    }
+  ],
+  "directives": [
+    {
+      "name": "listen",
+      "port": 8080,
+      "line": 14
+    },
+    {
+      "name": "reload",
+      "port": 5,
+      "line": 16
+    }
+  ],
+  "schema_bound": true
+}

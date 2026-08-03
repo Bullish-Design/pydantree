@@ -1,0 +1,7 @@
+corpus: 19 case(s), 1 failure(s)
+  - case '1 + 2 + 3;' (/home/andrew/Documents/Projects/pydantree/.scratch/007-tsquery-distribution/qfilter_corpus.py:60): shape '((number) + ((number) + (number)))', expected '(((number) + (number)) + (number))' (a grammar change altered the parse)
+      --- expected
+      +++ got
+      @@ -1 +1 @@
+      -(((number) + (number)) + (number))
+      +((number) + ((number) + (number)))

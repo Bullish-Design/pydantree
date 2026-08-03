@@ -1,0 +1,39 @@
+RUN 3 — the raw py-tree-sitter control (no schema)
+
+  raw surface: ctypes/PyCapsule load + 2 hand-written .scm patterns + a
+  manual dispatch table (key -> field) + manual int/bool coercion + manual
+  string unquoting + a try/except for non-numeric args.
+
+  author effort (this task):
+    .scm patterns:         2 lines (value supertype = one wildcard-ish shape)
+    dispatch table:        ~10 lines (key -> field, per-key coercion)
+    coercion:              int() / == "true" / strip('"') by hand
+    schema (none):         NO model/grammar check, NO shape derivation, NO
+                           capture/type check, NO record-level anchoring,
+                           NO descendant matching, NO unescaping
+
+  where mistakes surface (this task):
+    kind/field typo in .scm      -> Query() construction error (free)
+    capture can't coerce (port)  -> silent row filter (the try/except) or a
+                                    runtime crash mid-loop
+    wrong value shape            -> silent wrong row (no schema to restrict
+                                    the value supertype)
+    nested key collision         -> AmbiguousCapture-equivalent runtime bug
+    chain/descent error          -> silent empty result
+    no unescaping                -> title keeps the quotes unless hand-stripped
+
+  comparison (same two tasks):
+
+    metric                  raw control          Phase 5 (bundle + schema)
+    --------------------    ----------------     ---------------------------
+    loading                 ctypes boilerplate   Language.load_bundle(dir)
+                            (4 lines)            (1 call)
+    query                   hand-written .scm    model-only (derived .scm)
+    value shapes            value supertype      derived per type
+                            (hand-written)       (0 hand-written lines)
+    coercion                manual int/bool     pydantic (lax, typed)
+    string unquoting        manual strip('"')    Unescaped() + json decode
+    kind/type mistakes      silent wrong row     validate_with (schema cited)
+    chain/descent mistakes  silent empty result  validate_with (Job 1)
+    checks before parsing   none                 Jobs 1/3/4 at validate_with
+    author effort (task)    ~20 lines            ~10 model lines

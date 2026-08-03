@@ -1,0 +1,19 @@
+corpus: 13 case(s), 3 failure(s)
+  - case 'if (a) { b = 1; } else { b = 2; }' (/home/andrew/Documents/Projects/pydantree/.scratch/007-tsquery-distribution/qfilter_corpus.py:116): shape "(source_file (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' (ERROR '{') then: (assign name: (identifier) '=' value: (expr (number)) ';')) (ERROR '}' 'else' '{') (assign name: (identifier) '=' value: (expr (number)) ';') (ERROR '}'))", expected "(source_file (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' then: (block '{' (assign name: (identifier) '=' value: (expr (number)) ';') '}') 'else' else: (block '{' (assign name: (identifier) '=' value: (expr (number)) ';') '}')))" (a grammar change altered the parse)
+      --- expected
+      +++ got
+      @@ -1 +1 @@
+      -(source_file (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' then: (block '{' (assign name: (identifier) '=' value: (expr (number)) ';') '}') 'else' else: (block '{' (assign name: (identifier) '=' value: (expr (number)) ';') '}')))
+      +(source_file (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' (ERROR '{') then: (assign name: (identifier) '=' value: (expr (number)) ';')) (ERROR '}' 'else' '{') (assign name: (identifier) '=' value: (expr (number)) ';') (ERROR '}'))
+  - case 'if (a) if (b) { c; } else { d; }' (/home/andrew/Documents/Projects/pydantree/.scratch/007-tsquery-distribution/qfilter_corpus.py:123): shape "(source_file (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' then: (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' (ERROR '{') then: (expr_stmt (expr (identifier)) ';'))) (ERROR '}' 'else' '{') (expr_stmt (expr (identifier)) ';') (ERROR '}'))", expected "(source_file (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' then: (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' then: (block '{' (expr_stmt (expr (identifier)) ';') '}') 'else' else: (block '{' (expr_stmt (expr (identifier)) ';') '}'))))" (a grammar change altered the parse)
+      --- expected
+      +++ got
+      @@ -1 +1 @@
+      -(source_file (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' then: (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' then: (block '{' (expr_stmt (expr (identifier)) ';') '}') 'else' else: (block '{' (expr_stmt (expr (identifier)) ';') '}'))))
+      +(source_file (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' then: (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' (ERROR '{') then: (expr_stmt (expr (identifier)) ';'))) (ERROR '}' 'else' '{') (expr_stmt (expr (identifier)) ';') (ERROR '}'))
+  - case 'if (a) { if (b) { x; } }' (/home/andrew/Documents/Projects/pydantree/.scratch/007-tsquery-distribution/qfilter_corpus.py:151): shape "(source_file (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' (ERROR '{') then: (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' (ERROR '{') then: (expr_stmt (expr (identifier)) ';'))) (ERROR '}' '}'))", expected "(source_file (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' then: (block '{' (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' then: (block '{' (expr_stmt (expr (identifier)) ';') '}')) '}')))" (a grammar change altered the parse)
+      --- expected
+      +++ got
+      @@ -1 +1 @@
+      -(source_file (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' then: (block '{' (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' then: (block '{' (expr_stmt (expr (identifier)) ';') '}')) '}')))
+      +(source_file (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' (ERROR '{') then: (if_stmt 'if' cond: '(' cond: (expr (identifier)) cond: ')' (ERROR '{') then: (expr_stmt (expr (identifier)) ';'))) (ERROR '}' '}'))

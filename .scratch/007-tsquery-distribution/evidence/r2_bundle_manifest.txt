@@ -1,0 +1,5 @@
+grammar.so: 20320 bytes
+loader.py: 217 bytes
+node-schema.json: 4650 bytes
+tree-sitter.json: 131 bytes
+loader.py lines: 7

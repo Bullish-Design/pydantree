@@ -1,0 +1,16 @@
+RUN 1 — planted regressions (all GENERATE CLEAN, parse wrongly)
+
+R1 ladder reorder (unary ABOVE pow): CATCH (smoke seed catches it too (`-a ^ b` is in the seed))
+  smoke-seed failures: 1
+  full-corpus failures: 1
+    '-a ^ b;' -> '((- (identifier)) ^ (identifier))'
+R2 associativity flip (+ right-assoc): CATCH (smoke seed is BLIND to it (no chain case in the seed))
+  smoke-seed failures: 0
+  full-corpus failures: 1
+    '1 + 2 + 3;' -> '((number) + ((number) + (number)))'
+R3 postfix below unary: CATCH (smoke seed catches `-f(x)`; the corpus adds `-a.b`, `-f(x) + 1`)
+  smoke-seed failures: 1
+  full-corpus failures: 3
+    '-f(x);' -> '((- (identifier)) ( args((identifier)) ))'
+    '-a.b;' -> '((- (identifier)) . identifier)'
+    '-f(x) + 1;' -> '(((- (identifier)) ( args((identifier)) )) + (number))'

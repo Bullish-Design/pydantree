@@ -1,0 +1,50 @@
+agreement=True
+exit=0
+{
+  "ok": true,
+  "rows": [
+    {
+      "name": "alice",
+      "age": 30,
+      "tags": [
+        "red",
+        "blue",
+        "green"
+      ],
+      "nickname": "ali",
+      "active": true,
+      "line": 2
+    },
+    {
+      "name": "bob",
+      "age": 41,
+      "tags": [
+        "dev"
+      ],
+      "nickname": null,
+      "active": false,
+      "line": 9
+    },
+    {
+      "name": "carol",
+      "age": 25,
+      "tags": [],
+      "nickname": null,
+      "active": false,
+      "line": 15
+    },
+    {
+      "name": "dave",
+      "age": 55,
+      "tags": [
+        "x",
+        "y",
+        "z",
+        "w"
+      ],
+      "nickname": null,
+      "active": true,
+      "line": 22
+    }
+  ]
+}
