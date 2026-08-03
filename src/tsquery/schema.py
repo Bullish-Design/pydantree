@@ -129,7 +129,7 @@ def _check_field_mode(model_cls, schema, d: _Derived) -> None:
             _raise(model_cls,
                    f"capture({field_name!r}) on field {fname!r}: kind "
                    f"{anchor_kind!r} has no CST field {field_name!r} (its "
-                   f"fields: {sorted(schema.get(anchor_kind).fields)})",
+                   f"fields: {sorted((schema.get(anchor_kind).fields or {}))})",
                    entry=f"{anchor_kind}.{field_name}")
         possible = schema.expand(r.type for r in
                                  schema.field_types(anchor_kind, field_name))

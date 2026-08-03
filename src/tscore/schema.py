@@ -87,23 +87,53 @@ class ChildInfo(BaseModel):
 
 
 class NodeTypeInfo(BaseModel):
-    """One node kind's schema entry (mirrors NodeInfoJSON)."""
+    """One node kind's schema entry (mirrors NodeInfoJSON).
+
+    Phase 6: `fields` is now `None` for entries that carry no field/children
+    summary in the CLI's node-types.json (lexical rules, bare alias entries,
+    anonymous tokens) and a dict (possibly empty) for computed non-lexical
+    rule entries — matching node_types.rs's emission exactly, so our
+    serialization round-trips the CLI byproduct byte-for-byte.
+    """
 
     type: str
     named: bool = True
     root: bool = False
     extra: bool = False
-    fields: dict[str, ChildInfo] = Field(default_factory=dict)
+    fields: dict[str, ChildInfo] | None = None
     children: ChildInfo | None = None
     subtypes: list[NodeTypeRef] | None = None
 
 
+def _emit_node_type(t: NodeTypeInfo) -> dict:
+    """Serialize one entry in the CLI's exact node_types.rs emission shape:
+    `type`/`named` always; `root`/`extra` only when true; `fields` only when
+    the entry carries a computed field summary (None for lexical/bare);
+    `children`/`subtypes` when present. Phase 6: this is what makes the
+    community path (and the exact path) byte-for-byte comparable with the
+    CLI's node-types.json."""
+    out: dict = {"type": t.type, "named": t.named}
+    if t.root:
+        out["root"] = True
+    if t.extra:
+        out["extra"] = True
+    if t.fields is not None:
+        out["fields"] = {
+            k: fi.model_dump(exclude_none=True) for k, fi in t.fields.items()}
+    if t.children is not None:
+        out["children"] = t.children.model_dump(exclude_none=True)
+    if t.subtypes is not None:
+        out["subtypes"] = [s.model_dump(exclude_none=True) for s in t.subtypes]
+    return out
+
+
 def _canonical_sorted(types: list[NodeTypeInfo]) -> list[NodeTypeInfo]:
     """The CLI's node_types.rs sort: supertypes first, then non-leaves, then
-    leaves, alphabetical within each group."""
+    leaves, alphabetical within each group. "Leaf" means the entry carries no
+    fields AND no children (node_types.rs's `fields.is_none()`)."""
     def key(t: NodeTypeInfo):
         has_subtypes = t.subtypes is not None
-        is_leaf = t.children is None and not t.fields
+        is_leaf = t.children is None and t.fields is None
         return (0 if has_subtypes else 1, 0 if not is_leaf else 1, t.type)
     return sorted(types, key=key)
 
@@ -143,9 +173,8 @@ class NodeSchema(BaseModel):
         return _canonical_sorted([t.model_copy(deep=True) for t in self.node_types])
 
     def to_json(self, indent: int = 2) -> str:
-        return json.dumps(
-            [t.model_dump(exclude_none=True) for t in self.to_list()],
-            indent=indent)
+        return json.dumps([_emit_node_type(t) for t in self.to_list()],
+                          indent=indent)
 
     def write(self, path: str | Path) -> Path:
         path = Path(path)
@@ -169,7 +198,7 @@ class NodeSchema(BaseModel):
     def field_types(self, kind: str, field: str) -> list[NodeTypeRef]:
         """The possible node types of `field` on `kind` ([] if unknown)."""
         t = self.get(kind)
-        if t is None:
+        if t is None or t.fields is None:
             return []
         info = t.fields.get(field)
         return list(info.types) if info is not None else []
@@ -183,7 +212,7 @@ class NodeSchema(BaseModel):
 
     def has_field(self, kind: str, field: str) -> bool:
         t = self.get(kind)
-        return t is not None and field in t.fields
+        return t is not None and t.fields is not None and field in t.fields
 
     def supertype_subtypes(self, kind: str) -> list[str]:
         t = self.get(kind)
@@ -215,7 +244,7 @@ class NodeSchema(BaseModel):
         t = self.get(kind)
         if t is None:
             return set()
-        refs = [r.type for f in t.fields.values() for r in f.types]
+        refs = [r.type for f in (t.fields or {}).values() for r in f.types]
         refs += [r.type for r in (t.children.types if t.children else [])]
         return self.expand(refs)
 

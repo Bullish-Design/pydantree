@@ -31,6 +31,7 @@ from tsgrammar.grammar import (  # noqa: E402  (this module is B-side only)
     PrecRightNode,
     Repeat1Node,
     RepeatNode,
+    ReservedNode,
     RuleNode,
     SeqNode,
     StrNode,
@@ -114,17 +115,20 @@ class _Quantity:
 
 class _Step:
     """One step of a production: a visible child ("kind") or an inherited
-    hidden child ("hidden")."""
+    hidden child ("hidden"). `tok` records the token source for anonymous
+    kinds ("str" | "pattern" | None) — the CLI emits STRING-based anonymous
+    kinds but never PATTERN-based ones (probed Phase 6)."""
 
-    __slots__ = ("kind", "name", "named", "field", "quant")
+    __slots__ = ("kind", "name", "named", "field", "quant", "tok")
 
     def __init__(self, kind: str, name: str, named: bool,
-                 field: str | None, quant: _Quantity):
+                 field: str | None, quant: _Quantity, tok: str | None = None):
         self.kind = kind
         self.name = name
         self.named = named
         self.field = field
         self.quant = quant
+        self.tok = tok
 
 
 class _VarInfo:
@@ -169,22 +173,13 @@ class _Deriver:
     # ---- reachability (the CLI silently prunes unreachable rules) --------
 
     def _reachable(self) -> set[str]:
-        seeds = {self.start}
-        if self.word:
-            seeds.add(self.word)
-        seeds |= self._extra_names
-        seeds |= self._externals
-        seen: set[str] = set()
-        stack = [s for s in seeds if s in self.rules]
-        while stack:
-            name = stack.pop()
-            if name in seen:
-                continue
-            seen.add(name)
-            for ref in _symbol_refs(self.rules[name]):
-                if ref in self.rules and ref not in seen:
-                    stack.append(ref)
-        return seen
+        """The CLI's variable_is_used port: a rule survives iff it is the
+        start rule, referenced by an extra/external, or referenced by another
+        surviving rule. Phase 6: the exact port (previously a seeds+walk
+        approximation that never actually pruned)."""
+        return {name for name in self.rules
+                if _variable_is_used(self.rules, self.grammar.extras,
+                                     self.grammar.externals, name, set())}
 
     # ---- fixed point over all rules --------------------------------------
 
@@ -246,11 +241,18 @@ class _Deriver:
                     for fname, fq in child.fields.items():
                         pf[fname].append(fq.scaled_by(step.quant))
                         pft[fname].update(child.field_types.get(fname, set()))
-                    if step.field is None:
+                    if step.field is not None:
+                        # a field step over a hidden child: the field exists
+                        # and its possible types are the hidden child's
+                        # children (node_types.rs: field_info.types += the
+                        # hidden variable's children.types)
+                        pf[step.field].append(
+                            child.children_q.scaled_by(step.quant))
+                        pft[step.field].update(child.children_types)
+                    elif child.wo_types:
                         wq = child.wo_q.scaled_by(step.quant)
-                        if child.wo_types:
-                            pwo.append(wq)
-                            pwo_types.update(child.wo_types)
+                        pwo.append(wq)
+                        pwo_types.update(child.wo_types)
 
             # union this production into the rule totals
             for fname, q in pf.items():
@@ -283,9 +285,20 @@ class _Deriver:
 
     def _productions(self, node: RuleNode, guard: set[str]) -> list[list[_Step]]:
         """Expand a body into productions (step lists). Choice forks; SEQ
-        concats; hidden/inline symbols become inherit-steps; repeats mark
-        quantity; aliases contribute their kind as a child."""
-        node = _unwrap(node)
+        concats; inline rules expand; hidden rules become inherit-steps;
+        repeats mark quantity; aliases contribute their kind as a child."""
+        node = _unwrap_prec(node)
+        if isinstance(node, (TokenNode, ImmediateTokenNode)):
+            # a token wrapper: a single-STRING content is an anonymous string
+            # terminal (anon-eligible); anything else is fused (no anon kind)
+            c = _unwrap_prec(node.content)
+            if isinstance(c, StrNode):
+                return [[_Step("kind", c.value, False, None, _Quantity.one(),
+                               tok="str")]]
+            if isinstance(c, PatternNode):
+                return [[_Step("kind", c.value, False, None, _Quantity.one(),
+                               tok="pattern")]]
+            return [[]]  # fused multi-part token — no visible child steps
         if isinstance(node, BlankNode):
             return [[]]
         if isinstance(node, SymbolNode):
@@ -296,20 +309,55 @@ class _Deriver:
                 # sees the alias kind (the CLI's extract_default_aliases)
                 return [[_Step("kind", ref_body.value, ref_body.named,
                                None, _Quantity.one())]]
-            if name in self.inline or name in self.hidden:
+            if name in self.supertypes:
+                # supertype symbols are never hidden (node_types.rs's
+                # variable_type_for_child_type exemption): a visible kind step
+                return [[_Step("kind", name, True, None, _Quantity.one())]]
+            if name in self.inline:
                 if name in guard:
-                    return [[]]  # recursive hidden/inline — conservative
+                    return [[]]  # recursive inline — conservative
                 body = self.rules.get(name)
                 if body is None:
                     return [[]]
                 return self._productions(body, guard | {name})
+            if name in self.hidden:
+                # a hidden (non-inline) ref is an INHERIT step: the fixed
+                # point merges the hidden rule's own children/fields, scaled
+                # by this step's quantity (node_types.rs's production
+                # analysis — recursive hidden rules like rust's _let_chain
+                # converge through this, giving multiple=true)
+                return [[_Step("hidden", name, True, None, _Quantity.one())]]
+            if name.startswith("_") and ref_body is None:
+                # a hidden EXTERNAL (e.g. rust's `_block_comment_content`):
+                # hidden in node_types.rs (external kind), so an inherit step
+                # whose (empty) summary contributes nothing
+                return [[_Step("hidden", name, True, None, _Quantity.one())]]
             return [[_Step("kind", name, True, None, _Quantity.one())]]
-        if isinstance(node, (StrNode, PatternNode)):
-            return [[_Step("kind", node.value, False, None, _Quantity.one())]]
+        if isinstance(node, StrNode):
+            return [[_Step("kind", node.value, False, None, _Quantity.one(),
+                           tok="str")]]
+        if isinstance(node, PatternNode):
+            # pattern tokens never become anonymous kinds in node-types.json
+            # (the CLI's lexical grammar does not carry them) — still a step
+            # for quantity purposes, tagged so the anon pass skips it
+            return [[_Step("kind", node.value, False, None, _Quantity.one(),
+                           tok="pattern")]]
         if isinstance(node, AliasNode):
-            return [[_Step("kind", node.value, node.named, None, _Quantity.one())]]
+            # an explicit alias: the alias VALUE is the child kind. An
+            # anonymous alias of a non-terminal (python's `is not` over the
+            # hidden `_is_not`) is NOT an anonymous kind — the rule loop
+            # emits the alias value with fields:{}; only a lexical-content
+            # anonymous alias (rust's `"` over a pattern) is anon-eligible.
+            content = _unwrap_prec(node.content)
+            if isinstance(content, SymbolNode):
+                return [[_Step("kind", node.value, node.named, None,
+                               _Quantity.one())]]
+            return [[_Step("kind", node.value, node.named, None,
+                           _Quantity.one(),
+                           tok="str" if not node.named else None)]]
         if isinstance(node, FieldNode):
-            return [[_Step(s.kind, s.name, s.named, node.name, s.quant)
+            return [[_Step(s.kind, s.name, s.named, node.name, s.quant,
+                           s.tok)
                      for s in st] for st in self._productions(node.content, guard)]
         if isinstance(node, SeqNode):
             result: list[list[_Step]] = [[]]
@@ -326,164 +374,480 @@ class _Deriver:
         if isinstance(node, (RepeatNode, Repeat1Node)):
             plus = isinstance(node, Repeat1Node)
             q = _Quantity.one().repeat_quantity(plus=plus)
-            return [[_Step(s.kind, s.name, s.named, s.field, s.quant.scaled_by(q))
+            return [[_Step(s.kind, s.name, s.named, s.field,
+                           s.quant.scaled_by(q), s.tok)
                      for s in st] for st in self._productions(node.content, guard)]
         return [[]]
 
 
-def _symbol_refs(node: RuleNode) -> list[str]:
-    out: list[str] = []
-    stack = [node]
-    while stack:
-        n = _unwrap(stack.pop())
-        if isinstance(n, SymbolNode):
-            out.append(n.name)
-            continue
-        if isinstance(n, AliasNode):
-            stack.append(n.content)
-            continue
-        c = getattr(n, "content", None)
+_PREC_NODES = (PrecNode, PrecLeftNode, PrecRightNode, PrecDynamicNode)
+
+
+def _unwrap_prec(node: RuleNode) -> RuleNode:
+    """Unwrap precedence wrappers only (not TOKEN/IMMEDIATE_TOKEN — those are
+    the is_token path and must be seen by _productions)."""
+    while isinstance(node, _PREC_NODES):
+        node = node.content
+    return node
+
+
+def _rule_token_outcome(body: RuleNode) -> tuple[str | None, bool]:
+    """The CLI's extract_tokens rule-level outcome (extract_tokens.rs):
+    (terminal_kind, fully_extracted).
+
+    * "anon" — the rule's token is a single STRING (bare, or wrapped in
+      TOKEN/IMMEDIATE_TOKEN): an ANONYMOUS terminal named after the string.
+    * "aux" — a PATTERN or multi-part TOKEN: an AUXILIARY terminal
+      (`{rule}_token{N}`), never emitted in node-types.
+    * fully_extracted — the rule's body became a bare Symbol(terminal): the
+      condition for the "give the rule its name to the token" rename. A
+      PREC-wrapped string stays in the syntax grammar (body becomes
+      Metadata(PREC, Symbol)), so it is NOT fully extracted — e.g. python's
+      `break_statement: PREC_LEFT(0, 'break')` keeps a rule-loop entry
+      (fields:{}) AND the anonymous `break` kind.
+    """
+    if isinstance(body, (TokenNode, ImmediateTokenNode)):
+        c = _unwrap_prec(body.content)
+        if isinstance(c, StrNode):
+            return "anon", True
+        return "aux", True
+    node = body
+    wrapped = False
+    while isinstance(node, _PREC_NODES):
+        wrapped = True
+        node = node.content
+    if isinstance(node, StrNode):
+        return "anon", not wrapped
+    if isinstance(node, PatternNode):
+        return "aux", not wrapped
+    if isinstance(node, (TokenNode, ImmediateTokenNode)):
+        inner = _unwrap_prec(node.content)
+        return ("anon" if isinstance(inner, StrNode) else "aux"), False
+    return None, False
+
+
+def _string_usage(d: "_Deriver", reachable: set) -> dict:
+    """Bare-STRING terminal usage counts (the CLI's extracted_usage_counts):
+    how many rule bodies / extras / externals reference each anonymous string
+    terminal. A bare-string rule is only renamed to a named terminal when its
+    string is used exactly once."""
+    counts: dict = defaultdict(int)
+
+    def walk(node: RuleNode) -> None:
+        node = _unwrap_prec(node)
+        if isinstance(node, StrNode):
+            counts[node.value] += 1
+            return
+        if isinstance(node, (TokenNode, ImmediateTokenNode)):
+            return  # TOKEN-wrapped strings are DIFFERENT terminals
+        if isinstance(node, AliasNode):
+            walk(node.content)
+            return
+        c = getattr(node, "content", None)
         if isinstance(c, RuleNode):
-            stack.append(c)
-        m = getattr(n, "members", None)
+            walk(c)
+        m = getattr(node, "members", None)
         if isinstance(m, list):
-            stack.extend(m)
-    return out
+            for mm in m:
+                walk(mm)
+
+    for name in reachable:
+        walk(d.rules[name])
+    for ex in list(d.grammar.extras) + list(d.grammar.externals):
+        walk(ex)
+    return counts
+
+
+def _rule_is_renamed(name: str, body: RuleNode, i: int,
+                     usage: dict) -> bool:
+    """Would the CLI rename this rule's extracted token to the rule name
+    (removing the rule from the syntax grammar)? The aux case always renames
+    (when fully extracted); the anon-string case renames only a visible
+    non-start rule whose string appears exactly once."""
+    kind, full = _rule_token_outcome(body)
+    if not full:
+        return False
+    if kind == "aux":
+        return True
+    if kind == "anon":
+        value = _unwrap_prec(body).value if isinstance(
+            _unwrap_prec(body), StrNode) else None
+        if value is None:
+            c = _unwrap_prec(body.content) if isinstance(
+                body, (TokenNode, ImmediateTokenNode)) else None
+            value = getattr(c, "value", None)
+        return i > 0 and not name.startswith("_") and usage.get(value) == 1
+    return False
 
 
 def _is_lexical_rule(body: RuleNode) -> bool:
     """A rule whose body is a TOKEN/IMMEDIATE_TOKEN or a bare
     STRING/PATTERN is a lexical variable in the CLI — it gets `{type,
-    named}` and no fields/children (its content fuses into the lexer)."""
+    named}` and no fields/children (its content fuses into the lexer).
+    Phase 6: kept for the legacy check; the token-extraction model is
+    `_rule_token_outcome` + `_rule_is_renamed`."""
     if isinstance(body, (TokenNode, ImmediateTokenNode)):
         return True
     body = _unwrap(body)
     return isinstance(body, (StrNode, PatternNode))
 
 
+# --------------------------------------------------------------------------
+# the CLI's pruning + aliasing, ported (parse_grammar.rs, node_types.rs)
+# --------------------------------------------------------------------------
+
+# the rule-level wrappers the CLI's rule_is_referenced treats as "Metadata"
+# (recursed with the SAME is_external flag): precedence, token wrappers, FIELD
+# and ALIAS
+_METADATA_WRAPPERS = (PrecNode, PrecLeftNode, PrecRightNode, PrecDynamicNode,
+                      TokenNode, ImmediateTokenNode, FieldNode, AliasNode,
+                      ReservedNode)
+
+
+def _rule_is_referenced(node: RuleNode, target: str, is_external: bool) -> bool:
+    """Port of parse_grammar.rs's `rule_is_referenced`. `is_external` is set
+    only while scanning an external token's body; NamedSymbol references do
+    not count there (external bodies are token-level)."""
+    if isinstance(node, SymbolNode):
+        return node.name == target and not is_external
+    if isinstance(node, (ChoiceNode, SeqNode)):
+        return any(_rule_is_referenced(m, target, False) for m in node.members)
+    if isinstance(node, _METADATA_WRAPPERS):
+        return _rule_is_referenced(node.content, target, is_external)
+    if isinstance(node, (RepeatNode, Repeat1Node)):
+        return _rule_is_referenced(node.content, target, False)
+    return False  # BLANK / STRING / PATTERN
+
+
+def _variable_is_used(grammar_rules: dict, extras: list, externals: list,
+                      target: str, in_progress: set) -> bool:
+    """Port of parse_grammar.rs's `variable_is_used`: a rule is used iff it
+    is the start rule, referenced by an extra or external rule (with the
+    CLI's follow-alias semantics), or referenced by another used rule.
+    This is the CLI's silent pruning — a rule that is unreachable here gets
+    NO node-types entry."""
+    root = next(iter(grammar_rules))
+    if target == root:
+        return True
+    if any(_rule_is_referenced(ex, target, False) for ex in extras):
+        return True
+    if any(_rule_is_referenced(ex, target, True) for ex in externals):
+        return True
+    in_progress.add(target)
+    result = False
+    for name, rule in grammar_rules.items():
+        if name == target or name in in_progress:
+            continue
+        if _rule_is_referenced(rule, target, False) and \
+                _variable_is_used(grammar_rules, extras, externals, name,
+                                  in_progress):
+            result = True
+            break
+    in_progress.discard(target)
+    return result
+
+
+def _step_aliases(node: RuleNode, rules: dict, d: "_Deriver"):
+    """Yield (symbol_name, explicit_alias | None) for every symbol step in
+    `node`, resolving references to inline/hidden alias rules to their
+    content symbol — the CLI's post-inline step (an `_foo` rule whose body is
+    `alias($.bar, $.baz)` becomes a step on `bar` with alias `baz`)."""
+    node = _unwrap(node)
+    if isinstance(node, SymbolNode):
+        ref = rules.get(node.name)
+        if isinstance(ref, AliasNode) and \
+                (node.name in d.inline or node.name in d.hidden):
+            inner = _unwrap(ref.content)
+            if isinstance(inner, SymbolNode):
+                yield (inner.name, (ref.value, ref.named))
+            else:
+                yield (None, None)  # lexical content — anonymous token
+        else:
+            yield (node.name, None)
+        return
+    if isinstance(node, AliasNode):
+        for sym, _a in _step_aliases(node.content, rules, d):
+            if sym is not None:
+                yield (sym, (node.value, node.named))
+        return
+    if isinstance(node, FieldNode):
+        yield from _step_aliases(node.content, rules, d)
+        return
+    if isinstance(node, (ChoiceNode, SeqNode)):
+        for m in node.members:
+            yield from _step_aliases(m, rules, d)
+        return
+    if isinstance(node, (RepeatNode, Repeat1Node)):
+        yield from _step_aliases(node.content, rules, d)
+        return
+
+
+def _aliases_by_symbol(d: "_Deriver", reachable: set):
+    """Port of node_types.rs's `get_aliases_by_symbol`: every symbol's set of
+    (alias_value, named) | None — from default aliases (non-inline rules
+    whose body is an alias), the extras (their own name when not
+    default-aliased), every production step's alias-or-default-alias, and the
+    start rule. This is what makes merged aliases (several rules under one
+    visible kind) and alias-derived kinds (type_identifier etc.) come out
+    right. Also returns `bare_aliases`: named alias values whose content is
+    lexical (no symbol steps — e.g. rust's `primitive_type`), which the CLI
+    emits as bare named entries of their own."""
+    rules = d.rules
+    aliases: dict = defaultdict(set)
+    bare_aliases: set = set()
+    for name, body in rules.items():
+        if name in d.inline:
+            continue
+        if isinstance(body, AliasNode):
+            aliases[name].add((body.value, body.named))
+    default_aliased = {n for n, b in rules.items()
+                       if n not in d.inline and isinstance(b, AliasNode)}
+    for ex in d.grammar.extras:
+        ex = _unwrap(ex)
+        if isinstance(ex, SymbolNode) and ex.name not in default_aliased:
+            aliases[ex.name].add(None)
+        elif isinstance(ex, AliasNode):
+            aliases[ex.value].add(None)
+    for name in reachable:
+        if name not in rules:
+            continue
+        body = rules[name]
+        if isinstance(body, AliasNode):
+            body = body.content
+        steps = list(_step_aliases(body, rules, d))
+        # named aliases over lexical content (no symbol steps — e.g. rust's
+        # `primitive_type`) become bare named entries of their own
+        for a in _alias_values(body):
+            if a is not None:
+                bare_aliases.add(a)
+        for sym, explicit in steps:
+            if sym is None:
+                continue
+            if explicit is not None:
+                aliases[sym].add(explicit)
+                continue
+            ref = rules.get(sym)
+            if isinstance(ref, AliasNode) and sym not in d.inline:
+                aliases[sym].add((ref.value, ref.named))
+            else:
+                aliases[sym].add(None)
+    aliases[d.start].add(None)
+    return aliases, bare_aliases
+
+
+def _alias_values(node: RuleNode):
+    """Named alias values whose content is lexical (no symbol references) —
+    the CLI's fused-terminal aliases (rust's `primitive_type`)."""
+    node = _unwrap(node)
+    if isinstance(node, AliasNode):
+        if not _has_symbol(node.content):
+            yield (node.value, node.named)
+        else:
+            yield from _alias_values(node.content)
+        return
+    c = getattr(node, "content", None)
+    if isinstance(c, RuleNode):
+        yield from _alias_values(c)
+    m = getattr(node, "members", None)
+    if isinstance(m, list):
+        for mm in m:
+            yield from _alias_values(mm)
+
+
+def _has_symbol(node: RuleNode) -> bool:
+    node = _unwrap_prec(node)
+    if isinstance(node, SymbolNode):
+        return True
+    if isinstance(node, AliasNode):
+        return _has_symbol(node.content)
+    c = getattr(node, "content", None)
+    if isinstance(c, RuleNode) and _has_symbol(c):
+        return True
+    m = getattr(node, "members", None)
+    if isinstance(m, list) and any(_has_symbol(mm) for mm in m):
+        return True
+    return False
+
+
+def _sorted_types(types: set) -> list[NodeTypeRef]:
+    return [NodeTypeRef(type=k, named=n) for k, n in sorted(types)]
+
+
+# --------------------------------------------------------------------------
+# derive_from_ir — the exact path (mirrors node_types.rs's entry emission)
+# --------------------------------------------------------------------------
+
+
 def derive_from_ir(grammar: GrammarModel) -> list[NodeTypeInfo]:
     """The exact path: walk the grammar IR -> the canonical node-schema list.
 
-    Mirrors the CLI's node-types.json for the shared subset (verified by the
-    agreement check in tests/): field-bearing kinds, supertype `subtypes`,
-    children, root/extra markers, and the anonymous-kind list.
-    """
+    Phase 6: ported to mirror node_types.rs's emission exactly — reachability
+    (the CLI's variable_is_used pruning), the aliases-by-symbol mapping
+    (merged aliases, alias-derived kinds), the supertype subtypes, the
+    STRING-only anonymous kinds, and the emission shape (no `fields: {}` on
+    lexical/bare entries, `root`/`extra` only when true). Verified
+    byte-for-byte against the CLI's node-types.json over the real
+    tree-sitter-rust grammar (a grammar we don't own)."""
     d = _Deriver(grammar)
+    reachable = d._reachable()
     d.compute()
+    string_usage = _string_usage(d, reachable)
+    aliases, bare_aliases = _aliases_by_symbol(d, reachable)
 
-    node_types: dict[str, NodeTypeInfo] = {}
+    node_types: dict[tuple, NodeTypeInfo] = {}  # keyed by (kind, named) — a
+    # named kind and an anonymous kind can share a name (rust's `block` rule
+    # AND the `block` metavariable string both appear in the CLI output)
     supertype_map: list[tuple[str, list[NodeTypeRef]]] = []
 
+    # ---- the rule loop (non-terminal variables) -------------------------
     for i, (name, body) in enumerate(grammar.rules.items()):
-        alias_visible = None
-        if isinstance(body, AliasNode):
-            alias_visible = (body.value, body.named)
+        if name not in reachable:
+            continue
+        if name in d.supertypes:
+            # supertypes are emitted even when inline (the CLI checks the
+            # supertype list before variables_to_inline)
+            subs = _sorted_types(d.info[name].children_types)
+            entry = node_types.setdefault(
+                (name, True), NodeTypeInfo(type=name, named=True))
+            entry.subtypes = subs
+            supertype_map.append((name, subs))
+            continue
         if name in d.inline:
             continue
-        if name.startswith("_") and alias_visible is None:
-            continue  # plain hidden rule — no node kind of its own
-        info = d.info.get(name)
-        if info is None:
-            continue  # unreachable -> pruned by the CLI
-
+        if _rule_is_renamed(name, body, i, string_usage):
+            continue  # a renamed named terminal -> the terminal loop below
+        info = d.info[name]
         is_start = (i == 0)
-        extra = name in d._extra_names
-
-        # a top-level ALIAS registers the alias value as the visible kind
-        if _is_lexical_rule(body):
-            # named lexical rules (STRING/PATTERN/TOKEN bodies) are entries
-            # with {type, named} and nothing else
-            if alias_visible is not None:
-                if alias_visible[1]:
-                    kind = alias_visible[0]
-                    entry = node_types.setdefault(
-                        kind, NodeTypeInfo(type=kind, named=True,
-                                           root=is_start, extra=extra))
-                    entry.root = entry.root or is_start
+        for alias in aliases.get(name) or {None}:
+            if alias is None:
+                if name.startswith("_"):
+                    continue  # hidden rule: no own-name entry (aliases only)
+                kind, is_named = name, True
             else:
-                entry = node_types.setdefault(
-                    kind := name, NodeTypeInfo(type=kind, named=True,
-                                               root=is_start, extra=extra))
-                entry.root = entry.root or is_start
+                # an anonymous alias of a rule still gets an entry (the CLI
+                # emits `{type, named: false, fields: {}}` — python's
+                # `is not` over the hidden `_is_not`)
+                kind, is_named = alias
+            existed = (kind, is_named) in node_types
+            entry = node_types.setdefault(
+                (kind, is_named),
+                NodeTypeInfo(type=kind, named=is_named,
+                             root=is_start, fields={}))
+            # merged-alias field semantics (node_types.rs): new fields on an
+            # existing entry start required=false; fields absent from THIS
+            # rule flip required off; quantities union.
+            for fname, fq in sorted(info.fields.items()):
+                ftypes = info.field_types.get(fname)
+                if not ftypes:
+                    continue
+                fj = entry.fields.setdefault(
+                    fname, ChildInfo(multiple=False, required=not existed))
+                fj.multiple = fj.multiple or fq.multiple
+                fj.required = fj.required and fq.required
+                fj.types = [NodeTypeRef(type=k, named=n)
+                            for k, n in sorted(
+                                {(r.type, r.named) for r in fj.types}
+                                | {(k, n) for k, n in ftypes})]
+            for fname in list(entry.fields):
+                if fname not in info.fields:
+                    entry.fields[fname].required = False
+            if info.wo_q.exists and info.wo_types:
+                ch = entry.children
+                if ch is None:
+                    ch = ChildInfo(multiple=False, required=True)
+                ch.multiple = ch.multiple or info.wo_q.multiple
+                ch.required = ch.required and info.wo_q.required
+                ch.types = [NodeTypeRef(type=k, named=n)
+                            for k, n in sorted(
+                                {(r.type, r.named) for r in ch.types}
+                                | {(k, n) for k, n in info.wo_types})]
+                entry.children = ch
+
+    # ---- terminal + external loop (renamed terminals, bare entries) ----
+    for i, (name, body) in enumerate(grammar.rules.items()):
+        if name not in reachable or name in d.inline:
             continue
-
-        if alias_visible is not None:
-            kind = alias_visible[0]
-            if not alias_visible[1]:
-                continue
-        else:
-            kind = name
-
-        entry = node_types.setdefault(
-            kind, NodeTypeInfo(type=kind, named=True, root=is_start,
-                               extra=extra))
-        entry.root = entry.root or is_start
-        entry.extra = entry.extra or extra
-
-        fields: dict[str, ChildInfo] = {}
-        for fname in sorted(info.fields):
-            q = info.fields[fname]
-            refs = sorted(info.field_types.get(fname, set()))
-            if refs:
-                fields[fname] = ChildInfo(
-                    multiple=q.multiple, required=q.required,
-                    types=[NodeTypeRef(type=k, named=n) for k, n in refs])
-        entry.fields.update(fields)
-
-        if info.wo_q.exists and info.wo_types:
-            entry.children = ChildInfo(
-                multiple=info.wo_q.multiple, required=info.wo_q.required,
-                types=[NodeTypeRef(type=k, named=n)
-                       for k, n in sorted(info.wo_types)])
-
-        if name in d.supertypes:
-            # supertypes get ONLY subtypes in the CLI (no fields/children)
-            subs = [NodeTypeRef(type=k, named=n)
-                    for k, n in sorted(info.children_types)]
-            entry.subtypes = subs
-            supertype_map.append((kind, subs))
-            if not entry.fields and not entry.children:
-                continue
-            # a supertype never carries its own fields/children in the JSON
-            entry.fields = {}
-            entry.children = None
+        if not _rule_is_renamed(name, body, i, string_usage):
             continue
+        for alias in aliases.get(name) or {None}:
+            if alias is None:
+                kind, is_named = name, True
+            else:
+                kind, is_named = alias
+                if not is_named:
+                    continue
+            entry = node_types.setdefault(
+                (kind, True), NodeTypeInfo(type=kind, named=True,
+                                           extra=name in d._extra_names))
+            # an existing entry (a rule with fields/children) is relaxed
+            if entry.children is not None:
+                entry.children.required = False
+            if entry.fields is not None:
+                for fi in entry.fields.values():
+                    fi.required = False
+    for ex in d.grammar.externals:
+        ex = _unwrap(ex)
+        if not isinstance(ex, SymbolNode):
+            continue
+        for alias in aliases.get(ex.name) or {None}:
+            if alias is None:
+                kind, is_named = ex.name, not ex.name.startswith("_")
+            else:
+                kind, is_named = alias
+            if not is_named:
+                continue
+            entry = node_types.setdefault(
+                (kind, True), NodeTypeInfo(type=kind, named=True,
+                                           extra=kind in d._extra_names))
+            if entry.children is not None:
+                entry.children.required = False
+            if entry.fields is not None:
+                for fi in entry.fields.values():
+                    fi.required = False
+
+    # ---- anonymous kinds: STRING tokens only (never PATTERNs) -----------
+    for kind in sorted(_anonymous_kinds(d, reachable, string_usage)):
+        if (kind, False) not in node_types:
+            node_types[(kind, False)] = NodeTypeInfo(type=kind, named=False)
+
+    # ---- bare alias entries whose content is lexical ---------------------
+    # (e.g. rust's alias(choice("f64", "bool", ...), "primitive_type")) —
+    # the CLI names the fused terminal's alias value; no rule/terminal owns it
+    for kind, is_named in sorted(bare_aliases):
+        if is_named and (kind, True) not in node_types:
+            node_types[(kind, True)] = NodeTypeInfo(type=kind, named=True)
 
     # ---- process_supertypes: subtypes are replaced by their supertype ----
+    supertype_map.sort(key=lambda pair: pair[0])
     for entry in node_types.values():
-        for fname, fi in list(entry.fields.items()):
-            entry.fields[fname] = _process_supertypes(fi, supertype_map)
+        if entry.fields is not None:
+            for fname, fi in list(entry.fields.items()):
+                entry.fields[fname] = _process_supertypes(fi, supertype_map)
         if entry.children is not None:
             entry.children = _process_supertypes(entry.children, supertype_map)
-
-    # ---- anonymous kinds (lexical tokens) ----
-    for kind, named in sorted(_anonymous_kinds(d)):
-        if kind not in node_types:
-            node_types[kind] = NodeTypeInfo(type=kind, named=False,
-                                            extra=kind in d._extra_names)
 
     return _canonical_sorted(list(node_types.values()))
 
 
-def _anonymous_kinds(d: _Deriver) -> set[tuple[str, bool]]:
-    """All anonymous token kinds reachable from the grammar's rules (the
-    CLI's regular_tokens list: every Str/Pattern step's value). Anonymous
-    extras (patterns/literals in the `extras` list) do NOT appear in
-    node-types.json — only NAMED extras (e.g. a comment rule) do, and those
-    are handled as regular entries with extra=true."""
-    out: set[tuple[str, bool]] = set()
-    for name in d._reachable():
-        if name not in d.rules:
+def _anonymous_kinds(d: "_Deriver", reachable: set, string_usage: dict) -> set[str]:
+    """All anonymous STRING token kinds reachable from the grammar's rules.
+    Pattern tokens never appear in node-types.json (probed Phase 6 — inline
+    patterns and even token()-wrapped anonymous patterns are absent from the
+    CLI's lexical grammar); anonymous extras do not appear either. A renamed
+    terminal's string is consumed by the rename and is not anonymous."""
+    out: set[str] = set()
+    for i, (name, body) in enumerate(d.rules.items()):
+        if name not in reachable:
             continue
-        body = d.rules[name]
         if isinstance(body, AliasNode):
             body = body.content
-        if _is_lexical_rule(body):
-            continue  # named lexical rule; not anonymous
+        if _rule_is_renamed(name, body, i, string_usage):
+            continue
         for steps in d._productions(body, set()):
             for step in steps:
-                if step.kind == "kind" and not step.named:
-                    out.add((step.name, False))
+                if step.kind == "kind" and not step.named \
+                        and step.tok == "str":
+                    out.add(step.name)
     return out
 
 
