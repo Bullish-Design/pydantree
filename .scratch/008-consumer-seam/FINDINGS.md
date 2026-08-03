@@ -197,6 +197,34 @@ CLI itself embodies.
 
 ---
 
+## 2b. The markdown rehearsal (the Phase-6.5 follow-up): FOUR real grammars, byte-for-byte
+
+The second real-grammar rehearsal (requested with markdown — both inline and
+block elements). tree-sitter-markdown is a genuinely different beast than
+rust: **47 externals**, hidden rules wrapping repeats, **structured-content
+aliases** (`inline` over `REPEAT1(choice(_line, ...))`), and **positional
+children instead of CST fields**. The exact-path derivation is now
+byte-for-byte over FOUR real grammars (rust, python, markdown-block,
+markdown-inline) — two more calibrations landed to get there:
+
+1. **Hidden-rule non-top-level repeats are 0+.** The CLI wraps a repeat
+   inside a hidden rule (seq/PREC-wrapped) in an auxiliary binary-tree rule
+   whose children_without_fields quantity is OPTIONAL (required=false), while
+   a bare top-level REPEAT1 body becomes the recursion ITSELF (required=true).
+   Probed and isolated case-by-case; `_relax_hidden_repeat` encodes it.
+2. **Structured-content alias entries.** `alias(REPEAT1(choice(_line,
+   ...)), "inline")` — the alias value gets its own entry inheriting the
+   content's SUMMARY, MERGED with any rule-loop contribution of the same kind
+   (the `_summarize` refactor + the merge).
+
+**The consumer rehearsal exposed a real surface gap, now fixed: `capture_kind()`.** Both markdown grammars use POSITIONAL CHILDREN (fenced-code's content, inline's emphasis/code spans/links have no CST fields) — the field-keyed `capture()` could not express them. A minimal, honest extension landed: `= capture_kind("code_span")` captures a CHILD BY KIND (Job 1 checks the kind is a possible child of the anchor — it caught `language` under info_string and `link_destination` under inline_link live — and Job 4 checks the kind's own types against the field type).
+
+The B-free rehearsal extracts BLOCK elements (headings via markdown's one
+field `heading_content`; fenced code via `capture_kind`) and INLINE elements
+(code spans, emphasis, strong, links via a nested parse of each `inline`
+node's text — the injection the full markdown parser does) against hand
+truth: `r2b_markdown.txt` / `r2b_markdown_consumer.txt`, `ok: true`.
+
 ## 3. Run 3 — the deferred surface: 3 landed, 2 assessed
 
 ### 3.1 Job-2 `.pyi` stubs — LANDED

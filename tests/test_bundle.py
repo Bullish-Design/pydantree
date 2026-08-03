@@ -22,7 +22,9 @@ from pathlib import Path
 import pytest
 
 import tsgrammar as tg
-from tsquery import Language, M, OutputModel, capture, source_meta
+from tsquery import (
+    Language, M, OutputModel, capture, capture_kind, source_meta,
+)
 
 BRIDGE_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "006-tsquery-bridge"
 P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "007-tsquery-distribution"
@@ -284,3 +286,50 @@ def test_optional_field_capture_is_query_optional(tmp_path):
     src2 = Required.compiled_source(schema=lang.schema, language=lang)
     assert "name:(_)?" not in src2
     assert "name:(_) @name" in src2, src2
+
+
+def test_markdown_community_bundle_and_bfree_extraction(tmp_path):
+    """The Phase-6.5 markdown rehearsal over the REAL tree-sitter-markdown
+    grammars: build_community_bundle for the block + inline grammars, and the
+    B-free consumer extracts BLOCK elements (headings via the heading_content
+    FIELD, fenced code via the capture_kind() child-by-kind surface) and
+    INLINE elements (code spans / emphasis / strong / links via a nested
+    parse of the injected-style `inline` nodes) against hand truth."""
+    from tsgrammar.schema_tool import build_community_bundle
+    md = Path(__file__).resolve().parent / "fixtures" / "markdown"
+    mdi = Path(__file__).resolve().parent / "fixtures" / "markdown-inline"
+    block = build_community_bundle(md, tmp_path / "b-block", name="markdown")
+    inline = build_community_bundle(mdi, tmp_path / "b-inline",
+                                    name="markdown_inline")
+    rc, out = run_bfree(P8_DIR / "consumer_markdown.py", str(block),
+                        str(inline), workdir=tmp_path / "bfree")
+    assert rc == 0, out
+    data = json.loads(out)
+    assert data["ok"] is True
+    assert data["headings"] == [{"text": "Title", "line": 1},
+                                {"text": "Section", "line": 5}]
+    assert data["fenced"][0]["info"] == "python"
+    assert data["code_spans"] == ["`code`"]
+    assert data["links"] == [{"dest": "https://example.com", "line": 3}]
+    assert "tsgrammar" not in out
+
+
+def test_capture_kind_job1_rejects_non_child(tmp_path):
+    """capture_kind()'s Job-1 check: a kind that is NOT a direct child of the
+    anchor is rejected before parsing (real markdown: `language` sits under
+    info_string, not on fenced_code_block; `link_destination` sits under
+    inline_link, not on inline)."""
+    from tsgrammar.schema_tool import build_community_bundle
+    from tsquery import SchemaCheckError
+    md = Path(__file__).resolve().parent / "fixtures" / "markdown"
+    block = build_community_bundle(md, tmp_path / "b-block", name="markdown")
+    lang = Language.load_bundle(block)
+
+    class BadKind(OutputModel):
+        __match__ = M("document", ..., "fenced_code_block")
+        language: str | None = capture_kind("language")
+
+    with pytest.raises(SchemaCheckError) as exc:
+        BadKind.validate_with(lang)
+    assert "language" in str(exc.value)
+    assert "fenced_code_block" in str(exc.value)

@@ -49,13 +49,14 @@ from .typed import (
     Unescaped,
     UnsupportedShapeError,
     capture,
+    capture_kind,
     source_meta,
 )
 
 __version__ = "0.1.0"
 
 __all__ = [
-    "OutputModel", "M", "capture", "source_meta",
+    "OutputModel", "M", "capture", "capture_kind", "source_meta",
     "Matches", "Eq", "AnyOf", "NodeKind", "Unescaped",
     "UnsupportedShapeError", "SchemaCheckError",
     "Language", "Query", "QueryBuildError", "Span", "Diagnostic",

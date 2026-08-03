@@ -125,6 +125,22 @@ def _check_field_mode(model_cls, schema, d: _Derived) -> None:
             continue
         field_name = f.default.field if hasattr(f.default, "field") \
             and f.default.field else fname
+        if b.kind_capture is not None:
+            # a child-by-kind capture: Job 1 checks the kind is a POSSIBLE
+            # CHILD of the anchor (the grammar has no CST field for it), and
+            # Job 4 checks the captured kind against the field type
+            kind = b.kind_capture
+            if kind not in schema.possible_children(anchor_kind):
+                _raise(model_cls,
+                       f"capture_kind({kind!r}) on field {fname!r}: kind "
+                       f"{kind!r} cannot occur as a child of "
+                       f"{anchor_kind!r} in the grammar (possible children: "
+                       f"{sorted(schema.possible_children(anchor_kind))})",
+                       entry=f"{anchor_kind} -> {kind}")
+            _check_capture_type(model_cls, schema, fname, f.annotation,
+                                f.metadata, schema.expand({kind}), field_name,
+                                field_mode=True)
+            continue
         if not schema.has_field(anchor_kind, field_name):
             _raise(model_cls,
                    f"capture({field_name!r}) on field {fname!r}: kind "
@@ -421,8 +437,14 @@ def _derive_field_schema(model_cls, schema, bindings) -> _Derived:
         # schema-bound twin of typed._derive_field's Phase-6.5 fix)
         from .typed import _field_is_query_optional
         optional = _field_is_query_optional(f)
-        cur.child(field=field_name, node=node(k).capture(fname),
-                  quant="?" if optional else "")
+        if b.kind_capture is not None:
+            # a child-by-kind capture (markdown's positional children): the
+            # kind is constrained directly, no field/key derivation
+            cur.child(node=node(b.kind_capture).capture(fname),
+                      quant="?" if optional else "")
+        else:
+            cur.child(field=field_name, node=node(k).capture(fname),
+                      quant="?" if optional else "")
         for p in _predicates_for(fname, f.metadata):
             cur.where(p)
 

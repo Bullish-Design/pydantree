@@ -170,6 +170,20 @@ class _Capture:
         self.field = field
 
 
+class _CaptureKind:
+    """`= capture_kind("code_span")` binds the field to a CHILD BY NODE KIND
+    (Phase-6.5, surfaced by the real markdown grammars — they use positional
+    children, not CST fields, so the field-keyed `capture()` cannot name
+    them). The emitted pattern is `(anchor (code_span) @field)` — the
+    capture's kind is checked against the anchor's possible children (Job 1)
+    and the field type against the kind's own types (Job 4)."""
+
+    __slots__ = ("kind",)
+
+    def __init__(self, kind: str):
+        self.kind = kind
+
+
 class _SourceMeta:
     """`= source_meta()` injects the match anchor's span (int -> start line,
     Span -> full span). `source_meta(capture="x")` uses capture @x instead."""
@@ -182,6 +196,13 @@ class _SourceMeta:
 
 def capture(field: Optional[str] = None) -> _Capture:
     return _Capture(field)
+
+
+def capture_kind(kind: str) -> _CaptureKind:
+    """`= capture_kind("code_span")` — capture a CHILD by node kind (for
+    grammars that use positional children — real markdown's inline elements
+    and fenced-code children have no CST fields)."""
+    return _CaptureKind(kind)
 
 
 def source_meta(capture: str = ANCHOR) -> _SourceMeta:
@@ -272,6 +293,7 @@ class _Binding:
     kinds_derived: bool = False         # kinds came from the schema, not NodeKind
     has_predicate: bool = False         # record-mode: absence filters the record
     nested: Optional[type] = None       # field type is another OutputModel
+    kind_capture: Optional[str] = None  # Phase-6.5: capture a CHILD BY KIND
 
 
 @dataclass
@@ -359,6 +381,8 @@ def _derive(model_cls) -> _Derived:
             # capture name = the record key (attr name, or capture("key") override)
             key = d.field if isinstance(d, _Capture) and d.field else fname
             bindings[fname] = _Binding(capture=key)
+        elif isinstance(d, _CaptureKind):
+            bindings[fname] = _Binding(capture=fname, kind_capture=d.kind)
         else:
             # field mode: a capture exists ONLY if the user wrote = capture(...)
             if isinstance(d, _Capture):
@@ -403,9 +427,14 @@ def _derive_field(model_cls, m: M, bindings) -> _Derived:
         # emit `return_type:(_)` and silently exclude every node without the
         # field (real rust `fn no_return() {}`).
         optional = _field_is_query_optional(f)
-        cur.child(field=field_name,
-                  node=node(k).capture(fname),
-                  quant="?" if optional else "")
+        if b.kind_capture is not None:
+            # a child-by-kind capture (markdown's positional children)
+            cur.child(node=node(b.kind_capture).capture(fname),
+                      quant="?" if optional else "")
+        else:
+            cur.child(field=field_name,
+                      node=node(k).capture(fname),
+                      quant="?" if optional else "")
         for p in _predicates_for(fname, f.metadata):
             cur.where(p)
 
@@ -817,10 +846,10 @@ def _build_kwargs(model_cls, bindings, captures, anchor_nodes=None):
             if b.is_list:
                 kwargs[fname] = []
             elif not f.is_required():
-                # a marker default (= capture(...)) means "absent -> None",
-                # not the marker object
-                kwargs[fname] = None if isinstance(f.default, _Capture) \
-                    else f.default
+                # a marker default (= capture(...) / capture_kind(...)) means
+                # "absent -> None", not the marker object
+                kwargs[fname] = None if isinstance(
+                    f.default, (_Capture, _CaptureKind)) else f.default
             elif _is_optional(f.annotation):
                 kwargs[fname] = None
             continue

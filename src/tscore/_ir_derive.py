@@ -200,10 +200,39 @@ class _Deriver:
         body = self.rules[name]
         if isinstance(body, AliasNode):
             body = body.content
+        # Phase-6.5 calibration (probed against the CLI over the markdown
+        # block grammar): a HIDDEN rule whose body is NOT a bare top-level
+        # REPEAT1 gets its repeats treated as 0+ (required false) — the CLI
+        # wraps such repeats in an auxiliary binary-tree rule whose
+        # children_without_fields quantity is optional, whereas a bare
+        # top-level REPEAT1 body becomes the recursion ITSELF (required).
+        self._relax_hidden_repeat = name.startswith("_") and \
+            not isinstance(body, Repeat1Node) and \
+            _contains_repeat(body)
+        new_state = self._summarize(body)
+        fields, field_types, children_q, children_types, wo_q, wo_types, \
+            multi_step = new_state
+        old_state = (info.fields, dict(info.field_types), info.children_q,
+                     info.children_types, info.wo_q, info.wo_types,
+                     info.multi_step)
+        info.fields = fields
+        info.field_types = field_types
+        info.children_q = children_q
+        info.children_types = children_types
+        info.wo_q = wo_q
+        info.wo_types = wo_types
+        info.multi_step = multi_step
+        info.changed = new_state != old_state
+        return info.changed
 
-        # The CLI seeds every accumulator at ChildQuantity::one() (FieldInfo
-        # default) and only unions production quantities in — required flips
-        # OFF when a production lacks the field/child, but never flips on.
+    def _summarize(self, body: RuleNode):
+        """Accumulate a body's production summary (the _recompute core, over
+        an ARBITRARY body — rules AND alias contents like markdown's
+        alias(REPEAT1(choice(_line, ...)), "inline")).
+
+        The CLI seeds every accumulator at ChildQuantity::one() (FieldInfo
+        default) and only unions production quantities in — required flips
+        OFF when a production lacks the field/child, but never flips on."""
         fields: dict[str, _Quantity] = {}
         field_types: dict[str, set[tuple[str, bool]]] = defaultdict(set)
         children_q = _Quantity.one()
@@ -268,20 +297,8 @@ class _Deriver:
             wo_q.union(pwo)
             wo_types.update(pwo_types)
 
-        new_state = (fields, dict(field_types), children_q, children_types,
-                     wo_q, wo_types, multi_step)
-        old_state = (info.fields, dict(info.field_types), info.children_q,
-                     info.children_types, info.wo_q, info.wo_types,
-                     info.multi_step)
-        info.fields = fields
-        info.field_types = field_types
-        info.children_q = children_q
-        info.children_types = children_types
-        info.wo_q = wo_q
-        info.wo_types = wo_types
-        info.multi_step = multi_step
-        info.changed = new_state != old_state
-        return info.changed
+        return (fields, dict(field_types), children_q, children_types,
+                wo_q, wo_types, multi_step)
 
     def _productions(self, node: RuleNode, guard: set[str]) -> list[list[_Step]]:
         """Expand a body into productions (step lists). Choice forks; SEQ
@@ -343,17 +360,26 @@ class _Deriver:
             return [[_Step("kind", node.value, False, None, _Quantity.one(),
                            tok="pattern")]]
         if isinstance(node, AliasNode):
-            # an explicit alias: the alias VALUE is the child kind. An
-            # anonymous alias of a non-terminal (python's `is not` over the
-            # hidden `_is_not`) is NOT an anonymous kind — the rule loop
-            # emits the alias value with fields:{}; only a lexical-content
-            # anonymous alias (rust's `"` over a pattern) is anon-eligible.
             content = _unwrap_prec(node.content)
             if isinstance(content, SymbolNode):
+                # an explicit alias of a rule reference: the alias VALUE is
+                # the child kind (anonymous aliases of non-terminals —
+                # python's `is not` — stay opaque: the rule loop emits them)
                 return [[_Step("kind", node.value, node.named, None,
                                _Quantity.one())]]
-            return [[_Step("kind", node.value, node.named, None,
-                           _Quantity.one(),
+            # an alias wrapping STRUCTURED content (markdown's
+            # alias(REPEAT(...), "section")): the alias is ONE child kind
+            # carrying the content's QUANTITY — the members do NOT expand
+            # (the CLI's production analysis sees the repeat inside the
+            # alias content as the step's quantity)
+            quant = _Quantity.one()
+            c = content
+            while isinstance(c, _PREC_NODES):
+                c = c.content
+            if isinstance(c, (RepeatNode, Repeat1Node)):
+                quant = _Quantity.one().repeat_quantity(
+                    plus=isinstance(c, Repeat1Node))
+            return [[_Step("kind", node.value, node.named, None, quant,
                            tok="str" if not node.named else None)]]
         if isinstance(node, FieldNode):
             return [[_Step(s.kind, s.name, s.named, node.name, s.quant,
@@ -372,7 +398,8 @@ class _Deriver:
                 out.extend(self._productions(m, guard))
             return out
         if isinstance(node, (RepeatNode, Repeat1Node)):
-            plus = isinstance(node, Repeat1Node)
+            plus = isinstance(node, Repeat1Node) and \
+                not getattr(self, "_relax_hidden_repeat", False)
             q = _Quantity.one().repeat_quantity(plus=plus)
             return [[_Step(s.kind, s.name, s.named, s.field,
                            s.quant.scaled_by(q), s.tok)
@@ -462,13 +489,15 @@ def _rule_is_renamed(name: str, body: RuleNode, i: int,
                      usage: dict) -> bool:
     """Would the CLI rename this rule's extracted token to the rule name
     (removing the rule from the syntax grammar)? The aux case always renames
-    (when fully extracted); the anon-string case renames only a visible
-    non-start rule whose string appears exactly once."""
+    (when fully extracted) — but a HIDDEN rule's renamed terminal stays
+    Hidden (the CLI's node-types terminal loop skips it), so it produces NO
+    entry either way. The anon-string case renames only a visible non-start
+    rule whose string appears exactly once."""
     kind, full = _rule_token_outcome(body)
     if not full:
         return False
     if kind == "aux":
-        return True
+        return i > 0 and not name.startswith("_")
     if kind == "anon":
         value = _unwrap_prec(body).value if isinstance(
             _unwrap_prec(body), StrNode) else None
@@ -477,6 +506,22 @@ def _rule_is_renamed(name: str, body: RuleNode, i: int,
                 body, (TokenNode, ImmediateTokenNode)) else None
             value = getattr(c, "value", None)
         return i > 0 and not name.startswith("_") and usage.get(value) == 1
+    return False
+
+
+def _contains_repeat(node: RuleNode) -> bool:
+    """Does the body contain a REPEAT/REPEAT1 anywhere?"""
+    node = _unwrap_prec(node)
+    if isinstance(node, (RepeatNode, Repeat1Node)):
+        return True
+    if isinstance(node, AliasNode):
+        return _contains_repeat(node.content)
+    c = getattr(node, "content", None)
+    if isinstance(c, RuleNode) and _contains_repeat(c):
+        return True
+    m = getattr(node, "members", None)
+    if isinstance(m, list) and any(_contains_repeat(mm) for mm in m):
+        return True
     return False
 
 
@@ -566,9 +611,17 @@ def _step_aliases(node: RuleNode, rules: dict, d: "_Deriver"):
             yield (node.name, None)
         return
     if isinstance(node, AliasNode):
-        for sym, _a in _step_aliases(node.content, rules, d):
-            if sym is not None:
-                yield (sym, (node.value, node.named))
+        content = _unwrap_prec(node.content)
+        if isinstance(content, SymbolNode):
+            # an alias over a single symbol reference: the alias applies to
+            # that symbol (resolving inline/hidden alias-rule refs first)
+            for sym, _a in _step_aliases(content, rules, d):
+                if sym is not None:
+                    yield (sym, (node.value, node.named))
+        # else: an alias over STRUCTURED content (markdown's
+        # alias(REPEAT1(choice(...)), "inline")) — the alias wraps a
+        # synthetic content symbol, NOT the inner symbols; the
+        # structured_aliases machinery gives the value its own entry
         return
     if isinstance(node, FieldNode):
         yield from _step_aliases(node.content, rules, d)
@@ -591,10 +644,14 @@ def _aliases_by_symbol(d: "_Deriver", reachable: set):
     visible kind) and alias-derived kinds (type_identifier etc.) come out
     right. Also returns `bare_aliases`: named alias values whose content is
     lexical (no symbol steps — e.g. rust's `primitive_type`), which the CLI
-    emits as bare named entries of their own."""
+    emits as bare named entries of their own; and `structured_aliases`:
+    named alias values over structured content WITH symbols (markdown's
+    `inline` over REPEAT1(choice(...))) — the entry inherits the content's
+    summary."""
     rules = d.rules
     aliases: dict = defaultdict(set)
     bare_aliases: set = set()
+    structured_aliases: list = []
     for name, body in rules.items():
         if name in d.inline:
             continue
@@ -615,11 +672,16 @@ def _aliases_by_symbol(d: "_Deriver", reachable: set):
         if isinstance(body, AliasNode):
             body = body.content
         steps = list(_step_aliases(body, rules, d))
-        # named aliases over lexical content (no symbol steps — e.g. rust's
-        # `primitive_type`) become bare named entries of their own
+        # named aliases over non-symbol content (bare or structured) become
+        # entries of their own
         for a in _alias_values(body):
-            if a is not None:
-                bare_aliases.add(a)
+            if a is None:
+                continue
+            value, named, content = a
+            if content is None:
+                bare_aliases.add((value, named))
+            else:
+                structured_aliases.append((value, named, content))
         for sym, explicit in steps:
             if sym is None:
                 continue
@@ -632,18 +694,23 @@ def _aliases_by_symbol(d: "_Deriver", reachable: set):
             else:
                 aliases[sym].add(None)
     aliases[d.start].add(None)
-    return aliases, bare_aliases
+    return aliases, bare_aliases, structured_aliases
 
 
 def _alias_values(node: RuleNode):
-    """Named alias values whose content is lexical (no symbol references) —
-    the CLI's fused-terminal aliases (rust's `primitive_type`)."""
+    """Alias values whose content is NOT a plain rule reference: yields
+    (value, named, content_or_None) — content=None for a lexical body (a
+    bare entry — rust's `primitive_type`), content=the body for structured
+    content WITH symbols (markdown's alias(REPEAT1(choice(_line, ...)),
+    "inline") — the entry inherits the content's summary)."""
     node = _unwrap(node)
     if isinstance(node, AliasNode):
+        if isinstance(_unwrap_prec(node.content), SymbolNode):
+            return  # a plain rule reference — handled by aliases_by_symbol
         if not _has_symbol(node.content):
-            yield (node.value, node.named)
+            yield (node.value, node.named, None)
         else:
-            yield from _alias_values(node.content)
+            yield (node.value, node.named, node.content)
         return
     c = getattr(node, "content", None)
     if isinstance(c, RuleNode):
@@ -692,7 +759,7 @@ def derive_from_ir(grammar: GrammarModel) -> list[NodeTypeInfo]:
     reachable = d._reachable()
     d.compute()
     string_usage = _string_usage(d, reachable)
-    aliases, bare_aliases = _aliases_by_symbol(d, reachable)
+    aliases, bare_aliases, structured_aliases = _aliases_by_symbol(d, reachable)
 
     node_types: dict[tuple, NodeTypeInfo] = {}  # keyed by (kind, named) — a
     # named kind and an anonymous kind can share a name (rust's `block` rule
@@ -816,6 +883,44 @@ def derive_from_ir(grammar: GrammarModel) -> list[NodeTypeInfo]:
     for kind, is_named in sorted(bare_aliases):
         if is_named and (kind, True) not in node_types:
             node_types[(kind, True)] = NodeTypeInfo(type=kind, named=True)
+
+    # ---- structured-content alias entries --------------------------------
+    # (markdown's alias(REPEAT1(choice(_line, ...)), "inline")) — the entry
+    # inherits the content's SUMMARY (fields/children), MERGED with any
+    # existing entry of the same kind (the CLI merges all aliases of a kind:
+    # `_line`'s heading alias AND the paragraph's content alias both map to
+    # `inline` — the paragraph's children win, the merged-alias rules apply)
+    for kind, is_named, content in sorted(structured_aliases,
+                                          key=lambda a: a[0]):
+        if not is_named:
+            continue
+        existed = (kind, True) in node_types
+        entry = node_types.setdefault(
+            (kind, True), NodeTypeInfo(type=kind, named=True, fields={}))
+        fields, ftypes, _cq, _ctypes, woq, wotypes, _ms = d._summarize(content)
+        for fname in sorted(fields):
+            ft = ftypes.get(fname)
+            if not ft:
+                continue
+            fj = entry.fields.setdefault(
+                fname, ChildInfo(multiple=False, required=not existed))
+            fj.multiple = fj.multiple or fields[fname].multiple
+            fj.required = fj.required and fields[fname].required
+            fj.types = [NodeTypeRef(type=k, named=n)
+                        for k, n in sorted(
+                            {(r.type, r.named) for r in fj.types}
+                            | {(k, n) for k, n in ft})]
+        if woq.exists and wotypes:
+            ch = entry.children
+            if ch is None:
+                ch = ChildInfo(multiple=False, required=True)
+            ch.multiple = ch.multiple or woq.multiple
+            ch.required = ch.required and woq.required
+            ch.types = [NodeTypeRef(type=k, named=n)
+                        for k, n in sorted(
+                            {(r.type, r.named) for r in ch.types}
+                            | {(k, n) for k, n in wotypes})]
+            entry.children = ch
 
     # ---- process_supertypes: subtypes are replaced by their supertype ----
     supertype_map.sort(key=lambda pair: pair[0])

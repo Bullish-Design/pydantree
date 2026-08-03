@@ -209,6 +209,8 @@ def test_both_paths_agree_on_shared_subset():
 # ---------------------------------------------------------------------------
 
 _FIXTURES = Path(__file__).resolve().parent / "fixtures" / "rust"
+_MD_FIXTURES = Path(__file__).resolve().parent / "fixtures" / "markdown"
+_MDI_FIXTURES = Path(__file__).resolve().parent / "fixtures" / "markdown-inline"
 
 
 def test_derive_from_ir_byte_for_byte_over_real_rust():
@@ -235,3 +237,21 @@ def test_byte_for_byte_serialization_shape():
     ours = NodeSchema.from_list(derive_from_ir(model), name="rust").to_json()
     assert '"root": false' not in ours
     assert '"extra": false' not in ours
+
+
+def test_derive_from_ir_byte_for_byte_over_real_markdown():
+    """The Phase-6.5 follow-up: `derive_from_ir` over the REAL
+    tree-sitter-markdown block grammar (47 externals, hidden repeat-aux
+    structures, structured-content aliases like `inline` over
+    REPEAT1(choice(_line, ...)), positional children) reproduces the CLI's
+    node-types.json byte-for-byte — the calibration that landed:
+    hidden-rule non-top-level repeats are 0+ (the CLI's auxiliary binary-tree
+    rules), and structured-content alias entries inherit their content's
+    summary merged with the rule-loop contribution."""
+    for fixture in (_MD_FIXTURES, _MDI_FIXTURES):
+        raw = json.loads((fixture / "grammar.json").read_text())
+        model = tg.GrammarModel.model_validate(raw)
+        ours = NodeSchema.from_list(
+            derive_from_ir(model), name=model.name).to_json()
+        cli = (fixture / "node-types.json").read_text()
+        assert ours == cli

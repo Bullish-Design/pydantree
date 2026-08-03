@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "headings": [
+    {
+      "text": "Title",
+      "line": 1
+    },
+    {
+      "text": "Section",
+      "line": 5
+    }
+  ],
+  "fenced": [
+    {
+      "info": "python",
+      "content": "print(1)\n",
+      "line": 7
+    }
+  ],
+  "code_spans": [
+    "`code`"
+  ],
+  "emphasis": [
+    "*emphasis*",
+    "*text*"
+  ],
+  "strong": [
+    "**strong**"
+  ],
+  "links": [
+    {
+      "dest": "https://example.com",
+      "line": 3
+    }
+  ],
+  "block_schema_kinds": 86,
+  "inline_schema_kinds": 64
+}
