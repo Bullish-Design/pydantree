@@ -1,23 +1,52 @@
 # pydantree
+
 Treesitter, but more Pydantic.
 
-Two cooperating libraries (see `.scratch/002-pydantic-treesitter/CONCEPT.md` —
-the authoritative concept):
+Two cooperating libraries over tree-sitter, bound by a shared seam
+(`tscore`):
 
+- **`tsquery` (A)** — declare an `OutputModel` (**the model IS the query**:
+  field names, types, defaults, and a one-line `__match__` path) and get
+  typed, schema-checked extraction over any community grammar — no `.scm`,
+  no query DSL, no manual coercion.
 - **`tsgrammar` (B)** — author a tree-sitter grammar as a composable Pydantic
-  DSL that compiles to `grammar.json` → parser via the standard toolchain.
-- **`tsquery` (A)** — declare an `OutputModel` (**the model IS the query**: field
-  names, types, defaults, and a one-line `__match__` path) and get typed
-  extraction over any community grammar — no `.scm`, no query DSL, no manual
-  coercion.
+  DSL that compiles to `grammar.json` → parser → a shippable bundle.
 
-Status: post-Phase-4. The **bridge** is proven (`.scratch/006-tsquery-bridge/`,
-verdict GO): B builds emit a `node-schema.json` (`tscore`); A's
-`validate_with(language, schema=...)` runs model↔grammar and capture↔type
-checks before any text is parsed, the record value-shape map is derived from
-the grammar (not hardcoded), and record-level anchoring kills the
-nested-collision class — all with the Phase-1 model-only surface unchanged.
-Earlier phases: `spike-a2/` (Product A's model-only surface over Python +
-JSON), `.scratch/005-tsgrammar-glr/` (Product B's GLR-ergonomics layer, GO).
-The `src/pydantree/` first-principles wrapper is deprecated and slated for the
-rewrite.
+```python
+from tsquery import M, NodeKind, OutputModel, capture
+import tree_sitter_rust
+
+class RustFn(OutputModel):
+    __match__ = M("source_file", "function_item")
+    name: str = capture("name")
+    return_type: str | None = capture("return_type")
+
+rows = RustFn.extract(rs_source, language=tree_sitter_rust)
+```
+
+The node-schema bridge is the differentiator: model↔grammar and
+capture↔type checks run **before any text is parsed**.
+
+## Documentation
+
+- **Users** (build your own project on top): [docs/user-guide.md](docs/user-guide.md)
+- **Developers** (work on this codebase):
+  [docs/architecture.md](docs/architecture.md),
+  [docs/development.md](docs/development.md)
+- **The scanner library** (the C escape hatch): [docs/scanner-library.md](docs/scanner-library.md)
+- **Coding agents**: `.agents/skills/` ships Agent-Skills-standard skills
+  (`pydantree-dev`, `pydantree-grammar`, `pydantree-extraction`,
+  `pydantree-scanners`) that load automatically into pi and other harnesses.
+- The authoritative concept: `.scratch/002-pydantic-treesitter/CONCEPT.md`.
+  Per-phase verdicts: `.scratch/00X-*/FINDINGS.md` (see docs/README.md).
+
+## Quick facts
+
+- Install A (consumption, light): `uv pip install pydantree-tscore
+  pydantree-tsquery` (+ community grammar wheels).
+- Install B (authoring, heavy): `uv pip install pydantree-tsgrammar`.
+- Imports are `tscore` / `tsquery` / `tsgrammar`; the distributions are
+  pydantree-branded (the bare `tsquery` name is taken on PyPI).
+- A never imports B: `import tsgrammar` fails in a light install by design.
+- Dev environment: `devenv shell`; uv only (no pip); the test suite resolves
+  `src/` first. Baseline: 170 green + 1 skip.
