@@ -114,3 +114,87 @@ def test_indent_handling_is_lenient_at_invalid_states(tmp_path):
             walk(c)
     walk(tree.root_node)
     assert not errs  # lenient: parses as two top-level assignments
+
+
+# ---------------------------------------------------------------------------
+# Phase 6 — the scanner library seeds (heredoc + matched delimiter)
+# ---------------------------------------------------------------------------
+
+P8_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "008-consumer-seam"
+sys.path.insert(0, str(P8_DIR))
+
+import dmini  # noqa: E402
+import hmini  # noqa: E402
+
+
+def _parse_errs(lang, text) -> list:
+    tree = tg.parse(lang, text)
+    errs = []
+
+    def walk(n):
+        if n.type == "ERROR" or n.is_missing:
+            errs.append((n.type, n.start_point.row + 1))
+        for c in n.children:
+            walk(c)
+    walk(tree.root_node)
+    return errs
+
+
+def test_heredoc_scanner_builds_and_parses(tmp_path):
+    """The heredoc seed (HEREDOC_START/BODY): `<<TAG` + content lines + the
+    delimiter line — the BODY token includes the delimiter line (bash-like),
+    the trailing newline is a regular token."""
+    g = hmini.build()
+    result = tg.build_builder(g, scanner=tg.heredoc_scanner_path(),
+                              cache_dir=tmp_path / "cache")
+    lang, _lib = result.language()
+    r = Corpus([corpus_case(hmini.GOOD, hmini.GOOD_EXPECTED, name="heredoc")],
+               name="hmini").run(build_result=result)
+    assert r.ok(), r.report()
+
+
+def test_heredoc_empty_body_and_nested_markers(tmp_path):
+    """An empty heredoc body (two consecutive delimiter lines) parses; content
+    that LOOKS like a nested marker (parens, braces) is inert inside the
+    body — only the exact delimiter line ends it."""
+    g = hmini.build()
+    result = tg.build_builder(g, scanner=tg.heredoc_scanner_path(),
+                              cache_dir=tmp_path / "cache")
+    lang, _lib = result.language()
+    assert not _parse_errs(lang, hmini.EMPTY_BODY)
+    assert not _parse_errs(lang, hmini.NESTED_MARKER)
+
+
+def test_heredoc_scanner_for_registered_in_library():
+    """The scanner library table now covers the three seeds."""
+    assert tg.scanner_for("hmini") == tg.heredoc_scanner_path()
+    assert tg.scanner_for("dmini") == tg.matched_delimiter_scanner_path()
+    assert tg.scanner_for("pymini") == tg.indent_scanner_path()
+    assert tg.scanner_for("no_such_grammar") is None
+
+
+def test_matched_delimiter_scanner_builds_and_parses(tmp_path):
+    """The balanced-parens seed: a `(...)` group with arbitrary nesting is
+    ONE external token (the inner parens never reach the grammar)."""
+    g = dmini.build()
+    result = tg.build_builder(g, scanner=tg.matched_delimiter_scanner_path(),
+                              cache_dir=tmp_path / "cache")
+    lang, _lib = result.language()
+    r = Corpus([corpus_case(dmini.GOOD, dmini.GOOD_EXPECTED, name="groups")],
+               name="dmini").run(build_result=result)
+    assert r.ok(), r.report()
+    # the nested group is ONE token
+    tree = tg.parse(lang, "a = (1 + (2))\n")
+    group = tree.root_node.named_children[0].child_by_field_name("value")
+    assert group.type == "group"
+    assert group.child(0).type == "BALANCED"
+
+
+def test_matched_delimiter_scanner_is_strict(tmp_path):
+    """An unbalanced group at EOF is REFUSED by the scanner (strict): the
+    parse falls back and errors — the open paren is not silently swallowed."""
+    g = dmini.build()
+    result = tg.build_builder(g, scanner=tg.matched_delimiter_scanner_path(),
+                              cache_dir=tmp_path / "cache")
+    lang, _lib = result.language()
+    assert _parse_errs(lang, dmini.UNBALANCED)

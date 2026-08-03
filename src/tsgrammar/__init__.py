@@ -106,7 +106,12 @@ from .pipeline import (
     grammar_hash,
     run_generate,
 )
-from .scanners import indent_scanner_path, scanner_for
+from .scanners import (
+    heredoc_scanner_path,
+    indent_scanner_path,
+    matched_delimiter_scanner_path,
+    scanner_for,
+)
 
 __version__ = "0.1.0"
 
@@ -136,7 +141,8 @@ __all__ = [
     "default_cache_dir", "BuildResult", "PipelineError", "GenerateError",
     "CompileError", "ExternalScannerRequiredError",
     # scanner library seed
-    "indent_scanner_path", "scanner_for",
+    "indent_scanner_path", "heredoc_scanner_path",
+    "matched_delimiter_scanner_path", "scanner_for",
     # expression helper
     "expression", "semantic_smoke", "DEFAULT_PRECEDENCE_CORPUS",
     # language
