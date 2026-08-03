@@ -176,7 +176,7 @@ src/tsgrammar/
   language.py        load_language / parse (the thin load wrapper)
   scanners/          the scanner library (five .c seeds + the table)
 tests/
-  conftest.py        resolves src/ first (the hard-link staleness mitigation)
+  conftest.py        resolves src/ first (the editable-staleness mitigation)
   test_*.py          per-surface suites (see development.md)
 .scratch/00X-*/      per-phase explorations: FINDINGS.md + evidence/ + probes
                      + the mini-grammars (pymini/hmini/dmini/pyindent/bashmini)
@@ -195,8 +195,11 @@ tests/
    newlines, EOF flushes DEDENTs, blocks are `INDENT statements DEDENT`.
 5. Two scanner gotchas: mid-whitespace scans; multiple externals valid in
    one parser state.
-6. Dev flow: no pip, uv only; editable hard-links (reinstall after NEW or
-   rewritten files); `tests/conftest.py` resolves `src/` first.
+6. Dev flow: no pip, uv only; the editable installs are COPY-based in this
+   devenv (site-packages holds a copy that shadows the `src/` .pth entry —
+   ANY change under `src/` needs `uv pip install -e ...` re-run to be visible
+   to plain imports); `tests/conftest.py` resolves `src/` first so the suite
+   is always current.
 7. The exact-path derivation is byte-for-byte with CLI 0.25.3 over FOUR real
    grammars — a newer CLI's node-types.json can drift (the community tool
    path sidesteps this by using the installed CLI's own byproduct).

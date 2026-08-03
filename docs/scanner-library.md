@@ -122,7 +122,7 @@ EOF (strict, not silently swallowed).
    `tsgrammar/__init__.py` (`__all__` too).
 6. **Re-run the editable install** (`uv pip install -e . -e src/tscore -e
    src/tsquery -e src/tsgrammar`) — NEW files are invisible to the
-   hard-linked editable install otherwise.
+   copy-based editable install otherwise.
 7. **Verify the wheel**: `tests/test_packaging.py` builds the heavy wheel
    and asserts the scanner `.c` rides as package data.
 

@@ -86,7 +86,7 @@ Each seed has a mini-grammar in `../../.scratch/` + corpus + parse-error tests i
    `tsgrammar/__init__.py` (`__all__` too).
 6. **Re-run the editable install** (`uv pip install -e . -e src/tscore -e
    src/tsquery -e src/tsgrammar`) — NEW files are invisible to the
-   hard-linked editable install.
+   copy-based editable install.
 7. Verify the wheel: `tests/test_packaging.py` asserts the `.c` rides the
    heavy wheel.
 

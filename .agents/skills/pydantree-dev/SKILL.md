@@ -25,13 +25,14 @@ Work on the pydantree codebase: `src/tscore` (shared seam), `src/tsquery`
   ```bash
   uv pip install -e . -e src/tscore -e src/tsquery -e src/tsgrammar
   ```
-- **Hard-link staleness caveat (it WILL bite):** hatchling's editable install
-  hard-links files into site-packages. Adding a NEW file or REWRITING a file
-  (new inode) leaves the installed copy stale. After adding/rewriting any
-  package file, re-run the `uv pip install` line. The test suite resolves
-  `src/` first via `tests/conftest.py`, so the SUITE is always current —
-  ad-hoc `python -c` probes outside the suite are what get bitten. When a
-  probe disagrees with the suite, suspect this before the code.
+- **Editable-install staleness caveat (it WILL bite):** the editable installs
+  place a COPY of each package in site-packages that shadows the `src/` .pth
+  entry — ANY change under `src/` (in-place, rewrite, or NEW file) is
+  invisible to plain `import` until you re-run the `uv pip install` line. The
+  test suite resolves `src/` first via `tests/conftest.py`, so the SUITE is
+  always current — ad-hoc `python -c` probes outside the suite are what get
+  bitten. When a probe disagrees with the suite, suspect this before the
+  code.
 
 ## Commands
 

@@ -21,15 +21,18 @@ first for the map; this is the "how do I actually run things" doc.
   uv pip install -e . -e src/tscore -e src/tsquery -e src/tsgrammar
   ```
 
-- **The hard-link editable staleness caveat (it WILL bite you):** hatchling's
-  editable install hard-links the package files into site-packages. In-place
-  edits to an existing file propagate, but **adding a NEW file or rewriting a
-  file (a new inode) leaves the installed copy stale** — the code you edited
-  silently is NOT what the suite sees. After adding/rewriting any package
-  file, re-run the `uv pip install -e ...` line above. (The test suite
-  resolves `src/` first via `tests/conftest.py`, so the SUITE always sees
-  current code — it's ad-hoc `python -c` probes outside the suite that get
-  bitten.)
+- **The editable-install staleness caveat (it WILL bite you):** hatchling's
+  editable install places a **copy** of each package in site-packages (a
+  `_editable_impl_*.pth` also adds `src/` to sys.path, but site-packages
+  precedes it, so the copy is what plain imports resolve to). ANY change to a
+  file under `src/` — in-place, a rewrite, or a NEW file — is invisible to
+  plain `import` until you re-run the `uv pip install -e ...` line above
+  (which refreshes the copy). The test suite resolves `src/` first via
+  `tests/conftest.py`, so the SUITE always sees current code — it's ad-hoc
+  `python -c` probes and `.scratch` scripts outside the suite that get the
+  stale copy. (This repo's actual mechanism is copy-based; the older
+  hard-link description appears in earlier phase docs — either way the rule
+  is the same: reinstall after touching package files.)
 
 ## 2. Tests
 
