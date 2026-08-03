@@ -1,0 +1,33 @@
+== Run A toolchain + artifact probe (verbatim) ==
+
+[1] toolchain: emcc via nixpkgs (no emscripten in the devenv packages — a real
+    toolchain install; `nix shell nixpkgs#emscripten` pulls ~10 store paths):
+      $ nix shell nixpkgs#emscripten --command emcc --version
+      emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 5.0.7-git
+    store footprint: emscripten-5.0.7 + emscripten-llvm-5.0.7 + clang/llvm 22.1.8
+    (the runtime probes confirmed this is a multi-hundred-MB toolchain)
+
+[2] artifact: tree-sitter CLI 0.25.3 `build --wasm` over the REAL rust grammar
+    source (tests/fixtures/rust):
+      $ tree-sitter generate src/grammar.json
+      $ tree-sitter build --wasm -o rust.wasm .
+      -> rust.wasm  1114265 bytes (1.1 MB)
+    module ABI: standalone SIDE_MODULE — imports ONLY libc (calloc, free,
+    iswspace, iswalpha) + memory + dylink globals/table; exports only
+    tree_sitter_rust + ctors. The full parse tables + lex fns live in the
+    module; the host parse engine is the tree-sitter C library (wasm_store.c).
+
+[3] runtime: wasmtime 29.0.0 (the exact version tree-sitter 0.25.3 pins in
+    Cargo.lock), Python wheel _libwasmtime.so (16 MB); libtree-sitter compiled
+    with TREE_SITTER_FEATURE_WASM against wasmtime's C API headers (v29.0.0
+    tag), gcc 14.2.1, -O2. Bridge: ctypes over ts_wasm_store_* + ts_parser_*
+    (probe_wasm_runtime.py). Real parse of the rust grammar: abi=15, correct
+    sexp (function_item/let_declaration/macro_invocation/if_expression...),
+    has_error=False.
+
+[4] perf (bench_wasm_vs_native.py — same engine, same 262 KB rust corpus,
+    median of 200 parses; runs 1-3):
+      run1: native 73.9 ms | wasm 108.9 ms | ratio 1.47x
+      run2: native 61.1 ms | wasm 113.2 ms | ratio 1.85x
+      run3: native 69.8 ms | wasm 108.2 ms | ratio 1.55x
+      -> wasm/native ~1.5-1.9x (median 1.6x) — CONFIRMS the CONCEPT 11.5 note

@@ -1,0 +1,12 @@
+corpus: 262119 bytes
+native: 73.926 ms/parse (3.38 MB/s)
+wasm:   108.923 ms/parse (2.29 MB/s)
+ratio:  wasm/native = 1.47x
+corpus: 262119 bytes
+native: 61.067 ms/parse (4.09 MB/s)
+wasm:   113.173 ms/parse (2.21 MB/s)
+ratio:  wasm/native = 1.85x
+corpus: 262119 bytes
+native: 69.788 ms/parse (3.58 MB/s)
+wasm:   108.163 ms/parse (2.31 MB/s)
+ratio:  wasm/native = 1.55x
