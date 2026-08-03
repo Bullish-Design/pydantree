@@ -107,9 +107,11 @@ from .pipeline import (
     run_generate,
 )
 from .scanners import (
+    bash_heredoc_scanner_path,
     heredoc_scanner_path,
     indent_scanner_path,
     matched_delimiter_scanner_path,
+    py_indent_scanner_path,
     scanner_for,
 )
 
@@ -143,6 +145,8 @@ __all__ = [
     # scanner library seed
     "indent_scanner_path", "heredoc_scanner_path",
     "matched_delimiter_scanner_path", "scanner_for",
+    # Phase-7 per-language copies
+    "py_indent_scanner_path", "bash_heredoc_scanner_path",
     # expression helper
     "expression", "semantic_smoke", "DEFAULT_PRECEDENCE_CORPUS",
     # language

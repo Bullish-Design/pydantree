@@ -198,3 +198,99 @@ def test_matched_delimiter_scanner_is_strict(tmp_path):
                               cache_dir=tmp_path / "cache")
     lang, _lib = result.language()
     assert _parse_errs(lang, dmini.UNBALANCED)
+
+
+# ---------------------------------------------------------------------------
+# Phase 7 — the scanner library's per-language copies (pyindent + bashmini)
+# ---------------------------------------------------------------------------
+
+P7_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "009-phase7"
+sys.path.insert(0, str(P7_DIR))
+
+import bashmini  # noqa: E402
+import pyindent  # noqa: E402
+
+
+def _corpus(name, mod, scanner, tmp_path, cases):
+    g = mod.build()
+    result = tg.build_builder(g, scanner=scanner, cache_dir=tmp_path / "cache")
+    r = Corpus([corpus_case(text, expected, name=label)
+                for label, (text, expected) in cases.items()],
+               name=name).run(build_result=result)
+    assert r.ok(), r.report()
+
+
+def test_pyindent_real_python_logical_lines(tmp_path):
+    """The real-Python indentation scanner (adapted from tree-sitter-python):
+    comment-only lines and blank lines emit NO NEWLINE; a backslash
+    continuation keeps the logical line open; the header's NEWLINE and the
+    block's INDENT come from the two-call zero-width cadence."""
+    _corpus("pyindent", pyindent, tg.py_indent_scanner_path(), tmp_path, {
+        "plain blocks": (pyindent.GOOD, pyindent.GOOD_EXPECTED),
+        "comment in block": (pyindent.COMMENT_IN_BLOCK,
+                              pyindent.COMMENT_IN_BLOCK_EXPECTED),
+        "continuation": (pyindent.CONTINUATION,
+                         pyindent.CONTINUATION_EXPECTED),
+        "trailing comment": (pyindent.TRAILING_COMMENT,
+                              pyindent.TRAILING_COMMENT_EXPECTED),
+        "dedent at eof": (pyindent.DEDENT_AT_EOF,
+                           pyindent.DEDENT_AT_EOF_EXPECTED),
+    })
+
+
+def test_pyindent_blank_line_in_block(tmp_path):
+    """Blank lines inside a block are skipped (no NEWLINE, block continues) —
+    a real Python semantic."""
+    g = pyindent.build()
+    result = tg.build_builder(g, scanner=tg.py_indent_scanner_path(),
+                              cache_dir=tmp_path / "cache")
+    lang, _lib = result.language()
+    assert not _parse_errs(lang, pyindent.BLANK_IN_BLOCK)
+    tree = tg.parse(lang, pyindent.BLANK_IN_BLOCK)
+    blk = tree.root_node.named_children[0]
+    assert blk.type == "if_stmt"
+
+
+def test_pyindent_empty_block_is_parse_error(tmp_path):
+    """A header with no body is a parse ERROR (the real shape needs at least
+    one statement inside the block)."""
+    g = pyindent.build()
+    result = tg.build_builder(g, scanner=tg.py_indent_scanner_path(),
+                              cache_dir=tmp_path / "cache")
+    lang, _lib = result.language()
+    assert _parse_errs(lang, pyindent.EMPTY_BLOCK)
+
+
+def test_bashmini_multi_heredoc_pending_queue(tmp_path):
+    """The bash-style heredoc scanner (adapted from tree-sitter-bash): the
+    MULTI-heredoc case — `cat <<A <<B` queues BOTH delimiters and the bodies
+    are served in OPENING order, one BODY token each."""
+    _corpus("bashmini", bashmini, tg.bash_heredoc_scanner_path(), tmp_path, {
+        "plain heredoc": (bashmini.GOOD, bashmini.GOOD_EXPECTED),
+        "multi heredoc": (bashmini.MULTI, bashmini.MULTI_EXPECTED),
+        "indent-stripped": (bashmini.INDENTED, bashmini.INDENTED_EXPECTED),
+        "quoted delimiter": (bashmini.QUOTED, bashmini.QUOTED_EXPECTED),
+        "empty body": (bashmini.EMPTY, bashmini.EMPTY_EXPECTED),
+        "prefix not delimiter": (bashmini.PREFIX_LINE,
+                                  bashmini.PREFIX_LINE_EXPECTED),
+        "unterminated at eof": (bashmini.UNTERMINATED,
+                                 bashmini.UNTERMINATED_EXPECTED),
+    })
+
+
+def test_bashmini_no_delimiter_is_parse_error(tmp_path):
+    """`<<` with no delimiter word is a parse ERROR (the scanner declines)."""
+    g = bashmini.build()
+    result = tg.build_builder(g, scanner=tg.bash_heredoc_scanner_path(),
+                              cache_dir=tmp_path / "cache")
+    lang, _lib = result.language()
+    assert _parse_errs(lang, bashmini.NO_DELIMITER)
+
+
+def test_phase7_scanners_registered_in_library():
+    """The scanner library table now covers the Phase-7 per-language copies."""
+    assert tg.scanner_for("pyindent") == tg.py_indent_scanner_path()
+    assert tg.scanner_for("bashmini") == tg.bash_heredoc_scanner_path()
+    assert tg.scanner_for("hmini") == tg.heredoc_scanner_path()
+    assert tg.scanner_for("pymini") == tg.indent_scanner_path()
+    assert tg.scanner_for("no_such_grammar") is None
