@@ -62,6 +62,7 @@ from .conflicts import (
     parse_conflict_json,
     remap_from_proc,
 )
+from .corpus import Corpus, CorpusCase, CorpusResult, corpus_case, render, render_compact
 from .expressions import expression, semantic_smoke, DEFAULT_PRECEDENCE_CORPUS
 from .grammar import (
     AliasNode,
@@ -124,6 +125,9 @@ __all__ = [
     "GrammarCheckError",
     # conflicts
     "GrammarConflictError", "Conflict", "parse_conflict_json", "remap_from_proc",
+    # corpus (Phase 5)
+    "Corpus", "CorpusCase", "CorpusResult", "corpus_case", "render",
+    "render_compact",
     # pipeline
     "build", "build_builder", "build_loop", "generate", "run_generate",
     "compile_parser", "debug_states", "detect_toolchain", "grammar_hash",

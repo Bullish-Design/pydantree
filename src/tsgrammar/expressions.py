@@ -196,27 +196,25 @@ def semantic_smoke(
     ladder reorder that silently changes `-a ^ b` from `-(a^b)` to `(-a)^b`
     is caught at author time.
     """
-    from .pipeline import build as _build
-    result = build_result if build_result is not None \
-        else _build(g.build(), cache_dir=cache_dir)
-    from .language import load_language
-    lang, _lib = load_language(result.so_path, g.name)
-
-    failures: list[str] = []
-    for source, expected in cases or DEFAULT_PRECEDENCE_CORPUS:
-        tree = _parse(lang, source)
-        root = _find_expr(tree.root_node, expr)
-        if root is None:
-            failures.append(
-                f"case {source!r}: no {expr!r} node found "
-                f"(parse errors? {_first_error(tree, source)})")
-            continue
-        got = _render(root, source)
-        if got != expected:
-            failures.append(
-                f"case {source!r}: shape {got!r}, expected {expected!r} "
+    from .corpus import Corpus
+    result = build_result
+    if result is None:
+        from .pipeline import build_builder
+        result = build_builder(g, cache_dir=cache_dir)
+    corpus = Corpus(cases or DEFAULT_PRECEDENCE_CORPUS, style="compact",
+                    selector=expr)
+    run = corpus.run(build_result=result)
+    out: list[str] = []
+    for f in run.failures:
+        if f.got is None:
+            out.append(f"case {f.case.source!r}: no {expr!r} node found "
+                       f"({f.detail})")
+        else:
+            out.append(
+                f"case {f.case.source!r}: shape {f.got!r}, "
+                f"expected {f.case.expected!r} "
                 f"(a ladder reorder changed the parse semantics?)")
-    return failures
+    return out
 
 
 DEFAULT_PRECEDENCE_CORPUS: list[tuple[str, str]] = [
@@ -227,48 +225,6 @@ DEFAULT_PRECEDENCE_CORPUS: list[tuple[str, str]] = [
                   "( args((identifier)) ))"),                    # (f(x))(y)
     ("-a or b;", "((- (identifier)) or (identifier))"),          # (-a) or b
 ]
-
-
-def _parse(lang, source: str):
-    import tree_sitter
-    return tree_sitter.Parser(lang).parse(source.encode("utf-8"))
-
-
-def _first_error(tree, source: str) -> str:
-    out: list[str] = []
-
-    def walk(n):
-        if n.type == "ERROR" or n.is_missing:
-            out.append(f"{n.type}@{source[n.start_byte:n.end_byte]!r}")
-        for c in n.children:
-            walk(c)
-    walk(tree.root_node)
-    return ", ".join(out) or "none"
-
-
-def _find_expr(node, expr: str):
-    """The FIRST node of type `expr` in DFS order — the outermost expression
-    of the statement (nested exprs come after)."""
-    if node.type == expr:
-        return node
-    for c in node.children:
-        found = _find_expr(c, expr)
-        if found is not None:
-            return found
-    return None
-
-
-def _render(n, source: bytes) -> str:
-    if not n.is_named:
-        return n.type
-    if n.type.startswith("_"):
-        return n.type
-    if n.child_count == 0:
-        return n.type
-    inner = " ".join(_render(c, source) for c in n.children)
-    return f"({inner})" if n.type == "expr" else f"{n.type}({inner})"
-
-
 
 
 def _require_level(ladder: Ladder, level: str, what: str) -> None:

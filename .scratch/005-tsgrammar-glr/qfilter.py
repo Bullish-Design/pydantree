@@ -89,7 +89,7 @@ def build() -> tg.Grammar:
     g.rule("block", tg.seq("{", tg.repeat(tg.ref("statement")), "}"))
     g.rule("statement", tg.choice(
         tg.ref("assign"), tg.ref("let_stmt"), tg.ref("if_stmt"),
-        tg.ref("expr_stmt"), tg.ref("fn_def")),
+        tg.ref("expr_stmt"), tg.ref("fn_def"), tg.ref("block")),
         supertype=True)
 
     # ---- start --------------------------------------------------------------
