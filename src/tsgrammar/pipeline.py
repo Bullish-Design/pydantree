@@ -142,6 +142,7 @@ class BuildResult:
     parser_c: Path
     so_path: Path
     node_types_json: Path
+    node_schema_json: Path | None = None
     generate_proc: subprocess.CompletedProcess | None = None
     compile_proc: subprocess.CompletedProcess | None = None
     cached: bool = False
@@ -149,6 +150,24 @@ class BuildResult:
     def language(self, grammar_name: str | None = None):
         from .language import load_language
         return load_language(self.so_path, grammar_name)
+
+    def node_schema(self):
+        """The derived node-schema (tscore.NodeSchema) — the bridge artifact.
+        Returns None if the build predates node-schema emission."""
+        if self.node_schema_json is None or not self.node_schema_json.exists():
+            return None
+        from tscore.schema import NodeSchema
+        return NodeSchema.from_node_types_json(self.node_schema_json)
+
+
+def _ensure_node_schema(model: GrammarModel, path: Path) -> None:
+    """Write node-schema.json (derived from the IR via tscore) if missing.
+    The schema is a pure function of the IR, so it is content-addressed with
+    the rest of the cache entry."""
+    if path.exists():
+        return
+    from tscore.schema import NodeSchema, derive_from_ir
+    NodeSchema.from_list(derive_from_ir(model)).write(path)
 
 
 def build(model: GrammarModel, *, cache_dir: Path | None = None,
@@ -174,14 +193,17 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     entry = cache_dir / key
     so_path = entry / f"{name}.so"
     grammar_json = entry / "grammar.json"
+    node_schema_json = entry / "node-schema.json"
 
     if so_path.exists() and grammar_json.exists():
+        _ensure_node_schema(model, node_schema_json)
         return BuildResult(
             grammar_json=grammar_json,
             src_dir=entry / "src",
             parser_c=entry / "src" / "parser.c",
             so_path=so_path,
             node_types_json=entry / "src" / "node-types.json",
+            node_schema_json=node_schema_json,
             cached=True,
         )
 
@@ -223,12 +245,14 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     work.rename(entry)
 
     node_types = entry / "src" / "node-types.json"
+    _ensure_node_schema(model, entry / "node-schema.json")
     return BuildResult(
         grammar_json=entry / "grammar.json",
         src_dir=entry / "src",
         parser_c=entry / "src" / "parser.c",
         so_path=entry / f"{name}.so",
         node_types_json=node_types,
+        node_schema_json=entry / "node-schema.json",
         generate_proc=gen,
         compile_proc=cc,
         cached=False,
