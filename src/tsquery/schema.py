@@ -415,7 +415,14 @@ def _derive_field_schema(model_cls, schema, bindings) -> _Derived:
         possible = schema.expand(r.type for r in
                                  schema.field_types(anchor_kind, field_name))
         k = _field_constraint_kind(schema, possible, f.annotation, f.metadata)
-        cur.child(field=field_name, node=node(k).capture(fname))
+        # query-optional when the model can materialize without the field
+        # (an Optional annotation or a REAL default; `= capture(...)` is a
+        # marker, not a default) — the `?` matches both shapes (the
+        # schema-bound twin of typed._derive_field's Phase-6.5 fix)
+        from .typed import _field_is_query_optional
+        optional = _field_is_query_optional(f)
+        cur.child(field=field_name, node=node(k).capture(fname),
+                  quant="?" if optional else "")
         for p in _predicates_for(fname, f.metadata):
             cur.where(p)
 

@@ -295,6 +295,29 @@ def _unwrap_optional(t):
     return t
 
 
+def _is_optional(t) -> bool:
+    """Is `None` among the annotation's union members (the type is
+    Optional)? Phase 6.5: a field-mode capture with an Optional type is
+    query-optional — the derived pattern emits `?` so matches without the
+    field still materialize (None), instead of silently excluding them."""
+    origin = get_origin(t)
+    if origin in (Union, types.UnionType):
+        return any(a is type(None) for a in get_args(t))
+    return False
+
+
+def _field_is_query_optional(f) -> bool:
+    """A field-mode capture is query-optional iff the model can materialize
+    WITHOUT the field: an Optional annotation, or a REAL default. A
+    `= capture(...)` / `= source_meta()` marker is NOT a default (pydantic's
+    `is_required()` treats any default as non-required, so the marker would
+    wrongly make `port: int = capture("arg")` optional)."""
+    if _is_optional(f.annotation):
+        return True
+    d = f.default
+    return d is not PydanticUndefined and not isinstance(d, (_Capture, _SourceMeta))
+
+
 def _kind_from_metadata(metadata) -> Optional[NodeKind]:
     for m in metadata:
         if isinstance(m, NodeKind):
@@ -372,8 +395,17 @@ def _derive_field(model_cls, m: M, bindings) -> _Derived:
             and f.default.field else fname
         kind = _kind_from_metadata(f.metadata)
         k = kind.kinds[0] if kind else "_"
+        # a capture the model can materialize WITHOUT the field (an Optional
+        # type or a REAL default) is query-optional: `?` matches both shapes —
+        # the field present (captured) and absent (the match still succeeds,
+        # the binding falls back to the default / None). This fixes the
+        # Phase-6 finding: `return_type: str | None = capture(...)` used to
+        # emit `return_type:(_)` and silently exclude every node without the
+        # field (real rust `fn no_return() {}`).
+        optional = _field_is_query_optional(f)
         cur.child(field=field_name,
-                  node=node(k).capture(fname))
+                  node=node(k).capture(fname),
+                  quant="?" if optional else "")
         for p in _predicates_for(fname, f.metadata):
             cur.where(p)
 
@@ -785,7 +817,12 @@ def _build_kwargs(model_cls, bindings, captures, anchor_nodes=None):
             if b.is_list:
                 kwargs[fname] = []
             elif not f.is_required():
-                kwargs[fname] = f.default
+                # a marker default (= capture(...)) means "absent -> None",
+                # not the marker object
+                kwargs[fname] = None if isinstance(f.default, _Capture) \
+                    else f.default
+            elif _is_optional(f.annotation):
+                kwargs[fname] = None
             continue
         if b.is_list:
             if _has_unescaped(f.metadata):

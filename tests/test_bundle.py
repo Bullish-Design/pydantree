@@ -249,3 +249,38 @@ def test_community_job1_catches_bad_path_over_real_rust(tmp_path):
         BadChain.validate_with(lang)
     assert "tuple_type" in str(exc.value)
     assert "struct_item" in str(exc.value)
+
+
+def test_optional_field_capture_is_query_optional(tmp_path):
+    """Phase 6.5: a field-mode capture with an Optional type emits `?` in the
+    derived query — matches WITHOUT the field still materialize (None), while
+    a required capture (no Optional, no real default) stays required. This is
+    the fix for the Phase-6 finding that `str | None = capture(...)` silently
+    excluded every node lacking the field (real rust `fn no_return() {}`)."""
+    from tsgrammar.schema_tool import build_community_bundle
+    bundle = build_community_bundle(RUST_FIXTURE, tmp_path / "bundle",
+                                    name="rust", keep=True)
+    lang = Language.load_bundle(bundle)
+
+    class RustFnReturn(OutputModel):
+        __match__ = M("source_file", "function_item")
+        name: str = capture("name")
+        return_type: str | None = capture("return_type")
+        line: int = source_meta()
+
+    # the derived query makes the optional capture `?`-quantified
+    src = RustFnReturn.compiled_source(schema=lang.schema, language=lang)
+    assert "return_type:(_)? @return_type" in src, src
+    rows = [r.model_dump() for r in RustFnReturn.extract(
+        "fn add(a: u32) -> u32 { a }\nfn main() {}\n", language=lang)]
+    assert rows == [{"name": "add", "return_type": "u32", "line": 1},
+                    {"name": "main", "return_type": None, "line": 2}]
+
+    class Required(OutputModel):
+        __match__ = M("source_file", "function_item")
+        name: str = capture("name")
+
+    # a required capture (no Optional, no real default) is NOT quantified
+    src2 = Required.compiled_source(schema=lang.schema, language=lang)
+    assert "name:(_)?" not in src2
+    assert "name:(_) @name" in src2, src2

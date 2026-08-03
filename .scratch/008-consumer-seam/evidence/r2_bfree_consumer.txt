@@ -25,9 +25,19 @@
       "line": 4
     },
     {
+      "name": "main",
+      "return_type": null,
+      "line": 8
+    },
+    {
       "name": "greet",
       "return_type": "String",
       "line": 14
+    },
+    {
+      "name": "no_return",
+      "return_type": null,
+      "line": 26
     }
   ],
   "tuple_structs": [

@@ -68,12 +68,15 @@ FN_GROUND_TRUTH = [
     {"name": "greet", "line": 14},
     {"name": "no_return", "line": 26},
 ]
-# functions WITH a return type — the field-mode capture is required even when
-# the Python type is Optional (a documented Phase-6 DSL finding: the derived
-# query emits `return_type:(_)`, so a function without the field never matches)
+# functions WITH their return type — an Optional field-mode capture is now
+# query-optional (Phase 6.5): `return_type: str | None = capture(...)` emits
+# `return_type:(_)?`, so functions WITHOUT the field also match (None) — the
+# Phase-6 finding (the field was silently required) is fixed
 FN_RETURN_GROUND_TRUTH = [
     {"name": "add", "return_type": "u32", "line": 4},
+    {"name": "main", "return_type": None, "line": 8},
     {"name": "greet", "return_type": "String", "line": 14},
+    {"name": "no_return", "return_type": None, "line": 26},
 ]
 TUPLE_GROUND_TRUTH = [
     {"name": "Point", "types": ["f64", "f64"], "line": 18},
@@ -90,9 +93,9 @@ class RustFn(OutputModel):
 
 
 class RustFnReturn(OutputModel):
-    """Functions with a return type: `return_type` is an Optional field-mode
-    capture — the query still requires the field (the `str | None` type is
-    not consulted), so functions without one are excluded."""
+    """Functions with their return type: an Optional field-mode capture — the
+    query emits `return_type:(_)?`, so functions WITHOUT one match with None
+    (the Phase-6.5 fix; previously the field was silently required)."""
 
     __match__ = M("source_file", "function_item")
     name: str = capture("name")

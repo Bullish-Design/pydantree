@@ -22,7 +22,7 @@ Raw outputs saved verbatim under `evidence/` (r1_*, r2_*, r3_*).
 Re-run:
 
 ```bash
-devenv shell -- python -m pytest tests/                 # 158 green
+devenv shell -- python -m pytest tests/                 # 159 green
 devenv shell -- python .scratch/008-consumer-seam/experiment_run1.py
 devenv shell -- python .scratch/008-consumer-seam/experiment_run2.py
 devenv shell -- python .scratch/007-tsquery-distribution/experiment_phase5.py
@@ -37,7 +37,7 @@ devenv shell -- python .scratch/006-tsquery-bridge/experiment_phase4.py
 |---|---|---|---|
 | **1 — the packaging seam** | a FRESH venv with only the light wheels (tscore+tsquery) runs the full checked extraction, B's toolchain stays out | **GO** | `r1_*`: fresh venv import graph, tsgrammar unimportable (rc 1), bundle round-trip + community extraction pass, **byte-identical** vs the in-repo (B importable) AND the run_bfree (B stripped) results |
 | **2 — the community seam** | the schema path holds over a real grammar we don't own | **GO** | `r2_*`: schema tool + `derive_from_ir` both **byte-for-byte** vs the CLI's fresh node-types.json over tree-sitter-rust (182 rules, 11 externals); the community bundle built from the real source; a B-free consumer extracts a hand-authored rust task, checks active |
-| **3 — the deferred surface** | Job-2 stubs, scanner seeds, wasm probe, registry leak, residuals | **3 LANDED, 2 ASSESSED** | Job-2 `.pyi` stubs landed (mypy-checked); 2 scanner seeds landed (heredoc + matched-delimiter); **registry leak fixed** (worse than documented); wasm **assessed-not-built** (as specced); name-inference + wrapper-field residuals documented-and-moved-on |
+| **3 — the deferred surface** | Job-2 stubs, scanner seeds, wasm probe, registry leak, residuals | **4 LANDED, 1 ASSESSED** (+1 DSL fix in the 6.5 follow-up) | Job-2 `.pyi` stubs landed (mypy-checked); 2 scanner seeds landed (heredoc + matched-delimiter); **registry leak fixed** (worse than documented); wasm **assessed-not-built** (as specced); name-inference + wrapper-field residuals documented-and-moved-on; **the optional-field-capture DSL gap FIXED** (§3.5 — `?` quantifiers) |
 
 ---
 
@@ -265,12 +265,28 @@ tests updated and new opt-in/refusal tests added.
   where the field points at a wrapper node — the repeated field must sit ON
   the anchor) — re-documented, moved on. Rust's real grammar confirmed the
   case is about the grammar's field shape, not the machinery.
-- **NEW (Phase 6): optional field-mode captures still require the field** —
-  a `str | None = capture("return_type")` field-mode capture emits
-  `return_type:(_)` in the query, so functions WITHOUT the field never match.
-  Found live over real rust (`fn no_return() {}`). Documented; the honest
-  fix (a query-level optional field) is a small DSL item for a later phase —
-  the workaround (two models) is shown in `consumer_rust.py`.
+- **NEW (Phase 6, FIXED in the 6.5 follow-up): optional field-mode captures
+  used to still require the field** — a `str | None = capture("return_type")`
+  field-mode capture emitted `return_type:(_)` in the query, so functions
+  WITHOUT the field never matched (found live over real rust: `fn
+  no_return() {}`). The fix: a field-mode capture is query-optional iff the
+  model can materialize without the field (an Optional annotation or a REAL
+  default — a `= capture(...)` marker is NOT a default, pydantic's
+  `is_required()` treats it as one), and the derived pattern emits `?`
+  (`return_type:(_)? @return_type`). Probed first: the 0.26 query engine
+  supports child `?` quantifiers and captures the node when present while
+  still matching when absent; the predicates already use the `#pred?`
+  optional form, so they compose. The materializer also learned that an
+  absent capture with a marker default means None (not the marker object).
+  `consumer_rust.py`'s `RustFnReturn` now extracts ALL FOUR functions
+  (main/no_return with `return_type: null`) — the workaround model is gone.
+
+**The dev-flow hardlink staleness is mitigated for the suite**: the tests now
+resolve `src/` first via `tests/conftest.py` (the same resolution the
+`.scratch` experiments use), so the suite always exercises the current code
+— the packaging claims are still tested against the installed/wheel
+artifacts (test_packaging builds+inspects the wheels, the fresh-venv test
+installs them, the B-free consumers copy `src/`).
 
 ---
 
@@ -322,5 +338,6 @@ outrank the GPL package — this is the one blocker between "proven" and
 grammar + a real extraction task, through the light install, end to end —
 the corpus harness, stubs, and scanners are polish to grow on demand, not
 prereqs); (3) the remaining deferred surface when users ask for it — the
-wasm runtime for the portability story, the optional-field-capture DSL item,
-and the per-language scanner library.
+wasm runtime for the portability story and the per-language scanner library
+(the optional-field-capture DSL item is DONE — the 6.5 follow-up landed
+`?`-quantified optional captures; see §3.5).
