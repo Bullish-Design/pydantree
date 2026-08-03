@@ -11,6 +11,7 @@ dependencies; the full fresh-venv end-to-end is the Run-1 experiment
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 import sys
 import zipfile
@@ -114,3 +115,84 @@ def test_light_wheel_pins_0_26(tmp_path):
         pins = [d for d in deps if d.startswith("tree-sitter>=")]
         assert pins, f"{pkg} has no tree-sitter pin"
         assert pins[0] == "tree-sitter>=0.26", f"{pkg} pin is {pins[0]}"
+
+
+# ---------------------------------------------------------------------------
+# the fresh-venv install boundary (the Run-1 centerpiece, in-test form)
+# ---------------------------------------------------------------------------
+
+_TOOLCHAIN = shutil.which("tree-sitter") is not None and \
+    shutil.which("gcc") is not None
+
+
+@pytest.mark.skipif(not _uv_available() or not _TOOLCHAIN,
+                    reason="uv and/or the tree-sitter CLI + gcc not on PATH")
+def test_fresh_venv_light_install_delivers_a_without_b(tmp_path):
+    """The CONCEPT §8 claim at the INSTALL boundary, in a test: a fresh venv
+    (no editable src/, no tsgrammar) installs only the light wheels and runs
+    the checked cfg-bundle round-trip; `import tsgrammar` fails."""
+    import json
+    wheels = tmp_path / "wheels"
+    wheels.mkdir()
+    for pkg in ("tscore", "tsquery"):
+        _build_wheel(pkg, wheels)
+    venv = tmp_path / "fresh-venv"
+    proc = subprocess.run(["uv", "venv", "--python", sys.executable,
+                           str(venv)], capture_output=True, text=True,
+                          check=False)
+    assert proc.returncode == 0, proc.stderr or proc.stdout
+    proc = subprocess.run(
+        ["uv", "pip", "install", "--python", str(venv / "bin" / "python"),
+         "--find-links", str(wheels),
+         "tscore==0.1.0", "tsquery==0.1.0"],
+        capture_output=True, text=True, check=False)
+    assert proc.returncode == 0, proc.stderr or proc.stdout
+    # the seam does not leak: tsgrammar is not importable in the light install
+    proc = subprocess.run([str(venv / "bin" / "python"), "-c",
+                           "import tsgrammar"],
+                          capture_output=True, text=True, check=False)
+    assert proc.returncode != 0, "tsgrammar IS importable in the light install"
+
+    # build the cfg bundle (B-side) and round-trip it in the fresh venv
+    from pathlib import Path as _P
+    bridge = _P(__file__).resolve().parents[1] / ".scratch" / "006-tsquery-bridge"
+    if str(bridge) not in sys.path:
+        sys.path.insert(0, str(bridge))
+    from cfg_grammar import CORPUS, LISTEN_GROUND_TRUTH, SECTION_GROUND_TRUTH, build as _cfg
+    import tsgrammar as tg
+    result = tg.build_builder(_cfg())
+    bundle = result.package(tmp_path / "bundle")
+    consumer = tmp_path / "consumer.py"
+    consumer.write_text(f"""
+import json, sys
+from tsquery import Language, M, OutputModel, capture, source_meta
+
+class ServerSection(OutputModel):
+    __match__ = M("source_file", "section", record=True)
+    host: str
+    port: int
+    debug: bool = False
+    title: str | None = None
+    line: int = source_meta()
+
+class Listen(OutputModel):
+    __match__ = M("source_file", "directive")
+    name: str = capture("name")
+    port: int = capture("arg")
+    line: int = source_meta()
+
+CORPUS = {CORPUS!r}
+GT_SEC = {SECTION_GROUND_TRUTH!r}
+GT_LIS = {LISTEN_GROUND_TRUTH!r}
+lang = Language.load_bundle(sys.argv[1])
+ServerSection.validate_with(lang)
+Listen.validate_with(lang)
+secs = [r.model_dump() for r in ServerSection.extract(CORPUS, language=lang)]
+lis = [r.model_dump() for r in Listen.extract(CORPUS, language=lang)]
+print(json.dumps({{'ok': secs == GT_SEC and lis == GT_LIS}}))
+""")
+    proc = subprocess.run(
+        [str(venv / "bin" / "python"), str(consumer), str(bundle)],
+        capture_output=True, text=True, check=False)
+    assert proc.returncode == 0, proc.stderr or proc.stdout
+    assert json.loads(proc.stdout)["ok"] is True
