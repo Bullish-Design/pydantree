@@ -22,7 +22,7 @@ Raw outputs saved verbatim under `evidence/` (r1_*, r2_*, r3_*).
 Re-run:
 
 ```bash
-devenv shell -- python -m pytest tests/                 # 157 green
+devenv shell -- python -m pytest tests/                 # 158 green
 devenv shell -- python .scratch/008-consumer-seam/experiment_run1.py
 devenv shell -- python .scratch/008-consumer-seam/experiment_run2.py
 devenv shell -- python .scratch/007-tsquery-distribution/experiment_phase5.py
