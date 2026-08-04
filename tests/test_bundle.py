@@ -369,3 +369,113 @@ def test_capture_kind_job1_rejects_non_child(tmp_path):
         BadKind.validate_with(lang)
     assert "language" in str(exc.value)
     assert "fenced_code_block" in str(exc.value)
+
+
+# ---------------------------------------------------------------------------
+# Phase 9 — Run 1/2/3 over the REAL nix grammar (tree-sitter-nix v0.3.0)
+# ---------------------------------------------------------------------------
+
+NIX_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "nix"
+P9_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "011-nix-example"
+
+
+def test_schema_tool_over_real_nix_source_byte_for_byte(tmp_path):
+    """The community tool over the REAL tree-sitter-nix source (49 rules, 10
+    hidden, 6 externals): derive_schema_for_dir accepts the community layout,
+    runs the CLI, and the derived schema is byte-for-byte the CLI's own fresh
+    node-types.json — no normalization. (The vendored oracle differs by the
+    root/extra serialization flags only — a newer CLI generated it; the tool
+    tracks the installed CLI by construction.)"""
+    from tsgrammar.schema_tool import derive_schema_for_dir
+    out = tmp_path / "nix-schema.json"
+    derived = derive_schema_for_dir(NIX_FIXTURE, name="nix",
+                                    workdir=tmp_path / "cw",
+                                    out=out, keep=True)
+    assert derived.name == "nix"
+    fresh = tmp_path / "cw" / "gen" / "node-types.json"
+    assert out.read_text() == fresh.read_text()
+    # the schema shape over nix: the VISIBLE externals (string_fragment,
+    # path_fragment, dollar_escape) are named kinds in node-types.json; the
+    # hidden externals (_-prefixed, the indented-string/path helpers) are
+    # PRUNED like bash's 15 hidden helpers; the `inherit` keyword is BOTH a
+    # named kind and an anonymous keyword
+    nt = json.loads(fresh.read_text())
+    assert len(nt) == 84
+    assert len({k["type"] for k in nt}) == 83
+    named = {k["type"] for k in nt if k["named"]}
+    for ext in ("string_fragment", "path_fragment", "dollar_escape"):
+        assert ext in named, ext
+    for ext in ("_indented_string_fragment", "_path_start",
+                "_indented_dollar_escape"):
+        assert ext not in named, ext
+    assert sum(1 for k in nt if k["type"] == "inherit") == 2
+
+
+def test_community_bundle_build_and_bfree_fleet_extraction(tmp_path):
+    """The full Run-2 path over the real nix grammar: community source ->
+    build_community_bundle -> B-free consumer (tsgrammar unimportable) -> the
+    fleet-inventory task over the vendored real devenv.nix files, matching
+    the hand truth (130 rows across all seven configs, byte-computed lines —
+    the position-bug workaround)."""
+    from tsgrammar.schema_tool import build_community_bundle
+    bundle = build_community_bundle(NIX_FIXTURE, tmp_path / "bundle",
+                                    name="nix", keep=True)
+    assert set(p.name for p in bundle.iterdir()) == {
+        "grammar.so", "node-schema.json", "tree-sitter.json", "loader.py"}
+    rc, out = run_bfree(P9_DIR / "consumer_nix.py",
+                        str(NIX_FIXTURE / "fleet"),
+                        "bundle", str(bundle),
+                        workdir=tmp_path / "bfree")
+    assert rc == 0, out
+    data = json.loads(out)
+    assert data["ok"] is True
+    assert data["schema_bound"] is True
+    assert len(data["files"]["pydantree.nix"]["switches"]) == 4
+    assert data["files"]["flora.nix"]["packages"] == [
+        {"repo": "flora", "name": "pkgs.tailscale", "line": 51},
+        {"repo": "flora", "name": "pkgs.docker", "line": 51},
+        {"repo": "flora", "name": "pkgs.rsync", "line": 51},
+        {"repo": "flora", "name": "pkgs.openssh", "line": 51},
+    ]
+    assert data["tsgrammar_importable"] is False  # the seam does not leak
+
+
+def test_nix_attrpath_capture_rejected_as_str(tmp_path):
+    """Phase 9 finding: the binding's ATTRPATH is a structural node (a chain
+    of identifiers + dots) — Job 4 rejects capturing it as str (the
+    Phase-8 'no raw text of any node' residual, triggered hard over nix: the
+    KEY of every nix binding is context, not a capture)."""
+    from tsgrammar.schema_tool import build_community_bundle
+    from tsquery import SchemaCheckError
+    bundle = build_community_bundle(NIX_FIXTURE, tmp_path / "bundle",
+                                    name="nix", keep=True)
+    lang = Language.load_bundle(bundle)
+
+    class BadKey(OutputModel):
+        __match__ = M("source_code", ..., "binding")
+        attrpath: str = capture("attrpath")
+
+    with pytest.raises(SchemaCheckError) as exc:
+        BadKey.validate_with(lang)
+    assert "attrpath" in str(exc.value)
+
+
+def test_record_mode_over_nix_binding_set_unsupported(tmp_path):
+    """Phase 9 probe (answered NO): record mode over nix's attrset shape —
+    the record machinery's pair-kind detection wants a child kind with
+    key/value fields (the JSON pair shape); nix's binding_set carries a
+    `binding` FIELD with attrpath/expression. A documented parameterization
+    candidate, not a fit today."""
+    from tsgrammar.schema_tool import build_community_bundle
+    from tsquery import M, OutputModel, UnsupportedShapeError
+    bundle = build_community_bundle(NIX_FIXTURE, tmp_path / "bundle",
+                                    name="nix", keep=True)
+    lang = Language.load_bundle(bundle)
+
+    class EnvRecord(OutputModel):
+        __match__ = M("source_code", ..., "binding_set", record=True)
+        GREET: str
+
+    with pytest.raises(UnsupportedShapeError) as exc:
+        EnvRecord.validate_with(lang)
+    assert "key" in str(exc.value) and "value" in str(exc.value)

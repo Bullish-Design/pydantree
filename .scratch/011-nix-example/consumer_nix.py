@@ -42,13 +42,10 @@ if os.environ.get("BFREE_REQUIRED"):
 
 from tsquery import Language, M, OutputModel, Span, capture, source_meta  # noqa: E402
 
-FLEET = Path(sys.argv[1])
-MODE = sys.argv[2]
-ARTIFACT = Path(sys.argv[3])
-
-FILES = ("mypi-agent.nix", "pydantree.nix", "terminal-state.nix",
-         "structured-agents-v2.nix", "fsdantic.nix", "nixvim.nix",
-         "flora.nix")
+FILES = tuple(os.environ.get("NIX_FLEET_FILES",
+              "mypi-agent.nix pydantree.nix terminal-state.nix "
+              "structured-agents-v2.nix fsdantic.nix nixvim.nix "
+              "flora.nix").split())
 
 
 class Binding(OutputModel):
@@ -205,6 +202,10 @@ def classify(path: str, value: str):
 
 
 def main() -> int:
+    global FLEET, MODE, ARTIFACT
+    FLEET = Path(sys.argv[1])
+    MODE = sys.argv[2]
+    ARTIFACT = Path(sys.argv[3])
     lang = load_language()
     Binding.validate_with(lang)
     List.validate_with(lang)
