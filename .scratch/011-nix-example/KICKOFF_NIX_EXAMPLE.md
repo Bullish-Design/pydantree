@@ -11,7 +11,7 @@
 > corpus that is entirely the user's real configs — the strongest real-user
 > evidence yet. The use case is a real tool: the devenv fleet inventory —
 > typed rows per repo (packages, env vars, scripts, tasks, enabled
-> switches, enterShell), aggregated across ~58 repos. Findings go in
+> switches, enterShell), aggregated across 52 repos. Findings go in
 > `.scratch/011-nix-example/FINDINGS.md`.
 
 ---
@@ -100,7 +100,7 @@ fixed first (go-with-changes)?
   wheelhouses for publishing, and must NOT touch anything publish-related
   beyond the existing test_packaging pattern. Say no to publishing
   rehearsal work here.
-- **The corpus is the user's own fleet.** ~58 repos under
+- **The corpus is the user's own fleet.** 52 repos under
   `~/Documents/Projects/*/devenv.nix` (verified; the list is in the
   Appendix). Fleet stats (verified by grep): 30 repos with `packages = [`
   lists, 24 with `env.KEY =`, 28 with `scripts.*`, 3 with `tasks` blocks
@@ -388,7 +388,7 @@ Mirror `experiment_run2.py` exactly:
 8. The wheels: pydantree-tscore / pydantree-tsquery (light) /
    pydantree-tsgrammar (heavy); import packages stay tscore/tsquery/
    tsgrammar. **Publishing is deferred by the user — do not publish.**
-9. **NEW (verified this kickoff): the corpus fleet.** ~58 repos under
+9. **NEW (verified this kickoff): the corpus fleet.** 52 repos under
    `~/Documents/Projects/*/devenv.nix`. Stats: 30 `packages = [`, 24
    `env.KEY =`, 28 `scripts.*`, 3 `tasks` blocks, 42 `languages.*`, 47
    `.enable = true`, 38 `''...''` multiline strings, 18 `services.*`.
