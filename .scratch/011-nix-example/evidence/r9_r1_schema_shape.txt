@@ -1,0 +1,152 @@
+{
+  "kinds_total": 84,
+  "named": 42,
+  "anonymous": 42,
+  "externals_in_node_types": [],
+  "externals_declared_in_grammar": [
+    "string_fragment",
+    "_indented_string_fragment",
+    "_path_start",
+    "path_fragment",
+    "dollar_escape",
+    "_indented_dollar_escape"
+  ],
+  "hidden_rules": 10,
+  "supertypes_in_schema": [
+    {
+      "type": "_expression",
+      "named": true,
+      "subtypes": [
+        {
+          "type": "apply_expression",
+          "named": true
+        },
+        {
+          "type": "assert_expression",
+          "named": true
+        },
+        {
+          "type": "attrset_expression",
+          "named": true
+        },
+        {
+          "type": "binary_expression",
+          "named": true
+        },
+        {
+          "type": "float_expression",
+          "named": true
+        },
+        {
+          "type": "function_expression",
+          "named": true
+        },
+        {
+          "type": "has_attr_expression",
+          "named": true
+        },
+        {
+          "type": "hpath_expression",
+          "named": true
+        },
+        {
+          "type": "if_expression",
+          "named": true
+        },
+        {
+          "type": "indented_string_expression",
+          "named": true
+        },
+        {
+          "type": "integer_expression",
+          "named": true
+        },
+        {
+          "type": "let_attrset_expression",
+          "named": true
+        },
+        {
+          "type": "let_expression",
+          "named": true
+        },
+        {
+          "type": "list_expression",
+          "named": true
+        },
+        {
+          "type": "parenthesized_expression",
+          "named": true
+        },
+        {
+          "type": "path_expression",
+          "named": true
+        },
+        {
+          "type": "rec_attrset_expression",
+          "named": true
+        },
+        {
+          "type": "select_expression",
+          "named": true
+        },
+        {
+          "type": "spath_expression",
+          "named": true
+        },
+        {
+          "type": "string_expression",
+          "named": true
+        },
+        {
+          "type": "unary_expression",
+          "named": true
+        },
+        {
+          "type": "uri_expression",
+          "named": true
+        },
+        {
+          "type": "variable_expression",
+          "named": true
+        },
+        {
+          "type": "with_expression",
+          "named": true
+        }
+      ]
+    }
+  ],
+  "fields": [
+    "alternative",
+    "argument",
+    "attr",
+    "attrpath",
+    "attrs",
+    "binding",
+    "body",
+    "condition",
+    "consequence",
+    "default",
+    "element",
+    "ellipses",
+    "environment",
+    "expression",
+    "formal",
+    "formals",
+    "function",
+    "left",
+    "name",
+    "operator",
+    "right",
+    "universal"
+  ],
+  "repeated_fields": [
+    "attr",
+    "attr",
+    "binding",
+    "element",
+    "formal"
+  ],
+  "word": "keyword",
+  "declared_conflicts": "none (grammar.json conflicts: [])"
+}

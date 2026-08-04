@@ -1,0 +1,2 @@
+byte-for-byte vs the CLI's fresh node-types.json: True
+byte-for-byte vs the vendored oracle: False

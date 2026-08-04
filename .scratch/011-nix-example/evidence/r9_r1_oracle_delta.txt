@@ -1,0 +1,21 @@
+20 diff lines vs the vendored oracle
+--- 
++++ 
+@@ -1540,7 +1540,6 @@
+   {
+     "type": "source_code",
+     "named": true,
+-    "root": true,
+     "fields": {
+       "expression": {
+         "multiple": false,
+@@ -1939,8 +1938,7 @@
+   },
+   {
+     "type": "comment",
+-    "named": true,
+-    "extra": true
++    "named": true
+   },
+   {
+     "type": "dollar_escape",

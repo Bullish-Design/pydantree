@@ -1,0 +1,6 @@
+verdict: GO
+schema tool vs CLI fresh node-types.json: True
+vs vendored oracle: False (20 diff lines — upstream churn:
+  the v0.3.0 oracle emits root/extra serialization flags our CLI 0.25.3
+  does not; the tool derives from the installed CLI's own byproduct)
+wheel: tree-sitter-nix 0.1.0

@@ -1,0 +1,23 @@
+{
+  "fixture": "/home/andrew/Documents/Projects/pydantree/tests/fixtures/nix",
+  "grammar.json": {
+    "bytes": 46197,
+    "sha256": "68a6a80898ef0adb5ab655e05b991ce5d8a3718f6837bc773f0ea306c3a414f6",
+    "source": "nix-community/tree-sitter-nix tag v0.3.0 (ea1d87f)"
+  },
+  "scanner.c": {
+    "bytes": 7644,
+    "sha256": "45e12521e8be62ea47525417c64d9372fa34e9e12bff643c430b8b3607be9d56"
+  },
+  "node-types.json (oracle)": {
+    "bytes": 40400
+  },
+  "wheel-consistency": {
+    "wheel": "tree-sitter-nix 0.1.0 (PyPI, uploaded 2025-02-20)",
+    "wheel_abi": "14 (parser.c #define LANGUAGE_VERSION 14)",
+    "repo_v0.3.0_checkedin_parser_abi": "13",
+    "wheel_scanner_vs_v0.3.0": "byte-identical (238 lines each)",
+    "grammar_source_frozen_between": "04e5dca (2022-09-07) and bae4c4f (2025-07-16)",
+    "only_delta_to_v0.3.0": "bae4c4f 'fix: handle trailing comma in formals (#131)' \u2014 v0.3.0 allows trailing comma WITHOUT ellipses in formals; the wheel-era grammar requires the comma to pair with ellipses"
+  }
+}
