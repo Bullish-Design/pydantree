@@ -331,13 +331,18 @@ def _is_optional(t) -> bool:
 def _field_is_query_optional(f) -> bool:
     """A field-mode capture is query-optional iff the model can materialize
     WITHOUT the field: an Optional annotation, or a REAL default. A
-    `= capture(...)` / `= source_meta()` marker is NOT a default (pydantic's
-    `is_required()` treats any default as non-required, so the marker would
-    wrongly make `port: int = capture("arg")` optional)."""
+    `= capture(...)` / `= capture_kind(...)` / `= source_meta()` marker is NOT
+    a default (pydantic's `is_required()` treats any default as non-required,
+    so the marker would wrongly make `port: int = capture("arg")` optional).
+    Phase 8: `_CaptureKind` was missing from the marker tuple — every
+    capture_kind field emitted `?` (required capture_kind children matched
+    vacuously, then failed materialization with "field required"; surfaced
+    over real bash's positional heredoc children)."""
     if _is_optional(f.annotation):
         return True
     d = f.default
-    return d is not PydanticUndefined and not isinstance(d, (_Capture, _SourceMeta))
+    return d is not PydanticUndefined and not isinstance(
+        d, (_Capture, _CaptureKind, _SourceMeta))
 
 
 def _kind_from_metadata(metadata) -> Optional[NodeKind]:

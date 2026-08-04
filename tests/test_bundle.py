@@ -190,6 +190,7 @@ def test_community_schema_tool_cli(tmp_path):
 # ---------------------------------------------------------------------------
 
 RUST_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "rust"
+BASH_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "bash"
 P8_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "008-consumer-seam"
 
 
@@ -286,6 +287,41 @@ def test_optional_field_capture_is_query_optional(tmp_path):
     src2 = Required.compiled_source(schema=lang.schema, language=lang)
     assert "name:(_)?" not in src2
     assert "name:(_) @name" in src2, src2
+
+
+def test_capture_kind_optionality_quantifies_only_optional_fields(tmp_path):
+    """Phase 8 (real bash): `= capture_kind(...)` is a MARKER, not a real
+    default — a required capture_kind field must NOT be query-optional.
+    Before the fix, `_field_is_query_optional` missed _CaptureKind in the
+    marker tuple, so EVERY capture_kind field emitted `?` and a required
+    heredoc_start/body capture could match vacuously (then fail
+    materialization with "field required" — surfaced over real bash's
+    positional heredoc children). Optional capture_kind fields keep `?`
+    (an absent child materializes None)."""
+    from tsgrammar.schema_tool import build_community_bundle
+    bundle = build_community_bundle(BASH_FIXTURE, tmp_path / "bundle",
+                                    name="bash", keep=True)
+    lang = Language.load_bundle(bundle)
+
+    class HeredocRequired(OutputModel):
+        __match__ = M("program", "redirected_statement", "heredoc_redirect")
+        start: str = capture_kind("heredoc_start")
+        body: str = capture_kind("heredoc_body")
+
+    src = HeredocRequired.compiled_source(schema=lang.schema, language=lang)
+    assert "(heredoc_start) @start" in src, src
+    assert "(heredoc_start)?" not in src, src
+    rows = [r.model_dump() for r in HeredocRequired.extract(
+        "cat <<EOF\nbody\nEOF\n", language=lang)]
+    assert rows == [{"start": "EOF", "body": "body\n"}]
+
+    class HeredocOptional(OutputModel):
+        __match__ = M("program", "redirected_statement", "heredoc_redirect")
+        start: str = capture_kind("heredoc_start")
+        end: str | None = capture_kind("heredoc_end")
+
+    src2 = HeredocOptional.compiled_source(schema=lang.schema, language=lang)
+    assert "(heredoc_end)? @end" in src2, src2
 
 
 def test_markdown_community_bundle_and_bfree_extraction(tmp_path):
