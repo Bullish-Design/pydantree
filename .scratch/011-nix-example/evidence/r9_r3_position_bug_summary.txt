@@ -1,0 +1,24 @@
+The nix grammar under tree-sitter 0.26: node start-POINT corruption
+  (reads of start_point/range return garbage rows or segfault) on
+  large multiline-string-heavy files (flora 526 lines).
+  - upstream wheel parser, start_point walk over the fleet (30
+    attempts each, r9_r3_fleet_stability.txt): flora 30/30
+    SIGSEGV; the other six vendored files 0/30 each;
+  - our gcc build of v0.3.0: ~6/10 direct walks;
+  - the tsquery EXTRACTION path (query engine + source_meta reads
+    on anchor nodes only): 0/24 crashes, but 22/55 flora binding
+    line numbers are garbage (start_point == start_byte);
+  - the tree-sitter CLI 0.25.3 runtime parses flora with CORRECT
+    positions (the same grammar source) — a runtime-version
+    interaction, not the grammar source;
+  - trigger isolated: flora line 258 (a `case ... in` line inside a
+    multiline string body); the first 257 lines were stable (0/8)
+    and 258+ crashes ~always;
+  - start_BYTE / node text / children reads are ALWAYS safe (0/8,
+    0/30) — only the POINT computation corrupts.
+Escape hatch used by the consumer: line numbers are computed from
+  BYTE offsets (start_byte is reliable); start_POINT reads are
+  avoided on the large file. source_meta lines are cross-checked
+  and agree on the six stable files (22 flora disagreements).
+Upstream: nix-community/tree-sitter-nix + tree-sitter 0.26 runtime
+  interaction — a candidate bug report.

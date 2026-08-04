@@ -1,0 +1,8 @@
+fleet parse-stability (30 attempts each, the upstream wheel parser, start_point walk):
+  mypi-agent.nix             crashes=0/30 corrupt-walks=0
+  pydantree.nix              crashes=0/30 corrupt-walks=0
+  terminal-state.nix         crashes=0/30 corrupt-walks=0
+  structured-agents-v2.nix   crashes=0/30 corrupt-walks=0
+  fsdantic.nix               crashes=0/30 corrupt-walks=0
+  nixvim.nix                 crashes=0/30 corrupt-walks=0
+  flora.nix                  crashes=30/30 corrupt-walks=0
