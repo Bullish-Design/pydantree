@@ -1,0 +1,4 @@
+in-repo bundle == fresh-venv bundle: True
+in-repo bundle == fresh-venv wheel:  True
+fresh-venv bundle == fresh-venv wheel: True
+all three byte-identical: True

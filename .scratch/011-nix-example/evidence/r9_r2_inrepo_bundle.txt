@@ -1,0 +1,811 @@
+{
+  "ok": true,
+  "mode": "bundle",
+  "tsgrammar_importable": true,
+  "schema_bound": true,
+  "schema_kinds": 83,
+  "files": {
+    "mypi-agent.nix": {
+      "packages": [
+        {
+          "repo": "mypi-agent",
+          "name": "pkgs.secretspec",
+          "line": 6
+        }
+      ],
+      "env": [],
+      "scripts": [],
+      "tasks": [],
+      "switches": [],
+      "enterShell": [],
+      "enterTest": []
+    },
+    "pydantree.nix": {
+      "packages": [
+        {
+          "repo": "pydantree",
+          "name": "pkgs.git",
+          "line": 11
+        },
+        {
+          "repo": "pydantree",
+          "name": "pkgs.tree-sitter",
+          "line": 12
+        },
+        {
+          "repo": "pydantree",
+          "name": "pkgs.gcc",
+          "line": 13
+        }
+      ],
+      "env": [
+        {
+          "repo": "pydantree",
+          "name": "env.GREET",
+          "value": "\"devenv\"",
+          "line": 5
+        }
+      ],
+      "scripts": [
+        {
+          "repo": "pydantree",
+          "name": "scripts.hello.exec",
+          "body": "''\n    echo hello from $GREET\n  ''",
+          "line": 44
+        }
+      ],
+      "tasks": [
+        {
+          "repo": "pydantree",
+          "name": "tasks.\"pydantree:venv-src-pth\".exec",
+          "body": "''\n        VENV_SP=\"${config.env.DEVENV_STATE}/venv/lib/python3.13/site-packages\"\n        mkdir -p \"$VENV_SP\"\n        cat > \"$VENV_SP/_pydantree_src.pth\" <<PTH\nimport sys; sys.path.insert(0, \"${config.devenv.root}/src\")\nPTH\n      ''",
+          "line": 59
+        }
+      ],
+      "switches": [
+        {
+          "repo": "pydantree",
+          "path": "languages.python.enable",
+          "line": 20
+        },
+        {
+          "repo": "pydantree",
+          "path": "languages.python.venv.enable",
+          "line": 22
+        },
+        {
+          "repo": "pydantree",
+          "path": "languages.python.uv.enable",
+          "line": 24
+        },
+        {
+          "repo": "pydantree",
+          "path": "languages.python.uv.sync.enable",
+          "line": 26
+        }
+      ],
+      "enterShell": [
+        {
+          "repo": "pydantree",
+          "kind": "enterShell",
+          "body": "''\n    hello\n    git --version\n  ''",
+          "line": 70
+        }
+      ],
+      "enterTest": [
+        {
+          "repo": "pydantree",
+          "kind": "enterTest",
+          "body": "''\n    echo \"Running tests\"\n    git --version | grep --color=auto \"${pkgs.git.version}\"\n  ''",
+          "line": 76
+        }
+      ]
+    },
+    "terminal-state.nix": {
+      "packages": [
+        {
+          "repo": "terminal-state",
+          "name": "tmux",
+          "line": 14
+        },
+        {
+          "repo": "terminal-state",
+          "name": "asciinema",
+          "line": 15
+        },
+        {
+          "repo": "terminal-state",
+          "name": "agg",
+          "line": 16
+        },
+        {
+          "repo": "terminal-state",
+          "name": "imagemagick",
+          "line": 19
+        },
+        {
+          "repo": "terminal-state",
+          "name": "ghostscript",
+          "line": 20
+        },
+        {
+          "repo": "terminal-state",
+          "name": "dejavu_fonts",
+          "line": 23
+        },
+        {
+          "repo": "terminal-state",
+          "name": "liberation_ttf",
+          "line": 24
+        },
+        {
+          "repo": "terminal-state",
+          "name": "source-code-pro",
+          "line": 25
+        },
+        {
+          "repo": "terminal-state",
+          "name": "git",
+          "line": 28
+        },
+        {
+          "repo": "terminal-state",
+          "name": "curl",
+          "line": 29
+        },
+        {
+          "repo": "terminal-state",
+          "name": "jq",
+          "line": 30
+        }
+      ],
+      "env": [
+        {
+          "repo": "terminal-state",
+          "name": "env.GREET",
+          "value": "\"terminal-state development environment\"",
+          "line": 6
+        },
+        {
+          "repo": "terminal-state",
+          "name": "env.TMUX_TMPDIR",
+          "value": "\"${config.env.DEVENV_ROOT}/.tmux\"",
+          "line": 8
+        }
+      ],
+      "scripts": [
+        {
+          "repo": "terminal-state",
+          "name": "scripts.record-terminal.exec",
+          "body": "''\n        echo \"Recording terminal session...\"\n        echo \"Press Ctrl+D or type 'exit' to stop recording\"\n        asciinema rec \"$@\"\n      ''",
+          "line": 37
+        },
+        {
+          "repo": "terminal-state",
+          "name": "scripts.cast-to-gif.exec",
+          "body": "''\n        if [ -z \"$1\" ] || [ -z \"$2\" ]; then\n          echo \"Usage: cast-to-gif <input.cast> <output.gif>\"\n          exit 1\n        fi\n        echo \"Converting $1 to $2...\"\n        agg \"$1\" \"$2\"\n      ''",
+          "line": 47
+        },
+        {
+          "repo": "terminal-state",
+          "name": "scripts.play-cast.exec",
+          "body": "''\n        if [ -z \"$1\" ]; then\n          echo \"Usage: play-cast <recording.cast>\"\n          exit 1\n        fi\n        asciinema play \"$1\"\n      ''",
+          "line": 60
+        },
+        {
+          "repo": "terminal-state",
+          "name": "scripts.test.exec",
+          "body": "''\n        pytest \"$@\"\n      ''",
+          "line": 72
+        },
+        {
+          "repo": "terminal-state",
+          "name": "scripts.format.exec",
+          "body": "''\n        echo \"Formatting Python code with black...\"\n        black src/ tests/\n        echo \"Done!\"\n      ''",
+          "line": 80
+        },
+        {
+          "repo": "terminal-state",
+          "name": "scripts.lint.exec",
+          "body": "''\n        echo \"Linting with ruff...\"\n        ruff check src/ tests/\n        echo \"Type checking with mypy...\"\n        mypy src/\n      ''",
+          "line": 90
+        },
+        {
+          "repo": "terminal-state",
+          "name": "scripts.build-package.exec",
+          "body": "''\n        echo \"Building package...\"\n        python -m build\n      ''",
+          "line": 101
+        }
+      ],
+      "tasks": [],
+      "switches": [
+        {
+          "repo": "terminal-state",
+          "path": "languages.python.enable",
+          "line": 112
+        },
+        {
+          "repo": "terminal-state",
+          "path": "languages.python.venv.enable",
+          "line": 114
+        },
+        {
+          "repo": "terminal-state",
+          "path": "languages.python.uv.enable",
+          "line": 115
+        }
+      ],
+      "enterShell": [
+        {
+          "repo": "terminal-state",
+          "kind": "enterShell",
+          "body": "''\n    echo \"\"\n    echo \"\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\"\n    echo \"\u2551         terminal-state Development Environment             \u2551\"\n    echo \"\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d\"\n    echo \"\"\n    echo \"\ud83d\udce6 Project: terminal-state\"\n    echo \"\ud83d\udc0d Python: $(python --version)\"\n    echo \"\ud83d\udda5\ufe0f  tmux: $(tmux -V)\"\n    echo \"\ud83c\udfac asciinema: $(asciinema --version)\"\n    echo \"\"\n    echo \"Available commands:\"\n    echo \"  record-terminal     - Record terminal session with asciinema\"\n    echo \"  cast-to-gif         - Convert .cast to .gif\"\n    echo \"  play-cast           - Play asciinema recording\"\n    echo \"  test                - Run pytest tests\"\n    echo \"  format              - Format code with black\"\n    echo \"  lint                - Lint code with ruff and mypy\"\n    echo \"  build-package       - Build the Python package\"\n    echo \"\"\n    echo \"Quick start:\"\n    echo \"  1. Install dependencies: uv sync --all-extras\"\n    echo \"  2. Run tests: test\"\n    echo \"  3. Try recording: record-terminal demo.cast\"\n    echo \"  4. Convert to GIF: cast-to-gif demo.cast demo.gif\"\n    echo \"\"\n\n    # Create tmux socket directory if it doesn't exist\n    mkdir -p \"${config.env.DEVENV_ROOT}/.tmux\"\n    echo \"\"\n  ''",
+          "line": 153
+        }
+      ],
+      "enterTest": []
+    },
+    "structured-agents-v2.nix": {
+      "packages": [
+        {
+          "repo": "structured-agents-v2",
+          "name": "pkgs.git",
+          "line": 5
+        },
+        {
+          "repo": "structured-agents-v2",
+          "name": "pkgs.uv",
+          "line": 6
+        },
+        {
+          "repo": "structured-agents-v2",
+          "name": "pkgs.zellij",
+          "line": 7
+        }
+      ],
+      "env": [],
+      "scripts": [
+        {
+          "repo": "structured-agents-v2",
+          "name": "scripts.project17-pytest-zellij.exec",
+          "body": "''\n    set -euo pipefail\n    session=\"project17-pytest-$(date -u +%Y%m%dT%H%M%SZ)\"\n    artifact_dir=\"$PWD/artifacts/$session\"\n    mkdir -p \"$artifact_dir\"\n    zellij attach \"$session\" --create-background\n    ZELLIJ_SESSION_NAME=\"$session\" zellij run --name pytest --close-on-exit --cwd \"$PWD\" -- \\\n      ${pkgs.bash}/bin/bash -lc \"pytest -o addopts='-ra' > '$artifact_dir/stdout-stderr.log' 2>&1; status=\\$?; printf '%s\\\\n' \\\"\\$status\\\" > '$artifact_dir/exit-status.txt'; exit \\$status\"\n    echo \"pytest is running in: zellij attach $session\"\n    echo \"artifacts: $artifact_dir\"\n  ''",
+          "line": 10
+        },
+        {
+          "repo": "structured-agents-v2",
+          "name": "scripts.project17-json-workload-zellij.exec",
+          "body": "''\n    set -euo pipefail\n    : \"''${PROJECT17_MODEL:?set PROJECT17_MODEL to the Ornith GGUF path}\"\n    project17_corpus=\"''${PROJECT17_CORPUS:-benchmarks/project17/json_workload_100.jsonl}\"\n    project17_requests=\"''${PROJECT17_REQUESTS:-100}\"\n    project17_mode=\"''${PROJECT17_MODE:-constrained}\"\n    project17_stamp=\"$(date -u +%Y%m%dT%H%M%SZ)\"\n    project17_session=\"project17-json-$project17_stamp\"\n    project17_artifacts=\"$PWD/artifacts/project17-json-$project17_mode-$project17_stamp\"\n    project17_lib=\"''${PROJECT17_LIB_PATH:-$PWD/.devenv/state/venv/lib/python3.13/site-packages/llama_cpp/lib}\"\n    project17_cuda_ld=\"$(tr -d '\\n' < \"$PWD/.scratch/projects/17-llama-cpp-inference-lab/.cuda_runtime_ld\")\"\n    mkdir -p \"$project17_artifacts\"\n    {\n      printf 'session=%s\\n' \"$project17_session\"\n      printf 'started_at_utc=%s\\n' \"$project17_stamp\"\n      printf 'mode=%s\\ncorpus=%s\\nrequests=%s\\nmodel=%s\\n' \"$project17_mode\" \"$project17_corpus\" \"$project17_requests\" \"$PROJECT17_MODEL\"\n      printf 'llama_cpp_lib_path=%s\\n' \"$project17_lib\"\n      printf 'cuda_visible_devices=0\\nn_gpu_layers=-1\\n'\n    } > \"$project17_artifacts/run-config.txt\"\n    git status --short > \"$project17_artifacts/git-status-before.txt\"\n    nvidia-smi --query-gpu=index,name,uuid,driver_version,memory.total,memory.used --format=csv,noheader > \"$project17_artifacts/gpu-before.csv\"\n    nvidia-smi --query-compute-apps=gpu_uuid,pid,process_name,used_memory --format=csv,noheader > \"$project17_artifacts/gpu-processes-before.csv\" || true\n    ps -eo pid,ppid,stat,args > \"$project17_artifacts/processes-before.txt\"\n    zellij attach \"$project17_session\" --create-background\n    ZELLIJ_SESSION_NAME=\"$project17_session\" zellij run --name project17-json --close-on-exit --cwd \"$PWD\" -- \\\n      ${pkgs.bash}/bin/bash -lc '\n        set -euo pipefail\n        out=\"$1\"; mode=\"$2\"; corpus=\"$3\"; requests=\"$4\"; model=\"$5\"; lib=\"$6\"; cuda_ld=\"$7\"; root=\"$8\"\n        cd \"$root\"\n        baseline=\"\"\n        same=\"\"\n        case \"$mode\" in\n          constrained) ;;\n          baseline) baseline=\"--baseline-only\" ;;\n          same-grammar-repeated) same=\"--same-grammar-repeated\" ;;\n          *) printf \"unknown PROJECT17_MODE: %s\\\\n\" \"$mode\" >&2; exit 2 ;;\n        esac\n        export CUDA_VISIBLE_DEVICES=0\n        export LLAMA_CPP_LIB_PATH=\"$lib\"\n        export LD_LIBRARY_PATH=\"$cuda_ld''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\"\n        export PYTHONPATH=\"src:.devenv/state/venv/lib/python3.13/site-packages''${PYTHONPATH:+:$PYTHONPATH}\"\n        printf \"CUDA_VISIBLE_DEVICES=%s\\\\nLLAMA_CPP_LIB_PATH=%s\\\\nLD_LIBRARY_PATH=%s\\\\nPYTHONPATH=%s\\\\n\" \"$CUDA_VISIBLE_DEVICES\" \"$LLAMA_CPP_LIB_PATH\" \"$LD_LIBRARY_PATH\" \"$PYTHONPATH\" > \"$out/runtime-environment.txt\"\n        printf \"%q \" .devenv/state/venv/bin/python benchmarks/project17/run_json_workload.py --model \"$model\" --corpus \"$corpus\" --requests \"$requests\" --artifacts \"$out\" $baseline $same > \"$out/command.txt\"\n        printf \"\\\\n\" >> \"$out/command.txt\"\n        ( while :; do date -u +%FT%TZ; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader; sleep 15; done ) > \"$out/gpu-during.csv\" 2>&1 &\n        monitor=$!\n        trap \"kill $monitor 2>/dev/null || true\" EXIT\n        set +e\n        .devenv/state/venv/bin/python benchmarks/project17/run_json_workload.py --model \"$model\" --corpus \"$corpus\" --requests \"$requests\" --artifacts \"$out\" $baseline $same > \"$out/stdout-stderr.log\" 2>&1\n        rc=$?\n        set -e\n        printf \"%s\\\\n\" \"$rc\" > \"$out/exit-status.txt\"\n        nvidia-smi --query-gpu=index,name,uuid,driver_version,memory.total,memory.used --format=csv,noheader > \"$out/gpu-after.csv\" || true\n        nvidia-smi --query-compute-apps=gpu_uuid,pid,process_name,used_memory --format=csv,noheader > \"$out/gpu-processes-after.csv\" || true\n        ps -eo pid,ppid,stat,args > \"$out/processes-after.txt\"\n        exit \"$rc\"\n      ' -- \"$project17_artifacts\" \"$project17_mode\" \"$project17_corpus\" \"$project17_requests\" \"$PROJECT17_MODEL\" \"$project17_lib\" \"$project17_cuda_ld\" \"$PWD\"\n    printf 'Project 17 benchmark running in Zellij: zellij attach %s\\n' \"$project17_session\"\n    printf 'Artifacts: %s\\n' \"$project17_artifacts\"\n  ''",
+          "line": 22
+        },
+        {
+          "repo": "structured-agents-v2",
+          "name": "scripts.project17-prefix-cache-zellij.exec",
+          "body": "''\n    set -euo pipefail\n    : \"''${PROJECT17_MODEL:?set PROJECT17_MODEL to the Ornith GGUF path}\"\n    stamp=\"$(date -u +%Y%m%dT%H%M%SZ)\"\n    session=\"project17-prefix-cache-$stamp\"\n    out=\"$PWD/artifacts/project17-prefix-cache-$stamp\"\n    cache=\"$PWD/artifacts/project17-prefix-cache-store-$stamp\"\n    lib=\"''${PROJECT17_LIB_PATH:-$PWD/.devenv/state/venv/lib/python3.13/site-packages/llama_cpp/lib}\"\n    cuda_ld=\"$(tr -d '\\n' < \"$PWD/.scratch/projects/17-llama-cpp-inference-lab/.cuda_runtime_ld\")\"\n    mkdir -p \"$out\" \"$cache\"\n    git status --short > \"$out/git-status-before.txt\"\n    nvidia-smi --query-gpu=index,name,uuid,driver_version,memory.total,memory.used --format=csv,noheader > \"$out/gpu-before.csv\"\n    ps -eo pid,ppid,stat,args > \"$out/processes-before.txt\"\n    zellij attach \"$session\" --create-background\n    ZELLIJ_SESSION_NAME=\"$session\" zellij run --name project17-prefix-cache --close-on-exit --cwd \"$PWD\" -- \\\n      ${pkgs.bash}/bin/bash -lc '\n        set -euo pipefail\n        out=\"$1\"; cache=\"$2\"; model=\"$3\"; lib=\"$4\"; cuda_ld=\"$5\"; root=\"$6\"\n        cd \"$root\"\n        export CUDA_VISIBLE_DEVICES=0 LLAMA_CPP_LIB_PATH=\"$lib\"\n        export LD_LIBRARY_PATH=\"$cuda_ld''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\"\n        export PYTHONPATH=\"src:.devenv/state/venv/lib/python3.13/site-packages''${PYTHONPATH:+:$PYTHONPATH}\"\n        env | rg \"^(CUDA_VISIBLE_DEVICES|LLAMA_CPP_LIB_PATH|LD_LIBRARY_PATH|PYTHONPATH)=\" > \"$out/runtime-environment.txt\"\n        extra=\"''${PROJECT17_PREFIX_CACHE_ARGS:-}\"\n        printf \"%q \" .devenv/state/venv/bin/python benchmarks/project17/run_prefix_cache.py --model \"$model\" --artifacts \"$out\" --cache-root \"$cache\" $extra > \"$out/command.txt\"; printf \"\\n\" >> \"$out/command.txt\"\n        ( while :; do date -u +%FT%TZ; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader; sleep 15; done ) > \"$out/gpu-during.csv\" 2>&1 & monitor=$!\n        trap \"kill $monitor 2>/dev/null || true\" EXIT\n        set +e\n        .devenv/state/venv/bin/python benchmarks/project17/run_prefix_cache.py --model \"$model\" --artifacts \"$out\" --cache-root \"$cache\" $extra > \"$out/stdout-stderr.log\" 2>&1\n        rc=$?\n        set -e\n        printf \"%s\\n\" \"$rc\" > \"$out/exit-status.txt\"\n        nvidia-smi --query-gpu=index,name,uuid,driver_version,memory.total,memory.used --format=csv,noheader > \"$out/gpu-after.csv\" || true\n        ps -eo pid,ppid,stat,args > \"$out/processes-after.txt\"\n        exit \"$rc\"\n      ' -- \"$out\" \"$cache\" \"$PROJECT17_MODEL\" \"$lib\" \"$cuda_ld\" \"$PWD\"\n    printf 'Project 17 prefix-cache run: zellij attach %s\\nArtifacts: %s\\n' \"$session\" \"$out\"\n  ''",
+          "line": 83
+        },
+        {
+          "repo": "structured-agents-v2",
+          "name": "scripts.project17-gpu-pytest.exec",
+          "body": "''\n    set -euo pipefail\n    root=\"$PWD\"\n    spike=\"$root/.scratch/projects/17-llama-cpp-inference-lab\"\n    py=\"''${PROJECT17_SPIKE_PY:-$PWD/.devenv/state/venv/bin/python}\"\n    model=\"''${PROJECT17_MODEL:-/home/nixuser/.cache/structured-agents/models/Ornith-1.0-9B-UD-Q4_K_XL.gguf}\"\n    lib=\"''${PROJECT17_LIB_PATH:-$PWD/.devenv/state/venv/lib/python3.13/site-packages/llama_cpp/lib}\"\n    cuda_ld=\"$(tr -d '\\n' < \"$spike/.cuda_runtime_ld\")\"\n    if [ ! -x \"$py\" ]; then echo \"reference python not found: $py (set PROJECT17_SPIKE_PY)\" >&2; exit 2; fi\n    if [ ! -f \"$model\" ]; then echo \"model not found: $model (set PROJECT17_MODEL)\" >&2; exit 2; fi\n    if [ ! -d \"$lib\" ]; then echo \"llama.cpp lib dir not found: $lib\" >&2; exit 2; fi\n    export CUDA_VISIBLE_DEVICES=\"''${PROJECT17_CUDA_DEVICES:-0}\"\n    export LLAMA_CPP_LIB_PATH=\"$lib\"\n    export LLAMA_TEST_MODEL=\"$model\"\n    # /run/opengl-driver/lib first so the real libcuda wins over any CUDA stub;\n    # cuda_ld carries gcc-lib (libstdc++) + cudart/cublas the bindings dlopen.\n    export LD_LIBRARY_PATH=\"/run/opengl-driver/lib:$lib:$cuda_ld''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\"\n    export PYTHONPATH=\"src''${PYTHONPATH:+:$PYTHONPATH}\"\n    printf 'python=%s\\nCUDA_VISIBLE_DEVICES=%s\\nLLAMA_CPP_LIB_PATH=%s\\nLLAMA_TEST_MODEL=%s\\n' \\\n      \"$py\" \"$CUDA_VISIBLE_DEVICES\" \"$LLAMA_CPP_LIB_PATH\" \"$LLAMA_TEST_MODEL\"\n    if [ \"$#\" -gt 0 ]; then\n      exec \"$py\" -m pytest \"$@\"\n    fi\n    exec \"$py\" -m pytest -o addopts='-rs' tests/ -q\n  ''",
+          "line": 133
+        },
+        {
+          "repo": "structured-agents-v2",
+          "name": "scripts.project20-gpu-pytest.exec",
+          "body": "''\n    set -euo pipefail\n    root=\"$PWD\"\n    spike=\"$root/.scratch/projects/17-llama-cpp-inference-lab\"\n    py=\"''${PROJECT20_SPIKE_PY:-$PWD/.devenv/state/venv/bin/python}\"\n    model=\"''${PROJECT20_MODEL:-/home/nixuser/.cache/structured-agents/models/Ornith-1.0-9B-UD-Q4_K_XL.gguf}\"\n    lib=\"''${PROJECT20_FORK_LIB:-/home/nixuser/Documents/Projects/inferference/ci/build/.llamacpp-builds/out-p2fork-24c5d3dbc/lib}\"\n    cuda_ld=\"$(tr -d '\\n' < \"$spike/.cuda_runtime_ld\")\"\n    if [ ! -x \"$py\" ]; then echo \"reference python not found: $py (set PROJECT20_SPIKE_PY)\" >&2; exit 2; fi\n    if [ ! -f \"$model\" ]; then echo \"model not found: $model (set PROJECT20_MODEL)\" >&2; exit 2; fi\n    if [ ! -d \"$lib\" ]; then echo \"fork lib dir not found: $lib (set PROJECT20_FORK_LIB)\" >&2; exit 2; fi\n    export CUDA_VISIBLE_DEVICES=\"''${PROJECT20_CUDA_DEVICES:-0}\"\n    export LLAMA_CPP_LIB_PATH=\"$lib\"\n    export LLAMA_TEST_MODEL=\"$model\"\n    # /run/opengl-driver/lib first so the real libcuda wins over any CUDA stub;\n    # cuda_ld carries gcc-lib (libstdc++) + cudart/cublas the bindings dlopen.\n    export LD_LIBRARY_PATH=\"/run/opengl-driver/lib:$lib:$cuda_ld''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\"\n    export PYTHONPATH=\"src''${PYTHONPATH:+:$PYTHONPATH}\"\n    printf 'python=%s\\nCUDA_VISIBLE_DEVICES=%s\\nLLAMA_CPP_LIB_PATH=%s\\nLLAMA_TEST_MODEL=%s\\n' \\\n      \"$py\" \"$CUDA_VISIBLE_DEVICES\" \"$LLAMA_CPP_LIB_PATH\" \"$LLAMA_TEST_MODEL\"\n    if [ \"$#\" -gt 0 ]; then\n      exec \"$py\" -m pytest \"$@\"\n    fi\n    exec \"$py\" -m pytest -o addopts='-rs' tests/ -q\n  ''",
+          "line": 168
+        },
+        {
+          "repo": "structured-agents-v2",
+          "name": "scripts.project23-gpu-contract.exec",
+          "body": "''\n    set -euo pipefail\n    INF=/home/nixuser/Documents/Projects/inferference\n    export LLAMA_CPP_LIB_PATH=\"$INF/ci/library/.venv/lib/python3.13/site-packages/llama_cpp/lib\"\n    cuda_ld=\"$(tr -d '\\n' < \"$PWD/.scratch/projects/17-llama-cpp-inference-lab/.cuda_runtime_ld\")\"\n    export LD_LIBRARY_PATH=\"/run/opengl-driver/lib:$cuda_ld''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\"\n    exec \"$INF/ci/runner/gpu-serialized.sh\" \"$INF/ci/library/.venv/bin/python\" -m pytest \"$INF/tests/\" -q\n  ''",
+          "line": 202
+        }
+      ],
+      "tasks": [],
+      "switches": [
+        {
+          "repo": "structured-agents-v2",
+          "path": "languages.python.enable",
+          "line": 212
+        },
+        {
+          "repo": "structured-agents-v2",
+          "path": "languages.python.venv.enable",
+          "line": 214
+        },
+        {
+          "repo": "structured-agents-v2",
+          "path": "languages.python.uv.enable",
+          "line": 215
+        }
+      ],
+      "enterShell": [
+        {
+          "repo": "structured-agents-v2",
+          "kind": "enterShell",
+          "body": "''\n    git --version\n  ''",
+          "line": 218
+        }
+      ],
+      "enterTest": []
+    },
+    "fsdantic.nix": {
+      "packages": [
+        {
+          "repo": "fsdantic",
+          "name": "git",
+          "line": 100
+        },
+        {
+          "repo": "fsdantic",
+          "name": "curl",
+          "line": 101
+        },
+        {
+          "repo": "fsdantic",
+          "name": "turso-cli",
+          "line": 102
+        },
+        {
+          "repo": "fsdantic",
+          "name": "agentfsPackage",
+          "line": 103
+        },
+        {
+          "repo": "fsdantic",
+          "name": "jq",
+          "line": 106
+        },
+        {
+          "repo": "fsdantic",
+          "name": "ripgrep",
+          "line": 107
+        },
+        {
+          "repo": "fsdantic",
+          "name": "just",
+          "line": 108
+        }
+      ],
+      "env": [
+        {
+          "repo": "fsdantic",
+          "name": "env.PROJECT_NAME",
+          "value": "\"fsdantic\"",
+          "line": 112
+        },
+        {
+          "repo": "fsdantic",
+          "name": "env.AGENTFS_ENABLED",
+          "value": "lib.mkDefault (envOrDefault \"AGENTFS_ENABLED\" \"1\")",
+          "line": 114
+        },
+        {
+          "repo": "fsdantic",
+          "name": "env.AGENTFS_HOST",
+          "value": "lib.mkDefault \"127.0.0.1\"",
+          "line": 116
+        },
+        {
+          "repo": "fsdantic",
+          "name": "env.AGENTFS_PORT",
+          "value": "lib.mkDefault \"8081\"",
+          "line": 117
+        },
+        {
+          "repo": "fsdantic",
+          "name": "env.AGENTFS_DATA_DIR",
+          "value": "lib.mkDefault \"${root}/.devenv/state/agentfs\"",
+          "line": 120
+        },
+        {
+          "repo": "fsdantic",
+          "name": "env.AGENTFS_DB_NAME",
+          "value": "lib.mkDefault \"sandbox\"",
+          "line": 122
+        },
+        {
+          "repo": "fsdantic",
+          "name": "env.AGENTFS_LOG_LEVEL",
+          "value": "lib.mkDefault \"info\"",
+          "line": 123
+        },
+        {
+          "repo": "fsdantic",
+          "name": "env.AGENTFS_EXTRA_ARGS",
+          "value": "lib.mkDefault \"\"",
+          "line": 124
+        }
+      ],
+      "scripts": [
+        {
+          "repo": "fsdantic",
+          "name": "scripts.agentfs-info.exec",
+          "body": "''\n    cd \"${root}\"\n    cat <<INFO\nAgentFS process configuration\n-----------------------------\nRepo root: ${root}\nEnabled:   $AGENTFS_ENABLED (shell), ${agentfsEnabledLabel} (eval)\nHost:      $AGENTFS_HOST\nPort:      $AGENTFS_PORT\nData dir:  $AGENTFS_DATA_DIR\nDB name:   $AGENTFS_DB_NAME\nLog level: $AGENTFS_LOG_LEVEL\nExtra:     $AGENTFS_EXTRA_ARGS\nINFO\n  ''",
+          "line": 134
+        },
+        {
+          "repo": "fsdantic",
+          "name": "scripts.agentfs-url.exec",
+          "body": "''\n    echo \"http://$AGENTFS_HOST:$AGENTFS_PORT\"\n  ''",
+          "line": 150
+        },
+        {
+          "repo": "fsdantic",
+          "name": "scripts.agentfs-cli.exec",
+          "body": "''\n    exec ${agentfsPackage}/bin/agentfs \"$@\"\n  ''",
+          "line": 154
+        },
+        {
+          "repo": "fsdantic",
+          "name": "scripts.link-abs-to-repo.exec",
+          "body": "''\n    exec uv run --script ./scripts/link_abs_to_repo.py /home/nixuser/Documents/Projects/vendor/\"$@\" ./.devenv/store/vendor/\"$@\"\n''",
+          "line": 158
+        },
+        {
+          "repo": "fsdantic",
+          "name": "scripts.link-agentfs.exec",
+          "body": "''\n    exec link-abs-to-repo agentfs\n  ''",
+          "line": 162
+        },
+        {
+          "repo": "fsdantic",
+          "name": "scripts.agentfs-session-create.exec",
+          "body": "''\n    cd \"${root}\"\n    export NIXBOX_ROOT=\"${root}\"\n    export AGENTFS_BIN=\"${agentfsPackage}/bin/agentfs\"\n    exec uv run --script ./scripts/agentfs_session_create.py \"$@\"\n  ''",
+          "line": 166
+        },
+        {
+          "repo": "fsdantic",
+          "name": "scripts.agentfs-session-shell.exec",
+          "body": "''\n    cd \"${root}\"\n    export NIXBOX_ROOT=\"${root}\"\n    export AGENTFS_BIN=\"${agentfsPackage}/bin/agentfs\"\n    exec uv run --script ./scripts/agentfs_session_shell.py \"$@\"\n  ''",
+          "line": 173
+        },
+        {
+          "repo": "fsdantic",
+          "name": "scripts.agentfs-session-boot.exec",
+          "body": "''\n    cd \"${root}\"\n    export NIXBOX_ROOT=\"${root}\"\n    export AGENTFS_BIN=\"${agentfsPackage}/bin/agentfs\"\n    exec uv run --script ./scripts/agentfs_session_boot.py \"$@\"\n  ''",
+          "line": 180
+        }
+      ],
+      "tasks": [],
+      "switches": [],
+      "enterShell": [
+        {
+          "repo": "fsdantic",
+          "kind": "enterShell",
+          "body": "''\n    echo\n    echo --------------------------------------------------------\n    echo\n    echo \" AgentFS development environment \"\n    echo\n    echo \" Useful commands:\"\n    echo \"   agentfs-info   # show current AgentFS config\"\n    echo \"   agentfs-url    # print the base URL\"\n    echo \"   agentfs-cli    # run the upstream agentfs CLI\"\n    echo \"   agentfs        # run AgentFS in the foreground\"\n    echo \"   devenv up       # run background processes (includes agentfs)\"\n    echo\n    echo --------------------------------------------------------\n    echo\n    cd \"${root}\"\n    echo \"PWD: $(pwd)\"\n    echo\n    agentfs-info\n    echo\n    echo\n  ''",
+          "line": 228
+        }
+      ],
+      "enterTest": []
+    },
+    "nixvim.nix": {
+      "packages": [
+        {
+          "repo": "nixvim",
+          "name": "neovim",
+          "line": 185
+        },
+        {
+          "repo": "nixvim",
+          "name": "git",
+          "line": 187
+        },
+        {
+          "repo": "nixvim",
+          "name": "ripgrep",
+          "line": 188
+        },
+        {
+          "repo": "nixvim",
+          "name": "fd",
+          "line": 189
+        },
+        {
+          "repo": "nixvim",
+          "name": "lua-language-server",
+          "line": 192
+        },
+        {
+          "repo": "nixvim",
+          "name": "nil",
+          "line": 193
+        },
+        {
+          "repo": "nixvim",
+          "name": "bash-language-server",
+          "line": 194
+        },
+        {
+          "repo": "nixvim",
+          "name": "pyright",
+          "line": 195
+        },
+        {
+          "repo": "nixvim",
+          "name": "rust-analyzer",
+          "line": 196
+        },
+        {
+          "repo": "nixvim",
+          "name": "clang-tools",
+          "line": 197
+        },
+        {
+          "repo": "nixvim",
+          "name": "gopls",
+          "line": 198
+        },
+        {
+          "repo": "nixvim",
+          "name": "nodePackages.typescript-language-server",
+          "line": 199
+        },
+        {
+          "repo": "nixvim",
+          "name": "nodePackages.vscode-langservers-extracted",
+          "line": 200
+        },
+        {
+          "repo": "nixvim",
+          "name": "stylua",
+          "line": 203
+        },
+        {
+          "repo": "nixvim",
+          "name": "alejandra",
+          "line": 204
+        },
+        {
+          "repo": "nixvim",
+          "name": "ruff",
+          "line": 205
+        },
+        {
+          "repo": "nixvim",
+          "name": "prettierd",
+          "line": 206
+        },
+        {
+          "repo": "nixvim",
+          "name": "goimports-reviser",
+          "line": 207
+        },
+        {
+          "repo": "nixvim",
+          "name": "nixfmt",
+          "line": 208
+        },
+        {
+          "repo": "nixvim",
+          "name": "shellcheck",
+          "line": 211
+        },
+        {
+          "repo": "nixvim",
+          "name": "statix",
+          "line": 212
+        },
+        {
+          "repo": "nixvim",
+          "name": "yamllint",
+          "line": 213
+        },
+        {
+          "repo": "nixvim",
+          "name": "selene",
+          "line": 214
+        },
+        {
+          "repo": "nixvim",
+          "name": "golangci-lint",
+          "line": 215
+        },
+        {
+          "repo": "nixvim",
+          "name": "python3Packages.debugpy",
+          "line": 218
+        },
+        {
+          "repo": "nixvim",
+          "name": "nodePackages.markdownlint-cli2",
+          "line": 221
+        }
+      ],
+      "env": [],
+      "scripts": [
+        {
+          "repo": "nixvim",
+          "name": "scripts.nv2.exec",
+          "body": "''\n      ${envVarExports}\n      exec ${neovim}/bin/nvim \\\n        --cmd \"set rtp^=${nvimConfigDir}\" \\\n        ${lib.optionalString (cfg.extraRuntimePaths != []) extraRtpArgs} \\\n        -u \"${nvimConfigDir}/init.lua\" \\\n        ${extraInitFlag} \\\n        \"$@\"\n    ''",
+          "line": 225
+        }
+      ],
+      "tasks": [],
+      "switches": [],
+      "enterShell": [
+        {
+          "repo": "nixvim",
+          "kind": "enterShell",
+          "body": "''\n      echo \"nv2 ready - run 'nv2' to launch Neovim\"\n    ''",
+          "line": 236
+        }
+      ],
+      "enterTest": []
+    },
+    "flora.nix": {
+      "packages": [
+        {
+          "repo": "flora",
+          "name": "pkgs.tailscale",
+          "line": 51
+        },
+        {
+          "repo": "flora",
+          "name": "pkgs.docker",
+          "line": 51
+        },
+        {
+          "repo": "flora",
+          "name": "pkgs.rsync",
+          "line": 51
+        },
+        {
+          "repo": "flora",
+          "name": "pkgs.openssh",
+          "line": 51
+        }
+      ],
+      "env": [
+        {
+          "repo": "flora",
+          "name": "env.LD_LIBRARY_PATH",
+          "value": "\"/run/opengl-driver/lib:\" + pkgs.lib.makeLibraryPath [\n    pkgs.zlib             # libz.so.1        \u2014 numpy, pillow, torch\n    pkgs.stdenv.cc.cc.lib # libstdc++.so.6 + libgomp.so.1 \u2014 scipy / scikit-learn (OpenMP)\n    pkgs.zstd             # libzstd.so.1     \u2014 numpy / torch compressed IO\n    pkgs.libGL            # libGL.so.1 + libGLESv2.so.2 + libEGL.so.1 \u2014 opencv-python (cv2)\n                          # and mediapipe Tasks C bindings (anime-detector QC spikes)\n  ]",
+          "line": 65
+        },
+        {
+          "repo": "flora",
+          "name": "env.CURATOR_DSN",
+          "value": "\"host=${pgHost} port=${pgPort} dbname=${curatorDbName}\"",
+          "line": 85
+        },
+        {
+          "repo": "flora",
+          "name": "env.CURATOR_OUTPUT_DIR",
+          "value": "\"${config.env.DEVENV_ROOT}/keepers\"",
+          "line": 89
+        }
+      ],
+      "scripts": [
+        {
+          "repo": "flora",
+          "name": "scripts.flora-curator-prompt-dataset.exec",
+          "body": "''\n    if [ -z \"''${CURATOR_HOST:-}\" ]; then\n      CURATOR_HOST=\"$(tailscale ip -4)\"\n      if [ -z \"$CURATOR_HOST\" ]; then\n        echo \"No Tailscale IPv4 address found; connect this server to Tailscale or set CURATOR_HOST explicitly.\" >&2\n        exit 1\n      fi\n      export CURATOR_HOST\n    fi\n    exec python -m flora.web.acquire \\\n      --source \"jsonl:$DEVENV_ROOT/datasets/paloma_prompt_dataset\"\n  ''",
+          "line": 111
+        },
+        {
+          "repo": "flora",
+          "name": "scripts.flora-curation-tag.exec",
+          "body": "''\n    set -eu\n    port=\"''${FLORA_CURATION_TAG_PORT:-8110}\"\n    listener=\"$(ss -H -ltnp \"sport = :$port\" 2>/dev/null || true)\"\n    if [ -n \"$listener\" ]; then\n      pid=\"$(printf '%s\\n' \"$listener\" | sed -n 's/.*pid=\\([0-9][0-9]*\\).*/\\1/p' | head -n 1)\"\n      command=\"$(test -n \"$pid\" && ps -p \"$pid\" -o args= 2>/dev/null || true)\"\n      echo \"Port $port is already in use''${pid:+ by PID $pid}: ''${command:-unknown listener}\" >&2\n      if [ ! -t 0 ]; then\n        echo \"Refusing to replace an existing session without an interactive confirmation.\" >&2\n        exit 1\n      fi\n      printf \"Replace this session with Flora's tag curation service? [y/N] \" >&2\n      read -r answer\n      case \"$answer\" in\n        y|Y|yes|YES)\n          test -n \"$pid\" || { echo \"Could not identify the listener PID; not replacing it.\" >&2; exit 1; }\n          kill -TERM \"$pid\"\n          for _ in $(seq 1 20); do\n            ss -H -ltn \"sport = :$port\" | grep -q . || break\n            sleep 1\n          done\n          ss -H -ltn \"sport = :$port\" | grep -q . && { echo \"Existing session did not stop within 20 seconds.\" >&2; exit 1; }\n          ;;\n        *) echo \"Existing session left running.\" >&2; exit 0 ;;\n      esac\n    fi\n    if [ -z \"''${FLORA_CURATION_HOST:-}\" ]; then\n      FLORA_CURATION_HOST=\"$(tailscale ip -4)\"\n      if [ -z \"$FLORA_CURATION_HOST\" ]; then\n        echo \"No Tailscale IPv4 address found; connect this server to Tailscale or set FLORA_CURATION_HOST explicitly.\" >&2\n        exit 1\n      fi\n      export FLORA_CURATION_HOST\n    fi\n    export FLORA_CURATION_TEMPLATES=\"''${FLORA_CURATION_TEMPLATES:-$DEVENV_ROOT/curation-templates}\"\n    exec python -m flora.web.annotate.app --workflow tag --port \"$port\"\n  ''",
+          "line": 133
+        },
+        {
+          "repo": "flora",
+          "name": "scripts.flora-curation-sam.exec",
+          "body": "''\n    set -eu\n    port=\"''${FLORA_CURATION_SAM_PORT:-8100}\"\n    listener=\"$(ss -H -ltnp \"sport = :$port\" 2>/dev/null || true)\"\n    if [ -n \"$listener\" ]; then\n      pid=\"$(printf '%s\\n' \"$listener\" | sed -n 's/.*pid=\\([0-9][0-9]*\\).*/\\1/p' | head -n 1)\"\n      command=\"$(test -n \"$pid\" && ps -p \"$pid\" -o args= 2>/dev/null || true)\"\n      echo \"Port $port is already in use''${pid:+ by PID $pid}: ''${command:-unknown listener}\" >&2\n      if [ ! -t 0 ]; then\n        echo \"Refusing to replace an existing session without an interactive confirmation.\" >&2\n        exit 1\n      fi\n      printf \"Replace this session with Flora's SAM curation service? [y/N] \" >&2\n      read -r answer\n      case \"$answer\" in\n        y|Y|yes|YES)\n          test -n \"$pid\" || { echo \"Could not identify the listener PID; not replacing it.\" >&2; exit 1; }\n          kill -TERM \"$pid\"\n          for _ in $(seq 1 20); do\n            ss -H -ltn \"sport = :$port\" | grep -q . || break\n            sleep 1\n          done\n          ss -H -ltn \"sport = :$port\" | grep -q . && { echo \"Existing session did not stop within 20 seconds.\" >&2; exit 1; }\n          ;;\n        *) echo \"Existing session left running.\" >&2; exit 0 ;;\n      esac\n    fi\n    if [ -z \"''${FLORA_CURATION_HOST:-}\" ]; then\n      FLORA_CURATION_HOST=\"$(tailscale ip -4)\"\n      if [ -z \"$FLORA_CURATION_HOST\" ]; then\n        echo \"No Tailscale IPv4 address found; connect this server to Tailscale or set FLORA_CURATION_HOST explicitly.\" >&2\n        exit 1\n      fi\n      export FLORA_CURATION_HOST\n    fi\n    export FLORA_CURATION_TEMPLATES=\"''${FLORA_CURATION_TEMPLATES:-$DEVENV_ROOT/curation-templates}\"\n    exec python -m flora.web.annotate.app --workflow sam --port \"$port\"\n  ''",
+          "line": 172
+        },
+        {
+          "repo": "flora",
+          "name": "scripts.flora-browser-sam.exec",
+          "body": "''\n    set -eu\n    port=\"''${QC_ANNO_PORT:-8103}\"\n    listener=\"$(ss -H -ltnp \"sport = :$port\" 2>/dev/null || true)\"\n    if [ -n \"$listener\" ]; then\n      pid=\"$(printf '%s\\n' \"$listener\" | sed -n 's/.*pid=\\([0-9][0-9]*\\).*/\\1/p' | head -n 1)\"\n      command=\"$(test -n \"$pid\" && ps -p \"$pid\" -o args= 2>/dev/null || true)\"\n      echo \"Port $port is already in use''${pid:+ by PID $pid}: ''${command:-unknown listener}\" >&2\n      if [ ! -t 0 ]; then\n        echo \"Refusing to replace an existing session without an interactive confirmation.\" >&2\n        exit 1\n      fi\n      printf \"Replace this session with Flora's browser SAM service? [y/N] \" >&2\n      read -r answer\n      case \"$answer\" in\n        y|Y|yes|YES)\n          test -n \"$pid\" || { echo \"Could not identify the listener PID; not replacing it.\" >&2; exit 1; }\n          kill -TERM \"$pid\"\n          for _ in $(seq 1 20); do\n            ss -H -ltn \"sport = :$port\" | grep -q . || break\n            sleep 1\n          done\n          ss -H -ltn \"sport = :$port\" | grep -q . && { echo \"Existing session did not stop within 20 seconds.\" >&2; exit 1; }\n          ;;\n        *) echo \"Existing session left running.\" >&2; exit 0 ;;\n      esac\n    fi\n    exec \"$DEVENV_ROOT/experiments/browser-sam-annotator/run.sh\" \"$@\"\n  ''",
+          "line": 215
+        },
+        {
+          "repo": "flora",
+          "name": "scripts.flora-curation-layers.exec",
+          "body": "''\n    set -eu\n    port=\"''${FLORA_CURATION_LAYERS_PORT:-8120}\"\n    listener=\"$(ss -H -ltnp \"sport = :$port\" 2>/dev/null || true)\"\n    if [ -n \"$listener\" ]; then\n      pid=\"$(printf '%s\\n' \"$listener\" | sed -n 's/.*pid=\\([0-9][0-9]*\\).*/\\1/p' | head -n 1)\"\n      command=\"$(test -n \"$pid\" && ps -p \"$pid\" -o args= 2>/dev/null || true)\"\n      echo \"Port $port is already in use''${pid:+ by PID $pid}: ''${command:-unknown listener}\" >&2\n      if [ ! -t 0 ]; then\n        echo \"Refusing to replace an existing session without an interactive confirmation.\" >&2\n        exit 1\n      fi\n      printf \"Replace this session with Flora's layers curation service? [y/N] \" >&2\n      read -r answer\n      case \"$answer\" in\n        y|Y|yes|YES)\n          test -n \"$pid\" || { echo \"Could not identify the listener PID; not replacing it.\" >&2; exit 1; }\n          kill -TERM \"$pid\"\n          for _ in $(seq 1 20); do\n            ss -H -ltn \"sport = :$port\" | grep -q . || break\n            sleep 1\n          done\n          ss -H -ltn \"sport = :$port\" | grep -q . && { echo \"Existing session did not stop within 20 seconds.\" >&2; exit 1; }\n          ;;\n        *) echo \"Existing session left running.\" >&2; exit 0 ;;\n      esac\n    fi\n    if [ -z \"''${FLORA_CURATION_HOST:-}\" ]; then\n      FLORA_CURATION_HOST=\"$(tailscale ip -4)\"\n      if [ -z \"$FLORA_CURATION_HOST\" ]; then\n        echo \"No Tailscale IPv4 address found; connect this server to Tailscale or set FLORA_CURATION_HOST explicitly.\" >&2\n        exit 1\n      fi\n      export FLORA_CURATION_HOST\n    fi\n    export FLORA_CURATION_TEMPLATES=\"''${FLORA_CURATION_TEMPLATES:-$DEVENV_ROOT/curation-templates}\"\n    exec python -m flora.web.annotate.layers_app --port \"$port\"\n  ''",
+          "line": 247
+        },
+        {
+          "repo": "flora",
+          "name": "scripts.flora-qc-local.exec",
+          "body": "''\n    exec flora qc run --runner local \"$@\"\n  ''",
+          "line": 290
+        },
+        {
+          "repo": "flora",
+          "name": "scripts.flora-sync-latest-runs.exec",
+          "body": "''\n    set -eu\n\n    if [ \"$#\" -ne 1 ]; then\n      echo \"Usage: flora-sync-latest-runs <positive-integer>\" >&2\n      exit 2\n    fi\n\n    case \"x$1\" in\n      x|*[!0-9]*)\n        echo \"Usage: flora-sync-latest-runs <positive-integer>\" >&2\n        exit 2\n        ;;\n    esac\n\n    if [ \"$1\" -eq 0 ]; then\n      echo \"Usage: flora-sync-latest-runs <positive-integer>\" >&2\n      exit 2\n    fi\n\n    count=\"$1\"\n    destination=\"''${FLORA_RUNS_SYNC_DEST:-andrew@server:$DEVENV_ROOT/}\"\n    run_list=\"$(mktemp)\"\n    trap 'rm -f \"$run_list\"' EXIT\n\n    cd \"$DEVENV_ROOT\"\n    find runs -mindepth 1 -maxdepth 1 -type d -printf '%T@:%p\\\\0' \\\n      | sort -znr \\\n      | head -zn \"$count\" \\\n      | cut -z -d: -f2- > \"$run_list\"\n\n    if [ ! -s \"$run_list\" ]; then\n      echo \"No run directories found in $DEVENV_ROOT/runs.\" >&2\n      exit 1\n    fi\n\n    rsync -avh --progress --from0 --files-from=\"$run_list\" ./ \"$destination\"\n  ''",
+          "line": 297
+        },
+        {
+          "repo": "flora",
+          "name": "scripts.flora-sync-quality-control.exec",
+          "body": "''\n    set -eu\n\n    if [ \"$#\" -ne 0 ]; then\n      echo \"Usage: flora-sync-quality-control\" >&2\n      exit 2\n    fi\n\n    destination=\"''${FLORA_QUALITY_CONTROL_SYNC_DEST:-andrew@server:$DEVENV_ROOT/datasets/quality_control/}\"\n    source_dir=\"$DEVENV_ROOT/datasets/quality_control\"\n\n    if [ ! -d \"$source_dir\" ]; then\n      echo \"Quality-control dataset directory not found: $source_dir\" >&2\n      exit 1\n    fi\n\n    rsync -avh --progress \"$source_dir/\" \"$destination\"\n  ''",
+          "line": 339
+        },
+        {
+          "repo": "flora",
+          "name": "scripts.flora-qc-heads.exec",
+          "body": "''\n    exec python -m flora_qc.core.eval heads \"$@\"\n  ''",
+          "line": 364
+        },
+        {
+          "repo": "flora",
+          "name": "scripts.flora-qc-patchcore.exec",
+          "body": "''\n    exec python -m flora_qc.models.anomaly.patchcore \"$@\"\n  ''",
+          "line": 374
+        },
+        {
+          "repo": "flora",
+          "name": "scripts.flora-qc-viewer.exec",
+          "body": "''\n    set -eu\n    PORT=\"''${1:-8000}\"\n    OVERLAYS=\"$DEVENV_ROOT/.scratch/projects/069/fast-qc/overlays/overlays.json\"\n    if [ ! -f \"$OVERLAYS\" ]; then\n      echo \"note: overlays.json missing at $OVERLAYS \u2014 the viewer will start empty.\" >&2\n      echo \"      generate it with: python scripts/qc_dump_model_overlays.py\" >&2\n    fi\n    echo \"QC model viewer \u2192 http://localhost:$PORT/scripts/qc_model_viewer.html\"\n    cd \"$DEVENV_ROOT\"\n    exec python -m http.server \"$PORT\"\n  ''",
+          "line": 383
+        },
+        {
+          "repo": "flora",
+          "name": "scripts.flora-qc-tests-extra.exec",
+          "body": "''\n    uv pip install \"hypothesis>=6.100\" \"syrupy>=4.6\"\n    exec python -m pytest \"$@\"\n  ''",
+          "line": 412
+        },
+        {
+          "repo": "flora",
+          "name": "scripts.flora-build-pipeline-report.exec",
+          "body": "''\n    exec python \"$DEVENV_ROOT/report_generator/build.py\" \"$@\"\n  ''",
+          "line": 417
+        }
+      ],
+      "tasks": [
+        {
+          "repo": "flora",
+          "name": "tasks.\"flora:local-preflight\".exec",
+          "body": "''\n      set -eu\n      runtime=\"''${FLORA_CONTAINER_RUNTIME:-}\"\n      if [ -z \"$runtime\" ]; then\n        if command -v docker >/dev/null 2>&1; then runtime=docker\n        elif command -v podman >/dev/null 2>&1; then runtime=podman\n        else\n          echo \"No Docker or Podman executable found. Install one, then set FLORA_CONTAINER_RUNTIME.\" >&2\n          exit 1\n        fi\n      fi\n      case \"$runtime\" in docker|podman) ;; *)\n        echo \"FLORA_CONTAINER_RUNTIME must be docker or podman (got $runtime).\" >&2; exit 1;; esac\n      image=\"''${FLORA_LOCAL_AITOOLKIT_IMAGE:-ostris/aitoolkit:0.10.19}\"\n      \"$runtime\" info >/dev/null\n      if [ \"$runtime\" = docker ]; then\n        # The managed host uses Docker CDI. Explicit NVIDIA selection avoids its\n        # broken generic --gpus-all \u2192 AMD CDI resolution (verified 2026-07-24).\n        \"$runtime\" run --rm --device nvidia.com/gpu=all \"$image\" nvidia-smi -L\n      else\n        \"$runtime\" run --rm --device nvidia.com/gpu=all \"$image\" nvidia-smi -L\n      fi\n    ''",
+          "line": 479
+        },
+        {
+          "repo": "flora",
+          "name": "tasks.\"flora:local-image-build\".exec",
+          "body": "''\n      set -eu\n      runtime=\"''${FLORA_CONTAINER_RUNTIME:-}\"\n      if [ -z \"$runtime\" ]; then\n        if command -v docker >/dev/null 2>&1; then runtime=docker\n        elif command -v podman >/dev/null 2>&1; then runtime=podman\n        else\n          echo \"No Docker or Podman executable found. Install one, then set FLORA_CONTAINER_RUNTIME.\" >&2\n          exit 1\n        fi\n      fi\n      case \"$runtime\" in docker|podman) ;; *)\n        echo \"FLORA_CONTAINER_RUNTIME must be docker or podman (got $runtime).\" >&2; exit 1;; esac\n      base_image=\"''${FLORA_AITOOLKIT_BASE_IMAGE:-ostris/aitoolkit:0.10.19}\"\n      local_image=\"''${FLORA_LOCAL_AITOOLKIT_IMAGE:-flora/aitoolkit:local}\"\n      \"$runtime\" build --build-arg \"BASE_IMAGE=$base_image\" --tag \"$local_image\" \\\n        --file \"$DEVENV_ROOT/containers/aitoolkit.Dockerfile\" \"$DEVENV_ROOT\"\n      echo \"Built $local_image. Export FLORA_LOCAL_AITOOLKIT_IMAGE=$local_image for runner: local.\"\n    ''",
+          "line": 505
+        }
+      ],
+      "switches": [
+        {
+          "repo": "flora",
+          "path": "repoman.enable",
+          "line": 42
+        },
+        {
+          "repo": "flora",
+          "path": "services.postgres.enable",
+          "line": 77
+        },
+        {
+          "repo": "flora",
+          "path": "vendor.enable",
+          "line": 448
+        },
+        {
+          "repo": "flora",
+          "path": "languages.python.enable",
+          "line": 456
+        },
+        {
+          "repo": "flora",
+          "path": "languages.python.venv.enable",
+          "line": 457
+        },
+        {
+          "repo": "flora",
+          "path": "languages.python.uv.enable",
+          "line": 470
+        }
+      ],
+      "enterShell": [],
+      "enterTest": []
+    }
+  },
+  "source_meta_agrees_with_byte_lines": false
+}

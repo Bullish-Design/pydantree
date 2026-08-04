@@ -1,0 +1,3 @@
+verdict: GO
+fresh `import tsgrammar` rc: 1 (seam does not leak)
+tree-sitter-nix wheel: 0.1.0
