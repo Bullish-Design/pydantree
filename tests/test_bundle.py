@@ -479,3 +479,32 @@ def test_record_mode_over_nix_binding_set_unsupported(tmp_path):
     with pytest.raises(UnsupportedShapeError) as exc:
         EnvRecord.validate_with(lang)
     assert "key" in str(exc.value) and "value" in str(exc.value)
+
+
+# ---------------------------------------------------------------------------
+# Phase 9 — the both-halves example (examples/devenv-subset)
+# ---------------------------------------------------------------------------
+
+def test_devenv_subset_example_both_halves(tmp_path):
+    """The both-halves example end to end: B authors the "devenv config
+    surface" grammar + scanner, builds the bundle; A consumes it — the fleet
+    inventory as typed rows PLUS record mode over the authored pair shape
+    (the Phase-9 probe: the upstream nix attrset fails record mode's
+    pair-kind detection; the authored pair shape passes it). Self-checked
+    against the hand truth (56 rows over the four sanitized configs)."""
+    import os
+    import subprocess
+    bundle_dir = tmp_path / "bundle"
+    env = dict(os.environ, DEVENV_BUNDLE_DIR=str(bundle_dir))
+    proc = subprocess.run(
+        [sys.executable,
+         str(Path(__file__).resolve().parents[1]
+             / "examples" / "devenv-subset" / "extract.py")],
+        capture_output=True, text=True, env=env, check=False)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert "56 rows extracted — all match the hand-written ground truth" \
+        in proc.stdout, proc.stdout[-800:]
+    assert "record mode over the authored pair shape" in proc.stdout
+    # the bundle is the seam: a 4-file artifact ready for B-free consumption
+    assert {p.name for p in bundle_dir.iterdir()} == {
+        "grammar.so", "node-schema.json", "tree-sitter.json", "loader.py"}
