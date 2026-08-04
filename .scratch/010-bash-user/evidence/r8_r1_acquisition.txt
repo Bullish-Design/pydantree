@@ -1,0 +1,4 @@
+source: GitHub tag v0.25.1 (tree-sitter/tree-sitter-bash) — the PyPI sdist ships only compiled parser.c/scanner.c
+rules: 101 (49 hidden); externals: 29
+externals: heredoc_start, simple_heredoc_body, _heredoc_body_beginning, heredoc_content, heredoc_end, file_descriptor, _empty_value, _concat, variable_name, test_operator, regex, _regex_no_slash, _regex_no_space, _expansion_word, extglob_pattern, _bare_dollar, _brace_start, _immediate_double_hash, _external_expansion_sym_hash, _external_expansion_sym_bang, _external_expansion_sym_equal, }, ], <<, <<-, \n, (, esac, __error_recovery
+word: 'word'

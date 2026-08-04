@@ -1,0 +1,3 @@
+vendored oracle (checked-in node-types.json): 51167 bytes
+CLI 0.25.3 fresh node-types.json: 51167 bytes
+delta: 0 bytes — upstream CLI churn, not our derivation
