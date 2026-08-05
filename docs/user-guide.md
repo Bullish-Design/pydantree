@@ -338,6 +338,111 @@ CLI form: `python -m tsgrammar.schema_tool <grammar-dir> [-o out.json] [-n name]
 
 ---
 
+### 3.9 The rule-class surface ("the model IS the rule")
+
+The builder DSL is the low-level surface. The rule-class surface is the
+primary authoring path — the B-side mirror of Product A's "the model IS the
+query": each grammar rule is a CLASS, the class body IS the production, and
+`assemble()` compiles the classes into the very same builder `Grammar`
+(no IR, pipeline, checks, or bundle change). The devenv example
+(`examples/devenv-subset/grammar.py`) is authored this way.
+
+```python
+from typing import Literal
+
+import tsgrammar as tg
+from tsgrammar import (
+    External, Extra, Pattern, R, Rule, Supertype, Token, assemble,
+)
+from tsgrammar.patterns import dotted_path, integer, rest_of_line
+
+class Comment(Extra, Token):                 # behavioral kinds are MIXINS
+    __body__ = tg.seq("#", tg.pattern(rest_of_line()))
+
+class NamePath(Token):                       # token-wrapped regex leaf
+    __pattern__ = dotted_path()
+
+class Number(Pattern):                       # bare regex leaf
+    __pattern__ = integer()
+
+class StringFragment(External):              # external-scanner token
+    """A `"..."` string body chunk (scanner.c)."""
+
+class Pair(Rule):                            # the annotation form
+    key: NamePath                            #   field("key", ref("name_path"))
+    eq: Literal["="] = "="                   #   anonymous token "="
+    value: Value
+    semi: Literal[";"] = ";"
+
+class Value(Supertype):                      # flag as a base class
+    __body__ = tg.choice(R(String), R(Number), tg.ref("with_expr"))
+
+def build() -> tg.Grammar:
+    return assemble("devenv", start=SourceFile)
+```
+
+**The kinds (the base-class list IS the flag list):** body kinds `Rule`
+(annotation-bodied rules), `Pattern` (bare regex leaf), `Token` (body or
+`__pattern__` wrapped in `token(...)`), `External` (external-scanner token;
+the token name defaults to the rule name in SCREAMING_SNAKE, override with
+`__external__`); behavioral mixins `Extra`, `Supertype`, `Hidden`,
+`Inline`, `Word`. They compose: `class Comment(Extra, Token)`.
+
+**Annotations are ordered children** (attribute order = production order;
+the attribute name is the CST field):
+
+| annotation | compiled to |
+|---|---|
+| `key: NamePath` | `field("key", ref("name_path"))` |
+| `eq: Literal["="] = "="` | the anonymous token `"="` (the default MUST equal the Literal value — checked at `assemble()`, before any build) |
+| `element: list[Value]` | `repeat(field("element", ref("value")))` — the field goes INSIDE the repeat |
+| `content: list[X]` | `repeat(ref(...))` — the reserved label `content` = an UNNAMED child |
+| `value: String \| Number` | `field("value", choice(ref, ref))` |
+| `maybe: Number \| None` | `field("maybe", opt(ref))` |
+
+**`__body__` is the escape hatch** for shapes annotations cannot express
+(unnamed sequences, bare alternations): the combinator DSL as-is, with
+`R(SomeClass)` as a class-typed reference (`R(Number)` compiles to the same
+SYMBOL as `tg.ref("number")`). At the mutual-recursion CYCLE points a class
+body evaluates at class creation, so a reference to a later-defined class
+cannot use `R` — use `tg.ref("name")` there (the underlying DSL's own
+spelling, zero new machinery):
+
+```python
+class WithExpr(Rule):
+    __body__ = tg.seq("with", R(NamePath), ";", tg.ref("value"))  # value defined below
+```
+
+**Pattern helpers** (`tsgrammar.patterns`) are composable regex STRINGS in
+the tree-sitter lexer subset: `ident(hyphen=)`, `integer()`, `quoted()`,
+`slug()`, `path_literal()`, `dotted_path()`, `rest_of_line()`.
+
+**Naming and rules of the road:** the rule name is snake_case of the class
+name — override a builtin collision with `__rule_name__` (`class ListRule(Rule)`
+with `__rule_name__ = "list"`). Rule classes are module-level declarations in
+the module that defines the start class (imported rule classes count);
+rules are assembled in definition order, externals before their rules (the
+scanner's expected order).
+
+**When to use which surface:** rule classes for data-shaped rules (what
+Product A's field/record mode consumes) — the annotation form reads as its
+own declaration and gives finer-grained conflict sites (the error names
+`Pair.value`, not a `tg.seq(...)` line). The builder DSL stays the home of
+`prec*` ladders, `alias`, `immediate_token`, `reserved`, and maximal
+control — it is the escape hatch `__body__` opens into.
+
+**The byte-identity gate (the discipline):** the class surface is sugar over
+the builder, and the suite enforces it — `tests/test_rules.py`
+`test_gate_devenv_class_grammar_identical_to_builder_dsl` asserts the
+class-authored devenv grammar (`tests/fixtures/devenv_classes_grammar.py`)
+emits grammar.json DEEP-EQUAL to the builder-DSL spelling
+(`examples/devenv-subset/grammar.py`). Any mapping row (field placement,
+token wrapping, flag reading, helper output) that drifts from the DSL's IR
+fails there first; each pattern helper is additionally pinned
+byte-for-byte in `tests/test_patterns.py`.
+
+---
+
 ## 4. Common flows, end to end
 
 **Author a grammar, ship it, consume it (one project):**

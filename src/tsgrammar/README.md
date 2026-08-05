@@ -17,11 +17,13 @@ result = tg.build_builder(g)          # generate + gcc (cached)
 bundle = result.package("dist/cfg-bundle")   # 4-file bundle for A
 ```
 
-Also ships: the GLR-ergonomics layer (`precedence` ladders + the conflict
-fix-one-rerun loop), the external-scanner library (`scanners/` — five
-canonical scanners on the airtight mechanism), the corpus harness
-(`tsgrammar.corpus`), and the community-grammar schema tool
-(`tsgrammar.schema_tool`).
+Also ships: the RULE-CLASS surface (`tsgrammar.rules` — each rule is a
+class, the class body IS the production, `assemble()` compiles into the
+same builder Grammar; see user-guide §3.9), the GLR-ergonomics layer
+(`precedence` ladders + the conflict fix-one-rerun loop), the
+external-scanner library (`scanners/` — five canonical scanners on the
+airtight mechanism), the corpus harness (`tsgrammar.corpus`), and the
+community-grammar schema tool (`tsgrammar.schema_tool`).
 
 See [docs/user-guide.md](../../docs/user-guide.md) §3 (users),
 [docs/scanner-library.md](../../docs/scanner-library.md) (the scanner

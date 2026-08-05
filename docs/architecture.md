@@ -167,8 +167,16 @@ src/tsgrammar/
   grammar.py         the IR models (GrammarModel mirror of grammar.json)
   builder.py         the author DSL (Grammar, rule/seq/choice/repeat/...,
                      Ladder, prec*)
+  rules.py           the RULE-CLASS surface ("the model IS the rule"):
+                     Rule/Pattern/Token/External + the behavioral mixins,
+                     the metaclass registry (module-scoped), annotation
+                     compilation, assemble() — sugar that compiles into
+                     builder.py and touches nothing else
+  patterns.py        the regex-string helpers (ident/integer/quoted/slug/
+                     path_literal/dotted_path/rest_of_line) for __pattern__
   checks.py          author-time static analysis (run_checks/errors/warnings)
   conflicts.py       generator conflict output -> per-production DSL sites
+                     (rule classes provide class + attribute sites)
   expressions.py     expression() + semantic_smoke + DEFAULT_PRECEDENCE_CORPUS
   corpus.py          Corpus/corpus_case + renderers + snapshots
   pipeline.py        build/build_builder/build_loop, caching, bundles, errors
