@@ -197,25 +197,6 @@ BASH_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "bash"
 P8_DIR = CONSUMERS
 
 
-@pytest.mark.cli_byte_for_byte
-def test_schema_tool_over_real_rust_source_byte_for_byte(tmp_path):
-    """The community tool over the REAL tree-sitter-rust source (182 rules,
-    11 externals): derive_schema_for_dir accepts the community layout, runs
-    the CLI, and the derived schema is byte-for-byte the CLI's own
-    node-types.json — no normalization, no shape differences. The comparison
-    target is the CHECKED-IN 0.25.x byproduct, so this claim is scoped to the
-    verified CLI range (skipped otherwise; the shipped schema is the literal
-    CLI copy regardless)."""
-    from pydantree_sitter_grammar.schema_tool import derive_schema_for_dir
-    out = tmp_path / "rust-schema.json"
-    derived = derive_schema_for_dir(RUST_FIXTURE, name="rust",
-                                    workdir=tmp_path / "cw",
-                                    out=out)
-    assert derived.name == "rust"
-    cli = (RUST_FIXTURE / "node-types.json").read_text()
-    assert out.read_text() == cli
-
-
 def test_community_bundle_build_and_bfree_extraction(tmp_path):
     """The full Run-2 path over a grammar we don't own: community source ->
     build_community_bundle (generate + gcc + schema + metadata + loader) ->
@@ -384,38 +365,6 @@ def test_capture_kind_job1_rejects_non_child(tmp_path):
 
 NIX_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "nix"
 P9_DIR = CONSUMERS
-
-
-def test_schema_tool_over_real_nix_source_byte_for_byte(tmp_path):
-    """The community tool over the REAL tree-sitter-nix source (49 rules, 10
-    hidden, 6 externals): derive_schema_for_dir accepts the community layout,
-    runs the CLI, and the derived schema is byte-for-byte the CLI's own fresh
-    node-types.json — no normalization. (The vendored oracle differs by the
-    root/extra serialization flags only — a newer CLI generated it; the tool
-    tracks the installed CLI by construction.)"""
-    from pydantree_sitter_grammar.schema_tool import derive_schema_for_dir
-    out = tmp_path / "nix-schema.json"
-    derived = derive_schema_for_dir(NIX_FIXTURE, name="nix",
-                                    workdir=tmp_path / "cw",
-                                    out=out, keep=True)
-    assert derived.name == "nix"
-    fresh = tmp_path / "cw" / "gen" / "node-types.json"
-    assert out.read_text() == fresh.read_text()
-    # the schema shape over nix: the VISIBLE externals (string_fragment,
-    # path_fragment, dollar_escape) are named kinds in node-types.json; the
-    # hidden externals (_-prefixed, the indented-string/path helpers) are
-    # PRUNED like bash's 15 hidden helpers; the `inherit` keyword is BOTH a
-    # named kind and an anonymous keyword
-    nt = json.loads(fresh.read_text())
-    assert len(nt) == 84
-    assert len({k["type"] for k in nt}) == 83
-    named = {k["type"] for k in nt if k["named"]}
-    for ext in ("string_fragment", "path_fragment", "dollar_escape"):
-        assert ext in named, ext
-    for ext in ("_indented_string_fragment", "_path_start",
-                "_indented_dollar_escape"):
-        assert ext not in named, ext
-    assert sum(1 for k in nt if k["type"] == "inherit") == 2
 
 
 def test_community_bundle_build_and_bfree_fleet_extraction(tmp_path):

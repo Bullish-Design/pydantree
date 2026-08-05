@@ -156,3 +156,23 @@ def test_byte_for_byte_roundtrip_over_real_rust():
     assert s.to_json() == cli
     assert '"root": false' not in s.to_json()
     assert '"extra": false' not in s.to_json()
+
+
+def test_nix_node_types_shape_semantics():
+    """The schema shape over real nix (toolchain-free — the COMMITTED
+    fixture, which the shared byte-for-byte oracle test regenerates): the
+    VISIBLE externals (string_fragment, path_fragment, dollar_escape) are
+    named kinds in node-types.json; the hidden externals (_-prefixed, the
+    indented-string/path helpers) are PRUNED; the `inherit` keyword is BOTH
+    a named kind and an anonymous keyword. Byte equality with the fresh CLI
+    byproduct lives in tests/test_community_fixtures.py (V5)."""
+    nt = json.loads((_FIXTURES / "nix" / "node-types.json").read_text())
+    assert len(nt) == 84
+    assert len({k["type"] for k in nt}) == 83
+    named = {k["type"] for k in nt if k["named"]}
+    for ext in ("string_fragment", "path_fragment", "dollar_escape"):
+        assert ext in named, ext
+    for ext in ("_indented_string_fragment", "_path_start",
+                "_indented_dollar_escape"):
+        assert ext not in named, ext
+    assert sum(1 for k in nt if k["type"] == "inherit") == 2

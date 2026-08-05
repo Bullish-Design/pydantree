@@ -1,0 +1,13 @@
+
+3 Succeeded
+tree-sitter CLI: tree-sitter 0.25.3
+supported CLI range: 0.25.x (pinned 0.25.3 in this repository)
+mode: check only
+
+  bash/node-types.json: unchanged
+  rust/node-types.json: unchanged
+  nix/node-types.json: unchanged
+  markdown/node-types.json: unchanged
+  markdown-inline/node-types.json: unchanged
+
+5 fixture(s) unchanged: bash, rust, nix, markdown, markdown-inline

@@ -1,0 +1,35 @@
+
+3 Succeeded
+tree-sitter CLI: tree-sitter 0.25.3
+supported CLI range: 0.25.x (pinned 0.25.3 in this repository)
+mode: check only
+
+  bash/node-types.json: unchanged
+  rust/node-types.json: unchanged
+  nix/node-types.json: DIFFERS
+--- nix/node-types.json (tracked)
++++ nix/node-types.json (fresh CLI byproduct)
+@@ -1540,6 +1540,7 @@
+   {
+     "type": "source_code",
+     "named": true,
++    "root": true,
+     "fields": {
+       "expression": {
+         "multiple": false,
+@@ -1938,7 +1939,8 @@
+   },
+   {
+     "type": "comment",
+-    "named": true
++    "named": true,
++    "extra": true
+   },
+   {
+     "type": "dollar_escape",
+    -> run with --write to replace the tracked file
+  markdown/node-types.json: unchanged
+  markdown-inline/node-types.json: unchanged
+
+1 fixture(s) differ: nix
+4 fixture(s) unchanged: bash, rust, markdown, markdown-inline

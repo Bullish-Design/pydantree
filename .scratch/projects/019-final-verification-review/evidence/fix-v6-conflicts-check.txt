@@ -1,0 +1,9 @@
+
+3 Succeeded
+tree-sitter CLI: tree-sitter 0.25.3
+mode: check only
+
+  shift_reduce_stderr.json: unchanged
+  dangling_else_stderr.json: unchanged
+  reduce_reduce_stderr.json: unchanged
+
