@@ -21,7 +21,7 @@ from typing import Optional, Union
 
 import tree_sitter
 
-from .errors import QueryBuildError
+from .errors import QueryBuildError, SchemaCheckError
 
 
 def _q(s: str) -> str:
@@ -219,7 +219,6 @@ class Query:
             caps = {q.capture_name(ci) for ci in range(q.capture_count)}
             unknown = caps - self._raw_fields
             if unknown:
-                from .errors import SchemaCheckError
                 raise SchemaCheckError(
                     f"__raw_query__ captures {sorted(unknown)} that no field "
                     f"declares — model fields: {sorted(self._raw_fields)}")
@@ -256,27 +255,25 @@ class Cursor:
     `QueryCursor.matches()` is eager (returns a list); node TEXT/span reads
     happen on demand."""
 
-    __slots__ = ("_query", "_quant_maps", "_tree", "_source")
+    __slots__ = ("_query", "_quant_maps", "_tree")
 
     def __init__(self, query: tree_sitter.Query, quant_maps: list[dict[str, str]],
                  tree: tree_sitter.Tree):
         self._query = query
         self._quant_maps = quant_maps
         self._tree = tree
-        root = tree.root_node
-        self._source = root.text or b""
 
     def matches(self) -> list["MatchView"]:
         out = []
         for pi, caps in tree_sitter.QueryCursor(self._query).matches(self._tree.root_node):
-            out.append(MatchView(pi, caps, self._source, self._quant_maps[pi]))
+            out.append(MatchView(pi, caps, self._quant_maps[pi]))
         return out
 
     def matches_on(self, node: tree_sitter.Node) -> list["MatchView"]:
         """Matches scoped to a node (record extraction)."""
         out = []
         for pi, caps in tree_sitter.QueryCursor(self._query).matches(node):
-            out.append(MatchView(pi, caps, self._source, self._quant_maps[pi]))
+            out.append(MatchView(pi, caps, self._quant_maps[pi]))
         return out
 
 
@@ -284,13 +281,12 @@ class MatchView:
     """One query match; captures are raw tree_sitter.Node lists (the
     materializer's only need)."""
 
-    __slots__ = ("pi", "_caps", "_source", "_quant")
+    __slots__ = ("pi", "_caps", "_quant")
 
     def __init__(self, pi: int, captures: dict[str, list],
-                 source: bytes, quant: dict[str, str]):
+                 quant: dict[str, str]):
         self.pi = pi
         self._caps = captures
-        self._source = source
         self._quant = quant
 
     def nodes(self, name: str) -> list:

@@ -22,12 +22,16 @@ from typing import Any, Optional, get_args, get_origin
 import tree_sitter
 from pydantic import ValidationError
 
+from .emit import Cursor
 from .errors import (
     AmbiguousCaptureError,
+    raise_ambiguous_capture,
     ExtractionError,
 )
-from .markers import ANCHOR, RECORD_CAP, _MISSING
+from .markers import ANCHOR, RECORD_CAP, _MARKERS, _MISSING
+from .markers import _Derived as _D
 from .match import group_matches, match_ancestor_path, merge_group
+from .spec import is_optional
 
 # MatchFailure is defined here (materialize owns per-match diagnostics);
 # ExtractionError (errors.py) carries a list of them.
@@ -151,7 +155,6 @@ def build_kwargs(model_cls, bindings, caps: dict) -> dict:
         if b is None:
             # derived() field: excluded from the query — its constant value
             # applies (derived(value)); bare derived() stays absent
-            from .markers import _Derived as _D
             if isinstance(f.default, _D) and f.default.default is not _MISSING:
                 kwargs[fname] = f.default.default
             continue
@@ -192,10 +195,7 @@ def build_kwargs(model_cls, bindings, caps: dict) -> dict:
                 kwargs[fname] = [_text_of(n) for n in nodes]
         else:
             if len(nodes) > 1:
-                raise AmbiguousCaptureError(
-                    f"field {fname!r} is scalar but capture "
-                    f"{b.capture_name!r} matched {len(nodes)} nodes "
-                    f"(nested key collision?)")
+                raise_ambiguous_capture(fname, b.capture_name, len(nodes))
             text = _text_of(nodes[0])
             kwargs[fname] = _unescape_json_string(text) if b.unescape else text
     return kwargs
@@ -209,12 +209,10 @@ def _binding_for(bindings, fname):
 
 
 def _is_marker_default(f) -> bool:
-    from .markers import _MARKERS
     return isinstance(f.default, _MARKERS)
 
 
 def _is_optional(t) -> bool:
-    from .spec import is_optional
     return is_optional(t)
 
 
@@ -224,7 +222,6 @@ def _is_optional(t) -> bool:
 
 def extract_field(model_cls, compiled, tree: tree_sitter.Tree, *,
                   strict: bool) -> list:
-    from .emit import Cursor
 
     q = compiled.query.compile(tree.language)
     matches = Cursor(q, compiled.quant_maps, tree).matches()
@@ -237,11 +234,14 @@ def extract_field(model_cls, compiled, tree: tree_sitter.Tree, *,
     results, errors = [], []
     if compiled.spec.raw_query is not None:
         # a raw query has no emitted anchor: ONE row per match; source_meta()
-        # falls back to the first capture's node as the anchor
+        # falls back to the first capture's node as the anchor (A8: the
+        # query's DECLARED capture order, not dict insertion order)
         for m in matches:
             caps = dict(m.caps)
             if "__anchor__" not in caps:
-                for v in caps.values():
+                for ci in range(q.capture_count):
+                    name = q.capture_name(ci)
+                    v = caps.get(name)
                     if v:
                         caps["__anchor__"] = [v[0]]
                         break
@@ -286,7 +286,6 @@ def extract_record(model_cls, compiled, tree: tree_sitter.Tree, *,
     anchored pattern per field) fills them; nested bindings recurse through
     their OWN compiled sub-extractor (F-A2: one compiler, no interleaving).
     `scoped_to` restricts the outer query to a subtree (nested models)."""
-    from .emit import Cursor
 
     rec_q = compiled.records.compile(tree.language)
     results, errors = [], []
@@ -327,7 +326,6 @@ def _record_kwargs(model_cls, compiled, rec, tree):
     preserved). Nested bindings run their own compiled sub-extractor over
     the value node.
     """
-    from .emit import Cursor
 
     fld_q = compiled.fields.compile(tree.language)
     merged: dict[str, list] = {}

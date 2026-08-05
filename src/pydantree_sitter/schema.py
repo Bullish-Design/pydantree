@@ -33,7 +33,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PrivateAttr
 
 # --------------------------------------------------------------------------
 # models — mirror node-types.json's per-type shape
@@ -116,11 +116,14 @@ class NodeSchema(BaseModel):
     """The node-schema in memory, with the query helpers A's checks use.
 
     `node_types` is the canonical list. `name` is optional provenance
-    (grammar name when known).
+    (grammar name when known). `_by_type_cache` is built once on first
+    lookup (A6 — `by_type` used to rebuild the dict on every call, and
+    `is_possible_descendant` calls it per node).
     """
 
     name: str | None = None
     node_types: list[NodeTypeInfo] = Field(default_factory=list)
+    _by_type_cache: dict | None = PrivateAttr(default=None)
 
     # -- construction -------------------------------------------------------
 
@@ -153,7 +156,9 @@ class NodeSchema(BaseModel):
     # -- lookups ------------------------------------------------------------
 
     def by_type(self) -> dict[str, NodeTypeInfo]:
-        return {t.type: t for t in self.node_types}
+        if self._by_type_cache is None:
+            self._by_type_cache = {t.type: t for t in self.node_types}
+        return self._by_type_cache
 
     def kinds(self) -> set[str]:
         return {t.type for t in self.node_types}

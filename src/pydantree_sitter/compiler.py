@@ -19,13 +19,16 @@ from __future__ import annotations
 from dataclasses import dataclass, field as dc_field
 from typing import Any, Optional, get_args, get_origin
 
+from .emit import Query, cap, node
 from .errors import QueryBuildError, SchemaCheckError, ShapeError
-from .markers import ANCHOR, GAP, RECORD_CAP
+from .markers import ANCHOR, GAP, RECORD_CAP, AnyOf, Eq, Matches
 from .spec import FieldBinding, MatchSpec, unwrap_optional
 from .valuemap import (
     JSON_KINDS,
+    JSON_VALUE_MAP,
     ValueMap,
     array_kinds_for,
+    propose_value_map,
     scalar_kinds_for,
     wrapper_kinds_for,
 )
@@ -119,24 +122,25 @@ def _bind_compile(compiled: _Compiled, language) -> None:
         compiled.fields.compile(lang)
 
 
-def emitted_source(model_cls, schema=None) -> str:
+def emitted_source(model_cls, schema=None, *, check: bool = False) -> str:
     """The emitted .scm WITHOUT a bind (diagnostics): the schema-less
     wildcard form, or the schema-constrained form when `schema` is given.
     The compile step (tree_sitter.Query) is skipped — this is the source
-    only."""
-    from .valuemap import JSON_VALUE_MAP
+    only. `check=False` by default (A4): the diagnostic must not raise the
+    very SchemaCheckError you called it to inspect; pass check=True to
+    run the schema checks."""
     spec = model_cls._match_spec
     compiled = _Compiled(model=model_cls, spec=spec, value_map=JSON_VALUE_MAP,
                          schema=schema, bindings=spec.bindings,
                          match_path=spec.path if spec.has_gap else None)
-    if schema is not None:
+    if schema is not None and check:
         _check_path(model_cls, spec, schema)
     if spec.raw_query is not None:
         return spec.raw_query
     if spec.record:
-        _compile_record(compiled, None)
+        _compile_record(compiled, None, check=check)
     else:
-        _compile_field(compiled, None)
+        _compile_field(compiled, None, check=check)
     return compiled.query_source
 
 
@@ -145,7 +149,6 @@ def emitted_source(model_cls, schema=None) -> str:
 # ---------------------------------------------------------------------------
 
 def _compile_raw(model_cls, spec: MatchSpec, language, value_map: ValueMap):
-    from .emit import Query
 
     compiled = _Compiled(model=model_cls, spec=spec, value_map=value_map,
                          schema=language.schema, bindings=spec.bindings)
@@ -216,8 +219,7 @@ def _check_path(model_cls, spec: MatchSpec, schema) -> None:
 # field mode
 # ---------------------------------------------------------------------------
 
-def _compile_field(compiled: _Compiled, language) -> None:
-    from .emit import Query, node
+def _compile_field(compiled: _Compiled, language, *, check: bool = True) -> None:
 
     spec = compiled.spec
     schema = compiled.schema
@@ -264,7 +266,7 @@ def _compile_field(compiled: _Compiled, language) -> None:
         patterns.append(cur)
 
     compiled.query = Query(*patterns)
-    if schema is not None:
+    if schema is not None and check:
         _check_field_bindings(compiled.model, spec, schema,
                               compiled.value_map, anchor_kinds[0],
                               bindings, annotations)
@@ -431,7 +433,6 @@ def _proposed(schema) -> "ValueMap":
     key = id(schema)
     cached = _PROPOSED_CACHE.get(key)
     if cached is None or cached[0] is not schema:
-        from .valuemap import propose_value_map
         cached = (schema, propose_value_map(schema))
         _PROPOSED_CACHE[key] = cached
     return cached[1]
@@ -483,8 +484,7 @@ def _annotation(model_cls, b: FieldBinding):
 # record mode
 # ---------------------------------------------------------------------------
 
-def _compile_record(compiled: _Compiled, language) -> None:
-    from .emit import Query, cap, node
+def _compile_record(compiled: _Compiled, language, *, check: bool = True) -> None:
 
     spec = compiled.spec
     schema = compiled.schema
@@ -540,7 +540,7 @@ def _compile_record(compiled: _Compiled, language) -> None:
             patterns.append(spec_node)
     compiled.fields = Query(*patterns) if patterns else None
 
-    if schema is not None:
+    if schema is not None and check:
         _check_record_bindings(model_cls, schema, vm, pair_kind, value_kinds,
                                bindings)
 
@@ -597,7 +597,6 @@ def _leaf_shape(schema, kind: str):
 
 
 def _key_spec(key_shapes):
-    from .emit import node
     wrapper, leaf = key_shapes[0]
     if wrapper is not None:
         return node(wrapper).child(node(leaf).capture("key"))
@@ -608,7 +607,6 @@ def _value_shapes(b: FieldBinding, schema, vm: ValueMap, value_kinds: set,
                   pair_kind: str, annotation) -> list:
     """The value-node shapes for a record field: (schema, ValueMap)-driven,
     one pattern per kind (F-A3 dies here too)."""
-    from .emit import node
 
     if b.nested is not None:
         return [node(None).capture(b.key)]           # the value node wholesale
@@ -627,7 +625,6 @@ def _base_target(annotation):
 
 
 def _scalar_shapes(b, schema, vm, value_kinds, pair_kind, annotation):
-    from .emit import node
     base = _base_target(annotation)
     shapes = []
     for k in [k for k in scalar_kinds_for(vm, base) if k in value_kinds]:
@@ -648,7 +645,6 @@ def _scalar_shapes(b, schema, vm, value_kinds, pair_kind, annotation):
 
 
 def _list_shapes(b, schema, vm, value_kinds, pair_kind, annotation):
-    from .emit import node
     args = get_args(annotation)
     elem = unwrap_optional(args[0]) if args else str
     shapes = []
@@ -677,7 +673,6 @@ def _list_shapes(b, schema, vm, value_kinds, pair_kind, annotation):
 
 
 def _unescape_shapes(b, schema, vm, value_kinds, pair_kind):
-    from .emit import node
     shapes = []
     for w in wrapper_kinds_for(vm):
         if w in value_kinds:
@@ -704,8 +699,6 @@ def _preds_for(b: FieldBinding):
     """Predicates apply to the VALUE capture (record mode: the value node;
     field mode: the captured field node). Marker identity is isinstance
     (F-A13)."""
-    from .emit import cap
-    from .markers import AnyOf, Eq, Matches
     out = []
     for m in b.predicates:
         if isinstance(m, Matches):

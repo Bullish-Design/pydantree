@@ -20,6 +20,9 @@ import tree_sitter
 
 from .compiler import compile_spec
 from .errors import ShapeError
+from .loader import load_bundle
+from .materialize import _record_kwargs, extract_field, extract_record
+from .schema import NodeSchema
 from .spec import OutputModel
 from .valuemap import (
     JSON_VALUE_MAP,
@@ -35,11 +38,10 @@ __all__ = ["Language", "Extractor"]
 # ---------------------------------------------------------------------------
 
 def _resolve_language(language, schema=None):
-    """Normalize (Language | tree_sitter.Language | module | callable |
-    capsule) -> (tree_sitter.Language, schema_or_None)."""
-    if isinstance(language, Language):
-        schema = schema if schema is not None else language._schema
-        language = language._lang
+    """Normalize (tree_sitter.Language | module | callable | capsule) ->
+    (tree_sitter.Language, schema_or_None). Language-wrapping-Language is
+    handled by `Language.__init__` (the ONE unwrap owner — it must also
+    inherit the value map, which this function doesn't know about)."""
     if isinstance(language, tree_sitter.Language):
         lang = language
     elif callable(language):                   # tree_sitter_python.language
@@ -56,7 +58,6 @@ def _resolve_language(language, schema=None):
 def _load_schema(schema):
     """NodeSchema | path | dict -> NodeSchema (the schema IS the byproduct;
     the only load path is from_node_types_json)."""
-    from .schema import NodeSchema
     if isinstance(schema, NodeSchema):
         return schema
     if isinstance(schema, (str, Path)):
@@ -128,10 +129,13 @@ class Language:
     def __init__(self, lang, schema=None, value_map=None):
         if isinstance(lang, Language):
             # wrapping another Language carries its schema AND value map
+            # (the ONE Language-unwrap owner; _resolve_language handles the
+            # rest of the input family)
             if schema is None:
                 schema = lang._schema
             if value_map is None:
                 value_map = lang._value_map
+            lang = lang._lang
         raw, schema = _resolve_language(lang, schema)
         self._lang = raw
         self._schema = schema
@@ -159,8 +163,7 @@ class Language:
         A bundle `value_map` metadata entry becomes the Language's ValueMap;
         an explicit `value_map=` argument wins.
         """
-        from .loader import load_bundle as _load_bundle
-        bundle = _load_bundle(dir)
+        bundle = load_bundle(dir)
         lang = cls(bundle.language, schema=bundle.schema)
         lang._lib = bundle.lib
         if value_map is not None:
@@ -286,7 +289,6 @@ class Extractor:
         return self.extract_tree(tree)
 
     def extract_tree(self, tree: tree_sitter.Tree) -> list:
-        from .materialize import extract_field, extract_record
         if self.compiled.spec.record:
             return extract_record(self.model, self.compiled, tree,
                                   strict=self.strict)
@@ -299,7 +301,6 @@ class Extractor:
         sub-extractors): the value node IS the record — the outer anchored
         path is not re-verified for it (F-A2: one compiler, the nested
         model's inner query runs anchored at the value node)."""
-        from .materialize import _record_kwargs
         kwargs = _record_kwargs(self.model, self.compiled, node, tree)
         if kwargs is None:
             return []

@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import random
 
+import pytest
+
 from pydantree_sitter.match import match_ancestor_path
 from pydantree_sitter.markers import GAP
 from pydantree_sitter.spec import PathStep
@@ -124,3 +126,29 @@ def _ancestry(node) -> list[str]:
         out.append(n.type)
         n = n.parent
     return list(reversed(out))
+
+
+# ---------------------------------------------------------------------------
+# REVIEW 018 §5.1: the ONE AmbiguousCaptureError has a positive test
+# ---------------------------------------------------------------------------
+
+def test_scalar_capture_ambiguity_raises_the_one_error():
+    from pydantree_sitter.errors import AmbiguousCaptureError
+    from pydantree_sitter.match import merge_group
+    from pydantree_sitter.spec import FieldBinding
+
+    class N:
+        def __init__(self, i):
+            self.id = i
+
+    b = FieldBinding(name="x", source="cst_field", key="x")
+
+    # two DISTINCT nodes feeding one scalar capture -> the ONE error
+    with pytest.raises(AmbiguousCaptureError) as ei:
+        merge_group([{"x": [N(1)]}, {"x": [N(2)]}], [b])
+    assert "field 'x'" in str(ei.value)
+    assert "nested key collision" in str(ei.value)
+
+    # the SAME node twice (a Python-wrapper dedup case) merges, not raises
+    merged = merge_group([{"x": [N(1)]}, {"x": [N(1)]}], [b])
+    assert len(merged["x"]) == 1

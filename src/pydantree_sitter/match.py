@@ -14,7 +14,7 @@ too, applied after filtering: one merged capture dict per anchor node.
 
 from __future__ import annotations
 
-from .errors import AmbiguousCaptureError
+from .errors import raise_ambiguous_capture
 from .markers import ANCHOR, GAP
 from .spec import PathStep
 
@@ -122,9 +122,6 @@ def merge_group(caps_list: list[dict], bindings) -> dict:
         if len(nodes) > 1:
             dedup = _dedup_by_id(nodes)
             if len(dedup) > 1:
-                raise AmbiguousCaptureError(
-                    f"field {b.name!r} is scalar but capture "
-                    f"{b.capture_name!r} matched {len(dedup)} nodes "
-                    f"(nested key collision?)")
+                raise_ambiguous_capture(b.name, b.capture_name, len(dedup))
             merged[b.capture_name] = dedup
     return merged

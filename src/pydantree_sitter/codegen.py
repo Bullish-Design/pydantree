@@ -169,6 +169,15 @@ def generate_typed_api(schema: NodeSchema, module_name: str) -> str:
     while len(order) < len(union_defs):
         ready = sorted(k for k, (name, rhs) in union_defs.items()
                        if name not in emitted and deps[k] <= emitted)
+        if not ready:
+            # unsatisfiable: a cyclic/undefined union dependency — emit the
+            # rest as-is rather than looping forever (A10). A cycle is a
+            # supertype-graph anomaly; the emitted union still imports.
+            for k, (name, rhs) in union_defs.items():
+                if name not in emitted:
+                    order.append((k, name, rhs))
+                    emitted.add(name)
+            break
         for k in ready:
             name, rhs = union_defs[k]
             order.append((k, name, rhs))

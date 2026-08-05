@@ -44,6 +44,15 @@ class AmbiguousCaptureError(PydantreeSitterError):
     """A scalar field was fed by multiple captures (nested key collision)."""
 
 
+def raise_ambiguous_capture(fname: str, capture_name: str, count: int) -> None:
+    """THE one AmbiguousCaptureError raise (A7): the message must not drift
+    between the matcher's merge path and the materializer's build path."""
+    raise AmbiguousCaptureError(
+        f"field {fname!r} is scalar but capture "
+        f"{capture_name!r} matched {count} nodes "
+        f"(nested key collision?)")
+
+
 class ExtractionError(PydantreeSitterError):
     """One or more matches failed to materialize (strict mode); `.failures`
     carries per-match detail (pattern index, anchor span, snippet, pydantic

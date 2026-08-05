@@ -210,18 +210,19 @@ def _resolve_annotation(model_cls, fname, annotation):
 def _try_resolve_forward_ref(model_cls, ref):
     """Best-effort resolution of a ForwardRef against the model's module
     namespace (pydantic leaves one when `from __future__ import annotations`
-    is on and the name is module-level — e.g. "Address | None")."""
+    is on and the name is module-level — e.g. "Address | None", "A | B").
+    Real eval against the module's globals (A9 — the old string-partition
+    hack only handled single `| None` unions)."""
     name = getattr(ref, "__forward_arg__", None)
     if not name:
         return ref
-    base, _, rest = name.partition(" | ")
     module = sys.modules.get(model_cls.__module__)
-    if module is not None and base in vars(module):
-        cls = vars(module)[base]
-        if rest and rest.strip() == "None":
-            return Union[cls, type(None)]
-        return cls
-    return ref
+    if module is None:
+        return ref
+    try:
+        return eval(name, vars(module))
+    except Exception:
+        return ref
 
 
 def _field_binding(model_cls, fname, f, record: bool) -> FieldBinding | None:
@@ -426,7 +427,9 @@ class OutputModel(BaseModel, metaclass=DerivingMeta):
         Extractor's query source."""
         from .compiler import emitted_source
         if language is None:
-            return emitted_source(cls, schema=schema)
+            return emitted_source(cls, schema=schema)   # check=False (A4):
+            # the diagnostic never raises the SchemaCheckError you called
+            # it to inspect
         from .binding import Language, _language_for, _transient_language
         lang = _language_for(language)
         if schema is not None and lang.schema is None:

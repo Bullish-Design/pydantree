@@ -40,6 +40,7 @@ from pathlib import Path
 import tree_sitter
 
 from .errors import BundleError
+from .schema import NodeSchema
 
 # ---------------------------------------------------------------------------
 # the low-level load (shared by B and A)
@@ -165,7 +166,6 @@ def load_bundle(dir: Path | str) -> Bundle:
     if schema_rel:
         schema_path = dir / schema_rel
         if schema_path.exists():
-            from .schema import NodeSchema
             schema = NodeSchema.from_node_types_json(schema_path, name=name)
     return Bundle(language=language, lib=lib, schema=schema,
                   metadata=metadata, path=dir)

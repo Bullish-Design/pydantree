@@ -321,3 +321,74 @@ def test_sugar_reuses_compiled_query(monkeypatch):
     for _ in range(5):
         Rec.extract(text, language=tree_sitter_json)
     assert n["c"] <= 2, f"recompiled {n['c']}x for 5 identical sugar calls"
+
+
+# ---------------------------------------------------------------------------
+# A4 (REVIEW 018): the source-diagnostic must not raise the SchemaCheckError
+# you called it to inspect
+# ---------------------------------------------------------------------------
+
+def test_compiled_source_is_a_diagnostic_not_a_checker():
+    from pydantree_sitter import SchemaCheckError
+    from pydantree_sitter.schema import NodeSchema
+
+    class Bad(OutputModel):
+        __match__ = M("document", "object")
+        x: str = capture("x")
+
+    # both kinds exist, but `object` cannot occur as a child of `document`
+    # (empty children) — the real bind rejects the chain
+    bad = NodeSchema.from_list([
+        {"type": "document", "named": True},
+        {"type": "object", "named": True},
+    ])
+
+    # the diagnostic returns the emitted source even for a schema the bind
+    # would reject
+    src = Bad.compiled_source(schema=bad)
+    assert isinstance(src, str) and src
+
+    # the real bind still checks (check is opt-in for the diagnostic, always
+    # on for the bind)
+    lang = Language.load(tree_sitter_json.language(), schema=bad)
+    with pytest.raises(SchemaCheckError):
+        lang.extractor(Bad)
+
+
+# ---------------------------------------------------------------------------
+# REVIEW 018 §5.1: "one compiler" — every path (field / record / raw) routes
+# through compile_spec exactly once per bind
+# ---------------------------------------------------------------------------
+
+def test_one_compiler_all_paths_route_through_compile_spec(monkeypatch):
+    from pydantree_sitter import binding as B
+
+    n = {"calls": 0}
+    orig = B.compile_spec
+
+    def counting(model, language, *, value_map):
+        n["calls"] += 1
+        return orig(model, language, value_map=value_map)
+
+    monkeypatch.setattr(B, "compile_spec", counting)
+
+    class F(OutputModel):
+        __match__ = M("document", "object", "pair")
+        key: str = capture("key")
+
+    F.validate_with(tree_sitter_json)
+    assert n["calls"] == 1
+
+    class R(OutputModel):
+        __match__ = M("document", "object", record=True)
+        a: int | None = None
+
+    R.validate_with(tree_sitter_json)
+    assert n["calls"] == 2
+
+    class Raw(OutputModel):
+        __raw_query__ = "(pair key: (string) @key)"
+        key: str = capture("key")
+
+    Raw.validate_with(tree_sitter_json)
+    assert n["calls"] == 3
