@@ -43,15 +43,15 @@ import linecache
 import os
 import sys
 import types
-from typing import Literal, Union, get_args, get_origin
+from typing import Literal, Sequence, Union, get_args, get_origin
 
 from .builder import (
     B,
     Grammar,
     RuleSite,
-    _SITES,
     _iter_body_nodes,
     as_node,
+    site_of,
     choice as tg_choice,
     field as tg_field,
     opt as tg_opt,
@@ -81,30 +81,28 @@ _RULES_FILE = os.path.abspath(__file__)
 # ---------------------------------------------------------------------------
 
 def _snake(name: str) -> str:
-    """CamelCase -> snake_case (`NamePath` -> `name_path`, `ListRule` ->
-    `list_rule`). A leading underscore (hidden-rule convention) survives."""
-    out = []
-    for i, ch in enumerate(name):
-        if ch.isupper() and i:
-            out.append("_")
-        out.append(ch.lower())
-    return "".join(out)
+    """CamelCase -> snake_case, acronym-aware (F-B4): the standard
+    two-regex approach — `HTTPServer` -> `http_server`, `JSONValue` ->
+    `json_value`, `IOPort` -> `io_port`. A leading underscore (hidden-rule
+    convention) survives. Shared with the codegen class-name helper."""
+    import re as _re
+    prefix = ""
+    if name.startswith("_"):          # hidden-rule convention survives
+        prefix = "_"
+        name = name[1:]
+    s1 = _re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", name)
+    s2 = _re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1)
+    return prefix + s2.lower()
 
 
 def _rule_site(depth: int = 2) -> RuleSite:
     """The class-definition site (file/lineno/source) for conflict
     remapping. Walks up from the metaclass `__new__` frame to the module
-    frame executing the `class` statement (measured: depth 2)."""
-    frame = inspect.currentframe()
-    try:
-        for _ in range(depth):
-            frame = frame.f_back  # type: ignore[union-attr]
-        fname = frame.f_code.co_filename  # type: ignore[union-attr]
-        lineno = frame.f_lineno  # type: ignore[union-attr]
-        source = linecache.getline(fname, lineno).rstrip("\n")
-        return RuleSite(fname, lineno, source)
-    finally:
-        del frame
+    frame executing the `class` statement (measured: depth 2). Delegates to
+    the ONE caller_site helper (D8 — a frame refactor fails the helper's
+    tests, not silently mis-attributes)."""
+    from .builder import caller_site
+    return caller_site(skip=depth)
 
 
 def _attr_sites(cls: type) -> dict[str, RuleSite]:
@@ -129,24 +127,6 @@ def _attr_sites(cls: type) -> dict[str, RuleSite]:
     return sites
 
 
-def _snapshot_body_sites(body) -> dict[int, RuleSite]:
-    """The combinator call sites of a class's `__body__` expression,
-    captured ONCE at class creation. The builder's global `_SITES` table is
-    drained by the first `assemble()` (each `rule()` registration pops the
-    body's entries), so a SECOND `assemble()` in the same process would
-    otherwise lose every per-node site and fall back to rule-level lines. The
-    DSL re-creates its nodes per `build()` call; class bodies evaluate once,
-    so the snapshot is re-applied by every `assemble()`."""
-    sites: dict[int, RuleSite] = {}
-    if body is None:
-        return sites
-    for n in _iter_body_nodes(as_node(body)):
-        site = _SITES.get(id(n))
-        if site is not None:
-            sites[id(n)] = site
-    return sites
-
-
 class _RuleMeta(type):
     """Registers rule classes: derives `__rule_name__` from the class name
     (overridable with `__rule_name__`) and records the definition site.
@@ -160,7 +140,6 @@ class _RuleMeta(type):
             cls.__rule_name__ = rn
             cls.__site__ = _rule_site()
             cls.__attr_sites__ = _attr_sites(cls)
-            cls.__body_sites__ = _snapshot_body_sites(ns.get("__body__"))
         return cls
 
 
@@ -276,7 +255,13 @@ def _child(cls: type, t, attr: str | None = None) -> B:
     if isinstance(t, type) and issubclass(t, Rule):
         return _wrap(tg_ref(_resolved_name(t)), attr)
     if origin is Literal:
-        return str(get_args(t)[0])
+        values = get_args(t)
+        if len(values) == 1:
+            return str(values[0])
+        # F-B2: Literal["+", "-"] -> choice of anonymous tokens (both
+        # nested and top-level)
+        toks = [tg_choice(*[str(v) for v in values])]
+        return toks[0]
     if origin in (list,):
         inner = _child(cls, get_args(t)[0])
         if attr is not None and attr != "content":
@@ -296,11 +281,24 @@ def _child(cls: type, t, attr: str | None = None) -> B:
     raise TypeError(f"{cls.__name__}: cannot compile annotation {t!r}")
 
 
+def _stamp(cls: type, body: B, attr: str | None = None) -> None:
+    """Stamp a body's nodes with the class's site (attribute-line precision
+    via `__attr_sites__` when known) AT CREATION (D8 — no post-hoc repair;
+    provenance lives on the node)."""
+    site = None
+    if attr is not None:
+        site = cls.__attr_sites__.get(attr)
+    site = site or cls.__site__
+    for n in _iter_body_nodes(as_node(body)):
+        if site_of(n) is None:
+            n._site = site   # pydantic private attr
+
+
 def _from_annotations(cls: type) -> tuple[B, dict[int, str]]:
     """The annotation form: ordered children -> one seq (or a bare member).
 
-    Returns the body plus a node-id -> attribute-name map (for source-site
-    remapping: each annotation-emitted node points at its attribute line).
+    Returns the body plus a node-id -> attribute-name map (attribute-line
+    source-site attribution).
     """
     members: list[B | str] = []
     attr_nodes: dict[int, str] = {}
@@ -309,16 +307,18 @@ def _from_annotations(cls: type) -> tuple[B, dict[int, str]]:
             continue
         t = _resolve(cls, ann)
         if get_origin(t) is Literal:
-            (val,) = get_args(t)
+            values = get_args(t)
             default = cls.__dict__.get(attr, _UNSET)
-            if default is not _UNSET and default != val:
+            if default is not _UNSET and default not in values:
                 raise ValueError(
-                    f"{cls.__name__}.{attr}: Literal[{val!r}] default "
-                    f"{default!r} does not match — anonymous tokens must "
-                    f"default to their Literal value")
-            member: B | str = val
+                    f"{cls.__name__}.{attr}: Literal[{values!r}] default "
+                    f"{default!r} does not match any value — anonymous "
+                    f"tokens must default to one of their Literal values, "
+                    f"or have no default")
+            member = _child(cls, t, attr=attr)   # F-B2: multi -> choice
         else:
             member = _child(cls, t, attr=attr)
+        _stamp(cls, member, attr=attr)
         for n in _iter_body_nodes(as_node(member)):
             attr_nodes[id(n)] = attr
         members.append(member)
@@ -344,33 +344,49 @@ def R(cls: type) -> B:
 # assemble
 # ---------------------------------------------------------------------------
 
-def assemble(name: str, *, start: type) -> Grammar:
-    """Compile the rule classes of the module that defines `start` into a
-    builder `Grammar` — the SAME object the builder DSL produces, so
-    `run_checks`, `build_builder`, and the bundle pipeline are unchanged.
+def module_rules(module) -> list[type]:
+    """The concrete Rule classes DEFINED IN `module` — `cls.__module__ ==
+    module.__name__` only (imported classes are excluded: the silent-join
+    bug dies, F-B3) — in definition order. The explicit-rules helper (D9):
+    rule order and externals order are load-bearing and now visible.
+    """
+    return [
+        obj for obj in vars(module).values()
+        if isinstance(obj, type) and issubclass(obj, Rule)
+        and hasattr(obj, "__rule_name__")          # concrete (kind bases skip)
+        and getattr(obj, "__module__", None) == module.__name__
+    ]
 
-    Rules are module-level `Rule` subclasses in the start class's module
-    (imported rule classes count — `from other_module import X` binds X in
-    the namespace). Definition order = rule order = external order (externals
-    must precede their rules in the scanner's expected order).
+
+def assemble(name: str, *, start: type,
+             rules: Sequence[type] | None = None) -> Grammar:
+    """Compile rule classes into a builder `Grammar` — the SAME object the
+    builder DSL produces, so `run_checks`, `build_builder`, and the bundle
+    pipeline are unchanged.
+
+    `rules` is the EXPLICIT class list (D9): its order is load-bearing —
+    rule order, and externals order (externals must precede their rules in
+    the scanner's expected order — document loudly). Without `rules`, the
+    classes DEFINED IN the start class's module are used (module_rules) —
+    imported classes never join silently (F-B3).
+
+        def build() -> tg.Grammar:
+            return assemble("devenv", start=SourceFile,
+                            rules=module_rules(sys.modules[__name__]))
     """
     if not (isinstance(start, type) and issubclass(start, Rule)):
         raise TypeError(
             f"assemble(start=...) needs a Rule subclass, got {start!r}")
-    module = sys.modules[start.__module__]
-    classes = [
-        obj for obj in vars(module).values()
-        if isinstance(obj, type) and issubclass(obj, Rule)
-        and hasattr(obj, "__rule_name__")          # concrete (kind bases skip)
-    ]
-    if not classes:
+    if rules is None:
+        rules = module_rules(sys.modules[start.__module__])
+    if not rules:
         raise ValueError(
-            f"no rule classes found in module {start.__module__!r} — rules "
-            f"are module-level Rule subclasses (import them if defined "
-            f"elsewhere)")
+            f"no rule classes found in module {start.__module__!r} — pass "
+            f"rules=[...] explicitly or define Rule subclasses at module "
+            f"level")
 
     g = Grammar(name)
-    for cls in classes:
+    for cls in rules:
         rn = _resolved_name(cls)
         # external-scanner token, declared BEFORE the rule (the scanner's
         # expected order follows class definition order)
@@ -410,26 +426,11 @@ def assemble(name: str, *, start: type) -> Grammar:
                hidden=getattr(cls, "__hidden__", False),
                inline=getattr(cls, "__inline__", False),
                word=getattr(cls, "__word__", False))
-        # source sites: the rule points at its CLASS definition; every body
-        # node that was built inside rules.py internals (annotation-emitted
-        # fields/repeats/choices, token/pattern wrappers) is repointed at the
-        # class or the exact attribute line — `__body__` combinator sites
-        # already point at the author's module lines and are left alone.
+        # source sites (D8): the rule points at its CLASS definition; every
+        # annotation-emitted node was already stamped at creation
+        # (_from_annotations); `__body__` combinator sites are stamped by the
+        # combinators themselves (the author's module lines)
         g.sites[rn] = cls.__site__
-        attr_sites = getattr(cls, "__attr_sites__", {})
-        for node in _iter_body_nodes(as_node(body)):
-            current = g._node_sites.get(id(node))
-            if (current is not None
-                    and os.path.abspath(current.file) == _RULES_FILE):
-                attr = attr_nodes.get(id(node))
-                site = (attr_sites.get(attr) if attr is not None
-                        else None) or cls.__site__
-                g._node_sites[id(node)] = site
-        # `__body__` combinator sites are stable per class (evaluated once at
-        # class creation, drained by the first assemble) — re-apply them on
-        # every assemble so repeated build() calls keep per-node remapping.
-        for nid, site in cls.__body_sites__.items():
-            g._node_sites[nid] = site
         if getattr(cls, "__extra__", False):
             g.extra(tg_ref(_resolved_name(cls)))
     g.start(_resolved_name(start))

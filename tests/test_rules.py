@@ -44,7 +44,7 @@ HEADER = "from __future__ import annotations\n" \
     "import pydantree_sitter_grammar as tg\n" \
     "from typing import Literal\n" \
     "from pydantree_sitter_grammar import (Rule, Pattern, Token, External, Extra, " \
-    "Supertype, Hidden, Inline, Word, R, assemble)\n"
+    "Supertype, Hidden, Inline, Word, R, assemble, module_rules)\n"
 
 
 def _exec_grammar(source: str, name: str) -> types.ModuleType:
@@ -194,7 +194,7 @@ class Bad(Rule):
 def build():
     return assemble("bad", start=Bad)
 """, "g_bad_lit")
-    with pytest.raises(ValueError, match="Bad.eq: Literal\\['='\\].*';'") as ei:
+    with pytest.raises(ValueError, match=r"Bad.eq: Literal\[.*\].*';'") as ei:
         mod.build()
     assert "does not match" in str(ei.value)
 
@@ -388,3 +388,31 @@ def test_assembled_grammar_passes_checks_build_and_parse():
     tree = tg.parse(lang, src)
     assert tree.root_node.type == "source_file"
     assert tree.root_node.child_count > 0
+
+
+# ---------------------------------------------------------------------------
+# 014 D8: caller_site is the ONE frame-walking helper — attribution is pinned
+# ---------------------------------------------------------------------------
+
+def test_caller_site_attributes_to_the_known_fixture_line():
+    """caller_site(skip) attributes to a KNOWN file/lineno: the combinator
+    call in THIS test module. A frame added anywhere in the call path fails
+    here instead of silently mis-attributing (D8's frame-depth guard)."""
+    from pydantree_sitter_grammar.builder import caller_site, site_of, seq
+
+    marker_line = None
+    node = None
+
+    def _build():
+        site = caller_site(skip=2)     # the attribution under test
+        return site, seq("a", "b")     # the combinator stamps its own site
+
+    site, seq_node = _build()
+    # skip=2 -> the frame calling _build (this test's line)
+    assert site.file.endswith("test_rules.py")
+    assert "site, seq_node = _build()" in site.source
+    # the seq() combinator's node carries ITS caller's site (the line in
+    # _build that called seq) — stamped on the node itself (D8)
+    nsite = site_of(seq_node.node)
+    assert nsite is not None and nsite.file.endswith("test_rules.py")
+    assert "return site, seq" in nsite.source

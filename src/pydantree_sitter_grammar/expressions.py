@@ -35,7 +35,7 @@ Usage:
     prec = g.precedence("or", "and", "not", "compare", "add", "mul",
                         "unary", "pow", "postfix")
     g.rule("args", seq(ref("expr"), repeat(seq(",", ref("expr")))))
-    g.expression("expr",
+    tg.expression(g, "expr",
         primary=choice(ref("number"), ref("identifier"),
                        seq("(", ref("expr"), ")")),
         infix=[("+", "left", "add"), ("-", "left", "add"),
@@ -237,8 +237,7 @@ def _require_level(ladder: Ladder, level: str, what: str) -> None:
 
 def _as_op(op: _Op) -> B:
     """An operator can be a literal string (anonymous token) or a B/rule node
-    (a named operator rule, e.g. a compare-op choice). Literal strings stay
-    inline (Phase-2 appendix fact 5: anonymous tokens are inline literals)."""
-    if isinstance(op, str):
-        return seq(op)  # seq over a literal -> StrNode, kept anonymous
+    (a named operator rule, e.g. a compare-op choice). F-B9: a literal string
+    becomes the StrNode ITSELF (`as_node`), not a 1-member SEQ wrapper —
+    anonymous tokens stay inline (Phase-2 appendix fact 5)."""
     return as_node(op)

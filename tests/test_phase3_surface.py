@@ -75,7 +75,7 @@ def test_dangling_else_without_opt_in_conflicts(tmp_path):
     """Same grammar WITHOUT the opt-in must hit an unresolved GLR conflict."""
     g = _dangling_else_grammar(ambiguous=False)
     json_path = g.emit_bundle(tmp_path / "dangling")
-    proc = tg.run_generate(json_path, json_report=True)
+    proc = tg.run_generate(json_path)   # always --json (D10)
     assert proc.returncode == 1
     conflict, err = tg.remap_from_proc(g, proc)
     assert "if_stmt" in conflict.involved_rules
@@ -103,7 +103,7 @@ def _prec_gap_grammar() -> tg.Grammar:
 def test_conflict_cites_per_production_seq_line(tmp_path):
     g = _prec_gap_grammar()
     json_path = g.emit_bundle(tmp_path / "gap")
-    proc = tg.run_generate(json_path, json_report=True)
+    proc = tg.run_generate(json_path)   # always --json (D10)
     assert proc.returncode == 1
     conflict, err = tg.remap_from_proc(g, proc)
     text = str(err)

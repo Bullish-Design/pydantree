@@ -66,7 +66,8 @@ from typing import Literal
 
 import pydantree_sitter_grammar as tg
 from pydantree_sitter_grammar import (
-    External, Extra, Pattern, R, Rule, Supertype, Token, assemble,
+    External, Extra, Pattern, R, Rule, Supertype, Token,
+    assemble, module_rules,
 )
 from pydantree_sitter_grammar.patterns import dotted_path, integer, path_literal, rest_of_line
 
@@ -181,8 +182,11 @@ class SourceFile(Rule):
 def build() -> tg.Grammar:
     """Drop-in for the builder-DSL `build()` — the SAME `tg.Grammar` object,
     so `run_checks`, `build_builder`, and the bundle pipeline are untouched.
-    `assemble()` compiles the rule classes into the builder's registry."""
-    return assemble("devenv", start=SourceFile)
+    `assemble()` compiles the rule classes into the builder's registry; the
+    explicit rule list makes order load-bearing (D9)."""
+    import sys
+    return assemble("devenv", start=SourceFile,
+                    rules=module_rules(sys.modules[__name__]))
 
 
 if __name__ == "__main__":

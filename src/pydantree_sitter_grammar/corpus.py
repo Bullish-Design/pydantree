@@ -130,15 +130,15 @@ def render(node, *, anonymous: str = "keep", fields: bool = True) -> str:
     return "".join(parts)
 
 
-def render_compact(n) -> str:
+def render_compact(n, *, expr_kind: str = "expr") -> str:
     """The Phase-3A semantic-smoke format (pins expression semantics):
 
-    expr nodes render as bare parens, other named nodes as `kind(...)`,
-    anonymous tokens as their text, hidden `_` rules by name. `-a ^ b`
-    renders `(- ((identifier) ^ (identifier)))`; `-f(x)` renders
+    `expr_kind` nodes render as bare parens, other named nodes as
+    `kind(...)`, anonymous tokens as their text, hidden `_` rules by name.
+    `-a ^ b` renders `(- ((identifier) ^ (identifier)))`; `-f(x)` renders
     `(- ((identifier) ( args((identifier)) )))` — the renderer walks the
-    first `expr` node, so a ladder reorder that flips the tree shape shows
-    up as a diff.
+    first expression node, so a ladder reorder that flips the tree shape
+    shows up as a diff.
     """
     if not n.is_named:
         return n.type
@@ -146,8 +146,8 @@ def render_compact(n) -> str:
         return n.type
     if n.child_count == 0:
         return n.type
-    inner = " ".join(render_compact(c) for c in n.children)
-    return f"({inner})" if n.type == "expr" else f"{n.type}({inner})"
+    inner = " ".join(render_compact(c, expr_kind=expr_kind) for c in n.children)
+    return f"({inner})" if n.type == expr_kind else f"{n.type}({inner})"
 
 
 # ---------------------------------------------------------------------------
@@ -242,8 +242,6 @@ class Corpus:
             build_result = build_builder(grammar, cache_dir=cache_dir)
         from .language import load_language
         lang, _lib = load_language(build_result.so_path)
-        from .pipeline import default_cache_dir
-        cache_dir = cache_dir or default_cache_dir()
 
         snapshots: list[Path] = []
         if self.snapshots_dir is not None:

@@ -33,18 +33,6 @@ from pathlib import Path
 from pydantree_sitter.schema import NodeSchema, derive_from_node_types
 
 
-# the loader shim shipped inside a packaged bundle (same as pydantree_sitter_grammar.pipeline)
-_BUNDLE_LOADER_SOURCE = '''\
-"""Load this bundle's grammar into a tree_sitter.Language (B-free)."""
-from pathlib import Path
-from pydantree_sitter.loader import load_bundle
-
-
-def language():
-    return load_bundle(Path(__file__).resolve().parent).language
-'''
-
-
 def _resolve_grammar_json(grammar_dir: Path) -> Path:
     """The grammar.json in a source dir: `<dir>/grammar.json` (B's own emitted
     layout) or `<dir>/src/grammar.json` (the standard community repo layout)."""
@@ -134,68 +122,22 @@ def build_community_bundle(grammar_dir: Path | str, out: Path | str, *,
                            name: str | None = None,
                            workdir: Path | None = None,
                            keep: bool = False) -> Path:
-    """Phase 6 (Run 2): a REAL community grammar source -> a shippable bundle,
-    the same 4-file layout B's own pipeline produces:
+    """Phase 6 (Run 2): a REAL community grammar source -> a shippable
+    bundle, the same 4-file layout B's own pipeline produces (D10: this
+    delegates to the pipeline's `build_from_source_dir` + the ONE bundle
+    writer — same cache, same errors, same writer; the schema IS the CLI
+    byproduct by construction, D3).
 
         grammar.so        compiled from the source (parser.c + scanner.c)
-        node-schema.json  derived from the CLI's fresh node-types.json
+        node-schema.json  the generate run's node-types.json byproduct
         tree-sitter.json  bundle metadata (name = the .so export symbol)
         loader.py         the B-free shim over pydantree_sitter.loader
 
-    Consumed B-free with `Language.load_bundle(dir)` — the community path
-    end to end over a grammar we don't own. Returns the bundle dir.
+    Consumed B-free with `Language.load_bundle(dir)`. Returns the bundle dir.
     """
-    from .pipeline import compile_parser
-    grammar_dir = Path(grammar_dir)
-    out = Path(out)
-    work = Path(workdir) if workdir is not None \
-        else Path(tempfile.mkdtemp(prefix="pydantree_sitter_grammar-community-build-"))
-    work.mkdir(parents=True, exist_ok=True)
-
-    grammar_json, scanner = _copy_grammar_source(grammar_dir, work)
-    gen_out = work / "gen"
-    grammar_name = name or _grammar_name(grammar_dir, grammar_json.parent)
-
-    gen = subprocess.run(
-        ["tree-sitter", "generate", str(grammar_json.relative_to(work)),
-         "-o", str(gen_out)],
-        capture_output=True, text=True, cwd=str(work), check=False)
-    if gen.returncode != 0:
-        raise RuntimeError(
-            f"tree-sitter generate failed for {grammar_dir}: "
-            f"{gen.stderr or gen.stdout}")
-    parser_c = gen_out / "parser.c"
-    if not parser_c.exists():
-        raise RuntimeError(
-            f"generate exited 0 but wrote no parser.c in {gen_out}")
-    so_path = work / f"{grammar_name}.so"
-    cc = compile_parser(gen_out, so_path,
-                        scanner=scanner if scanner is not None else None)
-    if cc.returncode != 0:
-        raise RuntimeError(
-            f"gcc failed compiling {grammar_dir} (exit {cc.returncode}):\n"
-            f"{cc.stderr}")
-
-    node_types = gen_out / "node-types.json"
-    if not node_types.exists():
-        raise RuntimeError(f"generate wrote no node-types.json in {gen_out}")
-    schema = NodeSchema.from_list(derive_from_node_types(node_types), name=grammar_name)
-
-    out.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(so_path, out / "grammar.so")
-    schema.write(out / "node-schema.json")
-    (out / "tree-sitter.json").write_text(json.dumps({
-        "bundle_format": 2,             # D12: versioned artifact contract
-        "name": grammar_name,
-        "artifact": "grammar.so",
-        "schema": "node-schema.json",
-        "abi": "15",
-        "toolchain": "community",
-    }, indent=2))
-    (out / "loader.py").write_text(_BUNDLE_LOADER_SOURCE)
-    if not keep:
-        shutil.rmtree(work)
-    return out
+    from .pipeline import build_from_source_dir, write_bundle
+    result = build_from_source_dir(grammar_dir, name=name)
+    return write_bundle(result, out)
 
 
 def _grammar_name(grammar_dir: Path, src_dir: Path) -> str:

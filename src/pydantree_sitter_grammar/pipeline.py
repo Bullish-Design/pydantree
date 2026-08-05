@@ -65,25 +65,34 @@ class Toolchain:
 
 
 def detect_toolchain() -> Toolchain:
-    """Probe the CLI + compiler versions (cached in-process)."""
-    if detect_toolchain._cache is not None:  # type: ignore[attr-defined]
-        return detect_toolchain._cache  # type: ignore[attr-defined]
+    """Probe the CLI + compiler versions (cached in-process via
+    functools.lru_cache — `detect_toolchain.cache_clear()` documented
+    reset; tests that swap the toolchain env call it)."""
     ts = subprocess.run(
         ["tree-sitter", "--version"], capture_output=True, text=True, check=False)
     ts_version = ts.stdout.strip() or ts.stderr.strip() or "unknown"
     gcc = subprocess.run(
         ["gcc", "--version"], capture_output=True, text=True, check=False)
     gcc_version = gcc.stdout.splitlines()[0].strip() if gcc.stdout else "unknown"
-    tc = Toolchain(
+    return Toolchain(
         tree_sitter_version=ts_version,
         gcc_version=gcc_version,
-        python_abi=os.environ.get("TSGRAMMAR_ABI", "15"),
+        python_abi=_python_abi(),
     )
-    detect_toolchain._cache = tc  # type: ignore[attr-defined]
-    return tc
 
 
-detect_toolchain._cache = None  # type: ignore[attr-defined]
+def _python_abi() -> str:
+    """The ABI: the actual tree_sitter.LANGUAGE_VERSION when available (the
+    bindings' floor), else the TSGRAMMAR_ABI env override, else "15"."""
+    try:
+        import tree_sitter as _ts
+        return str(_ts.LANGUAGE_VERSION)
+    except Exception:
+        return os.environ.get("TSGRAMMAR_ABI", "15")
+
+
+import functools as _functools
+detect_toolchain = _functools.lru_cache(maxsize=1)(detect_toolchain)
 
 
 def grammar_hash(model: GrammarModel) -> str:
@@ -97,27 +106,25 @@ def grammar_hash(model: GrammarModel) -> str:
 # generate
 # ---------------------------------------------------------------------------
 
-def run_generate(grammar_json: Path, *, json_report: bool = False,
-                 abi15: bool = True) -> subprocess.CompletedProcess:
-    """Run `tree-sitter generate` on the given grammar.json. Returns the raw
-    CompletedProcess (stdout/stderr/returncode) for verbatim capture."""
+def run_generate(grammar_json: Path, *, abi15: bool = True) -> subprocess.CompletedProcess:
+    """Run `tree-sitter generate --json` on the given grammar.json (D10: the
+    conflict report is JSON on stderr — ONE run, no failure-path re-run).
+    Returns the raw CompletedProcess for verbatim capture."""
     dirpath = grammar_json.parent
     if abi15:
         cfg = dirpath / "tree-sitter.json"
         if not cfg.exists():
             cfg.write_text(json.dumps(ABI_15_CONFIG))
-    cmd = ["tree-sitter", "generate", str(grammar_json)]
-    if json_report:
-        cmd.append("--json")
+    cmd = ["tree-sitter", "generate", "--json", str(grammar_json)]
     return subprocess.run(cmd, capture_output=True, text=True, cwd=str(dirpath), check=False)
 
 
-def generate(model: GrammarModel, workdir: Path,
-             *, json_report: bool = False) -> subprocess.CompletedProcess:
-    """Emit grammar.json into `workdir` and run the generator. Returns the
-    raw CompletedProcess; on success parser.c lands in workdir/src/parser.c."""
+def generate(model: GrammarModel, workdir: Path) -> subprocess.CompletedProcess:
+    """Emit grammar.json into `workdir` and run the generator (always
+    --json, D10). Returns the raw CompletedProcess; on success parser.c lands
+    in workdir/src/parser.c."""
     json_path = model.emit_bundle(workdir)
-    return run_generate(json_path, json_report=json_report)
+    return run_generate(json_path)
 
 
 # ---------------------------------------------------------------------------
@@ -175,47 +182,56 @@ class BuildResult:
     def package(self, dir: Path | str, *,
                 include_loader: bool = True,
                 typed_api: bool = False) -> Path:
-        """Package the build into a shippable bundle directory (Phase 5 — the
-        artifact seam in production):
+        """Package the build into a shippable bundle directory — delegates
+        to the ONE bundle writer `write_bundle` (D10)."""
+        return write_bundle(self, dir, include_loader=include_loader,
+                            typed_api=typed_api)
 
-            grammar.so        the compiled parser (export tree_sitter_<name>)
-            node-schema.json  the derived node-schema (bridge artifact)
-            tree-sitter.json  bundle metadata (name = the export symbol)
-            loader.py         a thin shim over pydantree_sitter.loader.load_bundle
-            typed_api.py      REAL typed CST accessors (014 §5/D7, typed_api=True)
 
-        The bundle is consumed B-free — pydantree_sitter.Language.load_bundle(dir) —
-        or by anyone with pydantree_sitter + tree_sitter (loader.py delegates to
-        pydantree_sitter's shared loading contract, CONCEPT §8). Returns the bundle dir.
-        """
-        import shutil as _shutil
-        bundle = Path(dir)
-        bundle.mkdir(parents=True, exist_ok=True)
-        _shutil.copyfile(self.so_path, bundle / "grammar.so")
-        schema_rel = None
-        if self.node_schema_json is not None and self.node_schema_json.exists():
-            _shutil.copyfile(self.node_schema_json, bundle / "node-schema.json")
-            schema_rel = "node-schema.json"
-        if typed_api and self.node_schema_json is not None \
-                and self.node_schema_json.exists():
-            from pydantree_sitter.codegen import write_typed_api
-            from pydantree_sitter.schema import NodeSchema
-            schema = NodeSchema.from_node_types_json(self.node_schema_json)
-            write_typed_api(schema, bundle / "typed_api.py",
-                            module_name=f"typed_api_{self.so_path.stem}")
-        metadata = {
-            "bundle_format": 2,          # D12: versioned artifact contract
-            "name": self.so_path.stem,
-            "artifact": "grammar.so",
-            "schema": schema_rel,
-            "abi": os.environ.get("TSGRAMMAR_ABI", "15"),
-            "toolchain": detect_toolchain().tree_sitter_version,
-        }
-        (bundle / "tree-sitter.json").write_text(
-            json.dumps(metadata, indent=2))
-        if include_loader:
-            (bundle / "loader.py").write_text(BUNDLE_LOADER_SOURCE)
-        return bundle
+def write_bundle(result: BuildResult, dir: Path | str, *,
+                 include_loader: bool = True,
+                 typed_api: bool = False,
+                 metadata: dict | None = None) -> Path:
+    """THE ONE bundle writer (D10): package a BuildResult into a shippable
+    bundle directory (Phase 5 — the artifact seam in production):
+
+        grammar.so        the compiled parser (export tree_sitter_<name>)
+        node-schema.json  the derived node-schema (bridge artifact)
+        tree-sitter.json  bundle metadata (name = the export symbol)
+        loader.py         a thin shim over pydantree_sitter.loader.load_bundle
+        typed_api.py      REAL typed CST accessors (014 §5/D7, typed_api=True)
+
+    Consumed B-free — pydantree_sitter.Language.load_bundle(dir) — or by
+    anyone with pydantree_sitter + tree_sitter (loader.py delegates to the
+    shared loading contract, CONCEPT §8). Returns the bundle dir.
+    """
+    import shutil as _shutil
+    bundle = Path(dir)
+    bundle.mkdir(parents=True, exist_ok=True)
+    _shutil.copyfile(result.so_path, bundle / "grammar.so")
+    schema_rel = None
+    if result.node_schema_json is not None and result.node_schema_json.exists():
+        _shutil.copyfile(result.node_schema_json, bundle / "node-schema.json")
+        schema_rel = "node-schema.json"
+    if typed_api and result.node_schema_json is not None \
+            and result.node_schema_json.exists():
+        from pydantree_sitter.codegen import write_typed_api
+        from pydantree_sitter.schema import NodeSchema
+        schema = NodeSchema.from_node_types_json(result.node_schema_json)
+        write_typed_api(schema, bundle / "typed_api.py",
+                        module_name=f"typed_api_{result.so_path.stem}")
+    meta = metadata if metadata is not None else {
+        "bundle_format": 2,          # D12: versioned artifact contract
+        "name": result.so_path.stem,
+        "artifact": "grammar.so",
+        "schema": schema_rel,
+        "abi": os.environ.get("TSGRAMMAR_ABI", "15"),
+        "toolchain": detect_toolchain().tree_sitter_version,
+    }
+    (bundle / "tree-sitter.json").write_text(json.dumps(meta, indent=2))
+    if include_loader:
+        (bundle / "loader.py").write_text(BUNDLE_LOADER_SOURCE)
+    return bundle
 
 
 def _cache_node_schema(entry: Path, model: GrammarModel) -> Path:
@@ -246,7 +262,8 @@ def _cache_node_schema(entry: Path, model: GrammarModel) -> Path:
 def build(model: GrammarModel, *, cache_dir: Path | None = None,
           toolchain: Toolchain | None = None,
           grammar_name: str | None = None,
-          scanner: Path | str | None = None) -> BuildResult:
+          scanner: Path | str | None = None,
+          check: bool = True) -> BuildResult:
     """Full pipeline with content-addressed caching.
 
     Cache key: sha256(grammar.json) + ABI version + toolchain version. On a
@@ -255,7 +272,16 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     an external-scanner scanner.c to copy into the build (grammars with
     `externals` need one to link). The bundle's node-schema.json is the
     generate run's node-types.json byproduct, copied byte-for-byte (D3).
+
+    `check` (default True, D10): the static analyzer (checks.assert_clean)
+    runs BEFORE generate — analyzer errors abort the build; warnings surface
+    to the caller. Pass `check=False` to skip.
     """
+    if check:
+        from .checks import assert_clean, warnings as check_warnings
+        assert_clean(model)
+        for w in check_warnings(model):
+            pass  # surfaced to the caller's renderer; non-fatal
     cache_dir = Path(cache_dir) if cache_dir is not None else default_cache_dir()
     toolchain = toolchain or detect_toolchain()
     name = grammar_name or model.name
@@ -292,7 +318,7 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     work.mkdir(parents=True, exist_ok=True)
 
     json_path = model.emit_bundle(work)
-    gen = run_generate(json_path, json_report=False)
+    gen = run_generate(json_path)
     if gen.returncode != 0:
         # leave evidence behind; the caller decides how to render the failure
         raise GenerateError(model, gen)
@@ -326,11 +352,13 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     if cc.returncode != 0:
         raise CompileError(model, cc)
 
-    # promote into the cache (atomic-ish: rename the work dir)
+    # promote into the cache (D10): build in a sibling work dir, then
+    # rename-if-absent — if a concurrent build won the race, discard ours
     entry.parent.mkdir(parents=True, exist_ok=True)
-    if entry.exists():
-        shutil.rmtree(entry)
-    work.rename(entry)
+    try:
+        os.rename(work, entry)
+    except FileExistsError:
+        shutil.rmtree(work, ignore_errors=True)
 
     node_types = entry / "src" / "node-types.json"
     _cache_node_schema(entry, model)
@@ -347,6 +375,47 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     )
 
 
+def _resolve_grammar_json(grammar_dir: Path) -> Path:
+    """The grammar.json in a source dir: `<dir>/grammar.json` (B's own
+    emitted layout) or `<dir>/src/grammar.json` (the standard community
+    repo layout)."""
+    for cand in (grammar_dir / "grammar.json", grammar_dir / "src" / "grammar.json"):
+        if cand.exists():
+            return cand
+    raise FileNotFoundError(
+        f"not a grammar source dir: {grammar_dir} (no grammar.json or "
+        f"src/grammar.json)")
+
+
+def build_from_source_dir(src_dir: Path | str, *,
+                          cache_dir: Path | None = None,
+                          name: str | None = None,
+                          scanner: Path | str | None = None) -> BuildResult:
+    """A community grammar SOURCE dir -> BuildResult (D10: schema_tool's
+    path merges into the pipeline — same cache, same errors, same bundle
+    writer).
+
+    Accepts `<dir>/grammar.json` (B's own layout) or `<dir>/src/grammar.json`
+    (the standard community layout); the external scanner is picked up from
+    the source (beside grammar.json, or `<dir>/scanner.c`) when present.
+    NEVER touches the author's checkout (F-B11): the grammar is parsed into
+    the IR and built content-addressed; all work happens inside the cache
+    dir. Package the result with `write_bundle`.
+    """
+    src_dir = Path(src_dir)
+    grammar_json = _resolve_grammar_json(src_dir)
+    model = GrammarModel.model_validate_json(grammar_json.read_text())
+    if scanner is None:
+        for cand in (grammar_json.parent / "scanner.c", src_dir / "scanner.c"):
+            if cand.exists():
+                scanner = cand
+                break
+    # community grammars are not ours to analyze (the analyzer's unused-rule
+    # guidance is for AUTHORS) — build with check=False
+    return build(model, cache_dir=cache_dir, check=False,
+                 grammar_name=name or model.name, scanner=scanner)
+
+
 def build_builder(g, *, cache_dir=None, **kw) -> BuildResult:
     """build() for a builder DSL Grammar (builds the IR first).
 
@@ -359,16 +428,14 @@ def build_builder(g, *, cache_dir=None, **kw) -> BuildResult:
     try:
         return build(model, cache_dir=cache_dir, **kw)
     except GenerateError as e:
+        # the conflict report is JSON on the SAME run's stderr (D10 — the
+        # --json flag is always on): remap to the author's per-production
+        # DSL source sites, no second generate
         if e.proc is not None and e.proc.returncode == 1:
-            import tempfile
-
             from .conflicts import parse_conflict_json, remap_from_proc
-            with tempfile.TemporaryDirectory(prefix="pydantree_sitter_grammar-remap-") as td:
-                json_path = model.emit_bundle(Path(td))
-                proc = run_generate(json_path, json_report=True)
-                if parse_conflict_json(proc.stderr) is not None:
-                    _conflict, err = remap_from_proc(g, proc)
-                    raise err from None
+            if parse_conflict_json(e.proc.stderr) is not None:
+                _conflict, err = remap_from_proc(g, e.proc)
+                raise err from None
         raise
 
 

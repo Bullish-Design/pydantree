@@ -71,28 +71,21 @@ class RuleSite:
         return f"{self.file}:{self.lineno}: {self.source.strip()}"
 
 
-# Per-node definition-site registry. Every node constructor registers its own
-# call site here (id(node) -> site); `Grammar.rule()` drains the entries that
-# belong to its body into the grammar's `_node_sites`, which the conflict
-# remapper uses to point at the exact `seq(...)` alternative, not just the
-# `rule(...)` call. Entries are consumed on registration into a rule, so the
-# table stays small; a stale entry for a dead node id is harmless (any new node
-# reusing that id overwrites it with its own site).
-_SITES: dict[int, RuleSite] = {}
-
-
 def _track(node: Rule) -> Rule:
-    """Register the call site of a node constructor. Every combinator calls
-    this before returning its node; depth accounts for the combinator frame."""
-    _SITES[id(node)] = _caller_site(depth=3)
+    """Stamp the call site of a node constructor onto the node itself (D8:
+    provenance lives on the node — no registry, no drain, no id-reuse)."""
+    node._site = caller_site(skip=3)   # pydantic private attr (frozen-safe)
     return node
 
 
-def _caller_site(depth: int = 2) -> RuleSite:
-    """Capture the call site of the DSL entry point (file/lineno/source)."""
+def caller_site(skip: int = 2) -> RuleSite:
+    """The ONE frame-walking helper: capture the call site (file/lineno/
+    source) `skip` frames up. Every attribution path goes through here; a
+    refactor that adds a frame fails the caller_site unit tests instead of
+    silently mis-attributing."""
     frame = inspect.currentframe()
     try:
-        for _ in range(depth):
+        for _ in range(skip):
             frame = frame.f_back  # type: ignore[union-attr]
         fname = frame.f_code.co_filename  # type: ignore[union-attr]
         lineno = frame.f_lineno  # type: ignore[union-attr]
@@ -102,11 +95,26 @@ def _caller_site(depth: int = 2) -> RuleSite:
         del frame
 
 
+def site_of(node: Rule) -> RuleSite | None:
+    """The definition site stamped on a node (D8: provenance lives on the
+    node; no per-grammar store)."""
+    return getattr(node, "_site", None)
+
+
 # ---------------------------------------------------------------------------
 # node constructors (return Rule nodes directly; thin B wrapper for operators)
 # ---------------------------------------------------------------------------
 
 Node = Rule  # type alias used by the DSL
+
+
+def _only_whitespace(pattern: str) -> bool:
+    """Does a PATTERN match only whitespace characters? (F-B5 — intent-based
+    whitespace-extra detection: `\\s`, `[ \\t]+`, `\\s+` all count.)"""
+    stripped = pattern.strip("^$()?:*+")
+    if stripped in (r"\s", " ", r"[ \t]", r"[ \t]+", r"[ \t\r\n]"):
+        return True
+    return False
 
 
 def _iter_body_nodes(node: RuleNode):
@@ -287,7 +295,7 @@ class Grammar:
       precedence levels, ascending integers by default; named mode emits a
       descending `precedence_ordering`).
     - per-production source sites: every combinator call site is recorded and
-      drained into `_node_sites` at rule registration, so the conflict
+      stamped on each node at construction (D8), so the conflict
       remapper can point at the exact `seq(...)` alternative.
     - `rule(..., ambiguous=, dynamic=)` synthesizes the intentional-ambiguity
       opt-in (PREC_DYNAMIC wrapper + conflicts whitelist entry).
@@ -298,7 +306,6 @@ class Grammar:
         self.name = name
         self.rules: dict[str, Rule] = {}
         self.sites: dict[str, RuleSite] = {}
-        self._node_sites: dict[int, RuleSite] = {}
         self._start: str | None = None
         self._word: str | None = None
         self._extras: list[Rule] = []
@@ -312,6 +319,25 @@ class Grammar:
         self._whitespace = whitespace
         self._explicit_whitespace = False
 
+    # -- public read-only view (D10: checks/consumers read these, not the
+    #    private fields) ------------------------------------------------------
+
+    @property
+    def start_rule(self) -> str:
+        return self._start or "source_file"
+
+    @property
+    def extras_view(self) -> list:
+        return list(self._extras)
+
+    @property
+    def externals_view(self) -> list:
+        return list(self._externals)
+
+    @property
+    def word_view(self) -> str | None:
+        return self._word
+
     # -- authoring ----------------------------------------------------------
     def start(self, name: str) -> Grammar:
         """Declare the start rule. There is no `start` field in grammar.json
@@ -322,12 +348,13 @@ class Grammar:
 
     def rule(self, name: str, body: B | Rule | str, *,
              hidden: bool = False, inline: bool = False,
-             supertype: bool = False, alias: str | None = None,
+             supertype: bool = False,
              word: bool = False,
              ambiguous: bool = False, dynamic: int = 1) -> Grammar:
         """Register `name -> body`, recording the call site for conflict
-        remapping and draining the per-node combinator sites for
-        per-production remapping.
+        remapping (F-B1: the `alias=` parameter is DELETED — rule-level alias
+        semantics duplicated the `alias()` combinator; the combinator is the
+        one way).
 
         - hidden: rename to `_<name>` if not already underscore-prefixed
           (tree-sitter's hidden-rule convention).
@@ -335,8 +362,6 @@ class Grammar:
           its references — the CLI makes the rule invisible to the CST).
         - supertype: add to the grammar-level `supertypes` list (a named
           supertype over the rule's subtypes).
-        - alias: add an `inline` entry under an alias name (convenience for
-          the common `inline` + rename pattern).
         - word: also declare this rule as the grammar's `word` token
           (keyword extraction — one-liner instead of a separate `word()` call).
         - ambiguous: opt INTO an intentional GLR ambiguity — wraps the body in
@@ -350,18 +375,11 @@ class Grammar:
             raise ValueError(f"duplicate rule {name!r}")
         node = as_node(body)
         self.rules[name] = node
-        self.sites[name] = _caller_site(depth=2)
-        # drain the per-node combinator sites belonging to this body
-        for n in _iter_body_nodes(node):
-            site = _SITES.pop(id(n), None)
-            if site is not None:
-                self._node_sites[id(n)] = site
+        self.sites[name] = caller_site(skip=2)
         if inline:
             self._inline.append(name)
         if supertype:
             self._supertypes.append(name)
-        if alias:
-            self._inline.append(alias)
         if word:
             if self._word is not None and self._word != name:
                 raise ValueError(
@@ -381,21 +399,22 @@ class Grammar:
         idempotently (the old conflict whitelist entry is replaced)."""
         if name not in self.rules:
             raise ValueError(f"cannot replace unknown rule {name!r}")
+        # F-B6: `hidden` renames to `_<name>` exactly like rule()
+        if flags.get("hidden") and not name.startswith("_"):
+            new_name = f"_{name}"
+            if new_name not in self.rules:
+                self.rules[new_name] = self.rules.pop(name)
+                self.sites[new_name] = self.sites.pop(name)
+            name = new_name
         # undo the previous ambiguous wrapper/whitelist so the new body's flags
         # decide
         self._conflicts = [c for c in self._conflicts if c != [name]]
         old = self.rules[name]
         node = as_node(body)
-        for n in _iter_body_nodes(node):
-            site = _SITES.pop(id(n), None)
-            if site is not None:
-                self._node_sites[id(n)] = site
-        # remove stale per-node sites that belonged to the old body
-        old_ids = {id(n) for n in _iter_body_nodes(old)}
-        for oid in old_ids:
-            self._node_sites.pop(oid, None)
+        # D8: sites live on the nodes themselves — nothing to drain, and the
+        # old body's nodes are garbage-collected with their sites
         self.rules[name] = node
-        self.sites[name] = _caller_site(depth=2)
+        self.sites[name] = caller_site(skip=2)
         if flags.get("inline") and name not in self._inline:
             self._inline.append(name)
         if flags.get("supertype") and name not in self._supertypes:
@@ -423,9 +442,12 @@ class Grammar:
         return self
 
     def extra(self, x: B | Rule | str) -> Grammar:
-        self._extras.append(as_node(x))
-        node = as_node(x)
-        if isinstance(node, PatternNode) and node.value == r"\s":
+        node = as_node(x)          # ONE as_node call (F-B13)
+        self._extras.append(node)
+        # F-B5 (intent-based, not exact-string): an extra whose pattern
+        # matches ONLY whitespace suppresses the injected `\s` default —
+        # the author's whitespace intent is explicit
+        if isinstance(node, PatternNode) and _only_whitespace(node.value):
             self._explicit_whitespace = True
         return self
 
@@ -533,8 +555,8 @@ class Grammar:
 
     # -- per-production source sites ----------------------------------------
     def node_site(self, node: RuleNode) -> RuleSite | None:
-        """The DSL site recorded for a body node (or None)."""
-        return self._node_sites.get(id(node))
+        """The DSL site stamped on a body node (D8 — provenance on the node)."""
+        return site_of(node)
 
     def matching_alternative(self, rule_name: str,
                              production: tuple[str, ...]) -> RuleSite | None:
@@ -569,7 +591,11 @@ class Ladder:
 
     - int mode (default): each level maps to an ascending integer, computed at
       use time — inserting a level mid-ladder renumbers everything after it
-      automatically (nothing stores the integers).
+      automatically (nothing stores the integers). **Renumbering hazard
+      (documented): the integers are computed at use time, so a ladder
+      reorder changes the VALUES of previously-written `prec(...)` ints
+      (they were never stored) — named mode is the recommended default for
+      authoring; int mode is the escape hatch.
     - named mode: each level keeps its name; the grammar emits a descending
       `precedence_ordering` (first = highest, per the CLI) and `prec*` values
       are the names.

@@ -138,6 +138,7 @@ from .rules import (
     Token,
     Word,
     assemble,
+    module_rules,
 )
 from . import patterns
 from .scanners import (
@@ -168,7 +169,7 @@ __all__ = [
     # rule-class surface (the model IS the rule)
     "Rule", "Pattern", "Token", "External",
     "Extra", "Supertype", "Hidden", "Inline", "Word",
-    "R", "assemble",
+    "R", "assemble", "module_rules",
     # analyzer
     "run_checks", "errors", "warnings", "assert_clean", "CheckIssue",
     "GrammarCheckError",

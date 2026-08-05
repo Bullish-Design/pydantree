@@ -193,3 +193,44 @@ cache).
   type-checks AND runs); acronym-aware naming.
 - **Deleted:** stubs.py + test_stubs.py (the mypy-only fiction test).
 - **Gate grep:** `grep -rn "stubs" src` -> empty.
+
+## Gate 6 — Product B correctness + explicitness (D8, D9, D10, F-B*)
+
+- **Suite:** 233 passed (20s — the fast loop is genuinely fast now).
+- **6.1 site-on-node (D8):** `ir.RuleNode` gains `_site` (PrivateAttr,
+  non-serialized; `__eq__` overridden to field-only so provenance never
+  affects DSL equality); combinators stamp at construction; `site_of(node)`
+  reads it; the `_SITES` registry, the rule() drain, `Grammar._node_sites`,
+  `__body_sites__` snapshots and the assemble re-apply loop are DELETED
+  (annotation nodes stamped at creation via `__attr_sites__`). ONE
+  frame-walker `caller_site(skip)` with a pinning test; conflict-remap
+  tests still name the author's lines. Greps `_SITES/_node_sites/
+  __body_sites__` empty.
+- **6.2 explicit assembly (D9):** `assemble(name, *, start, rules=...)`;
+  `module_rules(module)` = classes DEFINED in the module (imported classes
+  excluded — the silent-join bug dies); function-local rule classes work;
+  the example switches to the explicit idiom. Exported `module_rules`.
+- **6.3 pipeline consolidation (D10):** `run_generate` always `--json` (the
+  conflict report is JSON on the same run's stderr — the second generate is
+  deleted); `build(check=True)` runs `checks.assert_clean` (check=False to
+  skip; `build_from_source_dir` uses check=False — community grammars aren't
+  ours to analyze); `builder.Grammar` grows a public read-only view
+  (start_rule/extras_view/externals_view/word_view) that `checks._GrammarView`
+  reads; ONE `write_bundle` (BuildResult.package delegates; the duplicated
+  loader shim constant deleted); `build_from_source_dir` absorbs schema_tool's
+  bundle path (same cache/errors/writer; never touches the author's checkout,
+  F-B11); cache promote via rename-if-absent; `detect_toolchain` is an
+  lru_cache with documented cache_clear.
+- **6.4 F-B sweep (pinning tests in tests/test_phase6_fixes.py):** B1
+  `rule(alias=)` deleted; B2 multi-`Literal` -> choice (default must be one
+  of the values); B4 `_snake` acronym-aware (`HTTPServer`->`http_server`,
+  leading underscore survives); B5 whitespace-only extras suppress the
+  injected `\s` (intent-based); B6 `replace_rule` honors `hidden`; B8/B9
+  expressions docstrings + `_as_op` returns the StrNode directly; B10 corpus
+  dead assignment deleted; B12 `_first_literal_chars` heuristic documented;
+  B13 one `as_node` in extra(); ladder int-mode renumbering hazard
+  documented; corpus `render_compact(expr_kind=)` parameter; Toolchain ABI
+  from `tree_sitter.LANGUAGE_VERSION` (env as override only).
+- **probe_b_side.py** updated to the new API: every repro now shows the
+  CORRECT behavior (multi-Literal CHOICE, alias= gone, no \s dupe, no
+  import pollution, acronym snake).

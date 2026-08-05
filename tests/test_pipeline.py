@@ -83,8 +83,12 @@ def test_analyzer_is_prerequisite_for_pipeline(cache_dir):
     issues = tg.errors(g)
     assert any("unused rule" in i.message for i in issues)
 
-    # the silent trap, demonstrated: generate succeeds, parser lacks the rule
-    result = tg.build_builder(g, cache_dir=cache_dir)
+    # D10: the analyzer is PART of build() by default — the orphan aborts
+    with pytest.raises(tg.GrammarCheckError):
+        tg.build_builder(g, cache_dir=cache_dir)
+    # the silent trap, demonstrated with the explicit opt-out: generate
+    # succeeds, the parser lacks the rule
+    result = tg.build_builder(g, cache_dir=cache_dir, check=False)
     node_types = result.node_types_json.read_text()
     assert '"orphan"' not in node_types
 
@@ -100,7 +104,7 @@ def test_generate_conflict_raises_named_error(cache_dir):
     import pydantree_sitter_grammar as tgm
     from pydantree_sitter_grammar.conflicts import remap_from_proc
     json_path = g.emit_bundle(cache_dir / "conflict_t")
-    proc = tgm.run_generate(json_path, json_report=True)
+    proc = tgm.run_generate(json_path)   # always --json (D10)
     assert proc.returncode == 1
     conflict, err = remap_from_proc(g, proc)
     assert conflict.involved_rules == ["expr"]
@@ -143,8 +147,8 @@ def test_choice_order_required_matches_cli_by_construction(cache_dir):
         g.rule("b", "b")
         return tg.build(g.build(), cache_dir=cache_dir)
 
-    r1 = build_order(tg.field("f", tg.ref("b")), "a")   # field in 1st branch
-    r2 = build_order("a", tg.field("f", tg.ref("b")))   # field in 2nd branch
+    r1 = build_order(tg.field("f", tg.ref("b")), tg.ref("a"))  # 1st branch
+    r2 = build_order(tg.ref("a"), tg.field("f", tg.ref("b")))  # 2nd branch
     assert r1.node_schema_json.read_bytes() == r2.node_schema_json.read_bytes()
 
     from pydantree_sitter.schema import NodeSchema

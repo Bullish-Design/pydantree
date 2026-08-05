@@ -157,21 +157,24 @@ class _GrammarView:
 
     @property
     def extras(self) -> list[Rule]:
-        return self._g.extras if isinstance(self._g, GrammarModel) else self._g._extras
+        return self._g.extras if isinstance(self._g, GrammarModel) \
+            else self._g.extras_view
 
     @property
     def externals(self) -> list[Rule]:
-        return self._g.externals if isinstance(self._g, GrammarModel) else self._g._externals
+        return self._g.externals if isinstance(self._g, GrammarModel) \
+            else self._g.externals_view
 
     @property
     def word(self) -> str | None:
-        return self._g.word if isinstance(self._g, GrammarModel) else self._g._word
+        return self._g.word if isinstance(self._g, GrammarModel) \
+            else self._g.word_view
 
     @property
     def start(self) -> str:
         if isinstance(self._g, GrammarModel):
             return self._g.start_rule
-        return self._g._start or "source_file"
+        return self._g.start_rule
 
     def site(self, rule_name: str) -> RuleSite | None:
         return self._sites.get(rule_name)
@@ -251,7 +254,11 @@ def _first_literal_chars(terminal_key: str) -> set[str]:
     PATTERN value), for prefix-overlap detection. Conservative: returns a
     small set of chars that the terminal can *definitely* start with, empty if
     the key starts with a construct we can't pin down (anchors, classes,
-    escapes, metachars)."""
+    escapes, metachars).
+
+    HEURISTIC (F-B12): patterns starting with metachars (or containing
+    leading alternation/quantifiers) are not analyzed — the overlap check
+    simply doesn't fire for them, and the warning says so."""
     if terminal_key == "":
         return set()
     # STRING values come through as-is; a PATTERN typically starts with a

@@ -1,5 +1,9 @@
 """Product-B probes: rules.py multi-Literal, builder alias=, extras dupes,
-assemble() import-pollution, _snake acronyms."""
+assemble() import-pollution, _snake acronyms.
+
+014 refactor Phase 6: every probe now demonstrates the FIXED behavior
+(F-B1..F-B5, D9). Run: devenv shell -- python probe_b_side.py
+"""
 import sys
 from pathlib import Path
 REPO = Path(__file__).resolve().parents[3]
@@ -12,67 +16,63 @@ from pydantree_sitter_grammar.rules import Rule, Token, _snake, assemble
 
 
 def probe_multi_literal():
-    print("=== multi-value Literal in a rule class ===")
+    print("=== multi-value Literal in a rule class (F-B2: fixed) ===")
     try:
         class Op(Rule):
             op: Literal["+", "-"]
             rhs: Literal["x"] = "x"
         class Start(Rule):
             child: Op
-        g = assemble("t1", start=Start)
-        print("  assembled; op body:", g.rules["op"])
+        # explicit rules list: function-local classes work (D9)
+        g = assemble("t1", start=Start, rules=[Op, Start])
+        body = g.rules["op"]
+        print("  assembled; op members:", [m.type for m in body.members])
     except Exception as e:
         print(f"  {type(e).__name__}: {e}")
 
 
 def probe_builder_alias_flag():
-    print("=== g.rule(..., alias='y') semantics ===")
+    print("=== g.rule(..., alias='y') (F-B1: deleted) ===")
+    print("  alias= no longer exists (TypeError if called); the alias()")
+    print("  combinator is the one way:")
     g = tg.Grammar("t2")
-    g.rule("source_file", tg.ref("x"))
-    g.rule("x", tg.pattern("[a-z]+"), alias="pretty")
+    g.rule("x", tg.alias("pretty", True, tg.token(tg.pattern("[a-z]+"))))
+    g.rule("source_file", tg.repeat(tg.ref("x")))
+    g.start("source_file")
     m = g.build()
-    print("  inline list:", m.inline)
-    print("  rules:", list(m.rules))
-    print("  -> alias= appended a NONEXISTENT rule name to `inline`; no AliasNode emitted")
+    print("  alias combinator emitted; rules:", list(m.rules))
 
 
-def probe_snake():
-    print("=== _snake on acronyms ===")
-    for n in ("HTTPServer", "JSONValue", "IOPort"):
-        print(f"  {n} -> {_snake(n)}")
-
-
-def probe_extra_double_whitespace():
-    print("=== explicit non-canonical whitespace extra duplicates \\s ===")
+def probe_extras_whitespace_dupe():
+    print("=== explicit non-canonical whitespace extra (F-B5: fixed) ===")
     g = tg.Grammar("t3")
-    g.rule("source_file", tg.pattern("[a-z]+"))
-    g.extra(tg.pattern(r"[ \t]+"))   # author handles whitespace herself
+    g.rule("tok", tg.pattern(r"\d+"))
+    g.rule("source_file", tg.repeat(tg.ref("tok")))
+    g.start("source_file")
+    g.extra(tg.pattern(r"[ \t]+"))
     m = g.build()
-    print("  extras:", [x.model_dump(exclude_none=True) for x in m.extras])
+    print("  extras:", [e.value for e in m.extras])
 
 
-def probe_import_pollution():
-    """A Rule subclass imported into the module ONLY for R() reference
-    becomes a registered rule of the grammar."""
-    print("=== assemble() sweeps every Rule subclass in the module ===")
-    import types as _t
-    mod = _t.ModuleType("fake_grammar_mod")
-    src = (
-        "from pydantree_sitter_grammar.rules import Rule, Pattern\n"
-        "class Unrelated(Pattern):\n"
-        "    __pattern__ = '[0-9]+'\n"
-        "class Start(Rule):\n"
-        "    child: Unrelated\n"
-    )
-    sys.modules["fake_grammar_mod"] = mod
-    exec(src, mod.__dict__)
-    g = assemble("t4", start=mod.Start)
+def probe_assemble_import_pollution():
+    print("=== assemble() explicit rules (D9: no silent module sweep) ===")
+    class Unrelated(Rule):
+        x: Literal["u"] = "u"
+    class Start(Rule):
+        x: Literal["s"] = "s"
+    g = assemble("t4", start=Start, rules=[Start])
     print("  rules:", list(g.rules))
+
+
+def probe_snake_acronyms():
+    print("=== _snake on acronyms (F-B4: fixed) ===")
+    for name in ("HTTPServer", "JSONValue", "IOPort", "NamePath"):
+        print(f"  {name} -> {_snake(name)}")
 
 
 if __name__ == "__main__":
     probe_multi_literal()
     probe_builder_alias_flag()
-    probe_snake()
-    probe_extra_double_whitespace()
-    probe_import_pollution()
+    probe_extras_whitespace_dupe()
+    probe_assemble_import_pollution()
+    probe_snake_acronyms()

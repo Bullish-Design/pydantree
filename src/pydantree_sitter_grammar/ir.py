@@ -38,15 +38,35 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, PrivateAttr, model_validator
 
 
 class RuleNode(BaseModel):
-    """Base for all rule nodes. `type` is the serde tag in grammar.json."""
+    """Base for all rule nodes. `type` is the serde tag in grammar.json.
+
+    `_site` (014 D8) is the definition site of the combinator that created
+    the node — stamped at construction (builder._track), read via
+    `site_of`; it is PRIVATE and non-serialized (a validated/imported IR
+    carries None; grammar.json round-trips don't see it).
+    """
 
     model_config = {"frozen": True}
 
     type: str
+    _site: object = PrivateAttr(default=None)
+
+    def __eq__(self, other: object) -> bool:
+        """Field equality only — the `_site` private attr is provenance, not
+        semantics: two nodes with the same fields are equal regardless of
+        where they were created (the DSL tests compare hand-built IR against
+        combinator output). Hash stays field-based (frozen default)."""
+        if isinstance(other, BaseModel) and type(self) is type(other):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
+
+    def __ne__(self, other: object) -> bool:
+        eq = self.__eq__(other)
+        return NotImplemented if eq is NotImplemented else not eq
 
 
 # --- leaf nodes ------------------------------------------------------------
