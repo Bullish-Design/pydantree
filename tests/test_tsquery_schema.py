@@ -27,7 +27,7 @@ from tsquery import (
 )
 
 REPO = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO / ".scratch" / "006-tsquery-bridge"))
+sys.path.insert(0, str(REPO / ".scratch" / "projects" / "006-tsquery-bridge"))
 
 TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
     shutil.which("gcc") is not None

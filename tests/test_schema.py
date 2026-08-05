@@ -75,7 +75,7 @@ def test_derive_from_ir_agrees_with_cli_qfilter():
     sys_path_insert = None
     import sys
     from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / ".scratch" / "005-tsgrammar-glr"))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "005-tsgrammar-glr"))
     try:
         import qfilter
     finally:

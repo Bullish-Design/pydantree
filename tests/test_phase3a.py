@@ -23,7 +23,7 @@ TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
 pytestmark = pytest.mark.skipif(
     not TOOLCHAIN_AVAILABLE, reason="tree-sitter CLI / gcc not on PATH")
 
-QFILTER_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "005-tsgrammar-glr"
+QFILTER_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "005-tsgrammar-glr"
 sys.path.insert(0, str(QFILTER_DIR))
 
 

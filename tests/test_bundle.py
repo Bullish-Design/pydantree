@@ -26,8 +26,8 @@ from tsquery import (
     Language, M, OutputModel, capture, capture_kind, source_meta,
 )
 
-BRIDGE_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "006-tsquery-bridge"
-P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "007-tsquery-distribution"
+BRIDGE_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "006-tsquery-bridge"
+P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "007-tsquery-distribution"
 sys.path.insert(0, str(BRIDGE_DIR))
 sys.path.insert(0, str(P5_DIR))
 
@@ -191,7 +191,7 @@ def test_community_schema_tool_cli(tmp_path):
 
 RUST_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "rust"
 BASH_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "bash"
-P8_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "008-consumer-seam"
+P8_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "008-consumer-seam"
 
 
 def test_schema_tool_over_real_rust_source_byte_for_byte(tmp_path):
@@ -376,7 +376,7 @@ def test_capture_kind_job1_rejects_non_child(tmp_path):
 # ---------------------------------------------------------------------------
 
 NIX_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "nix"
-P9_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "011-nix-example"
+P9_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "011-nix-example"
 
 
 def test_schema_tool_over_real_nix_source_byte_for_byte(tmp_path):

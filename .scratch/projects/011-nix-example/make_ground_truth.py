@@ -31,7 +31,7 @@ import json
 import re
 from pathlib import Path
 
-FLEET = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "nix" / "fleet"
+FLEET = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "nix" / "fleet"
 OUT = FLEET / "ground_truth.json"
 
 

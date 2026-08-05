@@ -11,7 +11,7 @@ import pytest
 import tsgrammar as tg
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-REPORT = (REPO_ROOT / ".scratch" / "004-tsgrammar" / "evidence"
+REPORT = (REPO_ROOT / ".scratch" / "projects" / "004-tsgrammar" / "evidence"
           / "b5_conflict_gap_stderr.json")
 
 RAW_CONFLICT = json.dumps({

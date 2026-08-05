@@ -31,7 +31,7 @@ from tsgrammar.grammar import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-REFERENCE = REPO_ROOT / ".scratch" / "004-tsgrammar" / "reference" / "grammar.json"
+REFERENCE = REPO_ROOT / ".scratch" / "projects" / "004-tsgrammar" / "reference" / "grammar.json"
 
 ALL_NODE_TYPES = {
     "SYMBOL", "STRING", "PATTERN", "BLANK", "SEQ", "CHOICE", "REPEAT",
@@ -161,7 +161,7 @@ def test_start_rule_is_first_entry():
     assert g.start_rule == "a"
 
 
-COMMUNITY_BASH = REPO_ROOT / ".scratch" / "004-tsgrammar" / "community" / "bash" / "grammar.json"
+COMMUNITY_BASH = REPO_ROOT / ".scratch" / "projects" / "004-tsgrammar" / "community" / "bash" / "grammar.json"
 
 
 @pytest.mark.skipif(not COMMUNITY_BASH.exists(),

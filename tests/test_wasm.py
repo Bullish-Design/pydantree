@@ -79,7 +79,7 @@ def test_wasm_bundle_loads_and_parses_with_runtime(tmp_path):
     """The one-line load_bundle over a REAL .wasm artifact through the
     wasm-capable runtime (the probe's evidence artifact): real parse, real
     schema binding."""
-    artifact = (ROOT / ".scratch" / "009-phase7" / "evidence"
+    artifact = (ROOT / ".scratch" / "projects" / "009-phase7" / "evidence"
                 / "rA_rust_grammar.wasm")
     if not artifact.exists():
         pytest.skip("probe wasm artifact missing")

@@ -22,8 +22,8 @@ from tsgrammar.corpus import Corpus, corpus_case, render, render_compact
 from tsgrammar.expressions import semantic_smoke
 from tsgrammar.grammar import ChoiceNode, StrNode, SymbolNode
 
-QFILTER_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "005-tsgrammar-glr"
-P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "007-tsquery-distribution"
+QFILTER_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "005-tsgrammar-glr"
+P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "007-tsquery-distribution"
 sys.path.insert(0, str(QFILTER_DIR))
 sys.path.insert(0, str(P5_DIR))
 

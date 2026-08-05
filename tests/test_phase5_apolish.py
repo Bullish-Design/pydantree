@@ -32,7 +32,7 @@ from tsquery import (
     source_meta,
 )
 
-BRIDGE_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "006-tsquery-bridge"
+BRIDGE_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "006-tsquery-bridge"
 sys.path.insert(0, str(BRIDGE_DIR))
 
 TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \

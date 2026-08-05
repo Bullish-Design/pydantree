@@ -161,7 +161,7 @@ def test_fresh_venv_light_install_delivers_a_without_b(tmp_path):
 
     # build the cfg bundle (B-side) and round-trip it in the fresh venv
     from pathlib import Path as _P
-    bridge = _P(__file__).resolve().parents[1] / ".scratch" / "006-tsquery-bridge"
+    bridge = _P(__file__).resolve().parents[1] / ".scratch" / "projects" / "006-tsquery-bridge"
     if str(bridge) not in sys.path:
         sys.path.insert(0, str(bridge))
     from cfg_grammar import CORPUS, LISTEN_GROUND_TRUTH, SECTION_GROUND_TRUTH, build as _cfg
