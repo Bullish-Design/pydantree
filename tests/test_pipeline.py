@@ -5,6 +5,7 @@ content-addressed cache."""
 from __future__ import annotations
 
 import shutil
+from pathlib import Path
 
 import pytest
 
@@ -30,7 +31,17 @@ def _simple_grammar() -> tg.Grammar:
 def test_build_warnings_surface(cache_dir):
     """B15: analyzer warnings are attached to the BuildResult (they used to
     be computed then discarded) and cite the author's source when the build
-    goes through build_builder."""
+    goes through build_builder — including the EXACT line that constructs
+    the mixed precedence choice, not merely somewhere in the file. A
+    regression dropping a warning's site (or collapsing it to a broader
+    line) must FAIL this test."""
+    # the line that constructs the mixed named/integer precedence choice,
+    # derived at runtime from this file's own source — unambiguous (the
+    # string appears exactly once) and not a fragile hard-coded number
+    this_file = Path(__file__).read_text().splitlines()
+    mixed_line = next(i for i, ln in enumerate(this_file, 1)
+                      if ln.lstrip().startswith('g.rule("x", tg.choice('))
+
     g = tg.Grammar("warn_t")
     g.precedence_ordering("low")   # declare the named precedence (CLI-required)
     g.rule("x", tg.choice(
@@ -43,10 +54,17 @@ def test_build_warnings_surface(cache_dir):
 
     result = tg.build_builder(g, cache_dir=cache_dir)
     assert result.warnings, "expected a precedence-mixing warning"
-    assert any("precedence" in w.message for w in result.warnings)
-    # the site-carrying run: warnings cite the author's file (this test file)
-    assert all(w.site is None or w.site.file.endswith("test_pipeline.py")
-               for w in result.warnings)
+    prec_warnings = [w for w in result.warnings
+                     if "precedence" in w.message]
+    # exactly the one precedence-mixing warning, with a REAL site
+    assert len(prec_warnings) == 1, prec_warnings
+    w = prec_warnings[0]
+    assert w.site is not None, "the warning lost its source site"
+    assert w.site.file.endswith("test_pipeline.py"), w.site
+    # the site names the exact mixed-choice construction line
+    assert w.site.lineno == mixed_line, \
+        f"warning site {w.site.lineno} collapsed away from line {mixed_line}"
+    assert "tg.choice" in w.site.source, w.site
 
     # a warning-free grammar -> empty warnings
     clean = tg.build_builder(tg.Grammar("clean_t")
