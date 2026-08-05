@@ -293,12 +293,12 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
 
     h = grammar_hash(model)
     tc_digest = hashlib.sha256(toolchain.key.encode()).hexdigest()[:12]
-    key = f"{h}-{tc_digest}"
+    key = f"{h}-{name}-{tc_digest}"
     if scanner is not None and scanner.exists():
         # the .so depends on the scanner.c too — content-address it in the
         # cache key so a scanner build and a scanner-less build don't collide
         scanner_digest = hashlib.sha256(scanner.read_bytes()).hexdigest()[:12]
-        key = f"{h}-{scanner_digest}-{tc_digest}"
+        key = f"{h}-{name}-{scanner_digest}-{tc_digest}"
     entry = cache_dir / key
     so_path = entry / f"{name}.so"
     grammar_json = entry / "grammar.json"
@@ -357,12 +357,16 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
         raise CompileError(model, cc)
 
     # promote into the cache (D10): build in a sibling work dir, then
-    # rename-if-absent — if a concurrent build won the race, discard ours
+    # rename-if-absent — if a concurrent build won the race, discard ours.
+    # NOTE: on Linux os.rename onto a populated dir raises OSError(ENOTEMPTY),
+    # not FileExistsError (B14).
     entry.parent.mkdir(parents=True, exist_ok=True)
     try:
         os.rename(work, entry)
-    except FileExistsError:
+    except OSError:                      # ENOTEMPTY/EEXIST: a concurrent build won
         shutil.rmtree(work, ignore_errors=True)
+        if not (entry / f"{name}.so").exists():
+            raise                        # a real failure, not the race
 
     node_types = entry / "src" / "node-types.json"
     _cache_node_schema(entry, model)

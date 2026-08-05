@@ -418,8 +418,10 @@ def _kind_coerces(schema, vm: ValueMap, target, kind: str) -> bool:
 
 # memoized draft ValueMap: recomputed per call was the silent cost of the
 # old checker (propose_value_map walks the whole schema every time). Keyed by
-# id() because NodeSchema is not hashable (pydantic v2 non-frozen).
-_PROPOSED_CACHE: dict[int, "ValueMap"] = {}
+# id() because NodeSchema is not hashable (pydantic v2 non-frozen) — the
+# cache holds the schema object itself so its id cannot be reused by a
+# different schema (a stale draft for the wrong grammar is a wrong check).
+_PROPOSED_CACHE: dict[int, tuple[object, "ValueMap"]] = {}
 
 
 def _proposed(schema) -> "ValueMap":
@@ -428,11 +430,11 @@ def _proposed(schema) -> "ValueMap":
     declares never reach this."""
     key = id(schema)
     cached = _PROPOSED_CACHE.get(key)
-    if cached is None:
+    if cached is None or cached[0] is not schema:
         from .valuemap import propose_value_map
-        cached = propose_value_map(schema)
+        cached = (schema, propose_value_map(schema))
         _PROPOSED_CACHE[key] = cached
-    return cached
+    return cached[1]
 
 
 def _scalar_of(schema, vm: ValueMap | None, kind: str) -> Optional[str]:

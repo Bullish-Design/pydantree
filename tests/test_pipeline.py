@@ -36,6 +36,35 @@ def test_grammar_hash_is_content_addressed():
     assert tg.grammar_hash(c.build()) != tg.grammar_hash(a)
 
 
+def test_cache_key_distinguishes_grammar_name(cache_dir):
+    """B13: the cache key must fold grammar_name in — the .so filename
+    embeds it, so two names for the same model must not share an entry."""
+    from pydantree_sitter_grammar.pipeline import build
+
+    m = _simple_grammar().build()
+    r1 = build(m, cache_dir=cache_dir, grammar_name="alpha")
+    r2 = build(m, cache_dir=cache_dir, grammar_name="beta")
+    assert r1.so_path.exists() and r2.so_path.exists()
+    assert r1.so_path != r2.so_path
+
+
+def test_promote_race_is_graceful(cache_dir):
+    """B14: a concurrent build winning the promote race leaves a populated
+    entry; os.rename onto it raises OSError(ENOTEMPTY) on Linux (not
+    FileExistsError) — the loser must discard its work dir, not crash."""
+    g = _simple_grammar()
+    first = tg.build_builder(g, cache_dir=cache_dir)
+    assert first.so_path.exists()
+
+    # force the promote path: the entry exists (a concurrent build won) but
+    # its grammar.json is missing, so the cache-hit short-circuit can't fire
+    first.grammar_json.unlink()
+    result = tg.build_builder(g, cache_dir=cache_dir)
+    assert result.so_path.exists()
+    assert not (cache_dir / ".work").exists() or not any(
+        (cache_dir / ".work").iterdir())
+
+
 def test_emit_bundle_writes_abi15_config(tmp_path):
     model = _simple_grammar().build()
     json_path = model.emit_bundle(tmp_path)
