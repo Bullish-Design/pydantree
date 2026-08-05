@@ -1,0 +1,11 @@
+[1] grammar.json identical to the builder-DSL version: YES
+[2] authoring mechanism per rule:
+      annotations    ['interpolation', 'string', 'indented_string', 'pair', 'attrset', 'list']
+      pattern/token  ['name_path', 'number', 'path_literal']
+      external       ['string_fragment', 'indented_string_fragment']
+      __body__       ['comment', 'with_expr', 'value', 'formal', 'formals', 'source_file']
+[3] run_checks clean: True (0 issues total)
+[4] smoke parse: 85 lines -> source_file root, 3 children
+      formals      '{ pkgs, lib, config, inputs, ... }'
+      :            ':'
+      attrset      '{\n  # https://devenv.sh/basics/\n  env.GREET '
