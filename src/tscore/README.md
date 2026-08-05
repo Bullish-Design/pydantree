@@ -11,8 +11,8 @@ toolchain.
 - `tscore.loader` — the ONE place a compiled grammar becomes a
   `tree_sitter.Language`: `load_grammar_so` (PyCapsule load),
   `load_bundle` (the 4-file bundle contract), and the wasm seam (artifact
-  dispatch + `WasmRuntimeUnavailableError` + the env-wired wasmtime
-  bridge in `_wasm_bridge.py`).
+  dispatch + `WasmRuntimeUnavailableError` — the probe bridge moved to
+  `.scratch/projects/009-phase7/wasm_bridge.py` in the 014 refactor).
 
 See [docs/architecture.md](../../docs/architecture.md) (the seams) and
 [docs/development.md](../../docs/development.md) (the workflow). Users:

@@ -96,21 +96,19 @@ def test_heavy_wheel_carries_the_scanner_and_0_26_pin(tmp_path):
     assert int(major) >= 0.26 or tree_pin >= "tree-sitter>=0.26"
 
 
-def test_root_pyproject_excludes_the_three_packages():
-    """The root distribution is the legacy wrapper only — the split is a
-    package-level fact, not just a build-script detail."""
+def test_root_pyproject_is_workspace_only_and_ships_no_distribution():
+    """The root project is the uv-workspace + dev-tooling envelope ONLY
+    (Phase 1 of the 014 refactor deleted the legacy island and its wheel
+    config). No wheel-build config, no console scripts (the old
+    `src/pydantree`/`data`/`examples` wheel contents are gone); the real
+    products are workspace members under src/."""
     text = (ROOT / "pyproject.toml").read_text()
-    # the packages config line (the comment above may mention the split docs)
-    pkg_section = text.split("[tool.hatch.build.targets.wheel]")[1]
-    packages_line = [l for l in pkg_section.splitlines()
-                     if l.strip().startswith("packages")]
-    assert packages_line, "no packages config in the root pyproject"
-    for pkg in ("tsgrammar", "tsquery", "tscore"):
-        assert pkg not in packages_line[0], \
-            f"root pyproject still ships {pkg}"
-    assert "src/pydantree" in packages_line[0]
-    assert "src/examples" in packages_line[0]
-    assert "data" in packages_line[0]
+    assert "[tool.hatch.build.targets.wheel]" not in text, \
+        "root pyproject must not configure a wheel (no distribution of its own)"
+    assert "[project.scripts]" not in text, \
+        "root pyproject must not ship console scripts"
+    assert "src/tscore" in text and "src/tsquery" in text \
+        and "src/tsgrammar" in text  # the workspace members
 
 
 def test_light_wheel_pins_0_26(tmp_path):

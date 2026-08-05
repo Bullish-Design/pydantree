@@ -3,12 +3,12 @@
 **Status:** concept / post-Phase-1
 **Supersedes (in spirit):** `017-pydantic-winnow-parser`
 **Phase-1 update (2026-08-02):** Product A's surface was redefined by the
-Phase-1 spikes (`spike-a/`, `spike-a2/` at the repo root). The pre-Phase-1
+Phase-1 spikes (`spike-a/`, `spike-a2/` (now `.scratch/projects/015-phase1-spike-a/`, `.scratch/projects/016-spike-a2-model-only/`)). The pre-Phase-1
 "query DSL → `.scm`" version of §5 was **rejected** in favor of a
 **model-only declaration**: the `OutputModel` class itself IS the query — no
 `.scm`, no query builder, no query string. §5 below reflects the validated
 design; evidence and the rejected-alternative analysis live in
-`spike-a/FINDINGS.md` and `spike-a2/FINDINGS.md`.
+`.scratch/projects/015-phase1-spike-a/FINDINGS.md` and `.scratch/projects/016-spike-a2-model-only/FINDINGS.md`.
 **Decision baked in:** static grammars, GLR backend (tree-sitter). We are *not*
 building a dynamic-grammar VM or a parser-combinator engine. The whole design
 leans into tree-sitter's model instead of fighting it.
@@ -531,8 +531,8 @@ So build the piece that delivers value soonest and validates the interface:
   `generate` + compile, confirm a working parser. Prove the conflict-diagnostic
   remapping (§4.4.3) is mechanically possible from real generator output. This is
   the single most important go/no-go experiment.
-- **Phase 1 — Product A MVP over community grammars (DONE: `spike-a/`,
-  `spike-a2/`).** Proved the **model-only declaration** (the `OutputModel` IS the
+- **Phase 1 — Product A MVP over community grammars (DONE: `.scratch/projects/015-phase1-spike-a/`,
+  `.scratch/projects/016-spike-a2-model-only/`).** Proved the **model-only declaration** (the `OutputModel` IS the
   query — §5.3), derived `.scm`, capture→`OutputModel` materialization, nested
   models, and the failure surface over Python + JSON, **independent of B**. The
   spike rejected the query-DSL version of A (ceremony without value for simple

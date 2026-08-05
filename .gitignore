@@ -213,4 +213,6 @@ devenv.local.nix
 /.scratch/projects/002-pydantic-treesitter/spike/work/
 /.scratch/projects/002-pydantic-treesitter/spike/probe/src/
 # Phase 1 spike (Product A): generated artifacts, same policy
-/spike-a/work/
+/.scratch/projects/015-phase1-spike-a/work/
+# Phase 2 spike (Product A model-only): generated artifacts, same policy
+/.scratch/projects/016-spike-a2-model-only/work/

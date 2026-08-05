@@ -18,9 +18,9 @@ first for the map; this is the "how do I actually run things" doc.
   devenv.nix). On shell entry devenv runs `uv sync --all-extras` against the
   uv workspace (`pyproject.toml` → `uv.lock`), checksum-cached on
   `pyproject.toml` + interpreter + args, so it only actually syncs when
-  those change. The root project (the legacy wrapper) + dev extras (pytest,
-  ruff, mypy, black, coverage, tree-sitter-json/python) land in the managed
-  venv (`.devenv/state/venv` — devenv points uv there via
+  those change. The root project (the dev-tooling envelope) + dev extras
+  (pytest, ruff, mypy, black, coverage, tree-sitter-json/python) land in the
+  managed venv (`.devenv/state/venv` — devenv points uv there via
   `UV_PROJECT_ENVIRONMENT`; there is no `.venv` in the repo root).
 - **After changing dependencies** (in `pyproject.toml` or a member's), run
   `uv lock` once — the devenv sync uses `--frozen` and will fail loudly if

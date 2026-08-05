@@ -14,9 +14,10 @@ authors = [
 license = { file = "LICENSE" }
 keywords = ["tree-sitter", "pydantic", "parser", "ast"]
 
-# Phase 6 (the consumer seam): this root project is now the LEGACY
-# distribution only (the deprecated first-principles wrapper — frozen,
-# untouched) plus the dev flow. The real products ship separately under src/:
+# The root project is the uv-workspace + dev-tooling envelope ONLY — no
+# distribution of its own (the legacy `src/pydantree` island and the
+# `data`/`examples` wheel contents were deleted in Phase 1 of the 014
+# refactor). The real products ship under src/ as workspace members:
 #
 #   src/tscore/pyproject.toml      light — the shared seam
 #   src/tsquery/pyproject.toml     light — Product A (no toolchain)
@@ -24,11 +25,14 @@ keywords = ["tree-sitter", "pydantic", "parser", "ast"]
 #
 # The distributions are pydantree-BRANDED (pydantree-tscore / -tsquery /
 # -tsgrammar) while the import packages stay tscore/tsquery/tsgrammar — the
-# bare `tsquery` name is taken on PyPI by an unrelated GPL package, and the
-# project identity is pydantree.
+# bare `tsquery` name is taken on PyPI by an unrelated GPL package.
 #
 # A consumer installs tscore + tsquery ONLY and gets the full checked
 # extraction; tsgrammar (and the scanner package data) ships separately.
+#
+# Phase 2 of the refactor renames these to pydantree-sitter /
+# pydantree-sitter-grammar; until then the workspace members keep the old
+# names.
 dependencies = [
   "pydantic>=2.11",
   "tree-sitter>=0.26",  # the 0.26 floor (was >=0.23 while the code used
@@ -40,7 +44,7 @@ dependencies = [
 # Development tooling (tests, lint, type‑check, coverage). With the uv
 # workspace below, `devenv shell` runs `uv sync --all-extras` automatically
 # (languages.python.uv.sync.enable in devenv.nix) — the root project + these
-# extras land in the managed venv; the three src/ packages are resolved
+# extras land in the managed venv; the workspace src/ packages are resolved
 # straight from `src/` via the venv's `_pydantree_src.pth` (no editable
 # copies → no staleness). Run `uv lock` after changing dependencies.
 dev = [
@@ -55,19 +59,6 @@ dev = [
 python = [
   "tree-sitter-python>=0.23",  # pre‑compiled wheel containing the Python grammar
 ]
-
-# ─────────────────────────────────────────────
-# Packaging layout & entry point configuration
-# ─────────────────────────────────────────────
-
-[tool.hatch.build.targets.wheel]
-# the legacy wrapper + examples + data ONLY — tsgrammar/tsquery/tscore are
-# excluded from this wheel (they ship as their own distributions)
-packages = ["src/pydantree", "src/examples", "data"]
-
-[project.scripts]
-pydantree = "pydantree.cli:main"
-demo = "examples.demo:main"
 
 [tool.uv.workspace]
 # the three real products under src/ are uv workspace members — `uv sync`

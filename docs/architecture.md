@@ -42,12 +42,13 @@ pydantree-branded (`pydantree-tscore`, `pydantree-tsquery`,
 
 | package | weight | contents | depends on |
 |---|---|---|---|
-| `tscore` | tiny, pure Python | the node-schema format (`schema.py`), the exact-path IR derivation (`_ir_derive.py`), the artifact-loading contract (`loader.py` incl. the wasm seam `_wasm_bridge.py`) | pydantic, tree-sitter |
+| `tscore` | tiny, pure Python | the node-schema format (`schema.py`), the exact-path IR derivation (`_ir_derive.py`, deleted in the 014 refactor), the artifact-loading contract (`loader.py` incl. the wasm seam — the probe bridge moved to `.scratch/projects/009-phase7/`) | pydantic, tree-sitter |
 | `tsquery` (A) | light | `typed.py` (OutputModel + Language), `dsl.py` (the query builder), `materialize.py`, `shapes.py`, `schema.py` (schema-rebuilt derivation), `stubs.py` (Job-2 `.pyi`) | tscore, pydantic, tree-sitter |
 | `tsgrammar` (B) | heavy | `grammar.py` (IR), `builder.py` (the DSL), `checks.py` (static analysis), `conflicts.py` (GLR conflict remapping), `expressions.py` (precedence ladders), `corpus.py` (the corpus harness), `pipeline.py` (generate → gcc → bundle), `schema_tool.py` (community grammars), `scanners/` (the scanner library) | tscore, pydantic, tree-sitter, **plus the CLI + gcc at build time** |
 
-The root `pyproject.toml` is the LEGACY distribution only (the deprecated
-`src/pydantree` wrapper — frozen, untouched) plus the dev flow.
+The root `pyproject.toml` is the uv-workspace + dev-tooling envelope only
+(the legacy `src/pydantree` island and the root distribution were deleted in
+the 014 refactor Phase 1).
 
 ## 3. The three seams (what the project has proven)
 
@@ -154,7 +155,7 @@ src/tscore/
   schema.py          NodeSchema, NodeTypeInfo, derive_from_ir, derive_from_node_types
   _ir_derive.py      the exact-path derivation (the node_types.rs port)
   loader.py          load_grammar_so, load_bundle, the wasm dispatch + error
-  _wasm_bridge.py    the wasmtime ctypes bridge (Phase-7 probe runtime)
+                     (the probe bridge moved to .scratch/projects/009-phase7/)
 src/tsquery/
   typed.py           OutputModel, M, capture/capture_kind/source_meta, Language,
                      the markers (Matches/Eq/AnyOf/NodeKind/Unescaped), checks

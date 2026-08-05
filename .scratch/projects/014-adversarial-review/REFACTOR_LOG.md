@@ -29,3 +29,31 @@ cache).
   Phase 3).
 - **Also fixed:** `probe_nested_schema.py` still pointed at the flat
   `.scratch/006-*` path (same move breakage).
+
+## Gate 1 — deletions that touch no product code (D13)
+
+- **Suite:** 202 passed, 5 xfailed (55.6s) — the 2 deleted wasm tests were
+  the prior skips; everything else identical.
+- **Deleted:** `src/pydantree` (8 files, ~800 lines), `src/data`
+  (`python_nodes.py` 1147 lines + node-types.json), `src/examples`
+  (3 legacy demo scripts); the root distribution (wheel packages config +
+  `pydantree`/`demo` console scripts) — root `pyproject.toml` is now the
+  uv-workspace + dev-tooling envelope only; `test_packaging.py`'s
+  grep-the-config test replaced with a workspace-only assertion.
+- **Moved:** `spike-a/` → `.scratch/projects/015-phase1-spike-a/`,
+  `spike-a2/` → `.scratch/projects/016-spike-a2-model-only/`,
+  `KICKOFF_SPIKE.md` → `.scratch/projects/` (the guide's `001-phase1-spike-a`
+  target collided with the existing `001-pydantic-winnow-parser`; used the
+  next free numbers). CONCEPT.md path references fixed; .gitignore spike
+  paths re-pointed.
+- **Wasm:** `src/tscore/_wasm_bridge.py` → `.scratch/projects/009-phase7/wasm_bridge.py`;
+  `loader.py`'s wasm branch now raises `WasmRuntimeUnavailableError`
+  unconditionally (env-var protocol moved to the moved file's docstring);
+  deleted the env-gated real-load test and the `/tmp/rust-bundle`
+  non-hermetic test; kept the unavailable-error test (asserts the new error
+  names the bridge's scratch home).
+- **Truth pass:** `tscore/__init__.py` false docstring fixed (T-9);
+  `docs/architecture.md` module map + wasm seam line; `docs/development.md`;
+  `src/tscore/README.md`.
+- **Grep gate:** `grep -rn "pydantree" src/` hits only dist-name strings
+  kept until Phase 2.
