@@ -12,8 +12,8 @@ Work on the pydantree codebase: `src/tscore` (shared seam), `src/tsquery`
 
 - `../../docs/architecture.md` — the module map, the three seams, the durable facts.
 - `../../docs/development.md` — the workflow (this file is the cheat sheet).
-- `../../.scratch/002-pydantic-treesitter/CONCEPT.md` — the full design argument.
-- The latest phase verdict: `../../.scratch/009-phase7/FINDINGS.md`.
+- `../../.scratch/projects/002-pydantic-treesitter/CONCEPT.md` — the full design argument.
+- The latest phase verdict: `../../.scratch/projects/009-phase7/FINDINGS.md`.
 
 ## Environment (mandatory)
 
@@ -63,8 +63,8 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
 
 ## Conventions
 
-- Findings go in `../../.scratch/00X-*/FINDINGS.md`; raw outputs are saved
-  verbatim under `../../.scratch/00X-*/evidence/`; probes are committed as
+- Findings go in `../../.scratch/projects/00X-*/FINDINGS.md`; raw outputs are saved
+  verbatim under `../../.scratch/projects/00X-*/evidence/`; probes are committed as
   `probe_*.py` so verdicts re-run.
 - Commit messages carry a scope prefix + the finding:
   `tsgrammar: ...`, `tscore: ...`, `phase7: ...`.

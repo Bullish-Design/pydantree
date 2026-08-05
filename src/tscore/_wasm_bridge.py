@@ -7,7 +7,7 @@ store. This bridge drives that official path (ts_wasm_store_load_language)
 through ctypes — the same mechanism the tree-sitter CLI/editor ecosystem uses,
 with wasmtime as the wasm engine.
 
-Runtime requirements (the Phase-7 probe's build, see .scratch/009-phase7/):
+Runtime requirements (the Phase-7 probe's build, see .scratch/projects/009-phase7/):
 
     libtree-sitter-with-wasm.so   libtree-sitter compiled with
                                   TREE_SITTER_FEATURE_WASM against the

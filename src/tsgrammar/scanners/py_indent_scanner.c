@@ -24,7 +24,7 @@
  * NOT adapted (the honest scope line): the string/format/backtick handling
  * (STRING_START/.../ESCAPE_INTERPOLATION) and the bracket tracking — this
  * scanner is the indentation mechanism, the part the library is for. The
- * grammar (pyindent, .scratch/009-phase7/pyindent.py) is the real header
+ * grammar (pyindent, .scratch/projects/009-phase7/pyindent.py) is the real header
  * shape: `if x: NEWLINE INDENT stmt* DEDENT`.
  *
  * Grammar shape (pyindent):

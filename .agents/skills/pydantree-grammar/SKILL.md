@@ -105,6 +105,6 @@ schema = derive_schema_for_dir("grammar-src-dir", out="node-schema.json")
 - Run everything through `devenv shell`; the venv resolves `src/` directly
   (the `_pydantree_src.pth`), so new files are immediately importable — no
   reinstall. `uv lock` after dependency changes.
-- Real example grammars to copy from: `../../../../.scratch/006-tsquery-bridge/cfg_grammar.py`
-  (a config language), `../../../../.scratch/009-phase7/{pyindent,bashmini}.py`
+- Real example grammars to copy from: `../../../../.scratch/projects/006-tsquery-bridge/cfg_grammar.py`
+  (a config language), `../../../../.scratch/projects/009-phase7/{pyindent,bashmini}.py`
   (scanner grammars), `tests/fixtures/rust/` (a real community grammar).

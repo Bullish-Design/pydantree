@@ -11,7 +11,7 @@ probe-verified semantics:
   named/int-mixing failure is unreachable through it.
 - The single-rule emission form (filtlang-style): every operator is a
   `prec*`-annotated alternative of ONE `<name>` rule whose operands are the
-  `<name>` ref itself. Probe 1/2 (`.scratch/005-tsgrammar-glr/`) verified this
+  `<name>` ref itself. Probe 1/2 (`.scratch/projects/005-tsgrammar-glr/`) verified this
   generates conflict-free for the full tricky operator set and keeps a clean
   per-op CST (layered hidden-rule emission flattens ops into one node —
   rejected).

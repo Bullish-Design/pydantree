@@ -8,7 +8,7 @@
 ## Mission
 
 You are working in the **`pydantree`** repo. We are **completely rewriting this
-library** around a new concept documented under `.scratch/`. Your job for this
+library** around a new concept documented under `.scratch/projects/`. Your job for this
 session: run the **Phase 0 spike** defined in the concept and deliver a
 **go / go-with-changes / no-go verdict with evidence**.
 
@@ -24,24 +24,24 @@ pipeline to prove. Everything else is scaffolding.
 - The repo uses **devenv (Nix)** with Python 3.13 + uv + venv. Python deps are
   declared in `pyproject.toml` (pydantic >= 2.11, tree-sitter >= 0.23).
 - Git history shows multiple aborted directions (Graphsitter, MVP) — a sign we
-  keep missing on architecture. The concept in `.scratch/` is the attempt to get
+  keep missing on architecture. The concept in `.scratch/projects/` is the attempt to get
   the architecture right first.
 
 ## Required reading (in this order — do not skip)
 
-1. **`.scratch/002-pydantic-treesitter/CONCEPT.md`** — THE authoritative concept.
+1. **`.scratch/projects/002-pydantic-treesitter/CONCEPT.md`** — THE authoritative concept.
    Read it fully. It defines the two-product design (tsgrammar + tsquery), the
    `grammar.json`-first strategy, and the phased sequencing. Phase 0 is §9.
-2. **`.scratch/001-pydantic-winnow-parser/SESSION_ANALYSIS.md`** — the previous
+2. **`.scratch/projects/001-pydantic-winnow-parser/SESSION_ANALYSIS.md`** — the previous
    direction (Pydantic-authored, Rust/Winnow-executed combinators). It is
    **superseded in spirit** (we chose static grammars + tree-sitter GLR), but its
    analysis of what Pydantic can/cannot be trusted to do is durable. Read it.
-3. **`.scratch/001-pydantic-winnow-parser/sketch.py`** — a self-contained
+3. **`.scratch/projects/001-pydantic-winnow-parser/sketch.py`** — a self-contained
    pure-Python ergonomics prototype. Run it (`python sketch.py`). It demonstrates
    the exact ergonomics we want to carry over: a Pydantic **discriminated-union
    IR**, a **builder DSL** that emits that IR, and **compile-time grammar↔output
    bridge validation**. The IR style carries over; the backend does not.
-4. (Optional) `.scratch/001-pydantic-winnow-parser/WINNOW_PYO3_PYTHON_COMBINATORS_CONCEPT.md`
+4. (Optional) `.scratch/projects/001-pydantic-winnow-parser/WINNOW_PYO3_PYTHON_COMBINATORS_CONCEPT.md`
    — the fuller earlier analysis; skim for anything we don't want to lose.
 
 ## The concept in 60 seconds
@@ -145,11 +145,11 @@ output.**
 
 ## Working agreement
 
-- **Spike code goes in `.scratch/002-pydantic-treesitter/spike/`**, isolated from `src/`.
-  Reference docs stay in `.scratch/`.
+- **Spike code goes in `.scratch/projects/002-pydantic-treesitter/spike/`**, isolated from `src/`.
+  Reference docs stay in `.scratch/projects/`.
 - **Commit after each meaningful step**, with clear messages (e.g.
   `spike: grammar.json emission round-trips`, `spike: generated parser compiles`).
-- **Write findings as you go** into `.scratch/002-pydantic-treesitter/spike/FINDINGS.md`. The code is throwaway;
+- **Write findings as you go** into `.scratch/projects/002-pydantic-treesitter/spike/FINDINGS.md`. The code is throwaway;
   the findings are the deliverable.
 - **Don't gold-plate.** If a step is 80% done and the remaining 20% is polish,
   note it and move on.
@@ -159,9 +159,9 @@ output.**
 
 ## Deliverables (end of session)
 
-1. Working code in `.scratch/002-pydantic-treesitter/spike/`: IR → `grammar.json` → generated + compiled parser
+1. Working code in `.scratch/projects/002-pydantic-treesitter/spike/`: IR → `grammar.json` → generated + compiled parser
    that parses the sample expression language with correct precedence.
-2. `.scratch/002-pydantic-treesitter/spike/FINDINGS.md` answering at minimum:
+2. `.scratch/projects/002-pydantic-treesitter/spike/FINDINGS.md` answering at minimum:
    - Does the `grammar.json` round-trip work cleanly? What had to be learned/fixed
      vs. the concept's assumptions (CLI version behavior, schema details)?
    - **Is conflict → Python-source remapping mechanically feasible?** Include the

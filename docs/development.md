@@ -66,9 +66,9 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
 
 ## 3. Evidence discipline (the project's convention)
 
-- Findings live in `../.scratch/00X-*/FINDINGS.md`; **raw outputs are saved
-  verbatim** under `../.scratch/00X-*/evidence/` (e.g. `rA_wasm_perf.txt`).
-- Probes/experiments are committed as `.scratch/00X-*/probe_*.py` so a
+- Findings live in `../.scratch/projects/00X-*/FINDINGS.md`; **raw outputs are saved
+  verbatim** under `../.scratch/projects/00X-*/evidence/` (e.g. `rA_wasm_perf.txt`).
+- Probes/experiments are committed as `.scratch/projects/00X-*/probe_*.py` so a
   verdict can be re-run. Each FINDINGS "Re-run" section lists the commands.
 - Commit messages carry a scope prefix + the finding, e.g.:
   `tsgrammar: scanner library — ...`, `phase7: wasm probe — ...`,
@@ -89,7 +89,7 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
   importable — no reinstall. Verify the heavy wheel carries it (see
   `tests/test_packaging.py::test_heavy_wheel_carries_the_scanner_and_0_26_pin`).
 - **The mini-grammar pattern**: every scanner seed has a mini-grammar module
-  in `../.scratch/` (pymini, hmini, dmini, pyindent, bashmini) with
+  in `../.scratch/projects/` (pymini, hmini, dmini, pyindent, bashmini) with
   `GOOD`/`GOOD_EXPECTED` (+ semantic case constants) used by
   `tests/test_scanners.py`. The expected sexps are hand-computed from the
   grammar's INTENT — the corpus pins semantics, and a wrong expectation is an
@@ -125,7 +125,7 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
 
 ## 6. The phase workflow (when the work is a phase)
 
-1. Copy the kickoff prompt into `../.scratch/00X-*/KICKOFF_*.md`.
+1. Copy the kickoff prompt into `../.scratch/projects/00X-*/KICKOFF_*.md`.
 2. Baseline: `python -m pytest tests/` (capture the count).
 3. Work in steps; commit after each meaningful step; save raw outputs
    verbatim under `evidence/`.

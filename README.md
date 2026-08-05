@@ -37,8 +37,8 @@ capture↔type checks run **before any text is parsed**.
 - **Coding agents**: `.agents/skills/` ships Agent-Skills-standard skills
   (`pydantree-dev`, `pydantree-grammar`, `pydantree-extraction`,
   `pydantree-scanners`) that load automatically into pi and other harnesses.
-- The authoritative concept: `.scratch/002-pydantic-treesitter/CONCEPT.md`.
-  Per-phase verdicts: `.scratch/00X-*/FINDINGS.md` (see docs/README.md).
+- The authoritative concept: `.scratch/projects/002-pydantic-treesitter/CONCEPT.md`.
+  Per-phase verdicts: `.scratch/projects/00X-*/FINDINGS.md` (see docs/README.md).
 
 ## Quick facts
 

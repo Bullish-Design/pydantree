@@ -10,7 +10,7 @@ Two cooperating libraries over tree-sitter, bound by a shared seam (`tscore`):
   `parser.c` → a shared object → a shippable **bundle**.
 
 The authoritative concept lives in
-`../.scratch/002-pydantic-treesitter/CONCEPT.md` (read it first for the full
+`../.scratch/projects/002-pydantic-treesitter/CONCEPT.md` (read it first for the full
 design argument). This directory is the working reference.
 
 ## For developers (working on this codebase)
@@ -34,7 +34,7 @@ design argument). This directory is the working reference.
 
 ## The phase record
 
-Each phase's verdict + evidence is a `FINDINGS.md` under `../.scratch/00X-*/`:
+Each phase's verdict + evidence is a `FINDINGS.md` under `../.scratch/projects/00X-*/`:
 
 | phase | topic | verdict (one line) |
 |---|---|---|

@@ -50,7 +50,7 @@ developers adding a per-language scanner copy to the library.
 | `py_indent_scanner.c` | NEWLINE, INDENT, DEDENT | pyindent | REAL Python logical-line semantics (adapted from tree-sitter-python) |
 | `bash_heredoc_scanner.c` | HEREDOC_START, HEREDOC_BODY | bashmini | the MULTI-heredoc pending queue, `<<-` indent-stripped, quoted delimiters (adapted from tree-sitter-bash) |
 
-Each seed lives with a mini-grammar in `../.scratch/` (pymini, hmini, dmini,
+Each seed lives with a mini-grammar in `../.scratch/projects/` (pymini, hmini, dmini,
 pyindent, bashmini) — a tiny language that exercises exactly the scanner's
 semantics — plus corpus tests and a parse-error test in
 `tests/test_scanners.py`.
@@ -108,7 +108,7 @@ EOF (strict, not silently swallowed).
      ONLY the state the parser needs (the indentation stack, the heredoc
      queue) within `TREE_SITTER_SERIALIZATION_BUFFER_SIZE`;
    - handle BOTH gotchas (§3) in `scan()`.
-3. **Write the mini-grammar** at `../.scratch/009-phase7/<name>.py` (or the
+3. **Write the mini-grammar** at `../.scratch/projects/009-phase7/<name>.py` (or the
    next phase dir): a tiny language exercising exactly the scanner's
    semantics, with `GOOD`/`GOOD_EXPECTED` + semantic-case constants. The
    expected sexps are hand-computed from the grammar's intent (run

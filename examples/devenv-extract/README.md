@@ -56,7 +56,7 @@ example** — parsing it through the tree-sitter 0.26 runtime triggers the
 position corruption below (the extraction content still works; reading node
 start points or the interpreter teardown can crash). The full seven-file
 extraction (with the byte-offset line workaround) is the Run-3 evidence in
-`.scratch/011-nix-example/`, and `fleet/ground_truth.json` here is the
+`.scratch/projects/011-nix-example/`, and `fleet/ground_truth.json` here is the
 six-repo subset of the same hand truth (102 rows; the full 130-row truth
 lives in the tests fixture).
 
@@ -98,7 +98,7 @@ reliable. This example therefore computes every line from the byte offset
 (`src[:start_byte].count(b"\n") + 1`) and keeps `source_meta` in the models
 as a cross-check: on the six stable files the two agree; on flora 22/55
 bindings disagree (the corruption). The full evidence is in
-`../../.scratch/011-nix-example/evidence/r9_r3_*`.
+`../../.scratch/projects/011-nix-example/evidence/r9_r3_*`.
 
 ## Shape notes
 

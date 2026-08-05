@@ -1,7 +1,7 @@
 # tests/fixtures/nix — provenance
 
 The Nix language grammar is **consumed, not authored** (Phase 9, the
-real-world Nix adoption pass — see `.scratch/011-nix-example/`).
+real-world Nix adoption pass — see `.scratch/projects/011-nix-example/`).
 
 | file | source | version |
 |---|---|---|
@@ -26,4 +26,4 @@ real-world Nix adoption pass — see `.scratch/011-nix-example/`).
   requires the comma to pair with ellipses. The wheel's scanner.c is
   byte-identical to v0.3.0's. So the v0.3.0-derived schema is truthful for
   the wheel except for that one grammar rule — see
-  `.scratch/011-nix-example/FINDINGS.md` for the parse-probe verdict.
+  `.scratch/projects/011-nix-example/FINDINGS.md` for the parse-probe verdict.

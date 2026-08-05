@@ -38,7 +38,7 @@ contract: `../../docs/scanner-library.md`.
 - `bash_heredoc_scanner.c` (bashmini) — the MULTI-heredoc pending queue,
   `<<-` indent-stripped, quoted delimiters (adapted from tree-sitter-bash).
 
-Each seed has a mini-grammar in `../../.scratch/` + corpus + parse-error tests in
+Each seed has a mini-grammar in `../../.scratch/projects/` + corpus + parse-error tests in
 `tests/test_scanners.py`.
 
 ## The two gotchas (design for them)
@@ -76,7 +76,7 @@ Each seed has a mini-grammar in `../../.scratch/` + corpus + parse-error tests i
    externals order; the five `tree_sitter_<grammar>_external_scanner_*`
    entry points; serialize/deserialize ONLY the needed state, within
    `TREE_SITTER_SERIALIZATION_BUFFER_SIZE`; handle BOTH gotchas.
-3. Mini-grammar in `../../.scratch/` (GOOD/GOOD_EXPECTED + semantic cases;
+3. Mini-grammar in `../../.scratch/projects/` (GOOD/GOOD_EXPECTED + semantic cases;
    `tg.render` confirms expectations — it shows anonymous tokens AND
    extras).
 4. Tests in `tests/test_scanners.py`: corpus cases + a parse-error case +

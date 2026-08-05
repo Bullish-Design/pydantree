@@ -2,8 +2,8 @@
 
 This is the working reference for developers new to the codebase. For the
 full design argument (why two libraries, the build order, the risks) read
-`../.scratch/002-pydantic-treesitter/CONCEPT.md` first. Each phase's findings
-(`../.scratch/00X-*/FINDINGS.md`) add the "what changed and why" record.
+`../.scratch/projects/002-pydantic-treesitter/CONCEPT.md` first. Each phase's findings
+(`../.scratch/projects/00X-*/FINDINGS.md`) add the "what changed and why" record.
 
 ---
 
@@ -87,7 +87,7 @@ verdict: **wasm works** (measured 1.6× the native parse cost over rust) but
 is **not worth A's dependency budget** — py-tree-sitter 0.26 has no wasm
 store, so a wasm load means forking the binding, not pinning a package.
 Per-platform native wheels carry the portability story. See
-`../.scratch/009-phase7/FINDINGS.md`.
+`../.scratch/projects/009-phase7/FINDINGS.md`.
 
 ## 4. The pipeline (B's build)
 
@@ -186,7 +186,7 @@ src/tsgrammar/
 tests/
   conftest.py        resolves src/ first (the editable-staleness mitigation)
   test_*.py          per-surface suites (see development.md)
-.scratch/00X-*/      per-phase explorations: FINDINGS.md + evidence/ + probes
+.scratch/projects/00X-*/      per-phase explorations: FINDINGS.md + evidence/ + probes
                      + the mini-grammars (pymini/hmini/dmini/pyindent/bashmini)
 ```
 
@@ -218,11 +218,11 @@ tests/
 
 ## 9. Where to start reading
 
-1. `../.scratch/002-pydantic-treesitter/CONCEPT.md` — the whole idea.
+1. `../.scratch/projects/002-pydantic-treesitter/CONCEPT.md` — the whole idea.
 2. `src/tsquery/typed.py` module docstring — Product A's surface.
 3. `src/tsgrammar/__init__.py` — Product B's full public surface in one view.
 4. `src/tscore/loader.py` + `src/tscore/schema.py` — the seam.
-5. `../.scratch/009-phase7/FINDINGS.md` — the most recent verdicts (wasm +
+5. `../.scratch/projects/009-phase7/FINDINGS.md` — the most recent verdicts (wasm +
    the scanner library).
 6. `tests/test_scanners.py` + `tests/test_wasm.py` — how the newest surfaces
    are pinned.

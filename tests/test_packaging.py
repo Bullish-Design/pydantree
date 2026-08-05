@@ -6,7 +6,7 @@ tsgrammar is the HEAVY one that carries the external-scanner package data.
 The root pyproject ships ONLY the legacy wrapper + examples + data. These
 tests build the wheels (uv build, fast) and assert the split contents +
 dependencies; the full fresh-venv end-to-end is the Run-1 experiment
-(.scratch/008-consumer-seam/experiment_run1.py).
+(.scratch/projects/008-consumer-seam/experiment_run1.py).
 """
 
 from __future__ import annotations

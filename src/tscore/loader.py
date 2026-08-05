@@ -28,7 +28,7 @@ support, so a wasm load requires a custom tree-sitter binding built with
 TREE_SITTER_FEATURE_WASM (a fork, not a dependency pin). ``load_grammar_wasm``
 implements the load for callers that DO have the wasm-capable runtime
 (TSGRAMMAR_WASM_LIB / TSGRAMMAR_WASMTIME_LIB env-pointed, see the probe under
-.scratch/009-phase7/).
+.scratch/projects/009-phase7/).
 """
 
 from __future__ import annotations
@@ -78,7 +78,7 @@ class WasmRuntimeUnavailableError(RuntimeError):
     to a wasm store (tree-sitter's C library compiled with
     TREE_SITTER_FEATURE_WASM + a wasmtime engine). The Phase-7 probe built
     exactly that (rust.wasm through wasmtime 29.0.0, real parse, ~1.6x the
-    native parse cost) — see .scratch/009-phase7/. Landing wasm in A means
+    native parse cost) — see .scratch/projects/009-phase7/. Landing wasm in A means
     forking/replacing the py-tree-sitter binding, not pinning a new package,
     so the standard light install raises this instead of a silent mis-load.
     """
@@ -123,7 +123,7 @@ def load_grammar_wasm(wasm_path: Path | str, grammar_name: str):
             f"wasm load needs libtree-sitter built with TREE_SITTER_FEATURE_WASM "
             f"plus a wasmtime engine — set TSGRAMMAR_WASM_LIB=<that .so> and "
             f"TSGRAMMAR_WASMTIME_LIB=<libwasmtime.so> to use the Phase-7 probe "
-            f"bridge (.scratch/009-phase7/evidence/ + probe_wasm_runtime.py)")
+            f"bridge (.scratch/projects/009-phase7/evidence/ + probe_wasm_runtime.py)")
     from ._wasm_bridge import WasmRuntime
     rt = WasmRuntime(*paths)
     return rt.load_language(wasm_path, grammar_name), rt
