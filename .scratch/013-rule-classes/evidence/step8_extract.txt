@@ -1,0 +1,20 @@
+  script    scripts.project17-gpu-pytest.exec (1492 chars, line 133)
+  script    scripts.project20-gpu-pytest.exec (1542 chars, line 168)
+  script    scripts.project23-gpu-contract.exec (485 chars, line 202)
+  switch    languages.python.enable (line 212)
+  switch    languages.python.venv.enable (line 214)
+  switch    languages.python.uv.enable (line 215)
+  shell     enterShell (25 chars, line 218)
+  package   pkgs.git (line 5)
+  package   pkgs.uv (line 6)
+  package   pkgs.zellij (line 7)
+
+== record mode over the authored pair shape ==
+  env record     terminal-state:5  GREET="terminal-state development environment", TMUX_TMPDIR="${config.env.DEVENV_ROOT}/.tmux"
+  toolchain      pydantree:19  enable=true, version="3.13"
+  toolchain      pydantree:23  enable=true
+  toolchain      pydantree:25  enable=true
+  toolchain      terminal-state:111  enable=true, version="3.11"
+  toolchain      structured-agents-v2:211  enable=true, version="3.13"
+
+56 rows extracted — all match the hand-written ground truth ✓

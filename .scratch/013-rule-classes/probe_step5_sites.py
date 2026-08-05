@@ -37,7 +37,7 @@ def check_fixture_sites() -> bool:
     import importlib.util
     spec = importlib.util.spec_from_file_location(
         "devenv_classes_grammar_sites",
-        REPO / "tests" / "fixtures" / "devenv_classes_grammar.py")
+        REPO / "examples" / "devenv-subset" / "grammar.py")
     mod = importlib.util.module_from_spec(spec)
     sys.modules["devenv_classes_grammar_sites"] = mod
     spec.loader.exec_module(mod)  # type: ignore[union-attr]
@@ -48,7 +48,7 @@ def check_fixture_sites() -> bool:
     # [1] rule-level site = class line
     pair_site = g.sites["pair"]
     print(f"[1] pair rule site: {pair_site}")
-    ok &= "devenv_classes_grammar.py" in pair_site.file \
+    ok &= "devenv-subset/grammar.py" in pair_site.file \
         and "class Pair(Rule):" in pair_site.source
     assert not pair_site.file.endswith("rules.py")
 

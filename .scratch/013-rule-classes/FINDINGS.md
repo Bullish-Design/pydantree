@@ -119,4 +119,89 @@ class excludes only the quote char).
 
 ---
 
-*Steps 5+ land in follow-up commits; findings appended here as they land.*
+## Steps 5–9 — sites, matrix, docs, migration, verdict
+
+### Step 5 — attribute source sites (the free win, with one real fix)
+
+Rule-level sites point at the CLASS definition line; annotation-emitted
+nodes carry their ATTRIBUTE lines (`cls.__attr_sites__` — the class body's
+`attr: Type` lines, found by scanning the class's own source); nodes built
+inside rules.py internals fall back to the class line; `__body__`
+combinator sites already point at the author's module and are untouched.
+
+The probe caught a genuine defect: `__body__` nodes evaluate ONCE at class
+definition, but the builder's global `_SITES` table is DRAINED by the first
+`assemble()` — a second `build()` in the same process silently lost every
+per-node site and conflict remapping fell back to rule-level lines. Fix:
+snapshot the `__body__` combinator sites at class creation
+(`cls.__body_sites__`) and re-apply on every assemble. The DSL re-creates
+its nodes per `build()` call; class bodies don't — the first probe of the
+"assemble twice" path found it (evidence `step5_sites.txt`).
+
+Verified against a REAL conflicting class grammar through the CLI: the
+GrammarConflictError message names `class Expr(Rule):` and the exact
+`__body__ = tg.choice(tg.seq(...))` line — no rules.py internals anywhere.
+
+### Step 6 — the matrix (23 tests) + Step 7 — docs
+
+`tests/test_rules.py` covers every mapping row as a small grammar asserting
+the compiled IR (field, anonymous Literal, field-inside-repeat, `content`
+unnamed, A|B, A|None), the Literal-default class-time error, the kinds
+(bare Pattern vs Token-wrapped, External naming/override, Extra+Token
+mixins, the four grammar-level flags), `__body__`/R + the cycle points,
+assemble semantics, and the pipeline (checks + build + parse).
+`tests/test_patterns.py` pins each helper byte-for-byte. Docs: user-guide
+§3.9, the architecture module map, the README. Mini-grammars exec in fresh
+module namespaces — module-level rule classes are the surface's contract.
+
+### Step 8 — the example migration (the strongest verdict)
+
+The example is class-authored; the pre-migration builder-DSL spelling is
+preserved verbatim as the gate's reference fixture
+(`tests/fixtures/devenv_builder_dsl_grammar.py`). End-to-end:
+`extract.py` rebuilds the bundle and checks every row against the hand
+truth — **56 rows extracted — all match the hand-written ground truth**
+(evidence `step8_extract.txt`). Product A's extraction is bit-for-bit
+unchanged by the surface switch; `test_devenv_subset_example_both_halves`
+passes as the regression net. scanner.c untouched (the SCREAMING_SNAKE
+external names match its declarations).
+
+### What the gate caught during THIS implementation
+
+- the module-scoped registry deviation (a global registry would have leaked
+  every grammar's classes into every process — caught by design review,
+  before tests)
+- the `Hidden` underscore resolution (R(Class) would emit a dead symbol
+  without it — caught by writing the flags matrix)
+- the `_SITES` drain on repeated assemble (caught by the step-5 probe's
+  second-assemble check)
+- the docs/fixture docstring encoding bug (my own — not the library)
+
+The two probe-era bugs (the `or rn.upper()` external collapse and the
+`[^""]` quoted() class) stayed fixed — the gate and the helper tests pin
+them.
+
+---
+
+## FINAL VERDICT: GO
+
+All four verdict checks (REFACTOR step 9):
+
+(a) **devenv example runs end-to-end against ground truth** — extract.py:
+    56/56 rows match (evidence `step8_extract.txt`).
+(b) **full suite green** — 199 passed + 1 skipped (evidence
+    `step9_full_suite.txt`; baseline 176 + 1, the +23 are the new surface
+    tests).
+(c) **the byte-identity gate is in the suite** —
+    `test_gate_devenv_class_grammar_identical_to_builder_dsl` (class
+    example vs the preserved builder-DSL spelling, grammar.json deep-equal).
+(d) **no IR/pipeline/Product-A file changed** — git diff vs baseline: only
+    `rules.py` + `patterns.py` (new), `__init__.py` (exports), `README.md`
+    (docs). grammar.py, builder.py, checks.py, conflicts.py, pipeline.py,
+    scanners, tscore, tsquery: untouched.
+
+The class surface is a first-class `tsgrammar` authoring path — sugar over
+the existing builder, byte-identical by construction and by test, with the
+devenv example as its canonical demonstration. Commits:
+`795e66c` (surface + helpers + exports), `a22172c` (sites), `1114812`
+(matrix), `3341be2` (docs), `818996c` (example migration).

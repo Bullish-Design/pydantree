@@ -1,6 +1,6 @@
-[1] pair rule site: /home/andrew/Documents/Projects/pydantree/tests/fixtures/devenv_classes_grammar.py:103: class Pair(Rule):
-[2] pair.key field node site: /home/andrew/Documents/Projects/pydantree/tests/fixtures/devenv_classes_grammar.py:106: key: NamePath
-[2] pair.value field node site: /home/andrew/Documents/Projects/pydantree/tests/fixtures/devenv_classes_grammar.py:108: value: Value
+[1] pair rule site: /home/andrew/Documents/Projects/pydantree/examples/devenv-subset/grammar.py:126: class Pair(Rule):
+[2] pair.key field node site: /home/andrew/Documents/Projects/pydantree/examples/devenv-subset/grammar.py:129: key: NamePath
+[2] pair.value field node site: /home/andrew/Documents/Projects/pydantree/examples/devenv-subset/grammar.py:131: value: Value
 [3] GrammarConflictError raised; message:
     GLR conflict in grammar 'conflict-demo' — cannot generate a parser.
     
