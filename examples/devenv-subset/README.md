@@ -25,8 +25,8 @@ One script, both halves:
    is parsed), and the extraction prints typed rows per config.
 
 The B-free shape is the same bundle: copy `dist/devenv-bundle` next to a
-consumer that only installs the light wheels
-(`pydantree-sitter pydantree-sitter`) — `import pydantree_sitter_grammar` is impossible
+consumer that only installs the single light distribution
+(`pydantree-sitter`) — `import pydantree_sitter_grammar` is impossible
 there and the extraction still runs (the same separation `../devenv-extract/`
 demonstrates over the community wheel).
 

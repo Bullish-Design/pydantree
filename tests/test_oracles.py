@@ -33,11 +33,19 @@ regression tests live in the per-fix suites.
 Regenerate the oracle JSONs from current code (one-time, then eyeball):
 
     devenv shell -- python tests/test_oracles.py --generate
+
+The three examples' own `extract.py` scripts are ALSO run as subprocesses
+against the same session bundles (V2): the in-process oracles prove exact
+data, the subprocess nodes prove the scripts' CLI entry points stay
+runnable end to end (argument parsing, loading, validation, main loop,
+exit status).
 """
 
 import importlib.util
 import json
+import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -75,21 +83,31 @@ def _import_example(name: str):
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(scope="session")
-def bash_lang(tmp_path_factory):
+def bash_bundle(tmp_path_factory):
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
-    from pydantree_sitter import Language
-    bundle = build_community_bundle(BASH_FIXTURE, tmp_path_factory.mktemp("bash") / "bundle",
-                                    name="bash")
-    return Language.load_bundle(bundle)
+    return build_community_bundle(BASH_FIXTURE,
+                                  tmp_path_factory.mktemp("bash") / "bundle",
+                                  name="bash")
 
 
 @pytest.fixture(scope="session")
-def nix_lang(tmp_path_factory):
-    from pydantree_sitter_grammar.schema_tool import build_community_bundle
+def bash_lang(bash_bundle):
     from pydantree_sitter import Language
-    bundle = build_community_bundle(NIX_FIXTURE, tmp_path_factory.mktemp("nix") / "bundle",
-                                    name="nix")
-    return Language.load_bundle(bundle)
+    return Language.load_bundle(bash_bundle)
+
+
+@pytest.fixture(scope="session")
+def nix_bundle(tmp_path_factory):
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
+    return build_community_bundle(NIX_FIXTURE,
+                                  tmp_path_factory.mktemp("nix") / "bundle",
+                                  name="nix")
+
+
+@pytest.fixture(scope="session")
+def nix_lang(nix_bundle):
+    from pydantree_sitter import Language
+    return Language.load_bundle(nix_bundle)
 
 
 def build_subset_bundle(mod, out_dir: Path):
@@ -115,14 +133,19 @@ def build_subset_bundle(mod, out_dir: Path):
 
 
 @pytest.fixture(scope="session")
-def subset_lang(tmp_path_factory):
-    from pydantree_sitter import Language, propose_value_map
+def subset_bundle(tmp_path_factory):
     example = _import_example("devenv-subset")
-    bundle = build_subset_bundle(example, tmp_path_factory.mktemp("subset") / "bundle")
-    lang = Language.load_bundle(bundle)
+    return build_subset_bundle(example,
+                               tmp_path_factory.mktemp("subset") / "bundle")
+
+
+@pytest.fixture(scope="session")
+def subset_lang(subset_bundle):
+    from pydantree_sitter import Language, propose_value_map
+    lang = Language.load_bundle(subset_bundle)
     # the example commits the draft ValueMap for its non-JSON grammar
     if lang.schema is not None:
-        lang = Language.load_bundle(bundle,
+        lang = Language.load_bundle(subset_bundle,
                                     value_map=propose_value_map(lang.schema))
     return lang
 
@@ -299,6 +322,52 @@ def test_oracles_agree_with_the_examples_own_ground_truth():
         assert oracle == truth, (
             f"oracle {name}.json drifted from the example's hand truth — "
             f"regenerate + eyeball")
+
+
+# ---------------------------------------------------------------------------
+# the examples' OWN CLI entry points, run as subprocesses against the SAME
+# session bundles the in-process oracles use (V2): the in-process tests
+# prove the exact data; these prove that argument parsing, bundle loading,
+# validation, main-loop execution, and exit status stay runnable.
+# ---------------------------------------------------------------------------
+
+@requires_toolchain
+def test_bash_extract_script_runs_end_to_end(bash_bundle):
+    proc = subprocess.run(
+        [sys.executable, str(EXAMPLES / "bash-extract" / "extract.py"),
+         "--bundle", str(bash_bundle)],
+        capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert "34 rows extracted — " in proc.stdout, proc.stdout[-800:]
+    assert "all match the hand-written ground truth ✓" in proc.stdout, \
+        proc.stdout[-800:]
+
+
+@requires_toolchain
+def test_devenv_extract_script_runs_end_to_end(nix_bundle):
+    proc = subprocess.run(
+        [sys.executable, str(EXAMPLES / "devenv-extract" / "extract.py"),
+         "--bundle", str(nix_bundle)],
+        capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert "102 rows extracted — " in proc.stdout, proc.stdout[-800:]
+    assert "all match the hand-written ground truth ✓" in proc.stdout, \
+        proc.stdout[-800:]
+
+
+@requires_toolchain
+def test_devenv_subset_script_runs_end_to_end(subset_bundle):
+    """The subset example takes its bundle from DEVENV_BUNDLE_DIR (not a
+    --bundle flag); pass it explicitly and preserve the managed environment
+    so the script's own B build (grammar.py + scanner.c -> bundle) works."""
+    env = dict(os.environ, DEVENV_BUNDLE_DIR=str(subset_bundle))
+    proc = subprocess.run(
+        [sys.executable, str(EXAMPLES / "devenv-subset" / "extract.py")],
+        capture_output=True, text=True, env=env)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert "56 rows extracted — " in proc.stdout, proc.stdout[-800:]
+    assert "all match the hand-written ground truth ✓" in proc.stdout, \
+        proc.stdout[-800:]
 
 
 # ---------------------------------------------------------------------------

@@ -11,25 +11,49 @@ with the schema checks active **before any text is parsed**:
 | top-level assignments | `Assignment` | `VAR=value` at the top level only — the direct-child path excludes `export VAR=…` and function bodies; `value` is the raw node text |
 | heredoc usage | `Heredoc` | `<<EOF`, `<<-EOF`, `<<'EOF'`, `3<<EOF` and the unclosed-at-EOF case: delimiter (`capture_kind`), body, closing delimiter, optional descriptor |
 
-## Run it (the "hundreds of grammars" shape — no toolchain anywhere)
+## Run it — inside the repository (the supported developer path)
+
+The suite builds the grammar fresh from the vendored source
+(`tests/fixtures/bash`, exact upstream commit `a06c2e44`) through the
+current pipeline, runs this example's own extraction logic, and compares
+both the saved oracle JSON and the example's independent hand-written ground
+truth:
 
 ```bash
-uv venv --python 3.13 .venv
-uv pip install --python .venv/bin/python \
-    pydantree-sitter pydantree-sitter tree-sitter-bash
-.venv/bin/python extract.py
+devenv shell -- python -m pytest tests/test_oracles.py -q
 ```
 
-That's it: the light wheels + the community wheel. `import pydantree_sitter_grammar` is
-impossible in this venv (the light install does not ship B) and the
-extraction still runs — the full checked A surface over a grammar shipped
-as a PyPI wheel, with the schema derived from the grammar source
-(`node-schema.json`, v0.25.1 — derived once by the schema tool and checked
-in here, byte-for-byte with the CLI's own node-types.json).
+Or run the script directly against a bundle you build yourself (B available,
+grammar source from `tests/fixtures/bash`):
+
+```bash
+devenv shell -- python -c \
+  'from pydantree_sitter_grammar.schema_tool import build_community_bundle; build_community_bundle("tests/fixtures/bash", "/tmp/pydantree-example-bash", name="bash")'
+devenv shell -- python examples/bash-extract/extract.py \
+  --bundle /tmp/pydantree-example-bash
+```
 
 The example is self-checking: `extract.py` verifies its rows against the
 hand-written ground truth in `ground_truth.json` (written from bash's
 semantics, before the models) and exits 0 only on a match.
+
+## Run it — standalone (the "hundreds of grammars" shape, no toolchain)
+
+This is **consumer documentation for a user outside the repository**, not
+the repository development workflow (in-repo work is managed by devenv and
+forbids manual installs). In a fresh venv with only the light wheels plus
+the community wheel, `import pydantree_sitter_grammar` is impossible and the
+extraction still runs — the full checked A surface over a grammar shipped as
+a PyPI wheel, with the schema derived from the grammar source
+(`node-schema.json`, v0.25.1 — derived once by the schema tool and checked
+in here, byte-for-byte with the CLI's own node-types.json).
+
+```bash
+uv venv --python 3.13 .venv
+uv pip install --python .venv/bin/python \
+    pydantree-sitter tree-sitter-bash
+.venv/bin/python extract.py
+```
 
 ## The corpus
 

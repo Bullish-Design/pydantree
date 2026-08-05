@@ -16,28 +16,48 @@ schema checks active **before any text is parsed**.
 | switches | every dotted path ending `.enable = true` (full path reconstructed from the attrset nesting) | `languages.python.uv.sync.enable` (pydantree:26) |
 | shells | `enterShell` / `enterTest` multiline bodies | pydantree:70 / :76 |
 
-## Run it (the "hundreds of grammars" shape — no toolchain anywhere)
+## Run it — inside the repository (the supported developer path)
+
+The suite builds the grammar fresh from the vendored source
+(`tests/fixtures/nix`, exact upstream commit `ea1d87f7` / tag v0.3.0)
+through the current pipeline, runs this example's own extraction logic, and
+compares both the saved oracle JSON and the example's independent
+hand-written ground truth:
+
+```bash
+devenv shell -- python -m pytest tests/test_oracles.py -q
+```
+
+Or run the script directly against a bundle you build yourself (B available,
+grammar source from `tests/fixtures/nix`):
+
+```bash
+devenv shell -- python -c \
+  'from pydantree_sitter_grammar.schema_tool import build_community_bundle; build_community_bundle("tests/fixtures/nix", "/tmp/pydantree-example-nix", name="nix")'
+devenv shell -- python examples/devenv-extract/extract.py \
+  --bundle /tmp/pydantree-example-nix
+```
+
+The example is self-checking: it verifies its 102 rows against the
+hand-written ground truth (`fleet/ground_truth.json`, written from nix
+semantics before the models) and exits 0 only on a match.
+
+## Run it — standalone (the "hundreds of grammars" shape, no toolchain)
+
+This is **consumer documentation for a user outside the repository**, not
+the repository development workflow (in-repo work is managed by devenv and
+forbids manual installs). In a fresh venv with only the light wheels plus
+the community wheel, `import pydantree_sitter_grammar` is impossible and the
+extraction still runs — the full checked A surface over a grammar shipped as
+a PyPI wheel, with the schema derived from the grammar source
+(`node-schema.json`, v0.3.0 — derived once by the schema tool and checked in
+here):
 
 ```bash
 uv venv --python 3.13 .venv
 uv pip install --python .venv/bin/python \
-    pydantree-sitter pydantree-sitter tree-sitter-nix
+    pydantree-sitter tree-sitter-nix
 .venv/bin/python extract.py
-```
-
-That's it: the light wheels + the community wheel. `import pydantree_sitter_grammar` is
-impossible in this venv (the light install does not ship B) and the
-extraction still runs — the full checked A surface over a grammar shipped as
-a PyPI wheel, with the schema derived from the grammar source
-(`node-schema.json`, v0.3.0 — derived once by the schema tool and checked in
-here). The example is self-checking: it verifies its 102 rows against the
-hand-written ground truth (`fleet/ground_truth.json`, written from nix
-semantics before the models) and exits 0 only on a match.
-
-Over a pydantree bundle (the dev flow, B available):
-
-```bash
-python extract.py --bundle <bundle-dir>     # build_community_bundle output
 ```
 
 ## The corpus

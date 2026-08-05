@@ -5,14 +5,25 @@ A copyable end-to-end over the REAL tree-sitter-bash grammar (0.25.1):
 function definitions, top-level variable assignments, and heredoc usage —
 as typed rows, with the schema checks active BEFORE any text is parsed.
 
-Usage (the "hundreds of grammars" shape — light wheels + a community wheel):
+Usage — inside the repository (the supported developer path):
+
+    devenv shell -- python -m pytest tests/test_oracles.py -q
+
+the suite builds a fresh bundle from tests/fixtures/bash and compares the
+saved oracle JSON plus the example's hand-written ground truth; or build a
+bundle yourself and run the script directly:
+
+    devenv shell -- python -c \
+      'from pydantree_sitter_grammar.schema_tool import build_community_bundle; build_community_bundle("tests/fixtures/bash", "/tmp/pydantree-example-bash", name="bash")'
+    devenv shell -- python examples/bash-extract/extract.py \
+      --bundle /tmp/pydantree-example-bash
+
+Usage — standalone (consumer documentation, NOT the repo workflow):
 
     uv venv --python 3.13 .venv
     uv pip install --python .venv/bin/python \
-        pydantree-sitter pydantree-sitter tree-sitter-bash
+        pydantree-sitter tree-sitter-bash
     .venv/bin/python extract.py
-
-(Or, over a pydantree bundle: `python extract.py --bundle <bundle-dir>`.)
 
 The models below are the whole query: each `__match__` ancestor path plus
 the captures declare both the pattern and the output type. The schema

@@ -10,14 +10,25 @@ inventory**: packages, env vars, scripts, tasks, enabled switches,
 enterShell/enterTest — typed rows, aggregated per repo, with the schema
 checks active BEFORE any text is parsed.
 
-Usage (the "hundreds of grammars" shape — light wheels + a community wheel):
+Usage — inside the repository (the supported developer path):
+
+    devenv shell -- python -m pytest tests/test_oracles.py -q
+
+the suite builds a fresh bundle from tests/fixtures/nix and compares the
+saved oracle JSON plus the example's hand-written ground truth; or build a
+bundle yourself and run the script directly:
+
+    devenv shell -- python -c \
+      'from pydantree_sitter_grammar.schema_tool import build_community_bundle; build_community_bundle("tests/fixtures/nix", "/tmp/pydantree-example-nix", name="nix")'
+    devenv shell -- python examples/devenv-extract/extract.py \
+      --bundle /tmp/pydantree-example-nix
+
+Usage — standalone (consumer documentation, NOT the repo workflow):
 
     uv venv --python 3.13 .venv
     uv pip install --python .venv/bin/python \
-        pydantree-sitter pydantree-sitter tree-sitter-nix
+        pydantree-sitter tree-sitter-nix
     .venv/bin/python extract.py
-
-(Or, over a pydantree bundle: `python extract.py --bundle <bundle-dir>`.)
 
 The models below are the whole query: each `__match__` ancestor path plus
 the captures declare both the pattern and the output type. The schema
