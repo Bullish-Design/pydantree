@@ -653,7 +653,7 @@ design. The implementation lives in `pydantree_sitter` /
 | D8 | B: provenance lives on the node (private, non-serialized `_site` stamped at construction); the site stores and the drain/snapshot dance are deleted. |
 | D9 | B: grammars are explicit objects — `assemble(name, *, start, rules=[...])`; `module_rules(module)` is the explicit sweep (imported classes excluded). Rule classes are the canonical authoring surface. |
 | D10 | `run_checks` is part of `build()` (check=True default); generate always runs with `--json` (one run); ONE bundle writer; the community tool merges into the pipeline. |
-| D11 | Escape hatch = `__raw_query__` (a literal `.scm`); the query DSL is not public. Sibling order/negation/multi-anchor joins are out of scope → raw query. |
+| D11 | Escape hatch = `__raw_query__` (a literal `.scm`); the query DSL is not public. Sibling order/negation/multi-anchor joins are out of scope → raw query. The hatch keeps SOME of the differentiator (REVIEW 018 §4.1b): capture names are checked for existence AND explicit `capture('field')`/`capture_kind('kind')` keys get capture↔type schema checks (schema-wide — a raw query can't pin the anchor kind). |
 | D12 | Bundle metadata carries `bundle_format` (int): absent = 1, unknown >2 rejected legibly. |
 | D13 | Deletions: the legacy island (`src/pydantree`, `src/data`, `src/examples`), the root distribution, `_wasm_bridge.py` (→ scratch), `spike-a/`, `spike-a2/`, `KICKOFF_SPIKE.md`. |
 | D14 | Version reset: both dists start at 0.1.0; the PyPI names are registered before any other public step. |

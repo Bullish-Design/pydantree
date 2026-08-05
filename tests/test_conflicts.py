@@ -404,3 +404,76 @@ def test_whitespace_default_parses_spaces(tmp_path):
     lang = tg.load_language(result.so_path, "ws_default")
     tree = tg.parse(lang, "1 2 3")
     assert not tree.root_node.has_error
+
+
+# ---------------------------------------------------------------------------
+# REVIEW 018 §4.2/B7: the golden conflict-report corpus — real CLI stderr,
+# checked in, parsed and rendered WITHOUT invoking the CLI. B's reason to
+# exist is defended structurally against CLI drift (pairs with the 0.3
+# version guard). One fixture per supported CLI minor (0.25.x here).
+# ---------------------------------------------------------------------------
+
+CONFLICT_FIXTURES = REPO_ROOT / "tests" / "fixtures" / "conflicts"
+
+GOLDEN_CONFLICTS = [
+    # (fixture stem, involved rules, ambiguous shape)
+    ("shift_reduce", ["expr"], "expr '+' expr • '+'"),
+    ("dangling_else", ["if_stmt", "if_else"],
+     "'if' expr 'then' 'if' expr 'then' stmt • 'else'"),
+    ("reduce_reduce", ["a", "b"], "'x' • 'x'"),
+]
+
+
+def test_golden_conflict_corpus_parses_without_the_cli():
+    for stem, involved, shape in GOLDEN_CONFLICTS:
+        raw = (CONFLICT_FIXTURES / f"{stem}_stderr.json").read_text()
+        c = tg.parse_conflict_json(raw)
+        assert c is not None, f"{stem}: no Conflict parsed from the fixture"
+        assert c.involved_rules == involved, f"{stem}: {c.involved_rules}"
+        assert c.ambiguous_shape() == shape, f"{stem}: {c.ambiguous_shape()}"
+        assert c.resolutions, f"{stem}: the report carries suggested fixes"
+
+
+def test_golden_conflicts_render_with_matching_grammar():
+    """GrammarConflictError._render over the golden reports must not raise
+    (B9 included): the rule sites, production shapes and suggested fixes all
+    render."""
+    grammars = {
+        "shift_reduce": (lambda g: (
+            g.rule("number", tg.pattern(r"\d+")),
+            g.rule("expr", tg.choice(
+                tg.seq(tg.ref("expr"), "+", tg.ref("expr")),
+                tg.ref("number"))),
+            g.rule("source_file", tg.repeat(tg.ref("expr"))),
+            g.start("source_file"))),
+        "dangling_else": (lambda g: (
+            g.rule("ident", tg.pattern(r"[a-z]+")),
+            g.rule("if_stmt", tg.seq("if", tg.ref("expr"), "then", tg.ref("stmt"))),
+            g.rule("if_else", tg.seq(
+                "if", tg.ref("expr"), "then", tg.ref("stmt"),
+                "else", tg.ref("stmt"))),
+            g.rule("stmt", tg.choice(
+                tg.ref("if_stmt"), tg.ref("if_else"), tg.ref("assign"))),
+            g.rule("assign", tg.seq(tg.ref("ident"), "=", tg.ref("expr"))),
+            g.rule("expr", tg.ref("ident")),
+            g.rule("source_file", tg.repeat(tg.ref("stmt"))),
+            g.start("source_file"))),
+        "reduce_reduce": (lambda g: (
+            g.rule("a", "x"),
+            g.rule("b", "x"),
+            g.rule("s", tg.choice(tg.ref("a"), tg.ref("b"))),
+            g.rule("source_file", tg.repeat(tg.ref("s"))),
+            g.start("source_file"))),
+    }
+    for stem, involved, shape in GOLDEN_CONFLICTS:
+        raw = (CONFLICT_FIXTURES / f"{stem}_stderr.json").read_text()
+        c = tg.parse_conflict_json(raw)
+        assert c is not None
+        g = tg.Grammar(stem)
+        grammars[stem](g)
+        err = tg.GrammarConflictError(g, c)
+        text = str(err)
+        assert "Ambiguous shape" in text
+        assert "Conflicting rules" in text
+        assert "Suggested fixes" in text
+        assert g.sites[involved[0]].file.endswith("test_conflicts.py")

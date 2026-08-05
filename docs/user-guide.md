@@ -112,6 +112,13 @@ rows = ServerSection.extract(corpus, language=lang)
 
 - The record node is the anchor; the capture name = the record key (attr
   name, or `capture("key")` for an override).
+- **Scope (REVIEW 018 §4.3):** record mode targets *pair-shaped* documents
+  — a record kind with a child that has `key` + `value` fields (JSON/INI
+  shapes). Other document shapes use field mode or `__raw_query__`. If the
+  record's children contain SEVERAL key+value kinds, the bind raises a
+  `ShapeError` naming them — pin one with
+  `M(..., record=True, record_pair="pair")` (never a silent alphabetical
+  guess).
 - The value shape comes from a `ValueMap` (D6): the JSON builtin for the JSON
   family / a bundle's `value_map` metadata / your explicit `value_map=`.
   `propose_value_map(schema)` generates a REVIEWED DRAFT (never silent

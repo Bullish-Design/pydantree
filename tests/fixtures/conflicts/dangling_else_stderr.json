@@ -1,0 +1,89 @@
+{
+  "BuildTables": {
+    "Conflict": {
+      "symbol_sequence": [
+        "'if'",
+        "expr",
+        "'then'",
+        "'if'",
+        "expr",
+        "'then'",
+        "stmt"
+      ],
+      "conflicting_lookahead": "'else'",
+      "possible_interpretations": [
+        {
+          "preceding_symbols": [
+            "'if'",
+            "expr",
+            "'then'"
+          ],
+          "variable_name": "if_stmt",
+          "production_step_symbols": [
+            "'if'",
+            "expr",
+            "'then'",
+            "stmt"
+          ],
+          "step_index": 4,
+          "done": true,
+          "conflicting_lookahead": "'else'",
+          "precedence": null,
+          "associativity": null
+        },
+        {
+          "preceding_symbols": [
+            "'if'",
+            "expr",
+            "'then'"
+          ],
+          "variable_name": "if_else",
+          "production_step_symbols": [
+            "'if'",
+            "expr",
+            "'then'",
+            "stmt",
+            "'else'",
+            "stmt"
+          ],
+          "step_index": 4,
+          "done": false,
+          "conflicting_lookahead": "'else'",
+          "precedence": null,
+          "associativity": null
+        }
+      ],
+      "possible_resolutions": [
+        {
+          "Precedence": {
+            "symbols": [
+              "if_else"
+            ]
+          }
+        },
+        {
+          "Precedence": {
+            "symbols": [
+              "if_stmt"
+            ]
+          }
+        },
+        {
+          "Associativity": {
+            "symbols": [
+              "if_stmt"
+            ]
+          }
+        },
+        {
+          "AddConflict": {
+            "symbols": [
+              "if_stmt",
+              "if_else"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

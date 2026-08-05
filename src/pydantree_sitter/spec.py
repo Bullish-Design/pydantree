@@ -91,6 +91,10 @@ class FieldBinding:
     nested: Optional[type] = None  # OutputModel subclass (issubclass check)
     unescape: bool = False
     is_meta: bool = False
+    explicit_key: bool = False
+    # True when the key came from capture('x')/capture_kind('x') — a real
+    # CST field / kind name, NOT the bare attr name (A3/REVIEW 018: raw
+    # queries can only be schema-checked for explicit keys).
 
     @property
     def has_predicate(self) -> bool:
@@ -111,10 +115,12 @@ class MatchSpec:
     """The whole declaration: the anchored ancestor path, the record flag,
     and the field bindings. `raw_query` is mutually exclusive with `path`
     (D11: `__raw_query__` is a literal .scm whose captures map to fields by
-    name)."""
+    name). `record_pair` pins the pair kind for record mode (REVIEW 018
+    §4.3)."""
 
     path: tuple[PathStep | object, ...]  # PathStep | GAP
     record: bool = False
+    record_pair: Optional[str] = None
     raw_query: Optional[str] = None
     bindings: tuple[FieldBinding, ...] = ()
 
@@ -253,6 +259,8 @@ def _field_binding(model_cls, fname, f, record: bool) -> FieldBinding | None:
     else:                                        # unmarked: bind-by-name
         source = "record_key" if record else "cst_field"
         key = fname
+    explicit_key = isinstance(d, _CaptureKind) or \
+        (isinstance(d, _Capture) and d.field is not None)
 
     kinds = _kind_override(metadata)
     predicates = _predicate_markers(metadata)
@@ -280,6 +288,7 @@ def _field_binding(model_cls, fname, f, record: bool) -> FieldBinding | None:
         nested=nested,
         unescape=unescape,
         is_meta=source == "meta",
+        explicit_key=explicit_key,
     )
 
 
@@ -320,7 +329,9 @@ def derive_spec(model_cls: type["OutputModel"]) -> MatchSpec:
 
     path = tuple(PathStep((k,)) if isinstance(k, str) else k
                  for k in match.path)
-    return MatchSpec(path=path, record=match.record, bindings=tuple(bindings))
+    return MatchSpec(path=path, record=match.record,
+                     record_pair=match.record_pair,
+                     bindings=tuple(bindings))
 
 
 def binding_warnings(model_cls: type["OutputModel"]) -> list[str]:

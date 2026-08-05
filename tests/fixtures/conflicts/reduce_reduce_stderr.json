@@ -1,0 +1,60 @@
+{
+  "BuildTables": {
+    "Conflict": {
+      "symbol_sequence": [
+        "'x'"
+      ],
+      "conflicting_lookahead": "'x'",
+      "possible_interpretations": [
+        {
+          "preceding_symbols": [],
+          "variable_name": "a",
+          "production_step_symbols": [
+            "'x'"
+          ],
+          "step_index": 1,
+          "done": true,
+          "conflicting_lookahead": "'x'",
+          "precedence": null,
+          "associativity": null
+        },
+        {
+          "preceding_symbols": [],
+          "variable_name": "b",
+          "production_step_symbols": [
+            "'x'"
+          ],
+          "step_index": 1,
+          "done": true,
+          "conflicting_lookahead": "'x'",
+          "precedence": null,
+          "associativity": null
+        }
+      ],
+      "possible_resolutions": [
+        {
+          "Precedence": {
+            "symbols": [
+              "a"
+            ]
+          }
+        },
+        {
+          "Precedence": {
+            "symbols": [
+              "b"
+            ]
+          }
+        },
+        {
+          "AddConflict": {
+            "symbols": [
+              "a",
+              "b"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

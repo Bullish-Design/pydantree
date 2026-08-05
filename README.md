@@ -39,7 +39,11 @@ capture↔type checks run at **bind time** — before any text is parsed.
   path* (with `...` gaps and per-step alternation), direct-child captures,
   and predicates (`Matches`/`Eq`/`AnyOf`). Sibling order, negation, and
   multi-anchor joins are **out of scope** — `__raw_query__ = RawQuery('...')`
-  is the escape hatch: a literal `.scm` whose captures map to fields by name.
+  is the escape hatch: a literal `.scm` whose captures map to fields by
+  name. The hatch keeps SOME of the differentiator (REVIEW 018 §4.1b):
+  capture names are checked for existence, and explicit
+  `capture('field')`/`capture_kind('kind')` keys get the capture↔type
+  schema checks too (schema-wide — a raw query can't pin the anchor kind).
 - **Value shapes are declared data (C2):** record-mode value shapes come
   from a `ValueMap` — never silent name-regex inference. `propose_value_map`
   is a **draft generator** whose output you inspect and commit (or ship in a

@@ -392,3 +392,101 @@ def test_one_compiler_all_paths_route_through_compile_spec(monkeypatch):
 
     Raw.validate_with(tree_sitter_json)
     assert n["calls"] == 3
+
+
+# ---------------------------------------------------------------------------
+# A3 (REVIEW 018 §4.1b): the raw-query escape hatch keeps SOME of the
+# differentiator — explicit capture('field')/capture_kind('kind') keys are
+# capture↔type checked schema-wide (no anchor kind to pin)
+# ---------------------------------------------------------------------------
+
+def test_raw_query_explicit_capture_is_schema_checked():
+    from pydantree_sitter import RawQuery, SchemaCheckError
+
+    lang, _schema = _cfg_lang()
+
+    class D(OutputModel):
+        __raw_query__ = RawQuery("(entry key: (identifier) @key)")
+        key: str = capture("key")
+
+    lang.extractor(D)          # 'key' is a real field; str-compatible
+    rows = lang.extractor(D).extract("[s]\na = 1\n")
+    assert rows and rows[0].key == "a"
+
+    class Bad(OutputModel):
+        __raw_query__ = RawQuery("(entry key: (identifier) @key)")
+        key: str = capture("nope")
+
+    with pytest.raises(SchemaCheckError) as exc:
+        lang.extractor(Bad)
+    assert "no kind in the grammar has a CST field 'nope'" in str(exc.value)
+
+    class WrongType(OutputModel):
+        __raw_query__ = RawQuery("(entry key: (identifier) @key)")
+        key: int = capture("key")
+
+    with pytest.raises(SchemaCheckError) as exc:
+        lang.extractor(WrongType)
+    assert "int" in str(exc.value)   # identifier can only yield str
+
+
+# ---------------------------------------------------------------------------
+# REVIEW 018 §4.3: record mode over a grammar with SEVERAL key+value pair
+# kinds must raise (naming the candidates) instead of silently guessing the
+# alphabetically first — M(..., record_pair=) pins it
+# ---------------------------------------------------------------------------
+
+def _twopair_grammar() -> tg.Grammar:
+    g = tg.Grammar("twopair")
+    g.rule("ident", tg.pattern(r"[a-z]+"), word=True)
+    g.rule("pair", tg.seq(tg.field("key", tg.ref("ident")), "=",
+                          tg.field("value", tg.ref("ident"))))
+    g.rule("kv2", tg.seq(tg.field("key", tg.ref("ident")), ":",
+                         tg.field("value", tg.ref("ident"))))
+    g.rule("document", tg.repeat(
+        tg.choice(tg.ref("pair"), tg.ref("kv2"))))
+    g.start("document")
+    return g
+
+
+def _twopair_lang():
+    from pydantree_sitter import propose_value_map
+    g = _twopair_grammar()
+    result = tg.build_builder(g)
+    schema = NodeSchema.from_node_types_json(result.node_schema_json, name="twopair")
+    lang = result.language()
+    return Language.load(lang, schema=schema,
+                         value_map=propose_value_map(schema)), schema
+
+
+def test_record_pair_kind_must_be_pinned_when_ambiguous():
+    from pydantree_sitter import ShapeError
+
+    lang, _schema = _twopair_lang()
+
+    class Ambiguous(OutputModel):
+        __match__ = M("document", record=True)
+        k: str | None = None
+
+    with pytest.raises(ShapeError) as exc:
+        Ambiguous.validate_with(lang)
+    msg = str(exc.value)
+    assert "kv2" in msg and "pair" in msg        # names BOTH candidates
+    assert "record_pair" in msg                   # and says how to pin it
+
+    class Pinned(OutputModel):
+        __match__ = M("document", record=True, record_pair="pair")
+        a: str | None = None
+        b: str | None = None
+
+    rows = Pinned.extract("a = x\nb: y\n", language=lang)
+    # only the `pair` kind is a record; the `kv2` lines are not records
+    assert len(rows) == 1 and rows[0].a == "x" and rows[0].b is None
+
+    class BadPair(OutputModel):
+        __match__ = M("document", record=True, record_pair="nope")
+        k: str | None = None
+
+    with pytest.raises(ShapeError) as exc:
+        BadPair.validate_with(lang)
+    assert "record_pair='nope'" in str(exc.value)

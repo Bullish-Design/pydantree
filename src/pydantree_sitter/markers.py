@@ -44,11 +44,15 @@ class M:
     exact and handles any number of gaps).
 
     record=True switches to key/value record semantics (see spec.py).
+    `record_pair=` pins the pair kind explicitly when the record's children
+    contain several key+value kinds (REVIEW 018 §4.3 — otherwise the
+    compiler raises instead of silently guessing).
     """
 
-    __slots__ = ("path", "record")
+    __slots__ = ("path", "record", "record_pair")
 
-    def __init__(self, *path, record: bool = False):
+    def __init__(self, *path, record: bool = False,
+                 record_pair: str | None = None):
         if not path:
             raise ValueError("M() needs at least one node kind")
         normalized = []
@@ -70,10 +74,12 @@ class M:
                 "gap is meaningless)")
         self.path = tuple(normalized)
         self.record = record
+        self.record_pair = record_pair
 
     def __repr__(self) -> str:  # pragma: no cover
         shown = ["..." if p is GAP else p for p in self.path]
-        return f"M({', '.join(repr(p) for p in shown)}, record={self.record})"
+        extra = f", record_pair={self.record_pair!r}" if self.record_pair else ""
+        return f"M({', '.join(repr(p) for p in shown)}, record={self.record}{extra})"
 
 
 # --------------------------------------------------------------------------

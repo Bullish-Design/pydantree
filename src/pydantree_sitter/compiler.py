@@ -149,7 +149,6 @@ def emitted_source(model_cls, schema=None, *, check: bool = False) -> str:
 # ---------------------------------------------------------------------------
 
 def _compile_raw(model_cls, spec: MatchSpec, language, value_map: ValueMap):
-
     compiled = _Compiled(model=model_cls, spec=spec, value_map=value_map,
                          schema=language.schema, bindings=spec.bindings)
     compiled.query = Query.raw(spec.raw_query)
@@ -158,7 +157,57 @@ def _compile_raw(model_cls, spec: MatchSpec, language, value_map: ValueMap):
     # captures are a bind-time error listing the model's fields
     compiled.query._raw_fields = fields
     compiled.query.compile(language._lang)   # compile ONCE, at bind
+    # A3 (REVIEW 018 §4.1b): the escape hatch keeps SOME of the
+    # differentiator — explicit capture('field')/capture_kind('kind') keys
+    # are capture↔type checked schema-wide (no anchor kind to pin, so the
+    # check is: the field/kind exists on SOME kind and the type coerces
+    # for at least one possible kind)
+    if language.schema is not None:
+        _check_raw_bindings(model_cls, spec, language.schema, value_map,
+                            spec.bindings)
     return compiled
+
+
+def _check_raw_bindings(model_cls, spec: MatchSpec, schema, vm: ValueMap,
+                        bindings) -> None:
+    """A3: capture↔type checks for raw-query captures. We know a capture's
+    CST field only when the key is explicit (`capture('left')` /
+    `capture_kind('kind')`); without an anchored path the check is
+    schema-wide: the field/kind must exist on SOME kind, and the Python
+    type must coerce for at least one of that field's possible kinds.
+    Unmarked captures (key == field name — the capture name, not a CST
+    field) stay capture-name-only checked."""
+    annotations = {b.name: _annotation(model_cls, b) for b in bindings}
+    for b in bindings:
+        if b.is_meta or not b.explicit_key:
+            continue            # unmarked: the key is the capture name, not
+                                # a CST field — capture-name-only checked
+        f = model_cls.model_fields[b.name]
+        if b.source == "cst_field":
+            host_kinds = [k for k in schema.kinds()
+                          if schema.has_field(k, b.key)]
+            if not host_kinds:
+                _raise(model_cls,
+                       f"__raw_query__ capture({b.key!r}) on field "
+                       f"{b.name!r}: no kind in the grammar has a CST "
+                       f"field {b.key!r} (raw queries can't pin the anchor "
+                       f"kind — the capture key must be a real field)",
+                       entry=b.key)
+            possible = schema.expand(
+                r.type for k in host_kinds for r in
+                schema.field_types(k, b.key))
+        elif b.source == "child_kind":
+            host_kinds = [k for k in schema.kinds()
+                          if b.key in schema.possible_children(k)]
+            if not host_kinds:
+                _raise(model_cls,
+                       f"__raw_query__ capture_kind({b.key!r}) on field "
+                       f"{b.name!r}: kind {b.key!r} occurs as no kind's "
+                       f"child in the grammar", entry=b.key)
+            possible = schema.expand([b.key])
+        else:
+            continue
+        _check_type(model_cls, schema, vm, b, f, possible, b.key)
 
 
 # ---------------------------------------------------------------------------
@@ -498,7 +547,8 @@ def _compile_record(compiled: _Compiled, language, *, check: bool = True) -> Non
 
     vm = compiled.value_map
     if schema is not None:
-        pair_kind = _find_pair_kind(schema, record_kind, model_cls)
+        pair_kind = _find_pair_kind(schema, record_kind, model_cls,
+                                    spec.record_pair)
         compiled.pair_kind = pair_kind
         key_shapes = _key_shapes(schema, pair_kind)
         if not key_shapes:
@@ -545,15 +595,33 @@ def _compile_record(compiled: _Compiled, language, *, check: bool = True) -> Non
                                bindings)
 
 
-def _find_pair_kind(schema, record_kind: str, model_cls=None) -> str:
+def _find_pair_kind(schema, record_kind: str, model_cls=None,
+                    record_pair: str | None = None) -> str:
+    """The record's pair kind: a child of `record_kind` with both 'key' and
+    'value' fields. Deterministic-and-explicit (REVIEW 018 §4.3): with
+    several candidates the compiler RAISES, naming them, instead of
+    silently picking the alphabetically first — pass `record_pair=` in
+    M(...) to pin it."""
     children = schema.expand(r.type for r in schema.children_types(record_kind))
     candidates = [k for k in sorted(children)
                   if schema.has_field(k, "value") and schema.has_field(k, "key")]
+    if record_pair is not None:
+        if record_pair not in candidates:
+            raise ShapeError(
+                f"record mode over {record_kind!r}: record_pair={record_pair!r} "
+                f"is not a child kind of {record_kind!r} with both 'key' "
+                f"and 'value' fields (candidates: {candidates or 'none'})")
+        return record_pair
     if not candidates:
         raise ShapeError(
             f"record mode over {record_kind!r}: no child kind of "
             f"{record_kind!r} has both 'key' and 'value' fields in the "
             f"grammar's node schema (children: {sorted(children) or 'none'})")
+    if len(candidates) > 1:
+        raise ShapeError(
+            f"record mode over {record_kind!r}: several child kinds have "
+            f"both 'key' and 'value' fields ({candidates}) — pin one with "
+            f"M(..., record=True, record_pair=<kind>)")
     return candidates[0]
 
 
