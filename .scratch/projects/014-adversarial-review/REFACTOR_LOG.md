@@ -294,3 +294,37 @@ cache).
   regenerated for the new API. `grep tscore/tsquery/tsgrammar docs README
   .agents` -> empty (the one README mention is the historical note).
 - **CONCEPT.md** gains the dated addendum recording D1–D14.
+
+## Gate 9 — packaging floor + publication (P-3/P-5/P-6/P-7, D14)
+
+- **Suite:** 233 passed.
+- **9.2 metadata floor:** both pyprojects gain authors/classifiers/
+  project.urls, PEP 639 `license = "MIT"`, README as long description;
+  py.typed in both packages (already shipped since Phase 2). A TOML gotcha
+  was caught by the build: `[project.urls]` swallowed the following
+  `dependencies` key — the urls table now ends the [project] section.
+- **9.3 wheel truth:** test_packaging now asserts, against REAL wheels:
+  py.typed present, LICENSE rides, NO __pycache__/.pyc (P-7), the scanner
+  .c files in the grammar wheel and absent from the light, and the
+  fresh-venv LIGHT-only install boundary (`import pydantree_sitter` works,
+  `import pydantree_sitter_grammar` fails). Verified manually:
+  pydantree-sitter wheel = py.typed + LICENSE + no pyc, no scanners;
+  pydantree-sitter-grammar = + all five scanner .c files.
+- **9.4** version pins in tests read `pydantree_sitter.__version__`
+  dynamically (no ==0.1.0 literals).
+- **9.1/9.5 — the external step (needs PyPI credentials, a human):**
+  register/claim `pydantree-sitter` and `pydantree-sitter-grammar` on PyPI
+  and publish 0.1.0 of both. The docs install lines already use the real
+  commands (`uv pip install pydantree-sitter`); the packages are buildable
+  and wheel-truth-verified as of this gate.
+- **Appendix B gates (run):** tscore/tsquery/tsgrammar -> 0;
+  _ir_derive/derive_from_ir -> 0; _SITES/_node_sites/__body_sites__ -> 0;
+  _SCHEMA_REGISTRY/_derived_cache/_schema_derived -> 0 (the one hit was a
+  flipped test's docstring describing the pre-fix bug — reworded);
+  `print(` in pydantree_sitter -> 0; `__class__.__name__ ==` -> 0;
+  sys.path.insert in tests -> 0 (conftest owns path setup);
+  `.scratch` in tests -> only conftest prose + the wasm error-message
+  assertion; `id(node)|id(n)` in builder.py -> 0.
+
+**Final suite:** 233 passed (fast loop `-m "not slow"` ~24s; toolchain-less
+run all-skip zero-error). Line delta vs `fcf505f`: see `git diff --stat`.

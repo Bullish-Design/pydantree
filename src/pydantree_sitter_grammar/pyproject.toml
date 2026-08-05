@@ -8,17 +8,31 @@ version = "0.1.0"
 description = "Product B — author tree-sitter grammars in Pydantic. Heavy build tool: pydantree-sitter + the tree-sitter CLI + a C toolchain; produces the artifacts A consumes."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { file = "LICENSE" }
+license = "MIT"               # PEP 639 (the LICENSE file rides in the wheel)
 keywords = ["tree-sitter", "pydantic", "parser", "grammar", "GLR"]
 authors = [
   { name = "Bullish Design", email = "BullishDesignEngineering@gmail.com" }
 ]
-
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Compilers",
+  "Topic :: Text Processing",
+]
 dependencies = [
   "pydantree-sitter>=0.1",
   "pydantic>=2.11",
   "tree-sitter>=0.26",  # the 0.26 floor
 ]
+
+[project.urls]
+Homepage = "https://github.com/Bullish-Design/pydantree"
+Source = "https://github.com/Bullish-Design/pydantree"
 
 [tool.hatch.build.targets.wheel.force-include]
 # per-package pyproject inside the package dir. the external-scanner library

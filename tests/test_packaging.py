@@ -51,6 +51,12 @@ def _wheel_contents(whl: Path) -> set[str]:
         return set(z.namelist())
 
 
+def _light_version() -> str:
+    """The version, read from the package (never a hardcoded literal)."""
+    from pydantree_sitter import __version__
+    return __version__
+
+
 def _wheel_requires(whl: Path) -> list[str]:
     with zipfile.ZipFile(whl) as z:
         meta = z.read([n for n in z.namelist() if n.endswith("METADATA")][0]).decode()
@@ -61,10 +67,14 @@ def _wheel_requires(whl: Path) -> list[str]:
 def test_light_wheel_carries_no_b_and_no_scanner(tmp_path):
     """The light install: pydantree_sitter only, no pydantree_sitter_grammar
     package, no scanner package data; dependencies are pydantic +
-    tree-sitter>=0.26 only (no edge to the heavy package)."""
+    tree-sitter>=0.26 only (no edge to the heavy package). The packaging
+    floor (P-5/P-7): py.typed present, LICENSE rides, no __pycache__/.pyc."""
     light = _build_wheel("light", tmp_path)
     contents = _wheel_contents(light)
     assert any(n.startswith("pydantree_sitter/") for n in contents)
+    assert "pydantree_sitter/py.typed" in contents
+    assert any(n.endswith("LICENSE") for n in contents)
+    assert not any(n.endswith(".pyc") or "__pycache__" in n for n in contents)
     assert not any("pydantree_sitter_grammar" in n for n in contents), \
         f"{light.name} leaks the heavy package"
     assert not any("scanner" in n for n in contents), \
@@ -83,7 +93,9 @@ def test_heavy_wheel_carries_the_scanner_and_depends_on_light(tmp_path):
     depending on A is the free direction)."""
     heavy = _build_wheel("heavy", tmp_path)
     contents = _wheel_contents(heavy)
+    assert "pydantree_sitter_grammar/py.typed" in contents
     assert "pydantree_sitter_grammar/scanners/indent_scanner.c" in contents
+    assert not any(n.endswith(".pyc") or "__pycache__" in n for n in contents)
     deps = _wheel_requires(heavy)
     assert "pydantree-sitter>=0.1" in deps
     assert "tree-sitter>=0.26" in deps
@@ -154,7 +166,8 @@ def test_fresh_venv_light_install_delivers_a_without_b(tmp_path):
     assert proc.returncode == 0, proc.stderr or proc.stdout
     proc = subprocess.run(
         ["uv", "pip", "install", "--python", str(venv / "bin" / "python"),
-         "--find-links", str(wheels), "pydantree-sitter==0.1.0"],
+         "--find-links", str(wheels),
+         f"pydantree-sitter=={_light_version()}"],
         capture_output=True, text=True, check=False)
     assert proc.returncode == 0, proc.stderr or proc.stdout
     # the seam does not leak: the heavy package is not importable

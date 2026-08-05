@@ -298,7 +298,7 @@ def test_oracles_agree_with_the_examples_own_ground_truth():
 def test_fa1_cross_language_second_extract_raises():
     """F-A1: a model extracted against python then json must RAISE on the
     second language (the query is grammar-specific), never silently return
-    []. Current bug: the class-level _derived_cache + Query._compiled ignore
+    []. The pre-fix bug: the class-level derived cache + compiled query ignored
     the second language. Fix in Phase 4.2 (binding owns compiled state)."""
     import tree_sitter_json
     import tree_sitter_python
