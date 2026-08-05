@@ -30,11 +30,8 @@ from pydantree_sitter import (
     source_meta,
 )
 
-BRIDGE_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "006-query-bridge"
-sys.path.insert(0, str(BRIDGE_DIR))
-
-TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
-    shutil.which("gcc") is not None
+import pytest
+pytestmark = pytest.mark.toolchain
 
 from cfg_grammar import CORPUS, build as build_cfg  # noqa: E402
 from json_grammar import build as build_json  # noqa: E402

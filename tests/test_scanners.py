@@ -18,14 +18,9 @@ import pytest
 import pydantree_sitter_grammar as tg
 from pydantree_sitter_grammar.corpus import Corpus, corpus_case
 
-P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "007-query-distribution"
-sys.path.insert(0, str(P5_DIR))
 
-TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
-    shutil.which("gcc") is not None
+pytestmark = [pytest.mark.toolchain, pytest.mark.slow]
 
-pytestmark = pytest.mark.skipif(
-    not TOOLCHAIN_AVAILABLE, reason="tree-sitter CLI / gcc not on PATH")
 
 import pymini  # noqa: E402
 
@@ -120,8 +115,7 @@ def test_indent_handling_is_lenient_at_invalid_states(tmp_path):
 # Phase 6 — the scanner library seeds (heredoc + matched delimiter)
 # ---------------------------------------------------------------------------
 
-P8_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "008-consumer-seam"
-sys.path.insert(0, str(P8_DIR))
+CONSUMERS = Path(__file__).resolve().parent / "fixtures" / "consumers"
 
 import dmini  # noqa: E402
 import hmini  # noqa: E402
@@ -204,8 +198,7 @@ def test_matched_delimiter_scanner_is_strict(tmp_path):
 # Phase 7 — the scanner library's per-language copies (pyindent + bashmini)
 # ---------------------------------------------------------------------------
 
-P7_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "009-phase7"
-sys.path.insert(0, str(P7_DIR))
+
 
 import bashmini  # noqa: E402
 import pyindent  # noqa: E402

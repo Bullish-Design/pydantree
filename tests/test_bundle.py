@@ -27,16 +27,10 @@ from pydantree_sitter import (
     Language, M, OutputModel, capture, capture_kind, source_meta,
 )
 
-BRIDGE_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "006-query-bridge"
-P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "007-query-distribution"
-sys.path.insert(0, str(BRIDGE_DIR))
-sys.path.insert(0, str(P5_DIR))
+CONSUMERS = Path(__file__).resolve().parent / "fixtures" / "consumers"
 
-TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
-    shutil.which("gcc") is not None
+pytestmark = [pytest.mark.toolchain, pytest.mark.slow]
 
-pytestmark = pytest.mark.skipif(
-    not TOOLCHAIN_AVAILABLE, reason="tree-sitter CLI / gcc not on PATH")
 
 from bfree import run_bfree  # noqa: E402
 from cfg_grammar import (  # noqa: E402
@@ -119,7 +113,7 @@ def test_load_bundle_one_liner_checks_and_truth(tmp_path):
 
 def test_bundle_consumed_in_bfree_subprocess(tmp_path):
     bundle, _ = _cfg_bundle(tmp_path)
-    rc, out = run_bfree(P5_DIR / "consumer.py", str(bundle), workdir=tmp_path)
+    rc, out = run_bfree(CONSUMERS / "consumer.py", str(bundle), workdir=tmp_path)
     assert rc == 0, out
     data = json.loads(out)
     assert data["ok"] is True
@@ -138,7 +132,7 @@ def test_bfree_consumer_surface_byte_identical(tmp_path):
     lang = Language.load_bundle(bundle,
                                 value_map=propose_value_map(lang.schema))
     inproc = [r.model_dump() for r in ServerSection.extract(CORPUS, language=lang)]
-    rc, out = run_bfree(P5_DIR / "consumer.py", str(bundle), workdir=tmp_path)
+    rc, out = run_bfree(CONSUMERS / "consumer.py", str(bundle), workdir=tmp_path)
     assert rc == 0
     bfree = json.loads(out)["sections"]
     assert inproc == bfree == SECTION_GROUND_TRUTH
@@ -167,7 +161,7 @@ def test_community_schema_tool_agrees_and_feeds_bfree_consumer(tmp_path):
 
     # the B-free community consumer: wheel + derived schema, no B
     schema_path = tmp_path / "cw" / "node-schema.json"
-    rc, out = run_bfree(P5_DIR / "consumer_community.py", str(schema_path),
+    rc, out = run_bfree(CONSUMERS / "consumer_community.py", str(schema_path),
                         workdir=tmp_path)
     assert rc == 0, out
     data = json.loads(out)
@@ -200,7 +194,7 @@ def test_community_schema_tool_cli(tmp_path):
 
 RUST_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "rust"
 BASH_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "bash"
-P8_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "008-consumer-seam"
+P8_DIR = CONSUMERS
 
 
 def test_schema_tool_over_real_rust_source_byte_for_byte(tmp_path):
@@ -385,7 +379,7 @@ def test_capture_kind_job1_rejects_non_child(tmp_path):
 # ---------------------------------------------------------------------------
 
 NIX_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "nix"
-P9_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "011-nix-example"
+P9_DIR = CONSUMERS
 
 
 def test_schema_tool_over_real_nix_source_byte_for_byte(tmp_path):

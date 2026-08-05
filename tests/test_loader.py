@@ -20,10 +20,7 @@ from pydantree_sitter.loader import load_bundle
 
 ROOT = Path(__file__).resolve().parents[1]
 
-TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
-    shutil.which("gcc") is not None
-requires_toolchain = pytest.mark.skipif(
-    not TOOLCHAIN_AVAILABLE, reason="tree-sitter CLI / gcc not on PATH")
+requires_toolchain = pytest.mark.toolchain
 
 
 def _metadata_bundle(tmp_path: Path, metadata: dict) -> Path:
@@ -82,8 +79,6 @@ def test_non_int_bundle_format_is_rejected(tmp_path):
 def test_format_1_bundle_still_loads(tmp_path):
     """Absent bundle_format = format 1 (the original layout) — accepted, not
     rejected; the format-2 rollout must not break existing bundles."""
-    import sys
-    sys.path.insert(0, str(ROOT / ".scratch" / "projects" / "006-query-bridge"))
     import pydantree_sitter_grammar as tg
     from cfg_grammar import build as build_cfg
 
@@ -103,8 +98,6 @@ def test_format_1_bundle_still_loads(tmp_path):
 @requires_toolchain
 def test_format_2_bundle_loads(tmp_path):
     """The current format: bundle_format 2 in the metadata, loaded normally."""
-    import sys
-    sys.path.insert(0, str(ROOT / ".scratch" / "projects" / "006-query-bridge"))
     import pydantree_sitter_grammar as tg
     from cfg_grammar import build as build_cfg
 

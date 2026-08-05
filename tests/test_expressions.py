@@ -9,11 +9,7 @@ import pytest
 
 import pydantree_sitter_grammar as tg
 
-TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
-    shutil.which("gcc") is not None
-
-pytestmark = pytest.mark.skipif(
-    not TOOLCHAIN_AVAILABLE, reason="tree-sitter CLI / gcc not on PATH")
+pytestmark = pytest.mark.toolchain
 
 
 def _build_grammar(g: tg.Grammar, ladder):
@@ -204,3 +200,9 @@ def test_int_ladder_matches_filtlang_baseline_values():
     # filtlang's hand-rolled ladder: COMPARE=1, ADD=2, MUL=3, UNARY=4 — the
     # relative ordering is what matters, and it is preserved level-for-level
     assert prec.n("compare") < prec.n("add") < prec.n("mul") < prec.n("unary")
+
+
+# ---------------------------------------------------------------------------
+# bare-cond affordances (was test_phase3a.py — dissolved, 7.5)
+# ---------------------------------------------------------------------------
+

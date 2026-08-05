@@ -151,7 +151,11 @@ def compile_parser(src_dir: Path, so_path: Path, *,
 # ---------------------------------------------------------------------------
 
 def default_cache_dir() -> Path:
-    return Path(os.environ.get("TSGRAMMAR_CACHE", str(Path.home() / ".cache" / "pydantree_sitter_grammar")))
+    """The pipeline cache root (014 7.3: `PYDANTREE_SITTER_CACHE`; the legacy
+    `TSGRAMMAR_CACHE` spelling is still honored as a fallback)."""
+    env = os.environ.get("PYDANTREE_SITTER_CACHE") or \
+        os.environ.get("TSGRAMMAR_CACHE")
+    return Path(env if env else str(Path.home() / ".cache" / "pydantree_sitter_grammar"))
 
 
 @dataclass

@@ -111,8 +111,6 @@ def build() -> tg.Grammar:
 
 
 if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, "src")
     g = build()
     print("rule count:", len(g.rules()))
     for w in tg.run_checks(g):

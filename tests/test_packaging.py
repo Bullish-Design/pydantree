@@ -165,10 +165,6 @@ def test_fresh_venv_light_install_delivers_a_without_b(tmp_path):
         "pydantree_sitter_grammar IS importable in the light install"
 
     # build the cfg bundle (B-side) and round-trip it in the fresh venv
-    bridge = Path(__file__).resolve().parents[1] / ".scratch" / "projects" \
-        / "006-query-bridge"
-    if str(bridge) not in sys.path:
-        sys.path.insert(0, str(bridge))
     from cfg_grammar import CORPUS, LISTEN_GROUND_TRUTH, SECTION_GROUND_TRUTH, build as _cfg
     import pydantree_sitter_grammar as tg
     result = tg.build_builder(_cfg())

@@ -24,10 +24,7 @@ from pydantree_sitter.schema import NodeSchema
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "rust"
 MYPY = shutil.which("mypy")
 
-TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
-    shutil.which("gcc") is not None
-requires_toolchain = pytest.mark.skipif(
-    not TOOLCHAIN_AVAILABLE, reason="tree-sitter CLI / gcc not on PATH")
+requires_toolchain = pytest.mark.toolchain
 
 
 def _rust_schema() -> NodeSchema:

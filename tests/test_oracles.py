@@ -40,10 +40,7 @@ EXAMPLES = REPO / "examples"
 BASH_FIXTURE = TESTS / "fixtures" / "bash"
 NIX_FIXTURE = TESTS / "fixtures" / "nix"
 
-TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
-    shutil.which("gcc") is not None
-requires_toolchain = pytest.mark.skipif(
-    not TOOLCHAIN_AVAILABLE, reason="tree-sitter CLI / gcc not on PATH")
+requires_toolchain = pytest.mark.toolchain
 
 BASH_FILES = ("sample.sh", "real_script.sh", "unclosed.sh")
 
@@ -90,13 +87,16 @@ def build_subset_bundle(mod, out_dir: Path):
     built through B exactly as the example's main() does (its build_bundle
     hardcodes DIST; ours lands in out_dir), consumed with
     Language.load_bundle."""
-    import sys as _sys
+    import importlib.util
     import pydantree_sitter_grammar as tg
 
-    _sys.path.insert(0, str(EXAMPLES / "devenv-subset"))
-    from grammar import build
-
-    g = build()
+    import sys as _sys
+    spec = importlib.util.spec_from_file_location(
+        "oracle_example_grammar", EXAMPLES / "devenv-subset" / "grammar.py")
+    mod = importlib.util.module_from_spec(spec)
+    _sys.modules[spec.name] = mod        # grammar.py resolves sys.modules[__name__]
+    spec.loader.exec_module(mod)
+    g = mod.build()
     warnings = list(tg.run_checks(g))
     assert not tg.errors(g), warnings
     result = tg.build_builder(
@@ -319,12 +319,10 @@ def test_fa1_cross_language_second_extract_raises():
 
 @requires_toolchain
 def test_fa2_schema_bound_nested_records_match_schema_less():
-    import sys as _sys
     import tree_sitter_json
     import pydantree_sitter_grammar as tg
     from pydantree_sitter import Language, M, OutputModel
 
-    _sys.path.insert(0, str(REPO / ".scratch" / "projects" / "006-query-bridge"))
     from json_grammar import build as build_json
     from pydantree_sitter.schema import NodeSchema
 

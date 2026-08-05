@@ -51,7 +51,9 @@ def _exec_grammar(source: str, name: str) -> types.ModuleType:
     """Compile + exec a class-surface grammar in a FRESH module namespace.
     Rule classes are module-level declarations (the surface's contract) and
     `assemble()` walks the start class's module — each mini-grammar needs its
-    own namespace so one test's classes don't leak into another's."""
+    own namespace so one test's classes don't leak into another's. The
+    module is registered so `module_rules(sys.modules[__name__])` works, and
+    removed afterwards (7.3: no sys.modules leaks)."""
     mod = types.ModuleType(name)
     sys.modules[name] = mod
     exec(compile(HEADER + source, f"<{name}>", "exec"), mod.__dict__)  # noqa: S102
@@ -373,6 +375,7 @@ def test_no_rule_classes_raises():
 # checks + pipeline on the assembled grammar (the devenv fixture)
 # ---------------------------------------------------------------------------
 
+@pytest.mark.toolchain
 def test_assembled_grammar_passes_checks_build_and_parse():
     """The assembled devenv grammar passes run_checks clean, builds with the
     scanner, and parses a real fixture — the full B-side pipeline over the

@@ -234,3 +234,37 @@ cache).
 - **probe_b_side.py** updated to the new API: every repro now shows the
   CORRECT behavior (multi-Literal CHOICE, alias= gone, no \s dupe, no
   import pollution, acronym snake).
+
+## Gate 7 — test-suite hygiene (TS-1/TS-2, review §6)
+
+- **Suite:** 233 passed (59s); fast loop `-m "not slow"` = 199 passed in 24s;
+  toolchain-less run = 114 passed, 119 skipped, ZERO errors.
+- **7.1 fixtures promoted:** `tests/fixtures/grammars/` (json_grammar,
+  cfg_grammar, qfilter, qfilter_corpus, pymini, hmini, dmini, pyindent,
+  bashmini, reference-grammar.json, community-bash/grammar.json),
+  `tests/fixtures/bfree/` (bfree.py + consumer_env), `tests/fixtures/consumers/`
+  (consumer.py, consumer_community.py, consumer_rust.py, consumer_markdown.py,
+  consumer_bash.py, consumer_nix.py), `tests/fixtures/evidence/` (the
+  recorded conflict report). Zero sys.path.insert and zero .scratch imports
+  in tests/ (grep-gated); the 004/005/006/007/008/009/010/011 scratch deps
+  are all promoted. PROVENANCE.md written (7.6).
+- **7.2 gating:** one conftest mechanism — the `toolchain` pytest marker +
+  auto-skip hook (toolchain-less runs SKIP, zero errors). The nine
+  copy-pasted TOOLCHAIN_AVAILABLE blocks deleted; the ungated tests
+  (test_extract, test_conflicts' surface section, test_rules' one build
+  test) covered by the marker.
+- **7.3 isolation:** autouse fixture points the cache at a session tmp dir
+  (env renamed to PYDANTREE_SITTER_CACHE, TSGRAMMAR_CACHE honored as legacy
+  fallback); an autouse fixture kills sys.modules leaks from the exec'd
+  `g_*` test grammars.
+- **7.4 cost:** session-scoped rust/nix/markdown bundle fixtures in
+  conftest; `@pytest.mark.slow` on the gcc-heavy files (test_bundle,
+  test_scanners); `-m "not slow"` documented as the fast loop (24s).
+- **7.5 structure:** test_phase3a.py dissolved into test_corpus.py +
+  test_expressions.py; test_phase3_surface.py into test_conflicts.py;
+  test_phase5_apolish.py renamed test_extract.py.
+- **7.6 provenance:** tests/fixtures/PROVENANCE.md (upstream repo/commit/
+  license for rust/bash/nix/markdown + the promoted in-project fixtures).
+- **Gate greps:** no .scratch imports, no sys.path.insert in tests/ (the
+  only mentions are conftest's own path setup and intentional error-message
+  assertions).

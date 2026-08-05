@@ -10,11 +10,7 @@ import pytest
 
 import pydantree_sitter_grammar as tg
 
-TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
-    shutil.which("gcc") is not None
-
-pytestmark = pytest.mark.skipif(
-    not TOOLCHAIN_AVAILABLE, reason="tree-sitter CLI / gcc not on PATH")
+pytestmark = pytest.mark.toolchain
 
 
 @pytest.fixture()
