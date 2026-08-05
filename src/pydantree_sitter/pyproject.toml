@@ -34,6 +34,24 @@ Homepage = "https://github.com/Bullish-Design/pydantree"
 Source = "https://github.com/Bullish-Design/pydantree"
 
 [tool.hatch.build.targets.wheel.force-include]
-# per-package pyproject inside the package dir; map the dir's contents into
-# the wheel as the `pydantree_sitter` package.
-"." = "pydantree_sitter"
+# REVIEW 018 P4: explicit file list — the whole-dir mapping shipped
+# pyproject.toml/README.md/PKG-INFO inside the import namespace (hatch does
+# not filter force-included files by `exclude`). Sources are relative to the
+# member root (this dir); targets are the wheel layout. Add a new package
+# file HERE; tests/test_packaging.py asserts the wheel's .py set equals the
+# source dir's, so a forgotten registration fails loudly.
+"__init__.py" = "pydantree_sitter/__init__.py"
+"py.typed" = "pydantree_sitter/py.typed"
+"LICENSE" = "pydantree_sitter/LICENSE"
+"binding.py" = "pydantree_sitter/binding.py"
+"codegen.py" = "pydantree_sitter/codegen.py"
+"compiler.py" = "pydantree_sitter/compiler.py"
+"emit.py" = "pydantree_sitter/emit.py"
+"errors.py" = "pydantree_sitter/errors.py"
+"loader.py" = "pydantree_sitter/loader.py"
+"markers.py" = "pydantree_sitter/markers.py"
+"match.py" = "pydantree_sitter/match.py"
+"materialize.py" = "pydantree_sitter/materialize.py"
+"schema.py" = "pydantree_sitter/schema.py"
+"spec.py" = "pydantree_sitter/spec.py"
+"valuemap.py" = "pydantree_sitter/valuemap.py"

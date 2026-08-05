@@ -46,8 +46,8 @@ that they both talk about tree-sitter.
 | User | Grammar author (needs a format that doesn't exist yet) | Data extractor (a grammar already exists) |
 | Verb | *Define* a grammar | *Query* a parse tree |
 | Runs at | **Build time** | **Run time** |
-| Heavy deps | Rust `tree-sitter-cli`, C/wasm toolchain | None — just the C runtime + our mapping layer |
-| Output | A distributable grammar artifact (`.so`/`.wasm` + schema) | Typed `OutputModel` instances |
+| Heavy deps | Rust `tree-sitter-cli`, C toolchain | None — just the C runtime + our mapping layer |
+| Output | A distributable grammar artifact (`.so` + schema) | Typed `OutputModel` instances |
 | Failure mode it fights | GLR conflicts, precedence, scanners | Untyped CST, manual coercion/glue, hand-written `.scm` |
 | Can ship without the other? | Yes (emits a normal grammar package) | **Yes** (works over community grammars) |
 
@@ -92,15 +92,15 @@ load-bearing.** It only `console.log(JSON.stringify(grammar))`s. So B targets
 ```
                     ┌──────────────  Product B (pydantree_sitter_grammar, build time)  ──────────────┐
   Pydantic          │                                                                  │
-  GrammarModels ──► grammar.json ──► parser.c ──► .so / .wasm  +  node-schema.json      │
-      ▲             │  (we emit)     (ts-cli,      (compiler /     (we derive)          │
-      │             │                 Rust)         emscripten)                         │
+  GrammarModels ──► grammar.json ──► parser.c ──► .so  +  node-schema.json      │
+      ▲             │  (we emit)     (ts-cli,      (gcc)        (we derive)          │
+      │             │                 Rust)                                          │
    builder DSL      └───────────────────────────────────────────────┬──────────────────┘
                                                                      │  grammar artifact
                                                                      ▼
                     ┌──────────────  Product A (pydantree_sitter, run time)  ──────────────────┐
    text ──────────► load grammar ──► parse (C runtime) ──► CST ──► derived query ──► OutputModel
-                    │  (.so/.wasm)                          │        ▲   (.scm,    ▲          │
+                    │  (.so)                               │        ▲   (.scm,    ▲          │
                     │                                       │     internal)  mapping layer     │
                     │                                       │   (model = query)                │
                     └───────────────────────────────────────┴─────────────────────────────────┘
@@ -108,7 +108,7 @@ load-bearing.** It only `console.log(JSON.stringify(grammar))`s. So B targets
                           └── OR: a prebuilt community grammar wheel (no B involved)
 ```
 
-The artifact boundary (`.so`/`.wasm` + `node-schema.json`) is the *only* coupling
+The artifact boundary (`.so` + `node-schema.json`) is the *only* coupling
 between B and A. A never imports B.
 
 ---
@@ -301,13 +301,12 @@ This is the cheap, fast feedback loop; `generate` is the slow authoritative one.
 2. Invoke the bundled `tree-sitter-cli` → `parser.c` (+ compile the scanner if any).
 3. Compile to a target:
    - **native `.so`/`.dylib`/`.pyd`** (needs a C compiler) — fastest at runtime.
-   - **`.wasm`** (needs clang/emscripten at build time) — portable, sandboxed,
-     no per-platform native build, loadable by A's wasm runtime. **wasm removes the
-     compiler-at-load-time problem, not the compiler-at-build-time problem.**
+     (A `.wasm` target was assessed and rejected — see Appendix A; the shipped
+     seam raises `WasmRuntimeUnavailableError` for wasm artifacts.)
 4. Package as either a Python wheel (à la `tree-sitter-python`) or a standalone
-   grammar bundle (`.wasm` + `node-schema.json` + metadata).
+   grammar bundle (`.so` + `node-schema.json` + metadata).
 
-The toolchain (Rust CLI + a C/wasm compiler) is B's problem and lives as a
+The toolchain (Rust CLI + a C compiler) is B's problem and lives as a
 *build/dev dependency*. It is acceptable for B to be heavy; A stays light.
 
 ### 4.8 Testing support
@@ -336,7 +335,7 @@ dependency on B.** That's what de-risks the whole project (§9).
 One uniform `Language.load(...)` accepting:
 - a prebuilt community grammar wheel (`tree-sitter-json`, …),
 - a native `.so`/`.dylib` built by B,
-- a `.wasm` grammar bundle (via a bundled wasm runtime),
+- (a `.wasm` grammar bundle was assessed and rejected — Appendix A),
 
 each optionally paired with a `node-schema.json` that unlocks compile-time query
 checking (§7). Loading is the light runtime — no toolchain required.
@@ -509,8 +508,7 @@ already generates). So even community-grammar users get most of the typing benef
 
 - **`pydantree_sitter`** — tiny, pure-Python: the `grammar.json` Pydantic models, the
   node-schema format, the artifact-loading contract. Shared dependency of A and B.
-- **`pydantree_sitter` (A)** — light runtime: `pydantree_sitter` + the C runtime binding + a wasm
-  runtime + the model→query derivation and mapping layer. **No Rust CLI, no
+- **`pydantree_sitter` (A)** — light runtime: `pydantree_sitter` + the C runtime binding + the model→query derivation and mapping layer. **No Rust CLI, no
   compiler.** This is what most users install.
 - **`pydantree_sitter_grammar` (B)** — heavy build tool: `pydantree_sitter` + bundled `tree-sitter-cli`
   (Rust) + a C/wasm toolchain hook. A developer/build-time dependency; fine to be
@@ -545,7 +543,7 @@ So build the piece that delivers value soonest and validates the interface:
   make-or-break UX work, not a nicety.
 - **Phase 4 — the bridge.** node-schema emission from B + compile-time query
   validation and typed node access in A (§7).
-- **Phase 5 — polish & reach.** wasm distribution, incremental reparse API,
+- **Phase 5 — polish & reach.** incremental reparse API,
   external-scanner escape hatch + a small prebuilt-scanner library, corpus testing.
 
 A is valuable after Phase 1. B is valuable after Phase 3. The bridge (Phase 4) is
@@ -582,13 +580,14 @@ comes last.
 2. **External-scanner frequency.** How many *target* grammars actually need a C
    scanner? If it's most nontrivial ones, the "just write the grammar" story is
    weaker than hoped. Survey representative target formats early.
-3. **Toolchain packaging for B** across Linux/macOS/Windows (Rust CLI + a C or
-   emscripten compiler). wasm helps consumers, not authors.
+3. **Toolchain packaging for B** across Linux/macOS/Windows (Rust CLI + a C
+   compiler).
 4. **Upstream churn.** tree-sitter's language ABI version, `grammar.json` schema,
    `node-types.json`, and query API all evolve. We pin ABI versions and treat
    `grammar.json`/node-schema as versioned artifacts.
-5. **wasm runtime perf** (typically ~1.5–2× slower than native). Offer both; let
-   the consumer pick portability vs speed.
+5. **wasm** — assessed and rejected (Appendix A): loading `.wasm` would mean
+   forking the binding (py-tree-sitter 0.26 has no wasm store) for a runtime A
+   promises to keep light; portability is carried by per-platform native wheels.
 6. **Regex-subset friction.** Author-time validation (§4.4.7) mitigates, but some
    authors will still be surprised by what the tree-sitter lexer won't accept.
 7. **node-schema completeness.** Phase 1 sharpened this: the schema's real jobs
@@ -598,6 +597,23 @@ comes last.
    `ValidationError`) work but are not derived; how faithfully the schema can be
    derived from `grammar.json` / `node-types.json` determines how much of the
    Phase-4 benefit non-B users get.
+
+---
+
+## Appendix A — Assessed and rejected: wasm distribution (2026-08-05)
+
+Earlier drafts of this concept doc described `.wasm` as a first-class compile
+and loading path (§4.7, §5.2, §8, §9). That capability is **assessed — no-go**:
+
+- The shipped seam (`pydantree_sitter.loader`) raises
+  `WasmRuntimeUnavailableError` UNCONDITIONALLY for `.wasm` artifacts.
+- py-tree-sitter 0.26 has no wasm store, so loading a `.wasm` grammar would
+  mean FORKING the binding — a hard dependency add for a runtime A promises to
+  keep light. The probe bridge lives in `.scratch/projects/009-phase7/wasm_bridge.py`.
+- Portability is carried by per-platform native wheels instead.
+
+Authoritative verdict: `.scratch/projects/009-phase7/FINDINGS.md`. The shipped
+design targets native `.so`/`.dylib`/`.pyd` artifacts only.
 
 ---
 

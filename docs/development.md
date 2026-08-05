@@ -21,7 +21,9 @@ first for the map; this is the "how do I actually run things" doc.
   those change. The root project (the dev-tooling envelope) + dev extras
   (pytest, ruff, mypy, black, coverage, tree-sitter-json/python) land in the
   managed venv (`.devenv/state/venv` — devenv points uv there via
-  `UV_PROJECT_ENVIRONMENT`; there is no `.venv` in the repo root).
+  `UV_PROJECT_ENVIRONMENT`; the repo root has its own `.venv` only when a
+  developer created one outside devenv — the managed one is
+  `.devenv/state/venv`).
 - **After changing dependencies** (in `pyproject.toml` or a member's), run
   `uv lock` once — the devenv sync uses `--frozen` and will fail loudly if
   the lockfile is stale (that's the signal to lock).
@@ -79,11 +81,14 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
 ## 4. Package layout mechanics
 
 - Each product has its own `pyproject.toml` INSIDE its package dir
-  (`src/pydantree_sitter/pyproject.toml`, ...) with
-  `[tool.hatch.build.targets.wheel.force-include] "." = "pydantree_sitter_grammar"` — the
-  dir's contents (including `scanners/*.c`) become the wheel's package data.
-  Known artifact: `pyproject.toml`/`PKG-INFO` ride inside the wheel package
-  (harmless, documented).
+  (`src/pydantree_sitter/pyproject.toml`, ...) with an EXPLICIT
+  `[tool.hatch.build.targets.wheel.force-include]` file list mapping each
+  module into the wheel's package (and `scanners` as a whole dir in the
+  heavy package) — build metadata (`pyproject.toml`/`README.md`/`PKG-INFO`)
+  stays OUT of the runtime namespace (REVIEW 018 P4: hatch does not filter
+  force-included files by `exclude`, so a whole-dir mapping leaks them).
+  Add a new package file to the list; `tests/test_packaging.py` fails if the
+  wheel's `.py` set drifts from the source dir.
 - **Adding a scanner**: put the `.c` in `src/pydantree_sitter_grammar/scanners/`, add a
   `*_scanner_path()` helper + a `scanner_for()` entry, re-export from
   `pydantree_sitter_grammar/__init__.py` (`__all__` too). The dev venv resolves `src/`

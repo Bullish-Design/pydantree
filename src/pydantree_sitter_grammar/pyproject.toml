@@ -35,7 +35,25 @@ Homepage = "https://github.com/Bullish-Design/pydantree"
 Source = "https://github.com/Bullish-Design/pydantree"
 
 [tool.hatch.build.targets.wheel.force-include]
-# per-package pyproject inside the package dir. the external-scanner library
-# rides as package data: scanners/*.c must be present in THIS (heavy) wheel
-# and absent from the light install.
-"." = "pydantree_sitter_grammar"
+# REVIEW 018 P4: explicit file list — the whole-dir mapping shipped
+# pyproject.toml/README.md/PKG-INFO inside the import namespace (hatch does
+# not filter force-included files by `exclude`). Sources are relative to the
+# member root (this dir); targets are the wheel layout. The scanner .c files
+# ride as package data in THIS (heavy) wheel only. Add a new package file
+# HERE; tests/test_packaging.py asserts the wheel's .py set equals the
+# source dir's, so a forgotten registration fails loudly.
+"__init__.py" = "pydantree_sitter_grammar/__init__.py"
+"py.typed" = "pydantree_sitter_grammar/py.typed"
+"LICENSE" = "pydantree_sitter_grammar/LICENSE"
+"builder.py" = "pydantree_sitter_grammar/builder.py"
+"checks.py" = "pydantree_sitter_grammar/checks.py"
+"conflicts.py" = "pydantree_sitter_grammar/conflicts.py"
+"corpus.py" = "pydantree_sitter_grammar/corpus.py"
+"expressions.py" = "pydantree_sitter_grammar/expressions.py"
+"ir.py" = "pydantree_sitter_grammar/ir.py"
+"language.py" = "pydantree_sitter_grammar/language.py"
+"patterns.py" = "pydantree_sitter_grammar/patterns.py"
+"pipeline.py" = "pydantree_sitter_grammar/pipeline.py"
+"rules.py" = "pydantree_sitter_grammar/rules.py"
+"schema_tool.py" = "pydantree_sitter_grammar/schema_tool.py"
+"scanners" = "pydantree_sitter_grammar/scanners"

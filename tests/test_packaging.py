@@ -64,6 +64,30 @@ def _wheel_requires(whl: Path) -> list[str]:
             if l.startswith("Requires-Dist:") and "extra" not in l]
 
 
+def _assert_no_build_metadata_leak(whl: Path, pkg: str) -> None:
+    """P4 (REVIEW 018): build metadata must not ride inside the import
+    namespace — the whole-dir force-include used to ship
+    pyproject.toml/README.md/PKG-INFO into the package; the explicit file
+    list keeps them out."""
+    contents = _wheel_contents(whl)
+    leaked = [n for n in contents
+              if n.startswith(f"{pkg}/") and n.split("/")[1]
+              in ("pyproject.toml", "README.md", "PKG-INFO")]
+    assert not leaked, f"build metadata leaked into {pkg}: {leaked}"
+
+
+def _assert_wheel_matches_source_py(whl: Path, pkg: str) -> None:
+    """P4 completeness gate: every package .py in the source dir must be
+    registered in the wheel's explicit force-include list (a new module
+    forgotten in pyproject.toml fails here, not in a consumer's import)."""
+    contents = _wheel_contents(whl)
+    wheel_py = {n.rsplit("/", 1)[-1] for n in contents
+                if n.startswith(f"{pkg}/") and n.endswith(".py")}
+    src_py = {f.name for f in (SRC / pkg).glob("*.py")}
+    missing = sorted(src_py - wheel_py)
+    assert not missing, f"{pkg}: source modules missing from the wheel: {missing}"
+
+
 def test_light_wheel_carries_no_b_and_no_scanner(tmp_path):
     """The light install: pydantree_sitter only, no pydantree_sitter_grammar
     package, no scanner package data; dependencies are pydantic +
@@ -71,6 +95,8 @@ def test_light_wheel_carries_no_b_and_no_scanner(tmp_path):
     floor (P-5/P-7): py.typed present, LICENSE rides, no __pycache__/.pyc."""
     light = _build_wheel("light", tmp_path)
     contents = _wheel_contents(light)
+    _assert_no_build_metadata_leak(light, "pydantree_sitter")
+    _assert_wheel_matches_source_py(light, "pydantree_sitter")
     assert any(n.startswith("pydantree_sitter/") for n in contents)
     assert "pydantree_sitter/py.typed" in contents
     assert any(n.endswith("LICENSE") for n in contents)
@@ -93,6 +119,8 @@ def test_heavy_wheel_carries_the_scanner_and_depends_on_light(tmp_path):
     depending on A is the free direction)."""
     heavy = _build_wheel("heavy", tmp_path)
     contents = _wheel_contents(heavy)
+    _assert_no_build_metadata_leak(heavy, "pydantree_sitter_grammar")
+    _assert_wheel_matches_source_py(heavy, "pydantree_sitter_grammar")
     assert "pydantree_sitter_grammar/py.typed" in contents
     assert "pydantree_sitter_grammar/scanners/indent_scanner.c" in contents
     assert not any(n.endswith(".pyc") or "__pycache__" in n for n in contents)

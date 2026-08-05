@@ -78,7 +78,7 @@ refactor Phase 1).
    path (`build_from_source_dir`) derives from the same CLI byproduct. The
    `node_types.rs` hand-port is deleted: the schema has exactly one source.
 
-### 3.1 The wasm seam (assessed)
+### 3.1 The wasm seam (assessed — no-go)
 
 A bundle's metadata may name a `.wasm` artifact. `pydantree_sitter.loader`
 dispatches on the extension and raises `WasmRuntimeUnavailableError`
@@ -86,6 +86,7 @@ unconditionally: the probe bridge moved out of the shipped seam
 (`.scratch/projects/009-phase7/wasm_bridge.py`), and a wasm load means
 forking the binding (py-tree-sitter 0.26 has no wasm store), not pinning a
 package. Per-platform native wheels carry the portability story. See
+`../.scratch/projects/002-pydantic-treesitter/CONCEPT.md` Appendix A and
 `../.scratch/projects/009-phase7/FINDINGS.md`.
 
 ## 4. The pipeline (B's build)
