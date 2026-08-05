@@ -238,7 +238,8 @@ def _compile_field(compiled: _Compiled, language) -> None:
             field_kinds[b.name] = b.kinds
         elif schema is not None and b.source in ("cst_field", "child_kind"):
             field_kinds[b.name] = _infer_field_kind(
-                schema, anchor_kinds[0], b, annotations[b.name])
+                schema, compiled.value_map, anchor_kinds[0], b,
+                annotations[b.name])
         else:
             field_kinds[b.name] = ("_",)
 
@@ -264,7 +265,8 @@ def _compile_field(compiled: _Compiled, language) -> None:
 
     compiled.query = Query(*patterns)
     if schema is not None:
-        _check_field_bindings(compiled.model, spec, schema, anchor_kinds[0],
+        _check_field_bindings(compiled.model, spec, schema,
+                              compiled.value_map, anchor_kinds[0],
                               bindings, annotations)
 
 
@@ -290,12 +292,13 @@ def _combinations(suffix: tuple, field_kinds: dict):
             yield tuple(step_combo), dict(zip(field_names, field_combo))
 
 
-def _infer_field_kind(schema, anchor_kind: str, b: FieldBinding,
+def _infer_field_kind(schema, vm: ValueMap, anchor_kind: str, b: FieldBinding,
                       annotation) -> tuple:
     """The schema-inferred kind: the single compatible kind (the §2.2 'int
     defaults to numeric kinds' answer), else the wildcard."""
     possible = _possible_for(schema, anchor_kind, b)
-    compatible = {k for k in possible if _kind_coerces(schema, annotation, k)}
+    compatible = {k for k in possible
+                  if _kind_coerces(schema, vm, annotation, k)}
     if len(compatible) == 1:
         return tuple(compatible)
     return ("_",)
@@ -310,8 +313,8 @@ def _possible_for(schema, anchor_kind: str, b: FieldBinding) -> set:
     return set()
 
 
-def _check_field_bindings(model_cls, spec, schema, anchor_kind, bindings,
-                          annotations) -> None:
+def _check_field_bindings(model_cls, spec, schema, vm: ValueMap, anchor_kind,
+                          bindings, annotations) -> None:
     for b in bindings:
         if b.is_meta:
             continue
@@ -324,7 +327,7 @@ def _check_field_bindings(model_cls, spec, schema, anchor_kind, bindings,
                        f"{anchor_kind!r} in the grammar (possible children: "
                        f"{sorted(schema.possible_children(anchor_kind))})",
                        entry=f"{anchor_kind} -> {b.key}")
-            _check_type(model_cls, schema, b, f, {b.key},
+            _check_type(model_cls, schema, vm, b, f, {b.key},
                         f"{anchor_kind} child {b.key}", field_mode=True)
             continue
         if not schema.has_field(anchor_kind, b.key):
@@ -335,17 +338,17 @@ def _check_field_bindings(model_cls, spec, schema, anchor_kind, bindings,
                    entry=f"{anchor_kind}.{b.key}")
         possible = schema.expand(r.type for r in
                                  schema.field_types(anchor_kind, b.key))
-        _check_type(model_cls, schema, b, f, possible,
+        _check_type(model_cls, schema, vm, b, f, possible,
                     f"{anchor_kind}.{b.key}", field_mode=True)
 
 
-def _check_type(model_cls, schema, b, f, possible: set, where: str, *,
-                field_mode: bool = False) -> None:
+def _check_type(model_cls, schema, vm: ValueMap, b, f, possible: set,
+                where: str, *, field_mode: bool = False) -> None:
     """Job 4: a capture's possible node kinds vs the Python type."""
     target = unwrap_optional(f.annotation)
     if b.kinds:
         for k in b.kinds:
-            if not _kind_coerces(schema, target, k):
+            if not _kind_coerces(schema, vm, target, k):
                 _raise(model_cls,
                        f"field {b.name!r}: NodeKind({b.kinds!r}) constrains "
                        f"the capture to kind(s) that cannot feed a "
@@ -357,7 +360,7 @@ def _check_type(model_cls, schema, b, f, possible: set, where: str, *,
         if field_mode:
             elem = unwrap_optional(get_args(target)[0]) \
                 if get_args(target) else str
-            if not any(_kind_coerces(schema, elem, k) for k in possible):
+            if not any(_kind_coerces(schema, vm, elem, k) for k in possible):
                 _raise(model_cls,
                        f"field {b.name!r} is list[{_name(elem)}] but the "
                        f"{where} capture can only ever yield "
@@ -366,7 +369,7 @@ def _check_type(model_cls, schema, b, f, possible: set, where: str, *,
         return
     if target not in (str, int, float, bool):
         return  # opaque types (enums, custom) — runtime coercion decides
-    if not any(_kind_coerces(schema, target, k) for k in possible):
+    if not any(_kind_coerces(schema, vm, target, k) for k in possible):
         _raise(model_cls,
                f"field {b.name!r} is {_name(target)} but the {where} capture "
                f"can only ever yield kinds that do not coerce to it: "
@@ -385,9 +388,10 @@ def _check_type(model_cls, schema, b, f, possible: set, where: str, *,
                    entry=where)
 
 
-def _kind_coerces(schema, target, kind: str) -> bool:
+def _kind_coerces(schema, vm: ValueMap, target, kind: str) -> bool:
     """Does `kind` coerce to `target`? (ValueMap-backed; supertypes
-    expanded.)"""
+    expanded.) The committed ValueMap is authoritative (D6) — the name-regex
+    heuristic is consulted only for kinds the map does not declare."""
     expanded = schema.expand([kind])
     base = target
     origin = get_origin(base)
@@ -395,22 +399,50 @@ def _kind_coerces(schema, target, kind: str) -> bool:
         args = get_args(base)
         base = unwrap_optional(args[0]) if args else str
     if base is int:
-        return any(_scalar_of(schema, k) == "int" for k in expanded)
+        return any(_scalar_of(schema, vm, k) == "int" for k in expanded)
     if base is float:
-        return any(_scalar_of(schema, k) in ("float", "int") for k in expanded)
+        return any(_scalar_of(schema, vm, k) in ("float", "int") for k in expanded)
     if base is bool:
-        return any(_scalar_of(schema, k) == "bool" for k in expanded)
+        return any(_scalar_of(schema, vm, k) == "bool" for k in expanded)
     if base is str:
-        return any(_text_shape(schema, k) is not None for k in expanded)
+        # text-yielding = a structural text shape OR a ValueMap declaration
+        # (scalar "str" / wrapper kind) — mirrors record-mode emission
+        # (_scalar_shapes: scalar_kinds_for(vm, str) + wrapper_kinds_for(vm))
+        return any(
+            _text_shape(schema, k) is not None
+            or (vm is not None
+                and (k in vm.wrappers or vm.scalars.get(k) == "str"))
+            for k in expanded)
     return True
 
 
-def _scalar_of(schema, kind: str) -> Optional[str]:
-    """A kind's scalar meaning per the draft generator (the schema's
-    name-based convention — used for CHECKING only; emission uses the
-    ValueMap)."""
-    from .valuemap import propose_value_map
-    return propose_value_map(schema).scalars.get(kind)
+# memoized draft ValueMap: recomputed per call was the silent cost of the
+# old checker (propose_value_map walks the whole schema every time). Keyed by
+# id() because NodeSchema is not hashable (pydantic v2 non-frozen).
+_PROPOSED_CACHE: dict[int, "ValueMap"] = {}
+
+
+def _proposed(schema) -> "ValueMap":
+    """The draft (name-regex) ValueMap for `schema`, computed once per
+    schema object. Declared-data fallback ONLY — kinds the committed map
+    declares never reach this."""
+    key = id(schema)
+    cached = _PROPOSED_CACHE.get(key)
+    if cached is None:
+        from .valuemap import propose_value_map
+        cached = propose_value_map(schema)
+        _PROPOSED_CACHE[key] = cached
+    return cached
+
+
+def _scalar_of(schema, vm: ValueMap | None, kind: str) -> Optional[str]:
+    """A kind's scalar meaning for the CHECK path: the committed ValueMap
+    first (D6 — declared data wins), the draft heuristic only for kinds the
+    map does not declare. Emission uses the same (schema, ValueMap), so the
+    checker and the emitter cannot disagree."""
+    if vm is not None and kind in vm.scalars:
+        return vm.scalars[kind]
+    return _proposed(schema).scalars.get(kind)
 
 
 def _text_shape(schema, kind: str):
@@ -507,7 +539,7 @@ def _compile_record(compiled: _Compiled, language) -> None:
     compiled.fields = Query(*patterns) if patterns else None
 
     if schema is not None:
-        _check_record_bindings(model_cls, schema, pair_kind, value_kinds,
+        _check_record_bindings(model_cls, schema, vm, pair_kind, value_kinds,
                                bindings)
 
 
@@ -656,13 +688,13 @@ def _unescape_shapes(b, schema, vm, value_kinds, pair_kind):
     return shapes
 
 
-def _check_record_bindings(model_cls, schema, pair_kind, value_kinds,
-                           bindings) -> None:
+def _check_record_bindings(model_cls, schema, vm: ValueMap, pair_kind,
+                           value_kinds, bindings) -> None:
     for b in bindings:
         if b.is_meta:
             continue
         f = model_cls.model_fields[b.name]
-        _check_type(model_cls, schema, b, f, value_kinds,
+        _check_type(model_cls, schema, vm, b, f, value_kinds,
                     f"value-under-{pair_kind}")
 
 
