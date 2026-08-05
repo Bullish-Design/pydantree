@@ -54,7 +54,8 @@ devenv shell -- python -m pytest tests/test_scanners.py -q
 devenv shell -- python -m pytest tests/test_wasm.py -q
 ```
 
-- The suite is the pinned record: 233 green (post Phase 7). The count is
+- The suite is the pinned record: 265 green (post REVIEW 018; 233 post
+  Phase 7, +32 regression tests from the 018 fixes). The count is
   captured in each phase's FINDINGS and the refactor log.
 - Tests that need the tree-sitter CLI / gcc are marked `@pytest.mark.toolchain`;
   a conftest auto-skip hook skips them when the toolchain is absent (the

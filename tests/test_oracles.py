@@ -10,15 +10,19 @@ contract across the whole refactor: the Phase 4 Product-A rewrite (and the
 Phase 6 B pass) must not change observable extraction behavior on these
 inputs.
 
-Also pins the CORRECT behavior for the review's thesis-breaking bugs; each
-fails on the current code and is marked `xfail(strict=True)` with the
-finding ID, flipping to a plain test at its phase:
+Also pins the CORRECT behavior for the review's thesis-breaking bugs — each
+was reproduced at review time and is now a FIXED, positively-tested
+reality (no xfail markers here; the fixes live in their own regression
+tests):
 
   - F-A1       cross-language silent `[]` (dsl.py compile cache ignores lang)
   - F-A2       schema-bound nested records drop every nested match
   - F-A3       NodeKind tuple alternation dropped in field mode
   - NEW        list[T] + `...` path: the ancestor filter is skipped
   - T-1        choice-order `required` diverges from the CLI (killed in Ph 3)
+
+These oracles assert the FIXED behavior on real inputs; the specific
+regression tests live in the per-fix suites.
 
 Regenerate the oracle JSONs from current code (one-time, then eyeball):
 
