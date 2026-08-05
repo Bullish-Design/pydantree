@@ -7,7 +7,7 @@ interpolation, `''...''` multiline strings with `''${` escapes, lists,
 configs actually use, WITHOUT the full Nix language (no let/in, function
 formals are a simple header, no binary operators, no apply).
 
-Authored with the tsgrammar RULE-CLASS surface (Product B) so the
+Authored with the pydantree_sitter_grammar RULE-CLASS surface (Product B) so the
 consumer-side shape is exactly what Product A wants:
 
   * the attrset's key/value pair is a DIRECT CHILD KIND with `key`/`value`
@@ -48,7 +48,7 @@ The surface — each rule is a class; the class body IS the production:
     (unnamed sequences, bare alternations): the combinator DSL as-is, with
     `R(SomeClass)` as a reference — or `tg.ref("name")` at the mutual-
     recursion cycle points, where the referenced class isn't in scope yet.
-  * pattern helpers (`tsgrammar.patterns`) return composable regex STRINGS
+  * pattern helpers (`pydantree_sitter_grammar.patterns`) return composable regex STRINGS
     in the tree-sitter lexer subset: `ident()`, `integer()`, `quoted()`,
     `slug()`, `path_literal()`, `dotted_path()`, `rest_of_line()`.
   * `__rule_name__` overrides the class-name -> rule-name spelling (`list`).
@@ -60,11 +60,11 @@ pipeline below (run_checks, generate, gcc, bundle) is untouched.
 from __future__ import annotations
 from typing import Literal
 
-import tsgrammar as tg
-from tsgrammar import (
+import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar import (
     External, Extra, Pattern, R, Rule, Supertype, Token, assemble,
 )
-from tsgrammar.patterns import dotted_path, integer, path_literal, rest_of_line
+from pydantree_sitter_grammar.patterns import dotted_path, integer, path_literal, rest_of_line
 
 # ---- lexical --------------------------------------------------------------
 

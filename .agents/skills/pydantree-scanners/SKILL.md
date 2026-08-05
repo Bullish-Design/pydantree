@@ -72,7 +72,7 @@ Each seed has a mini-grammar in `../../.scratch/projects/` + corpus + parse-erro
    the mechanism — do NOT copy wholesale; document the honest scope line in
    the file header (the mechanism is reusable; string/expansion subtleties
    are usually out of scope).
-2. Write `src/tsgrammar/scanners/<name>_scanner.c`: enum matching the
+2. Write `src/pydantree_sitter_grammar/scanners/<name>_scanner.c`: enum matching the
    externals order; the five `tree_sitter_<grammar>_external_scanner_*`
    entry points; serialize/deserialize ONLY the needed state, within
    `TREE_SITTER_SERIALIZATION_BUFFER_SIZE`; handle BOTH gotchas.
@@ -82,8 +82,8 @@ Each seed has a mini-grammar in `../../.scratch/projects/` + corpus + parse-erro
 4. Tests in `tests/test_scanners.py`: corpus cases + a parse-error case +
    a `scanner_for` registration check.
 5. Register: `*_scanner_path()` + `_CANONICAL` entry in
-   `src/tsgrammar/scanners/__init__.py`; re-export from
-   `tsgrammar/__init__.py` (`__all__` too).
+   `src/pydantree_sitter_grammar/scanners/__init__.py`; re-export from
+   `pydantree_sitter_grammar/__init__.py` (`__all__` too).
 6. **Nothing to reinstall** — the dev venv resolves `src/` directly (the
    `_pydantree_src.pth`), so the new scanner is immediately importable.
 7. Verify the wheel: `tests/test_packaging.py` asserts the `.c` rides the

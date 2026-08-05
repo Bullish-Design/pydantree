@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """devenv-subset — BOTH halves of pydantree, end to end.
 
-Product B (tsgrammar) authors a small "devenv config surface" grammar
-(grammar.py + scanner.c), builds it into a bundle. Product A (tsquery)
+Product B (pydantree_sitter_grammar) authors a small "devenv config surface" grammar
+(grammar.py + scanner.c), builds it into a bundle. Product A (pydantree_sitter)
 consumes the bundle: the fleet inventory over real sanitized devenv.nix
 configs as typed rows, with record mode working over the authored pair shape.
 
@@ -47,7 +47,7 @@ FILES = ("mypi-agent.nix", "pydantree.nix", "terminal-state.nix",
 def build_bundle() -> Path:
     sys.path.insert(0, str(HERE))
     from grammar import build
-    import tsgrammar as tg
+    import pydantree_sitter_grammar as tg
 
     g = build()
     warnings = list(tg.run_checks(g))
@@ -61,7 +61,7 @@ def build_bundle() -> Path:
 # Product A — the models (the A surface over the bundle)
 # --------------------------------------------------------------------------
 
-from tsquery import Language, M, OutputModel, Span, capture, source_meta  # noqa: E402
+from pydantree_sitter import Language, M, OutputModel, Span, capture, source_meta  # noqa: E402
 
 
 class Pair(OutputModel):

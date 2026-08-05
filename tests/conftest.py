@@ -1,6 +1,6 @@
 """Development flow: resolve the packages from `src/` FIRST.
 
-The devenv venv resolves tscore/tsquery/tsgrammar straight from `src/` via a
+The devenv venv resolves pydantree_sitter / pydantree_sitter_grammar straight from `src/` via a
 `_pydantree_src.pth` (see devenv.nix — uv sync with --no-install-workspace,
 so no copies exist to go stale). This conftest does the same resolution as
 belt-and-suspenders (and keeps the suite honest when the devenv is bypassed

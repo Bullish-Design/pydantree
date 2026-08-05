@@ -1,5 +1,5 @@
-"""tsquery port tests: the spike-a2 model-only surface, ported into
-src/tsquery/ and verified against the real community wheels (tree-sitter-python
+"""pydantree_sitter port tests: the spike-a2 model-only surface, ported into
+src/pydantree_sitter/ and verified against the real community wheels (tree-sitter-python
 + tree-sitter-json) and hand-computed ground truth — port-first discipline
 (surface frozen as spike-a2 validated it, before any schema code)."""
 
@@ -11,7 +11,7 @@ import pytest
 import tree_sitter_json
 import tree_sitter_python
 
-from tsquery import (
+from pydantree_sitter import (
     M,
     AnyOf,
     Eq,

@@ -22,8 +22,8 @@ REPO = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import tsgrammar as tg  # noqa: E402
-from tsgrammar.rules import (  # noqa: E402
+import pydantree_sitter_grammar as tg  # noqa: E402
+from pydantree_sitter_grammar.rules import (  # noqa: E402
     External, Extra, Hidden, Inline, Pattern, R, Rule, Supertype, Token,
     Word, _RuleMeta, _resolved_name, assemble,
 )

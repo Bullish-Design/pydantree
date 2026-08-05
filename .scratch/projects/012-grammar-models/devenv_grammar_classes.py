@@ -7,7 +7,7 @@ interpolation, `''...''` multiline strings with `''${` escapes, lists,
 configs actually use, WITHOUT the full Nix language (no let/in, function
 formals are a simple header, no binary operators, no apply).
 
-Authored with the tsgrammar RULE-CLASS surface (Product B) so the
+Authored with the pydantree_sitter_grammar RULE-CLASS surface (Product B) so the
 consumer-side shape is exactly what Product A wants:
 
   * the attrset's key/value pair is a DIRECT CHILD KIND with `key`/`value`
@@ -51,8 +51,8 @@ pipeline below (run_checks, generate, gcc, bundle) is untouched.
 from __future__ import annotations
 from typing import Literal
 
-import tsgrammar as tg
-from tsgrammar import R, Rule, assemble
+import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar import R, Rule, assemble
 
 # ---- lexical --------------------------------------------------------------
 

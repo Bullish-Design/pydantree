@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-import tsgrammar as tg
-from tsgrammar.expressions import (
+import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar.expressions import (
     DEFAULT_PRECEDENCE_CORPUS,
     semantic_smoke,
 )
@@ -23,7 +23,7 @@ TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
 pytestmark = pytest.mark.skipif(
     not TOOLCHAIN_AVAILABLE, reason="tree-sitter CLI / gcc not on PATH")
 
-QFILTER_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "005-tsgrammar-glr"
+QFILTER_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "005-grammar-glr"
 sys.path.insert(0, str(QFILTER_DIR))
 
 
@@ -121,7 +121,7 @@ def test_cond_primary_resolves_bare_cond():
                                              tg.ref("identifier"),
                                              tg.seq("(", tg.ref("expr"), ")")))
     res = tg.build_builder(g)
-    from tsgrammar.language import load_language
+    from pydantree_sitter_grammar.language import load_language
     import tree_sitter
     lang, _ = load_language(res.so_path, "condlang")
     ok, residual = 0, 0

@@ -9,11 +9,11 @@ import sys
 from pathlib import Path
 REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO / "src"))
-sys.path.insert(0, str(REPO / ".scratch" / "projects" / "006-tsquery-bridge"))
+sys.path.insert(0, str(REPO / ".scratch" / "projects" / "006-query-bridge"))
 
 import tree_sitter_json
-from tscore.schema import NodeSchema, derive_from_ir
-from tsquery import OutputModel, M, Language
+from pydantree_sitter.schema import NodeSchema, derive_from_ir
+from pydantree_sitter import OutputModel, M, Language
 
 from json_grammar import build as build_json
 

@@ -18,11 +18,11 @@ leans into tree-sitter's model instead of fighting it.
 ## 0. One-paragraph pitch
 
 Two cooperating Python libraries put a Pydantic face on tree-sitter. **Product B**
-(`tsgrammar`, working name) lets a developer *author* a tree-sitter grammar as a
+(`pydantree_sitter_grammar`, working name) lets a developer *author* a tree-sitter grammar as a
 composable Pydantic DSL that compiles down to tree-sitter's `grammar.json`, then
 runs the standard generate + compile pipeline for them — its whole reason to
 exist is to make GLR grammar authoring *as painless as tree-sitter allows*.
-**Product A** (`tsquery`, working name) lets a developer *consume* a grammar —
+**Product A** (`pydantree_sitter`, working name) lets a developer *consume* a grammar —
 either one built by B or any of the hundreds of prebuilt community grammars —
 by declaring a Pydantic `OutputModel` whose field names, types, defaults, and a
 one-line `__match__` path are the entire query. A derives the tree-sitter
@@ -41,7 +41,7 @@ interface** between them. You can adopt A without ever touching B.
 The authoring side and the consumption side have almost nothing in common except
 that they both talk about tree-sitter.
 
-| | **Product B — `tsgrammar`** | **Product A — `tsquery`** |
+| | **Product B — `pydantree_sitter_grammar`** | **Product A — `pydantree_sitter`** |
 |---|---|---|
 | User | Grammar author (needs a format that doesn't exist yet) | Data extractor (a grammar already exists) |
 | Verb | *Define* a grammar | *Query* a parse tree |
@@ -78,7 +78,7 @@ library and a leaky one.
 - **A:** a model-only typed extraction layer — the `OutputModel` is the query
   declaration, the `.scm` is derived and never seen — plus capture→`OutputModel`
   materialization (coercion/validation/spans/nesting) and a diagnostic surface.
-- **Shared (`tscore`):** Pydantic models mirroring the `grammar.json` schema, the
+- **Shared (`pydantree_sitter`):** Pydantic models mirroring the `grammar.json` schema, the
   **grammar node-schema** format (see §7), and the artifact-loading contract.
 
 The load-bearing insight from prior analysis stands: **`grammar.js` is not
@@ -90,7 +90,7 @@ load-bearing.** It only `console.log(JSON.stringify(grammar))`s. So B targets
 ## 3. The tree-sitter pipeline, and where each library plugs in
 
 ```
-                    ┌──────────────  Product B (tsgrammar, build time)  ──────────────┐
+                    ┌──────────────  Product B (pydantree_sitter_grammar, build time)  ──────────────┐
   Pydantic          │                                                                  │
   GrammarModels ──► grammar.json ──► parser.c ──► .so / .wasm  +  node-schema.json      │
       ▲             │  (we emit)     (ts-cli,      (compiler /     (we derive)          │
@@ -98,7 +98,7 @@ load-bearing.** It only `console.log(JSON.stringify(grammar))`s. So B targets
    builder DSL      └───────────────────────────────────────────────┬──────────────────┘
                                                                      │  grammar artifact
                                                                      ▼
-                    ┌──────────────  Product A (tsquery, run time)  ──────────────────┐
+                    ┌──────────────  Product A (pydantree_sitter, run time)  ──────────────────┐
    text ──────────► load grammar ──► parse (C runtime) ──► CST ──► derived query ──► OutputModel
                     │  (.so/.wasm)                          │        ▲   (.scm,    ▲          │
                     │                                       │     internal)  mapping layer     │
@@ -113,7 +113,7 @@ between B and A. A never imports B.
 
 ---
 
-## 4. Product B — `tsgrammar` (authoring)
+## 4. Product B — `pydantree_sitter_grammar` (authoring)
 
 ### 4.1 Goal & target user
 
@@ -133,7 +133,7 @@ make the bite land on *your Python source* with an actionable message."** We do
 Pydantic discriminated union, one model per rule node:
 
 ```python
-# tscore.grammar — the canonical, validated, serializable IR
+# pydantree_sitter.grammar — the canonical, validated, serializable IR
 class Symbol(RuleNode):    type: Literal["SYMBOL"];     name: str
 class Str(RuleNode):       type: Literal["STRING"];     value: str
 class Pattern(RuleNode):   type: Literal["PATTERN"];    value: str          # regex
@@ -170,7 +170,7 @@ Raw node construction is unusable. The public authoring surface is a thin fluent
 builder that *emits* GrammarModels:
 
 ```python
-from tsgrammar import Grammar, rule, seq, choice, repeat, opt, field, token, tok
+from pydantree_sitter_grammar import Grammar, rule, seq, choice, repeat, opt, field, token, tok
 
 g = Grammar("mylang")
 
@@ -319,7 +319,7 @@ diffs.
 
 ---
 
-## 5. Product A — `tsquery` (consumption)
+## 5. Product A — `pydantree_sitter` (consumption)
 
 ### 5.1 Goal & target user
 
@@ -507,12 +507,12 @@ already generates). So even community-grammar users get most of the typing benef
 
 ## 8. Distribution strategy
 
-- **`tscore`** — tiny, pure-Python: the `grammar.json` Pydantic models, the
+- **`pydantree_sitter`** — tiny, pure-Python: the `grammar.json` Pydantic models, the
   node-schema format, the artifact-loading contract. Shared dependency of A and B.
-- **`tsquery` (A)** — light runtime: `tscore` + the C runtime binding + a wasm
+- **`pydantree_sitter` (A)** — light runtime: `pydantree_sitter` + the C runtime binding + a wasm
   runtime + the model→query derivation and mapping layer. **No Rust CLI, no
   compiler.** This is what most users install.
-- **`tsgrammar` (B)** — heavy build tool: `tscore` + bundled `tree-sitter-cli`
+- **`pydantree_sitter_grammar` (B)** — heavy build tool: `pydantree_sitter` + bundled `tree-sitter-cli`
   (Rust) + a C/wasm toolchain hook. A developer/build-time dependency; fine to be
   large. Produces artifacts consumed by A.
 

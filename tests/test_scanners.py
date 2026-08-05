@@ -15,10 +15,10 @@ from pathlib import Path
 
 import pytest
 
-import tsgrammar as tg
-from tsgrammar.corpus import Corpus, corpus_case
+import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar.corpus import Corpus, corpus_case
 
-P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "007-tsquery-distribution"
+P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "007-query-distribution"
 sys.path.insert(0, str(P5_DIR))
 
 TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \

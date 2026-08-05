@@ -105,7 +105,7 @@ compiles cleanly (the grammar.json declares `conflicts: []`).
 those + `tree-sitter-nix` **0.1.0 from the real index**, builds the community
 bundle in-repo, and runs the SAME consumer in three shapes:
 
-| run | interpreter | tsgrammar | rows vs hand truth |
+| run | interpreter | pydantree_sitter_grammar | rows vs hand truth |
 |---|---|---|---|
 | in-repo bundle | devenv python (B importable) | importable | ok=True |
 | fresh-venv bundle | fresh venv, `Language.load_bundle(dir)` | **unimportable (rc 1)** | ok=True |
@@ -114,7 +114,7 @@ bundle in-repo, and runs the SAME consumer in three shapes:
 The extraction payloads are **byte-identical across all three**
 (`r9_r2_byte_identical.txt`) — including over flora, because the line
 numbers are byte-computed (the position-bug workaround) and the value
-captures are byte-based. The seam does not leak: `import tsgrammar` fails in
+captures are byte-based. The seam does not leak: `import pydantree_sitter_grammar` fails in
 the light install.
 
 **Where the wheel and bundle shapes differ for a real user THIS time:**
@@ -126,7 +126,7 @@ the light install.
    grammar unless they hit `{ a, b, }:` formals. Stale-wheels-are-friction:
    REAL, documented, escaped by building from source (the bundle shape).
 2. **The wheel's `language()` returns a bare PyCapsule** — this wheel was
-   built against an OLD binding API. tsquery converts it internally
+   built against an OLD binding API. pydantree_sitter converts it internally
    (`tree_sitter.Language(capsule)`), so the A surface just works; a user
    probing with raw bindings hits the capsule (catalog entry 10).
 3. **`lang.name` is None in BOTH shapes** (the Phase-8 residual, new flavor):
@@ -192,7 +192,7 @@ POINTS on large multiline-string-heavy files. Measured
 - upstream wheel parser, full start_point walk: **flora 30/30 SIGSEGV**; the
   other six fleet files 0/30 each;
 - our gcc build of the same source: ~6/10 direct walks;
-- the tsquery EXTRACTION path (query engine, start_point read on anchor
+- the pydantree_sitter EXTRACTION path (query engine, start_point read on anchor
   nodes only): 0/24 crashes, but **22/55 flora binding lines are garbage**
   (start_point degenerates to start_byte) — the consumer's `line` fields
   over flora are wrong, not crashing;
@@ -233,7 +233,7 @@ from the v0.3.0 source, committed for the wheel shape), the self-contained
 corpus (`fleet/`, 102 rows of hand truth), and a README a new user follows:
 `uv venv` + light wheels + `tree-sitter-nix` + `python extract.py` → typed
 rows. **Verified in a FRESH venv exactly as a new user runs it**
-(`r9_r4_example_fresh_venv.txt`: `import tsgrammar` fails, rc 0, 102 rows
+(`r9_r4_example_fresh_venv.txt`: `import pydantree_sitter_grammar` fails, rc 0, 102 rows
 match). Also runs from the dev venv via `--bundle`. **flora is deliberately
 NOT in the example** — including it made the fresh-venv run segfault at
 interpreter teardown 3/5 (the corrupted tree's C destructor); the six-file
@@ -255,7 +255,7 @@ README with the evidence pointer.
 | 7 | The wheel shape's one extra step (bind the schema explicitly — a wheel ships none) | by design (the schema is the bridge) | ship node-schema.json (this example does) |
 | 8 | **The stale-wheel mismatch**: `tree-sitter-nix` 0.1.0 is a RELEASE behind the source (the trailing-comma-in-formals delta, #131); the wheel's homepage metadata points at a nonexistent repo | **real ecosystem fact** | resolved in Run 1 (wheel = pre-bae4c4f grammar); probe trees identical over real configs; build from source for the current grammar |
 | 9 | `lang.name` is None in BOTH shapes over nix (the wheel's capsule language is nameless — old-binding artifact) | residual (Phase 6), new flavor | harmless; the example prints kinds |
-| 10 | The wheel's `language()` returns a bare PyCapsule (old binding API) | real behavior | tsquery converts internally; raw bindings need `tree_sitter.Language(capsule)` (documented in the README) |
+| 10 | The wheel's `language()` returns a bare PyCapsule (old binding API) | real behavior | pydantree_sitter converts internally; raw bindings need `tree_sitter.Language(capsule)` (documented in the README) |
 | 11 | `packages = [ ... ] ++ expr` appends (flora's `lib.optional ... llamaCpp`, nixvim's `++ cfg.extraPackages`): appended expressions are NOT list elements — only direct elements of list literals count | real behavior (nix semantics) | documented; the ancestor-aware list filter counts only the literal's elements |
 | 12 | env values are structural expressions (`lib.mkDefault (...)` calls, `+`/`++` chains) — captured WHOLE as raw text (the check passes because the expression field's kinds include text-yielding leaves) | pleasant surprise (the Phase-8 item-3 class did NOT block here) | raw node text is the contract; the value is the full expression text |
 | 13 | `''${...}` ESCAPED interpolations inside multiline strings (structured-agents-v2's bash) — parsed as string content, no interference | non-event (the grammar's externals handle them) | — |

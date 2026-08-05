@@ -27,7 +27,7 @@ we didn't know about?** Concretely:
    GitHub, exactly like rust in Phase 6) and vendor it under
    `tests/fixtures/bash/` for hermetic tests (include the repo's own
    checked-in `node-types.json` as the oracle). Derive the schema with
-   `tsgrammar.schema_tool.derive_schema_for_dir` and check it against the
+   `pydantree_sitter_grammar.schema_tool.derive_schema_for_dir` and check it against the
    CLI's fresh node-types.json (the grammar-ownership seam over a grammar
    with ~30 external tokens and a big multi-context scanner).
 2. **Consume through the light install, in BOTH real-user shapes.** The
@@ -35,8 +35,8 @@ we didn't know about?** Concretely:
    and — the stronger "hundreds of grammars" shape — the **wheel shape**
    (`uv pip install tree-sitter-bash` from a real index → `tree_sitter_bash.
    language()` + the schema bound explicitly). Both in a FRESH venv with
-   only the light wheels (`pydantree-tscore`, `pydantree-tsquery`), both
-   B-free (`import tsgrammar` fails), both byte-identical to the in-repo
+   only the light wheels (`pydantree-pydantree_sitter`, `pydantree-pydantree_sitter`), both
+   B-free (`import pydantree_sitter_grammar` fails), both byte-identical to the in-repo
    results.
 3. **The extraction task.** Hand-write the ground truth BEFORE the models
    (the phase convention), then extract from real shell scripts: function
@@ -57,7 +57,7 @@ bash pass surface a class of problem that must be fixed first (go-with-changes)?
 ## Context: where we are (do not re-derive)
 
 - **The consumer seam is proven.** Phase 6 (`.scratch/008-consumer-seam/`,
-  verdict GO): the light install boundary (tscore/tsquery only, B-free),
+  verdict GO): the light install boundary (pydantree_sitter/pydantree_sitter only, B-free),
   the bundle contract, and the grammar-ownership boundary — the schema
   derivation is byte-for-byte with the CLI's node-types.json over FOUR real
   grammars (rust, python, markdown, markdown-inline) and the community tool
@@ -66,14 +66,14 @@ bash pass surface a class of problem that must be fixed first (go-with-changes)?
   seeds. The rust Run-2 pattern (`.scratch/008-consumer-seam/experiment_run2.py`
   + `consumer_rust.py`) is the exact template for the bash pass.
 - **The wheel-consumer shape is already exercised once.** Phase 5's
-  `.scratch/007-tsquery-distribution/consumer_community.py` consumed the
+  `.scratch/007-query-distribution/consumer_community.py` consumed the
   json grammar from the `tree_sitter_json` WHEEL with a derived schema,
   B-free. Bash's wheel shape follows the same pattern.
 - **The dev flow changed (Phase-8 pre-work, committed): the venv is managed
   by `uv sync`.** There is NO `uv pip install -e` ritual anymore. The devenv
   runs `uv sync --frozen --no-install-workspace --all-extras` at shell entry
   (checksum-cached), and a `_pydantree_src.pth` makes every process resolve
-  tscore/tsquery/tsgrammar straight from `src/` — edits are live
+  pydantree_sitter/pydantree_sitter/pydantree_sitter_grammar straight from `src/` — edits are live
   immediately, staleness is impossible. `uv lock` after dependency changes.
   The three src/* packages are NEVER installed into the dev venv.
 - **The scanner synergy is a READ, not a task.** Phase 7 adapted
@@ -99,7 +99,7 @@ bash pass surface a class of problem that must be fixed first (go-with-changes)?
    flows, end to end).
 4. **`.scratch/008-consumer-seam/FINDINGS.md`** §2 + `experiment_run2.py` +
    `consumer_rust.py` — the rust community-seam pattern to replicate.
-5. **`.scratch/007-tsquery-distribution/consumer_community.py`** — the wheel
+5. **`.scratch/007-query-distribution/consumer_community.py`** — the wheel
    shape (json via `tree_sitter_json` + derived schema, B-free).
 6. **`.scratch/009-phase7/FINDINGS.md`** — the most recent verdicts (wasm,
    scanner library) and the §4 recommendation this phase executes.
@@ -108,9 +108,9 @@ bash pass surface a class of problem that must be fixed first (go-with-changes)?
 
 ## Code you will touch (skim, then read the parts you use)
 
-- `src/tsgrammar/schema_tool.py` — `derive_schema_for_dir`,
+- `src/pydantree_sitter_grammar/schema_tool.py` — `derive_schema_for_dir`,
   `build_community_bundle` (unchanged; you CALL them).
-- `src/tsquery/typed.py` — the A surface (unchanged; you USE it).
+- `src/pydantree_sitter/typed.py` — the A surface (unchanged; you USE it).
 - `tests/conftest.py`, `tests/test_packaging.py` (the fresh-venv pattern),
   `tests/fixtures/rust/` (the vendoring pattern to copy for bash).
 - `examples/bash-extract/` — the NEW user artifact you author.
@@ -141,8 +141,8 @@ bash pass surface a class of problem that must be fixed first (go-with-changes)?
 
 1. **Bundle shape** (mirror the rust run): `build_community_bundle` → a
    4-file bundle; a FRESH venv (`uv venv`) with ONLY
-   `pydantree-tscore` + `pydantree-tsquery` (built wheels); consumer does
-   `Language.load_bundle(dir)` and extracts — `import tsgrammar` fails.
+   `pydantree-pydantree_sitter` + `pydantree-pydantree_sitter` (built wheels); consumer does
+   `Language.load_bundle(dir)` and extracts — `import pydantree_sitter_grammar` fails.
 2. **Wheel shape** (the true "hundreds of grammars" shape): in the fresh
    venv, `uv pip install tree-sitter-bash` from the real index; consumer
    binds the derived schema to `tree_sitter_bash.language()` and extracts.
@@ -192,7 +192,7 @@ bash's shape needed (or didn't) — that IS a finding.
 ### Out of scope — say no to these
 
 - **Authoring bash** (the grammar is consumed, not authored; no new
-  tsgrammar features, no scanner work on the real bash grammar).
+  pydantree_sitter_grammar features, no scanner work on the real bash grammar).
 - **Publishing** (a separate follow-up: the pydantree-branded distributions
   are resolved-in-name but unrehearsed; note it in the recommendation, don't
   do it here).
@@ -221,7 +221,7 @@ bash's shape needed (or didn't) — that IS a finding.
 5. **Fixtures you will reuse:** `tests/fixtures/rust/` (the vendoring
    pattern + oracle check), `tests/test_packaging.py` (the fresh-venv +
    wheelhouse pattern), `.scratch/008-consumer-seam/{experiment_run2,
-   consumer_rust}.py`, `.scratch/007-tsquery-distribution/consumer_community.py`.
+   consumer_rust}.py`, `.scratch/007-query-distribution/consumer_community.py`.
 
 ---
 
@@ -251,7 +251,7 @@ bash's shape needed (or didn't) — that IS a finding.
    included); the derived schema byte-for-byte with the CLI's fresh
    node-types.json (or the exact delta + why — upstream churn only).
 2. **Run 2:** the bash consumer working through the LIGHT install in BOTH
-   shapes (bundle + wheel), B-free (`import tsgrammar` fails), outputs
+   shapes (bundle + wheel), B-free (`import pydantree_sitter_grammar` fails), outputs
    byte-identical to the in-repo run. Evidence under `evidence/r8_*`.
 3. **Run 3:** the extraction task — hand truth, models, `validate_with`
    active, rows matching ground truth. Note which A-surface features bash's
@@ -273,22 +273,22 @@ bash's shape needed (or didn't) — that IS a finding.
 
 ## Appendix — durable facts (verified in prior phases; build on these)
 
-1. The bundle is one artifact + one loading contract: `tscore.loader` is the
+1. The bundle is one artifact + one loading contract: `pydantree_sitter.loader` is the
    shared loader; `Language.load_bundle(dir)` is the one-line consumer; the
    metadata's `artifact` field names the artifact file (default
    `grammar.so`); the `.so` loads via a PyCapsule named `"tree-sitter.Language"`
    (export symbol `tree_sitter_<name>`).
 2. The dev flow (Phase-8 pre-work, CURRENT): devenv manages the venv with
    `uv sync` — uv workspace in root `pyproject.toml`
-   (`[tool.uv.workspace] members = ["src/tscore", "src/tsquery",
-   "src/tsgrammar"]`), `--no-install-workspace`, `uv.lock` committed;
-   `_pydantree_src.pth` resolves tscore/tsquery/tsgrammar from `src/` (edits
+   (`[tool.uv.workspace] members = ["src/pydantree_sitter", "src/pydantree_sitter",
+   "src/pydantree_sitter_grammar"]`), `--no-install-workspace`, `uv.lock` committed;
+   `_pydantree_src.pth` resolves pydantree_sitter/pydantree_sitter/pydantree_sitter_grammar from `src/` (edits
    live, no staleness); `uv lock` after dependency changes (sync is
    `--frozen`). No pip, no `uv pip install -e` ritual.
 3. The exact-path node-schema derivation is byte-for-byte with the CLI's
    node-types.json over rust, python, markdown, markdown-inline (hermetic
    tests in `tests/test_schema.py`); the community tool path
-   (`tsgrammar.schema_tool`) derives from the installed CLI's own byproduct,
+   (`pydantree_sitter_grammar.schema_tool`) derives from the installed CLI's own byproduct,
    so it tracks the CLI by construction.
 4. The rust community-seam pattern (Phase 6): sdist ships only compiled
    parser.c/scanner.c → source vendored from GitHub under
@@ -303,11 +303,11 @@ bash's shape needed (or didn't) — that IS a finding.
    multiple externals valid in one state). tree-sitter-bash's scanner is the
    multi-context upstream our `bash_heredoc_scanner.c` was adapted from.
 7. B-free boundary: consumer processes strip the `src/` path and block
-   `tsgrammar` at the meta-path-finder level (the Phase-6 consumer
+   `pydantree_sitter_grammar` at the meta-path-finder level (the Phase-6 consumer
    `sitecustomize.py`) — the boundary is enforced by construction.
 8. Fresh-venv mechanics: `uv venv` + `uv pip install --find-links <wheelhouse>`
-   for the light wheels; `import tsgrammar` fails in the light install (the
+   for the light wheels; `import pydantree_sitter_grammar` fails in the light install (the
    seam does not leak).
-9. The wheels: pydantree-tscore / pydantree-tsquery (light) /
-   pydantree-tsgrammar (heavy, carries the scanner package data); import
-   packages stay tscore/tsquery/tsgrammar.
+9. The wheels: pydantree-pydantree_sitter / pydantree-pydantree_sitter (light) /
+   pydantree-pydantree_sitter_grammar (heavy, carries the scanner package data); import
+   packages stay pydantree_sitter/pydantree_sitter/pydantree_sitter_grammar.

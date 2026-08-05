@@ -2,7 +2,7 @@
 
 The B-side mirror of Product A's "the model IS the query": each rule is a
 class; the class body IS the production. A metaclass compiles the classes
-into the existing `tsgrammar` builder (which emits the pydantic Grammar IR),
+into the existing `pydantree_sitter_grammar` builder (which emits the pydantic Grammar IR),
 and we assert the RESULT IS BYTE-IDENTICAL grammar.json to the current
 `examples/devenv-subset/grammar.py` builder-DSL version.
 
@@ -38,7 +38,7 @@ import types
 from pathlib import Path
 from typing import Literal, Union, get_args, get_origin
 
-import tsgrammar as tg
+import pydantree_sitter_grammar as tg
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent

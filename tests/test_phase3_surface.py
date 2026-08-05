@@ -9,7 +9,7 @@ import shutil
 
 import pytest
 
-import tsgrammar as tg
+import pydantree_sitter_grammar as tg
 
 TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
     shutil.which("gcc") is not None
@@ -46,7 +46,7 @@ def _dangling_else_grammar(*, ambiguous: bool) -> tg.Grammar:
 
 def test_ambiguous_synthesizes_prec_dynamic_and_conflicts():
     g = _dangling_else_grammar(ambiguous=True)
-    from tsgrammar.grammar import PrecDynamicNode, SeqNode
+    from pydantree_sitter_grammar.ir import PrecDynamicNode, SeqNode
     body = g.rules["if_stmt"]
     assert isinstance(body, PrecDynamicNode)
     assert body.value == 1
@@ -244,7 +244,7 @@ def test_whitespace_extra_default():
     g.rule("source_file", tg.repeat(tg.ref("tok")))
     g.start("source_file")
     m = g.build()
-    from tsgrammar.grammar import PatternNode
+    from pydantree_sitter_grammar.ir import PatternNode
     assert any(isinstance(e, PatternNode) and e.value == r"\s" for e in m.extras)
     # explicit \s is not doubled
     g2 = tg.Grammar("t2")

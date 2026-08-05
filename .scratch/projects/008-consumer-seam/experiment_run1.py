@@ -2,11 +2,11 @@
 """
 Phase 6 — Run 1: the packaging seam at the INSTALL boundary.
 
-The centerpiece: a FRESH venv (no editable src/ on the path, no tsgrammar)
-installs ONLY the light wheels (tscore + tsquery) + the community wheel deps,
+The centerpiece: a FRESH venv (no editable src/ on the path, no pydantree_sitter_grammar)
+installs ONLY the light wheels (pydantree_sitter + pydantree_sitter) + the community wheel deps,
 and runs the full checked extraction there:
 
-  * `import tsgrammar` must FAIL (the seam does not leak);
+  * `import pydantree_sitter_grammar` must FAIL (the seam does not leak);
   * the Phase-5 cfg bundle round-trip (Language.load_bundle -> Jobs 1/3/4 ->
     the cfg record + field ground truth) passes;
   * the community extraction (json schema over tree_sitter_json -> Person
@@ -29,8 +29,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 SRC = ROOT / "src"
 sys.path.insert(0, str(SRC))
-sys.path.insert(0, str(ROOT / ".scratch" / "006-tsquery-bridge"))
-sys.path.insert(0, str(ROOT / ".scratch" / "007-tsquery-distribution"))
+sys.path.insert(0, str(ROOT / ".scratch" / "006-query-bridge"))
+sys.path.insert(0, str(ROOT / ".scratch" / "007-query-distribution"))
 
 EVIDENCE = Path(__file__).parent / "evidence"
 EVIDENCE.mkdir(parents=True, exist_ok=True)
@@ -43,7 +43,7 @@ from cfg_grammar import (  # noqa: E402
     build as build_cfg,
 )
 from json_grammar import build as build_json  # noqa: E402
-from tsgrammar.schema_tool import derive_schema_for_dir  # noqa: E402
+from pydantree_sitter_grammar.schema_tool import derive_schema_for_dir  # noqa: E402
 
 
 def banner(t: str, width: int = 72) -> None:
@@ -55,7 +55,7 @@ def save(name: str, text: str) -> None:
 
 
 def _cfg_bundle(tmp: Path) -> Path:
-    import tsgrammar as tg
+    import pydantree_sitter_grammar as tg
     result = tg.build_builder(build_cfg())
     return result.package(tmp / "cfg-bundle")
 
@@ -72,8 +72,8 @@ def _json_schema(tmp: Path) -> Path:
 def _inproc_results(cfg_bundle: Path, json_schema: Path) -> dict:
     """The A surface in-process, with B importable (the Phase-5 in-process
     path): the same models the consumers run, extracted directly."""
-    from tscore.schema import NodeSchema
-    from tsquery import Language, M, OutputModel, capture, source_meta
+    from pydantree_sitter.schema import NodeSchema
+    from pydantree_sitter import Language, M, OutputModel, capture, source_meta
 
     class ServerSection(OutputModel):
         __match__ = M("source_file", "section", record=True)
@@ -151,7 +151,7 @@ def _fresh_venv_setup(tmp: Path, wheels: Path) -> Path:
     inst = subprocess.run(
         ["uv", "pip", "install", "--python", str(venv / "bin" / "python"),
          "--find-links", str(wheels),
-         "pydantree-tscore==0.1.0", "pydantree-tsquery==0.1.0", "tree-sitter-json"],
+         "pydantree-pydantree_sitter==0.1.0", "pydantree-pydantree_sitter==0.1.0", "tree-sitter-json"],
         capture_output=True, text=True, check=False)
     if inst.returncode != 0:
         raise RuntimeError(f"uv pip install failed: {inst.stderr or inst.stdout}")
@@ -172,7 +172,7 @@ def _run_in_venv(venv: Path, script: Path, *args) -> str:
 def main() -> int:
     banner("Run 1 — the packaging seam at the install boundary")
     tmp = Path(tempfile.mkdtemp(prefix="phase6-run1-"))
-    P5 = ROOT / ".scratch" / "007-tsquery-distribution"
+    P5 = ROOT / ".scratch" / "007-query-distribution"
 
     # 1. build the artifacts (B-side, in-repo) — the bundle + community schema
     cfg_bundle = _cfg_bundle(tmp)
@@ -180,10 +180,10 @@ def main() -> int:
     print(f"cfg bundle: {cfg_bundle}")
     print(f"json community schema: {json_schema}")
 
-    # 2. build the light wheels (tscore + tsquery only)
+    # 2. build the light wheels (pydantree_sitter + pydantree_sitter only)
     wheels = tmp / "wheels"
     wheels.mkdir()
-    for pkg in ("tscore", "tsquery"):
+    for pkg in ("pydantree_sitter", "pydantree_sitter"):
         proc = subprocess.run(
             ["uv", "build", "--out-dir", str(wheels)],
             capture_output=True, text=True, cwd=str(SRC / pkg), check=False)
@@ -196,21 +196,21 @@ def main() -> int:
     banner("fresh venv — import graph")
     graph = subprocess.run(
         [str(venv / "bin" / "python"), "-c",
-         "import json; import tscore, tsquery; import tree_sitter;\n"
-         "print(json.dumps({'tscore': tscore.__file__, 'tsquery': tsquery.__file__}))"],
+         "import json; import pydantree_sitter, pydantree_sitter; import tree_sitter;\n"
+         "print(json.dumps({'pydantree_sitter': pydantree_sitter.__file__, 'pydantree_sitter': pydantree_sitter.__file__}))"],
         capture_output=True, text=True, check=False)
     print(graph.stdout, graph.stderr)
     save("r1_fresh_import_graph.txt",
          graph.stdout + graph.stderr + f"(rc {graph.returncode})\n")
 
-    # 4. the honest assertion: tsgrammar must NOT be importable
-    banner("fresh venv — tsgrammar unimportable (the seam does not leak)")
+    # 4. the honest assertion: pydantree_sitter_grammar must NOT be importable
+    banner("fresh venv — pydantree_sitter_grammar unimportable (the seam does not leak)")
     no_b = subprocess.run(
-        [str(venv / "bin" / "python"), "-c", "import tsgrammar"],
+        [str(venv / "bin" / "python"), "-c", "import pydantree_sitter_grammar"],
         capture_output=True, text=True, check=False)
-    print(f"import tsgrammar -> rc {no_b.returncode}: "
+    print(f"import pydantree_sitter_grammar -> rc {no_b.returncode}: "
           f"{no_b.stderr.strip()[:120]}")
-    assert no_b.returncode != 0, "tsgrammar IS importable in the light install!"
+    assert no_b.returncode != 0, "pydantree_sitter_grammar IS importable in the light install!"
     save("r1_fresh_tsgrammar_unimportable.txt",
          f"rc {no_b.returncode}\n{no_b.stderr}\n")
 

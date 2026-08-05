@@ -19,16 +19,16 @@ keywords = ["tree-sitter", "pydantic", "parser", "ast"]
 # `data`/`examples` wheel contents were deleted in Phase 1 of the 014
 # refactor). The real products ship under src/ as workspace members:
 #
-#   src/tscore/pyproject.toml      light — the shared seam
-#   src/tsquery/pyproject.toml     light — Product A (no toolchain)
-#   src/tsgrammar/pyproject.toml   heavy — Product B (Rust CLI + C toolchain)
+#   src/pydantree_sitter/pyproject.toml      light — the shared seam
+#   src/pydantree_sitter/pyproject.toml     light — Product A (no toolchain)
+#   src/pydantree_sitter_grammar/pyproject.toml   heavy — Product B (Rust CLI + C toolchain)
 #
-# The distributions are pydantree-BRANDED (pydantree-tscore / -tsquery /
-# -tsgrammar) while the import packages stay tscore/tsquery/tsgrammar — the
-# bare `tsquery` name is taken on PyPI by an unrelated GPL package.
+# The distributions are pydantree-BRANDED (pydantree-sitter / -pydantree_sitter /
+# -pydantree_sitter_grammar) while the import packages stay pydantree_sitter / pydantree_sitter_grammar — the
+# bare `pydantree_sitter` name is taken on PyPI by an unrelated GPL package.
 #
-# A consumer installs tscore + tsquery ONLY and gets the full checked
-# extraction; tsgrammar (and the scanner package data) ships separately.
+# A consumer installs pydantree_sitter + pydantree_sitter ONLY and gets the full checked
+# extraction; pydantree_sitter_grammar (and the scanner package data) ships separately.
 #
 # Phase 2 of the refactor renames these to pydantree-sitter /
 # pydantree-sitter-grammar; until then the workspace members keep the old
@@ -61,16 +61,16 @@ python = [
 ]
 
 [tool.uv.workspace]
-# the three real products under src/ are uv workspace members — `uv sync`
-# resolves them (and their pydantree-tscore/… inter-deps) in one lockfile.
+# the two products under src/ are uv workspace members — `uv sync`
+# resolves them (and the heavy→light inter-dep) in one lockfile.
 # devenv installs them with --no-install-workspace (devenv's default): the
-# dev venv resolves tscore/tsquery/tsgrammar straight from src/ via the
-# venv's _pydantree_src.pth, so edits are always live (no stale copies).
-members = ["src/tscore", "src/tsquery", "src/tsgrammar"]
+# dev venv resolves pydantree_sitter / pydantree_sitter_grammar straight
+# from src/ via the venv's _pydantree_src.pth, so edits are always live
+# (no stale copies).
+members = ["src/pydantree_sitter", "src/pydantree_sitter_grammar"]
 
 [tool.uv.sources]
-# cross-member dependencies (e.g. src/tsgrammar depends on
-# pydantree-tscore>=0.1) resolve to the workspace members, not PyPI
-pydantree-tscore = { workspace = true }
-pydantree-tsquery = { workspace = true }
-pydantree-tsgrammar = { workspace = true }
+# cross-member dependency (pydantree_sitter_grammar depends on
+# pydantree-sitter>=0.1) resolves to the workspace member, not PyPI
+pydantree-sitter = { workspace = true }
+pydantree-sitter-grammar = { workspace = true }

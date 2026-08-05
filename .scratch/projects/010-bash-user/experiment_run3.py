@@ -20,8 +20,8 @@ sys.path.insert(0, "src")
 EVIDENCE = Path(__file__).parent / "evidence"
 EVIDENCE.mkdir(parents=True, exist_ok=True)
 
-from tsgrammar.schema_tool import build_community_bundle
-from tsquery import Language
+from pydantree_sitter_grammar.schema_tool import build_community_bundle
+from pydantree_sitter import Language
 
 sys.argv = ["x", "examples/bash-extract", "bundle", "/tmp/bash-bundle"]
 import importlib.util
@@ -46,7 +46,7 @@ def main() -> int:
     print(text)
 
     # 2. stubs over the bash schema
-    from tsquery.stubs import generate_stubs
+    from pydantree_sitter.stubs import generate_stubs
     out = EVIDENCE / "r8_r3_bash_stubs.pyi"
     n = generate_stubs(lang.schema, out=out)
     print(f"\nstubs written: {out} ({n} lines)")

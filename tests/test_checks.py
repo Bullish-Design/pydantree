@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import tsgrammar as tg
+import pydantree_sitter_grammar as tg
 
 
 def _g(name="t"):

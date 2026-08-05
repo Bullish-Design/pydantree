@@ -18,8 +18,8 @@ always chooses the one that leaves less code.
 | # | Decision | Rationale |
 |---|----------|-----------|
 | D1 | **Name: `pydantree-sitter`.** Two distributions: `pydantree-sitter` (consumer, light) and `pydantree-sitter-grammar` (authoring, heavy). Import packages: `pydantree_sitter` and `pydantree_sitter_grammar`. | P-1/P-2/C4. Prefixed import names are collision-proof; two regular top-level packages beat a PEP-420 namespace split (a regular core package and an injected subpackage from a second dist don't compose safely). |
-| D2 | **Two packages, not three.** `tscore`'s survivors (schema + loader) fold into `pydantree_sitter`; `pydantree_sitter_grammar` depends on `pydantree_sitter`. | Thesis 7. After D3 the seam is ~500 lines; a third name/dist/release defends nothing. "The light package IS the seam." A still never imports B; B depending on A costs nothing. |
-| D3 | **Delete `tscore/_ir_derive.py` (the node_types.rs port) entirely.** The schema's only source is the CLI's own `node-types.json`. | Thesis 1. Verified: the pipeline already has the CLI's byproduct on disk (`pipeline.py:258,310`) and re-derives it by hand (`:217`); community wheels ship *neither* `grammar.json` nor `node-types.json` (checked `tree_sitter_python`/`tree_sitter_json` site-packages), and grammar source repos ship both side-by-side — no reachable state has the port's input without its output. Kills T-1..T-6 and the seam inversion (§2.1) *by deletion*; the review's "move the IR into tscore" step becomes unnecessary. |
+| D2 | **Two packages, not three.** `pydantree_sitter`'s survivors (schema + loader) fold into `pydantree_sitter`; `pydantree_sitter_grammar` depends on `pydantree_sitter`. | Thesis 7. After D3 the seam is ~500 lines; a third name/dist/release defends nothing. "The light package IS the seam." A still never imports B; B depending on A costs nothing. |
+| D3 | **Delete `pydantree_sitter/_ir_derive.py` (the node_types.rs port) entirely.** The schema's only source is the CLI's own `node-types.json`. | Thesis 1. Verified: the pipeline already has the CLI's byproduct on disk (`pipeline.py:258,310`) and re-derives it by hand (`:217`); community wheels ship *neither* `grammar.json` nor `node-types.json` (checked `tree_sitter_python`/`tree_sitter_json` site-packages), and grammar source repos ship both side-by-side — no reachable state has the port's input without its output. Kills T-1..T-6 and the seam inversion (§2.1) *by deletion*; the review's "move the IR into pydantree_sitter" step becomes unnecessary. |
 | D4 | **Product A: one matching machine.** Model → pure-data `MatchSpec` → one compiler → one query emitter → one ancestor matcher (backtracking, applied uniformly) → one materializer. Schema presence changes what the compiler checks/infers, never which pipeline runs. Legacy `materialize.py`/`dsl.py` public stacks deleted. | Thesis 2. F-A1/A2/A5/A7/A8/A12 + the new list-branch `match_path` skip (`typed.py:884-927`) are all symptoms of two-and-a-half machines. |
 | D5 | **Explicit binding.** `lang.extractor(Model)` runs all checks once; compiled state lives on the `Language` instance keyed by model class. No class-level compiled caches, no global `_SCHEMA_REGISTRY`. `Model.extract(text, language=...)` stays as sugar. | Thesis 3 / review §2.2, pushed to the Pydantic-v2 model/validator split. |
 | D6 | **Value shapes are declared data (`ValueMap`), not name-regex inference.** Built-in reviewed map for the JSON family; bundles may ship one; users may supply one. The `shapes.py` heuristic survives only as `propose_value_map()` — a generator of a *draft* the user inspects and commits. | Thesis 4 / C2. |
@@ -81,12 +81,12 @@ examples/           bash-extract, devenv-extract, devenv-subset (updated imports
 docs/               rewritten for the new architecture
 ```
 
-Deleted outright: `src/tscore/_ir_derive.py`, `src/tscore/_wasm_bridge.py` (moved
-to scratch), `src/tsquery/dsl.py` (public surface; emitter core survives as
-`emit.py`), `src/tsquery/materialize.py`'s legacy public surface,
-`src/tsquery/shapes.py` (folded into `valuemap.py` as the proposal generator),
-`src/tsquery/stubs.py`, `src/tsgrammar/schema_tool.py` (merged into pipeline),
-`src/tsgrammar/language.py` (folded into pipeline or loader re-export),
+Deleted outright: `src/pydantree_sitter/_ir_derive.py`, `src/pydantree_sitter/_wasm_bridge.py` (moved
+to scratch), `src/pydantree_sitter/dsl.py` (public surface; emitter core survives as
+`emit.py`), `src/pydantree_sitter/materialize.py`'s legacy public surface,
+`src/pydantree_sitter/shapes.py` (folded into `valuemap.py` as the proposal generator),
+`src/pydantree_sitter/stubs.py`, `src/pydantree_sitter_grammar/schema_tool.py` (merged into pipeline),
+`src/pydantree_sitter_grammar/language.py` (folded into pipeline or loader re-export),
 `src/pydantree/`, `src/data/`, `src/examples/`, root `pyproject.toml`'s legacy
 distribution, `spike-a/`, `spike-a2/`, `KICKOFF_SPIKE.md`.
 
@@ -211,14 +211,14 @@ The suite will be heavily rewritten; what must NOT change silently is
     `KICKOFF_SPIKE.md` → `.scratch/projects/`). Fix the two references in
     `CONCEPT.md`/docs by path only.
 
-1.4 `git mv src/tscore/_wasm_bridge.py .scratch/projects/009-phase7/wasm_bridge.py`.
+1.4 `git mv src/pydantree_sitter/_wasm_bridge.py .scratch/projects/009-phase7/wasm_bridge.py`.
     In `loader.py`: keep `WasmRuntimeUnavailableError` and the `.wasm`
     dispatch, but the wasm branch now *unconditionally* raises it (the env-var
     protocol moves to the scratch probe's README). Delete
     `tests/test_wasm.py`'s env-gated real-load test and the `/tmp/rust-bundle`
     non-hermetic test; keep the unavailable-error test.
 
-1.5 Fix `tscore/__init__.py`'s false docstring while passing through (T-9).
+1.5 Fix `pydantree_sitter/__init__.py`'s false docstring while passing through (T-9).
 
 **Gate 1:** suite green (minus deleted tests); `grep -rn "pydantree" src/` hits
 only comments/dist-name strings you intend to keep until Phase 2.
@@ -234,18 +234,18 @@ One large commit where behavior is provably unchanged. Do NOT mix in fixes.
     version `0.1.0`, full metadata — see Phase 9 floor), `py.typed`, LICENSE.
 
 2.2 Moves (`git mv`, preserve history):
-    - `src/tscore/schema.py` → `src/pydantree_sitter/schema.py`
-    - `src/tscore/loader.py` → `src/pydantree_sitter/loader.py`
-    - `src/tsquery/*.py`     → `src/pydantree_sitter/` (typed.py, dsl.py,
+    - `src/pydantree_sitter/schema.py` → `src/pydantree_sitter/schema.py`
+    - `src/pydantree_sitter/loader.py` → `src/pydantree_sitter/loader.py`
+    - `src/pydantree_sitter/*.py`     → `src/pydantree_sitter/` (typed.py, dsl.py,
       materialize.py, shapes.py, schema.py→`model_schema.py` (temporary name to
       avoid clashing with the seam schema; it dies in Phase 4), stubs.py)
-    - `src/tsgrammar/*`      → `src/pydantree_sitter_grammar/` with
+    - `src/pydantree_sitter_grammar/*`      → `src/pydantree_sitter_grammar/` with
       `grammar.py` → `ir.py`
-    - Delete the now-empty `src/tscore`, `src/tsquery`, `src/tsgrammar`.
+    - Delete the now-empty `src/pydantree_sitter`, `src/pydantree_sitter`, `src/pydantree_sitter_grammar`.
 
 2.3 Mechanical import rewrite across `src tests examples docs .agents`:
-    `tscore.` → `pydantree_sitter.`, `tsquery` → `pydantree_sitter`,
-    `tsgrammar` → `pydantree_sitter_grammar` (plus the `grammar`→`ir` module
+    `pydantree_sitter.` → `pydantree_sitter.`, `pydantree_sitter` → `pydantree_sitter`,
+    `pydantree_sitter_grammar` → `pydantree_sitter_grammar` (plus the `grammar`→`ir` module
     rename). Keep both old `__init__` surfaces temporarily glued together in
     `pydantree_sitter/__init__.py` — the exports shrink in Phase 4.
 
@@ -265,13 +265,13 @@ One large commit where behavior is provably unchanged. Do NOT mix in fixes.
 
 2.6 Dependency edges: `pydantree-sitter` depends on pydantic + tree-sitter;
     `pydantree-sitter-grammar` depends on `pydantree-sitter` (this replaces
-    both old `pydantree-tscore` edges). Assert in a test: importing
+    both old `pydantree-pydantree_sitter` edges). Assert in a test: importing
     `pydantree_sitter` never imports `pydantree_sitter_grammar`
     (the Phase-6-style B-free guarantee, now trivial to state).
 
 **Gate 2:** full suite green with identical pass count to Gate 1; the
 subprocess B-free isolation test passes against the new names;
-`grep -rn "tscore\|tsquery\|tsgrammar" src tests examples docs` → empty.
+`grep -rn "pydantree_sitter\|pydantree_sitter\|pydantree_sitter_grammar" src tests examples docs` → empty.
 
 ---
 
@@ -466,7 +466,7 @@ def propose_value_map(schema: NodeSchema) -> ValueMap:
   discovery from the schema, key shape from wrappers, value patterns from
   scalars/wrappers/arrays. The schema-less JSON hardcode becomes "schema-less
   record mode = JSON_VALUE_MAP + the documented JSON kinds", stated in docs.
-- `shapes.py` and `model_schema.py` (old tsquery/schema.py) are deleted; the
+- `shapes.py` and `model_schema.py` (old pydantree_sitter/schema.py) are deleted; the
   Job-1/3/4 check logic moves into `compiler.py`, reading `NodeSchema` +
   `ValueMap` (keep the good check implementations — `is_possible_descent`,
   supertype `expand`, `_check_capture_type` — they were sound; only their
@@ -771,7 +771,7 @@ suite count and the line-count delta vs `fcf505f`.
 ## Appendix B — Grep gates (run at final gate; all must be empty)
 
 ```
-grep -rn "tscore\|tsquery\|tsgrammar"            src tests examples docs
+grep -rn "pydantree_sitter\|pydantree_sitter\|pydantree_sitter_grammar"            src tests examples docs
 grep -rn "_ir_derive\|derive_from_ir"            src tests
 grep -rn "_SITES\|_node_sites\|__body_sites__"   src
 grep -rn "_SCHEMA_REGISTRY\|_derived_cache\|_schema_derived" src

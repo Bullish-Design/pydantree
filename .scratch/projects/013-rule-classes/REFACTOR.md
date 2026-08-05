@@ -1,8 +1,8 @@
-# REFACTOR — implementing the rule-class surface in `tsgrammar`
+# REFACTOR — implementing the rule-class surface in `pydantree_sitter_grammar`
 
 **Project:** `.scratch/013-rule-classes/` (concept: `CONCEPT.md`)
 **Goal:** make the rule-class surface (§2 of the concept) a first-class
-`tsgrammar` authoring path — sugar over the existing builder — with the
+`pydantree_sitter_grammar` authoring path — sugar over the existing builder — with the
 **byte-identity gate** as its regression test and the devenv grammar as its
 canonical example.
 **Ground rules (from the probes):**
@@ -13,7 +13,7 @@ canonical example.
   not modified. This is purely additive.
 - Probes/evidence go in `012-grammar-models/` (already committed) and this
   dir's `evidence/`; findings accumulate in `FINDINGS.md`.
-- Commit style: `tsgrammar: <surface> — <what this step proves>`.
+- Commit style: `pydantree_sitter_grammar: <surface> — <what this step proves>`.
 
 ---
 
@@ -39,22 +39,22 @@ match the probes, minimal friction, "pydantic" is the API *style* (classes,
 declarative, class-time checks) while the load-bearing validation stays in
 the pydantic IR where it already is.
 
-**0.2 Module + export naming.** Working names: `src/tsgrammar/rules.py`
-(metaclass, kinds, compilation, `assemble`) and `src/tsgrammar/patterns.py`
-(helpers). Flat re-exports from `tsgrammar/__init__.py` (the kinds, `R`,
-`assemble`) + `import tsgrammar.patterns`. Settle the names here so steps 1–5
+**0.2 Module + export naming.** Working names: `src/pydantree_sitter_grammar/rules.py`
+(metaclass, kinds, compilation, `assemble`) and `src/pydantree_sitter_grammar/patterns.py`
+(helpers). Flat re-exports from `pydantree_sitter_grammar/__init__.py` (the kinds, `R`,
+`assemble`) + `import pydantree_sitter_grammar.patterns`. Settle the names here so steps 1–5
 don't churn.
 
 **Deliverable:** a one-page note in `FINDINGS.md` with the verdicts.
 
 ---
 
-## Step 1 — the module skeleton: `src/tsgrammar/rules.py`
+## Step 1 — the module skeleton: `src/pydantree_sitter_grammar/rules.py`
 
 **Goal:** `Rule`, the metaclass, the kind subclasses, the registry.
 
 ```python
-"""tsgrammar.rules — the rule-class authoring surface ("the model IS the
+"""pydantree_sitter_grammar.rules — the rule-class authoring surface ("the model IS the
 rule"). Each rule is a class; the class body IS the production. assemble()
 compiles the classes into the existing builder DSL (builder.py) — the IR,
 pipeline, checks, and bundles are untouched."""
@@ -158,7 +158,7 @@ makes everything else safe to build on.
 
 ---
 
-## Step 3 — `src/tsgrammar/patterns.py` (the helpers)
+## Step 3 — `src/pydantree_sitter_grammar/patterns.py` (the helpers)
 
 **Goal:** the seven helpers as composable regex **strings**:
 
@@ -184,7 +184,7 @@ spelling; the gate test (step 2) now uses the helpers and must stay green.
 
 ---
 
-## Step 4 — public surface: `tsgrammar/__init__.py` + module docs
+## Step 4 — public surface: `pydantree_sitter_grammar/__init__.py` + module docs
 
 **Goal:** the surface is importable and documented the moment it lands.
 
@@ -193,13 +193,13 @@ spelling; the gate test (step 2) now uses the helpers and must stay green.
   `R`, `assemble`, and `patterns` (module).
 - Add a short "the rule-class surface" section to the module docstring
   (which already enumerates the public surface — keep it in sync).
-- The packaging force-include (`"." = "tsgrammar"`) already ships new files
+- The packaging force-include (`"." = "pydantree_sitter_grammar"`) already ships new files
   in the package dir; the venv resolves `src/` directly — **no reinstall
   needed** (devenv skill: new files are immediately importable).
 - Keep `build()` returning `tg.Grammar` as the contract — call sites
   (`run_checks`, `build_builder`, bundles) are unchanged.
 
-**Verify:** `python -c "from tsgrammar import Rule, R, assemble, patterns"`.
+**Verify:** `python -c "from pydantree_sitter_grammar import Rule, R, assemble, patterns"`.
 
 ---
 
@@ -262,9 +262,9 @@ full suite.
    the "when to use which surface" note (rule classes for data-shaped rules;
    the builder for `prec*`/`alias`/`reserved` and maximal control).
 2. **`docs/architecture.md`** — add `rules.py` (the rule-class surface) and
-   `patterns.py` to the tsgrammar module map row; note the surface compiles
+   `patterns.py` to the pydantree_sitter_grammar module map row; note the surface compiles
    into `builder.py` and touches nothing else.
-3. **`src/tsgrammar/README.md`** — one-line mention + pointer.
+3. **`src/pydantree_sitter_grammar/README.md`** — one-line mention + pointer.
 4. Cross-reference the byte-identity gate in the user guide's testing
    section (§3.6-adjacent) as the discipline for the new surface.
 
@@ -303,13 +303,13 @@ default and must match the scanner's declarations (they do — same names).
    two), the mapping rows that needed correction, and the final verdict
    (GO / GO-with-changes / NO-GO) with the evidence paths.
 3. Commit in scoped, single-finding commits:
-   - `tsgrammar: rules — Rule metaclass + kind subclasses`
-   - `tsgrammar: rules — annotation compilation + assemble()`
-   - `tsgrammar: patterns — the helper set with byte-identity tests`
-   - `tsgrammar: rules — exports + module docs`
-   - `tsgrammar: rules — attribute source sites for conflict remapping`
-   - `tsgrammar: tests — test_rules.py mapping matrix + gate`
-   - `tsgrammar: docs — user-guide §3.9 + architecture module map`
+   - `pydantree_sitter_grammar: rules — Rule metaclass + kind subclasses`
+   - `pydantree_sitter_grammar: rules — annotation compilation + assemble()`
+   - `pydantree_sitter_grammar: patterns — the helper set with byte-identity tests`
+   - `pydantree_sitter_grammar: rules — exports + module docs`
+   - `pydantree_sitter_grammar: rules — attribute source sites for conflict remapping`
+   - `pydantree_sitter_grammar: tests — test_rules.py mapping matrix + gate`
+   - `pydantree_sitter_grammar: docs — user-guide §3.9 + architecture module map`
    - `examples: devenv-subset on the rule-class surface — ground truth green`
 4. The final verdict checks: (a) the devenv example runs end-to-end against
    ground truth, (b) the full suite is green, (c) the byte-identity gate is

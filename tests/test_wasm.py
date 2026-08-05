@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from tscore.loader import (
+from pydantree_sitter.loader import (
     WasmRuntimeUnavailableError,
     load_bundle,
 )

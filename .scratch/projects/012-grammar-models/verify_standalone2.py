@@ -9,7 +9,7 @@ import types
 from pathlib import Path
 from typing import Literal
 
-import tsgrammar as tg
+import pydantree_sitter_grammar as tg
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
@@ -23,10 +23,10 @@ from grammar import build as original_build  # noqa: E402
 
 src = (HERE / "devenv_grammar_classes2.py").read_text()
 for line in (
-    "import tsgrammar as tg\n",
-    "from tsgrammar import (\n    External, Extra, Pattern, R, Rule, "
+    "import pydantree_sitter_grammar as tg\n",
+    "from pydantree_sitter_grammar import (\n    External, Extra, Pattern, R, Rule, "
     "Supertype, Token, assemble,\n)\n",
-    "from tsgrammar.patterns import dotted_path, integer, path_literal, "
+    "from pydantree_sitter_grammar.patterns import dotted_path, integer, path_literal, "
     "rest_of_line\n",
 ):
     src = src.replace(line, "")
@@ -34,7 +34,7 @@ for line in (
 P._REGISTRY.clear()  # fresh registry: only the standalone file's classes
 _mod = types.ModuleType("standalone2")
 _mod.__dict__.update({
-    "tsgrammar": tg, "tg": tg,
+    "pydantree_sitter_grammar": tg, "tg": tg,
     "R": P.R, "Rule": P.Rule, "assemble": P.assemble,
     "Pattern": P.Pattern, "Token": P.Token, "External": P.External,
     "Extra": P.Extra, "Supertype": P.Supertype,

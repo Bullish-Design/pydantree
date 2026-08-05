@@ -1,4 +1,4 @@
-# FINDINGS — 013: the rule-class surface (`tsgrammar.rules`)
+# FINDINGS — 013: the rule-class surface (`pydantree_sitter_grammar.rules`)
 
 **Project:** `.scratch/013-rule-classes/` — implement the rule-class authoring
 surface for Product B (concept: `CONCEPT.md`; plan: `REFACTOR.md`).
@@ -45,16 +45,16 @@ checks); the load-bearing validation stays in the pydantic IR
 
 ### 0.2 Module + export naming — VERDICT: **locked as proposed**
 
-- `src/tsgrammar/rules.py` — the metaclass, the kinds, annotation
+- `src/pydantree_sitter_grammar/rules.py` — the metaclass, the kinds, annotation
   compilation, `assemble()`. ("rules" over "models": Product A's
   `typed.py` already owns "model" vocabulary for `OutputModel`; B's classes
   are rules, and the IR module is already `grammar.py`.)
-- `src/tsgrammar/patterns.py` — the regex-string helpers.
-- Flat re-exports from `tsgrammar/__init__.py`: `Rule`, `Pattern`, `Token`,
+- `src/pydantree_sitter_grammar/patterns.py` — the regex-string helpers.
+- Flat re-exports from `pydantree_sitter_grammar/__init__.py`: `Rule`, `Pattern`, `Token`,
   `External`, `Extra`, `Supertype`, `Hidden`, `Inline`, `Word`, `R`,
-  `assemble`; `tsgrammar.patterns` stays a module import.
-- `import tsgrammar as tg` + `from tsgrammar import ...` (as the example
-  files spell it) and `from tsgrammar.patterns import ...` are the two
+  `assemble`; `pydantree_sitter_grammar.patterns` stays a module import.
+- `import pydantree_sitter_grammar as tg` + `from pydantree_sitter_grammar import ...` (as the example
+  files spell it) and `from pydantree_sitter_grammar.patterns import ...` are the two
   import shapes — no churn expected.
 
 ---
@@ -103,16 +103,16 @@ shot. Evidence: `evidence/step2_gate.txt`.
 
 ### `Rule` rebind (a public-name change the concept mandates)
 
-`tsgrammar.Rule` is now the rule-class BASE (the canonical import
-`from tsgrammar import Rule` for `class Pair(Rule)`). The IR node union that
-used to share the name remains importable as `tsgrammar.grammar.Rule`; no
+`pydantree_sitter_grammar.Rule` is now the rule-class BASE (the canonical import
+`from pydantree_sitter_grammar import Rule` for `class Pair(Rule)`). The IR node union that
+used to share the name remains importable as `pydantree_sitter_grammar.ir.Rule`; no
 in-repo consumer used `tg.Rule` as the union (internal modules import from
 `.grammar` directly). Noted in the `__init__` docstring.
 
 ### Exports (step 4) + helpers (step 3) landed early
 
 The gate's canonical fixture imports the kinds + `R` + `assemble` from
-`tsgrammar` and the helpers from `tsgrammar.patterns` — so the exports and
+`pydantree_sitter_grammar` and the helpers from `pydantree_sitter_grammar.patterns` — so the exports and
 the helper set shipped with the mechanism. `patterns.py` implements the seven
 probe helpers verbatim (including the probe-caught `quoted()` fix — the char
 class excludes only the quote char).
@@ -198,9 +198,9 @@ All four verdict checks (REFACTOR step 9):
 (d) **no IR/pipeline/Product-A file changed** — git diff vs baseline: only
     `rules.py` + `patterns.py` (new), `__init__.py` (exports), `README.md`
     (docs). grammar.py, builder.py, checks.py, conflicts.py, pipeline.py,
-    scanners, tscore, tsquery: untouched.
+    scanners, pydantree_sitter, pydantree_sitter: untouched.
 
-The class surface is a first-class `tsgrammar` authoring path — sugar over
+The class surface is a first-class `pydantree_sitter_grammar` authoring path — sugar over
 the existing builder, byte-identical by construction and by test, with the
 devenv example as its canonical demonstration. Commits:
 `795e66c` (surface + helpers + exports), `a22172c` (sites), `1114812`

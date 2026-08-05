@@ -51,7 +51,7 @@
     # into the managed venv that puts the repo's `src/` FIRST on sys.path.
     # A .pth line starting with `import` runs during site-packages processing,
     # so the insert lands before site-packages — every process using this venv
-    # (tests, probes, `python -c`) resolves tscore/tsquery/tsgrammar straight
+    # (tests, probes, `python -c`) resolves pydantree_sitter / pydantree_sitter_grammar straight
     # from src/. No editable copies -> no stale-copy surprises. Runs after the
     # venv is (re)created, idempotently.
     "pydantree:venv-src-pth" = {

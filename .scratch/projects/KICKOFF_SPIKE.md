@@ -30,7 +30,7 @@ pipeline to prove. Everything else is scaffolding.
 ## Required reading (in this order — do not skip)
 
 1. **`.scratch/projects/002-pydantic-treesitter/CONCEPT.md`** — THE authoritative concept.
-   Read it fully. It defines the two-product design (tsgrammar + tsquery), the
+   Read it fully. It defines the two-product design (pydantree_sitter_grammar + pydantree_sitter), the
    `grammar.json`-first strategy, and the phased sequencing. Phase 0 is §9.
 2. **`.scratch/projects/001-pydantic-winnow-parser/SESSION_ANALYSIS.md`** — the previous
    direction (Pydantic-authored, Rust/Winnow-executed combinators). It is
@@ -48,15 +48,15 @@ pipeline to prove. Everything else is scaffolding.
 
 Two cooperating libraries put a Pydantic face on tree-sitter:
 
-- **Product B (`tsgrammar`)** — *authoring*, build-time. A Pydantic DSL that
+- **Product B (`pydantree_sitter_grammar`)** — *authoring*, build-time. A Pydantic DSL that
   compiles down to **`grammar.json`** (bypassing `grammar.js` entirely), then runs
   the standard `tree-sitter generate` + compile pipeline. Its whole reason to
   exist: make GLR grammar authoring painless (typed precedence, conflicts remapped
   to your Python source, static analysis before the slow Rust step).
-- **Product A (`tsquery`)** — *consuming*, run-time. A Pydantic query DSL that
+- **Product A (`pydantree_sitter`)** — *consuming*, run-time. A Pydantic query DSL that
   maps captured tree-sitter nodes into typed `OutputModel` instances. Works over
   any community grammar; zero dependency on B.
-- **Shared `tscore`** — Pydantic models mirroring the `grammar.json` schema + the
+- **Shared `pydantree_sitter`** — Pydantic models mirroring the `grammar.json` schema + the
   `node-schema` bridge format. The two products meet at exactly one data artifact
   (`.so/.wasm` + `node-schema.json`), never in code.
 
@@ -125,7 +125,7 @@ output.**
 - The `ExpressionGrammar`/Pratt helper and full precedence-ladder machinery
   (**Phase 3**) — hand-roll precedence in the spike; only *note* what the helper
   should do.
-- Package renaming/splitting (`tscore`/`tsquery`/`tsgrammar`). Distribution is a
+- Package renaming/splitting (`pydantree_sitter`/`pydantree_sitter`/`pydantree_sitter_grammar`). Distribution is a
   later decision; the spike proves mechanics, not packaging.
 - Performance work of any kind.
 

@@ -1,7 +1,7 @@
 # Pydantree — adversarial review of concept, architecture, and codebase
 
 **Date:** 2026-08-05 · **Baseline:** 199 passed, 1 skipped (devenv, warm cache)
-**Scope:** `src/tscore`, `src/tsquery`, `src/tsgrammar`, tests, docs, packaging,
+**Scope:** `src/pydantree_sitter`, `src/pydantree_sitter`, `src/pydantree_sitter_grammar`, tests, docs, packaging,
 legacy `src/pydantree`, examples. Every high-severity claim below was verified
 with a live repro (`probe_*.py` in this directory) or a file:line read; nothing
 is speculation. Companion files: `CONFIRMED_BUGS.md` (repro details),
@@ -22,10 +22,10 @@ has a demonstrated production-order-dependent divergence (plus hash-order
 nondeterminism); and the Job-2 "typed node access" stubs type-check code that
 crashes at runtime. Separately, the naming/distribution plan is on fire: the
 `pydantree` PyPI name is owned by a third party *at the same version number*,
-and the `tsquery`/`tscore` import names collide with live third-party PyPI
+and the `pydantree_sitter`/`pydantree_sitter` import names collide with live third-party PyPI
 packages. The codebase's biggest structural debts are a leftover parallel
-legacy surface inside `tsquery`, a dependency inversion at the seam (`tscore`
-importing `tsgrammar`), and hidden class-level caches where an explicit
+legacy surface inside `pydantree_sitter`, a dependency inversion at the seam (`pydantree_sitter`
+importing `pydantree_sitter_grammar`), and hidden class-level caches where an explicit
 binding object should be.
 
 **Top 10 across the whole review, ranked:**
@@ -33,15 +33,15 @@ binding object should be.
 1. F-A1 — cross-language extraction silently returns `[]` (thesis-breaking).
 2. F-A2 — schema binding breaks nested record models (thesis-breaking).
 3. P-1/P-2 — `pydantree` PyPI name owned by someone else at v0.1.2;
-   `tsquery`/`tscore` import-package collisions with live PyPI packages.
+   `pydantree_sitter`/`pydantree_sitter` import-package collisions with live PyPI packages.
 4. T-1 — `_ir_derive` field `required` is production-order dependent,
    diverges from the CLI (reproduced), + hash-order nondeterminism (T-2).
 5. F-A4 — Job-2 stubs are typing fiction with no runtime.
 6. P-4 — root wheel config references nonexistent `data/`; the shipped
    legacy package can't import; console scripts point into it.
 7. F-B1/F-B2 — `alias=` emits garbage; multi-value `Literal` crashes/drops.
-8. §2.1 — the seam inversion (tscore → tsgrammar).
-9. §2.3/F-A7/F-A8 — the parallel legacy surface inside tsquery (two
+8. §2.1 — the seam inversion (pydantree_sitter → pydantree_sitter_grammar).
+9. §2.3/F-A7/F-A8 — the parallel legacy surface inside pydantree_sitter (two
    `OutputModel`s, two `ExtractionError`s, dsl.py public-but-"not public").
 10. TS-1/TS-2 — test suite: ungated toolchain tests + production tests
     standing on `.scratch/` spike code.
@@ -76,7 +76,7 @@ model, alternation at the path level ("function_item OR impl_item"),
 negation, matching on the anchor's own field values. None of these are
 expressible, and the documented position on the query DSL is contradictory:
 `docs/architecture.md:162` says `dsl.py` is "NOT public" while
-`tsquery/__init__.py:19-28` exports `Query`, `NodeSpec`, `node`, `cap`,
+`pydantree_sitter/__init__.py:19-28` exports `Query`, `NodeSpec`, `node`, `cap`,
 `Pred`, `NodeView`, `MatchView`. Decide: either the DSL is the supported
 tier-2 escape hatch (document it, test it — it currently has near-zero
 tests), or it is private (stop exporting it) and the model surface needs an
@@ -107,10 +107,10 @@ compile target is fine and clean) or delete it (A: the materialize-side
 public surface should go).
 
 **C4. Import-name strategy is a known risk being lived with, not managed.**
-The README itself concedes `tsquery` is taken on PyPI, yet the project
-installs generic top-level import packages `tscore`/`tsquery`/`tsgrammar`
+The README itself concedes `pydantree_sitter` is taken on PyPI, yet the project
+installs generic top-level import packages `pydantree_sitter`/`pydantree_sitter`/`pydantree_sitter_grammar`
 from differently-named distributions. That's the classic setup for import
-collisions (any other distribution installing a `tsquery` package) and for
+collisions (any other distribution installing a `pydantree_sitter` package) and for
 user confusion (pip name ≠ import name). A `pydantree.*` namespace
 (`pydantree.core`, `pydantree.query`, `pydantree.grammar`) would cost a
 one-time rename now and remove the entire risk class; it gets more expensive
@@ -124,7 +124,7 @@ mysteriously instead of legibly.
 
 **C6. Wasm residue.** Phase 7's verdict was no-go, which is fine — but the
 probe-grade ctypes bridge (`_wasm_bridge.py`, 180 lines) ships inside the
-"tiny" tscore package, and the loader dispatch + env-var protocol
+"tiny" pydantree_sitter package, and the loader dispatch + env-var protocol
 (`TSGRAMMAR_WASM_LIB`) is production surface for a rejected path. Keep the
 `WasmRuntimeUnavailableError` seam; move the bridge itself to `.scratch`
 where the probe lives.
@@ -135,27 +135,27 @@ where the probe lives.
 
 ### 2.1 The seam inversion (highest-leverage structural fix)
 
-`tscore.schema.derive_from_ir` lazily imports `tscore._ir_derive`, which
-imports `tsgrammar.grammar` — the tiny shared seam depends on the heavy
-authoring package (`tscore/schema.py:298-308`). The original CONCEPT §2 had
-it right: *"Shared (tscore): Pydantic models mirroring the grammar.json
-schema."* The IR models (`tsgrammar/grammar.py`, 259 lines, pure Pydantic,
-zero toolchain deps) belong in tscore. Then:
+`pydantree_sitter.schema.derive_from_ir` lazily imports `pydantree_sitter._ir_derive`, which
+imports `pydantree_sitter_grammar.ir` — the tiny shared seam depends on the heavy
+authoring package (`pydantree_sitter/schema.py:298-308`). The original CONCEPT §2 had
+it right: *"Shared (pydantree_sitter): Pydantic models mirroring the grammar.json
+schema."* The IR models (`pydantree_sitter_grammar/grammar.py`, 259 lines, pure Pydantic,
+zero toolchain deps) belong in pydantree_sitter. Then:
 
-- `tscore._ir_derive` is honest (derives from its own package's IR),
+- `pydantree_sitter._ir_derive` is honest (derives from its own package's IR),
 - B imports the IR from the seam instead of the seam reaching up into B,
 - "import existing community grammars into GrammarModels for inspection"
   becomes possible in a light install — a real feature today locked behind
   the heavy package for no reason.
 
-The current lazy-import trick keeps `import tscore` B-free at runtime, but
+The current lazy-import trick keeps `import pydantree_sitter` B-free at runtime, but
 the *dependency direction* is still inverted and every future contributor
 will have to re-learn why the "tiny, pure" package has a 974-line module
-that crashes without B installed. (Also: `tscore/__init__.py`'s docstring
-"One module, no more: tscore.schema" is false — loader.py is load-bearing
+that crashes without B installed. (Also: `pydantree_sitter/__init__.py`'s docstring
+"One module, no more: pydantree_sitter.schema" is false — loader.py is load-bearing
 for A's `load_bundle`.)
 
-### 2.2 tsquery needs an explicit binding object (kills three bug classes)
+### 2.2 pydantree_sitter needs an explicit binding object (kills three bug classes)
 
 The A-side bugs (F-A1, F-A2, F-A5 below) share one root cause: state that is
 a function of *(model, language, schema)* is cached on objects keyed by less
@@ -191,7 +191,7 @@ never uses it). This is the spike's skeleton still inside the product.
 Target layout, roughly:
 
 ```
-tsquery/
+pydantree_sitter/
   markers.py     M, capture, capture_kind, source_meta, Matches/Eq/AnyOf/NodeKind/Unescaped
   derive.py      model -> _Derived (schema-less + schema paths, one file)
   binding.py     Language, BoundExtractor (the cache owner)
@@ -231,7 +231,7 @@ Mostly clean: IR (frozen Pydantic union) → builder (registry + sites) →
 checks → pipeline → conflicts remapping is a good pipeline with real
 separation. Issues:
 
-- **`tsgrammar.Rule` means two things.** `__init__.py` imports the IR union
+- **`pydantree_sitter_grammar.Rule` means two things.** `__init__.py` imports the IR union
   `Rule` from `.grammar` then shadows it with the rule-class base from
   `.rules` (`__init__.py:102` vs `:137`; `__all__` lists `"Rule"` twice).
   Deliberate, documented, still a trap — rename one (`RuleIR` alias or
@@ -270,7 +270,7 @@ one `ExtractionError`, one `OutputModel`.
 
 ---
 
-## 3. Verified code findings — Product A (tsquery)
+## 3. Verified code findings — Product A (pydantree_sitter)
 
 Ranked. Full repros in `CONFIRMED_BUGS.md`.
 
@@ -282,16 +282,16 @@ Ranked. Full repros in `CONFIRMED_BUGS.md`.
 | **F-A4** | high | **Job-2 stubs are typing fiction**: generated accessors (`name()`, `get()`, `children(kind)`) have no runtime implementation on `tree_sitter.Node`; mypy-verified code crashes when executed (`stubs.py`; `tests/test_stubs.py` is mypy-only). Either ship a runtime wrapper class the stubs describe, or reposition the feature as documentation, not "typed node access". |
 | F-A5 | med | `schema_derive` cache keyed by `language_name or "?"` — nameless languages collide; a re-loaded schema for the same name is never re-derived (`typed.py:646`, `schema.py:344`). |
 | F-A6 | med | Binding warnings printed to stderr with `print()` on every extract (`typed.py:633-634`). |
-| F-A7 | med | Two public `ExtractionError` classes (`typed.py:1055` vs `materialize.py:285`); `Query.extract()` raises the one `tsquery.ExtractionError` doesn't catch. |
+| F-A7 | med | Two public `ExtractionError` classes (`typed.py:1055` vs `materialize.py:285`); `Query.extract()` raises the one `pydantree_sitter.ExtractionError` doesn't catch. |
 | F-A8 | med | Two `OutputModel` classes; `__init__.py` imports the legacy one under an unused alias (`__init__.py:29-37`). Entire legacy materialize/dsl public path is a parallel product surface (§2.3). |
 | F-A9 | med | `dsl.py` exported while documented "NOT public" (`architecture.md:162` vs `__init__.py`); DSL essentially untested (test-suite report §a6). |
-| F-A10 | low | `Language.load_bundle` drops `bundle.lib`, contradicting tscore's stated keep-alive contract (`typed.py:729` vs `loader.py:53`) — benign in CPython, but one of the two is wrong. |
+| F-A10 | low | `Language.load_bundle` drops `bundle.lib`, contradicting pydantree_sitter's stated keep-alive contract (`typed.py:729` vs `loader.py:53`) — benign in CPython, but one of the two is wrong. |
 | F-A11 | low | `Language.reparse(old_source=...)` accepted and ignored (`typed.py:757`). |
 | F-A12 | low | `_match_ancestor_path` is a greedy non-backtracking matcher — pathological paths with repeated kind names can false-negative (`typed.py:492`). Document or backtrack. |
 | F-A13 | low | Stringly-typed marker checks (`m.__class__.__name__ == "Unescaped"` in `typed.py:117`, `shapes.py:241`, `schema.py:186,465`) beside isinstance checks for the same markers — pick one mechanism (isinstance; no cycle prevents it). |
 | F-A14 | low | `_extract_field`'s no-anchor bookkeeping appends duplicate `0` sentinels to `order` (`typed.py:894-897`) — currently unreachable (anchor always captured), i.e. dead defensive code that would be wrong if reached. |
 
-## 4. Verified code findings — Product B (tsgrammar)
+## 4. Verified code findings — Product B (pydantree_sitter_grammar)
 
 | # | Sev | Finding |
 |---|-----|---------|
@@ -301,7 +301,7 @@ Ranked. Full repros in `CONFIRMED_BUGS.md`.
 | F-B4 | med | `_snake` mangles acronyms: `HTTPServer → h_t_t_p_server` (`rules.py:83`). |
 | F-B5 | med | Explicit non-`\s` whitespace extras don't suppress the injected `\s` default (`builder.py:428-430`, `506-507`) — the author's deliberate whitespace policy is silently overridden. |
 | F-B6 | med | `replace_rule` ignores the `hidden` flag (no `_` renaming), unlike `rule()` (`builder.py:376-409`) — a fix-loop replace of a hidden rule changes its name semantics. |
-| F-B7 | low | `tsgrammar.Rule` exported with two meanings (§2.6). |
+| F-B7 | low | `pydantree_sitter_grammar.Rule` exported with two meanings (§2.6). |
 | F-B8 | low | `expression()` docstrings show `g.expression(...)` (method doesn't exist); `DEFAULT_PRECEDENCE_CORPUS` renders differ between docstring and constant (`expressions.py:39,183-189` vs `220-227`). |
 | F-B9 | low | `_as_op` wraps a literal in a 1-member SEQ while claiming "seq over a literal -> StrNode" (`expressions.py:243`); harmless emission noise, wrong comment. |
 | F-B10 | low | `corpus.Corpus.run`: dead `cache_dir` recompute (`corpus.py:246`); `schema_tool.py:100` dead assignment; `schema_tool.main` hand-rolled argv parsing + leaks its tempdir (`keep=True`) and writes the schema twice. |
@@ -309,7 +309,7 @@ Ranked. Full repros in `CONFIRMED_BUGS.md`.
 | F-B12 | low | `checks._first_literal_chars` treats PATTERN sources as literals — first-set overlap check has both false negatives (any pattern starting with a metachar is ignored) and false positives; acceptable for a heuristic warning but undocumented. |
 | F-B13 | low | `builder.extra()` calls `as_node(x)` twice (two nodes for str inputs) (`builder.py:425-430`). |
 
-## 5. tscore, legacy, and dead weight (delegated deep review — summary)
+## 5. pydantree_sitter, legacy, and dead weight (delegated deep review — summary)
 
 Full evidence in `AGENT_REPORTS.md` Report 3.
 
@@ -323,7 +323,7 @@ Full evidence in `AGENT_REPORTS.md` Report 3.
 | T-6 | med | No pinned upstream source reference (node_types.rs commit hash) anywhere in the 974-line port; drift detection = frozen 0.25.3 fixtures + skip-gated agreement tests. |
 | T-7 | med | `_wasm_bridge.py` leaks every resource (`ts_tree_delete` bound, never called; parser/store never deleted; error strings never freed); `close()` order is use-after-free-prone; hand-declared TSNode layout corrupts (not errors) on ABI drift. Probe-grade code in the shipped "tiny" core — move to `.scratch/009-phase7/`, keep only the unavailable-error seam. |
 | T-8 | med | **The legacy island is dead and still shipped**: `src/pydantree` (~800 lines, frozen 2025-07-08) is imported by nothing outside itself; `src/data/python_nodes.py` (1147 lines of checked-in generated code) and `src/examples/` (legacy-API only; `file_parse_demo.py` imports a package that exists in no lockfile and a symbol that doesn't exist) hang off it. It still owns the `pydantree` console script and the project's name. Delete or move to `.scratch/`. |
-| T-9 | low | Dead code inside `_ir_derive.py`: `_is_lexical_rule` (never called), `_VarInfo.multi_step` (computed, never emitted), `_Deriver.word` (assigned, never read), duplicate `_PREC`/`_PREC_NODES` tuples, `repeat_quantity` ignoring `self`, `_reachable` ×2. Stale docstrings: `tscore/__init__` "One module, no more"; `schema.py:54-57` documents a "simplification" the code no longer makes. |
+| T-9 | low | Dead code inside `_ir_derive.py`: `_is_lexical_rule` (never called), `_VarInfo.multi_step` (computed, never emitted), `_Deriver.word` (assigned, never read), duplicate `_PREC`/`_PREC_NODES` tuples, `repeat_quantity` ignoring `self`, `_reachable` ×2. Stale docstrings: `pydantree_sitter/__init__` "One module, no more"; `schema.py:54-57` documents a "simplification" the code no longer makes. |
 | T-10 | low | Three inconsistent notions of "start rule" in the same file (`:158`, `:574`, `:787`) — silently disagree if `start_rule` is ever not the first dict key. |
 
 ## 6. Test suite (delegated deep review — summary)
@@ -342,7 +342,7 @@ problems, verified with file:line evidence:
    scaffolding — promote the needed mini-grammars to `tests/fixtures/`.
 3. **Global-state leaks**: a test registers schema `"cfg"` in the global
    registry with no cleanup; the isolating fixture exists in only one file.
-4. **Tests write to the developer's real `~/.cache/tsgrammar`** (a dozen+
+4. **Tests write to the developer's real `~/.cache/pydantree_sitter_grammar`** (a dozen+
    call sites without `cache_dir=`); "fast ~40s" is only true warm.
 5. **Coverage gaps that map 1:1 to the bugs above**: multi-language
    extraction (F-A1), nested-record + schema (F-A2), multi-value Literal
@@ -364,8 +364,8 @@ Full evidence in `AGENT_REPORTS.md` Report 2.
 | # | Sev | Finding |
 |---|-----|---------|
 | **P-1** | **critical** | **The `pydantree` PyPI name is owned by a third party** (Louis Maddox, "Pydantic parser for tree-sitter", v0.1.2 — the *same version* this repo declares). `pip install pydantree` installs the stranger's package; the root distribution is unpublishable as configured. |
-| **P-2** | **critical** | **Import-package collisions are live**: PyPI `tsquery` 0.1.1 (GPL CLI) installs a top-level `tsquery/`; `tscore` 0.0.1a0 also exists. Installing `pydantree-tsquery` next to either collides in site-packages with an undefined winner. `tsgrammar` + all three `pydantree-*` dist names are unregistered — squattable. The repo rebranded the *distribution* names but not the *import* names; the collision is unmitigated. |
-| P-3 | high | None of the three product distributions exist on PyPI, yet every quickstart (README, user-guide, all three example READMEs) says `uv pip install pydantree-tscore pydantree-tsquery` with no "unpublished" note. |
+| **P-2** | **critical** | **Import-package collisions are live**: PyPI `pydantree_sitter` 0.1.1 (GPL CLI) installs a top-level `pydantree_sitter/`; `pydantree_sitter` 0.0.1a0 also exists. Installing `pydantree-pydantree_sitter` next to either collides in site-packages with an undefined winner. `pydantree_sitter_grammar` + all three `pydantree-*` dist names are unregistered — squattable. The repo rebranded the *distribution* names but not the *import* names; the collision is unmitigated. |
+| P-3 | high | None of the three product distributions exist on PyPI, yet every quickstart (README, user-guide, all three example READMEs) says `uv pip install pydantree-pydantree_sitter pydantree-pydantree_sitter` with no "unpublished" note. |
 | **P-4** | high | Root wheel config broken: `packages = [..., "data"]` references a nonexistent root `data/` (real path `src/data`); installed `import pydantree` fails at import; ships top-level `examples`; `demo` script writes a relative repo path. `test_packaging.py:113` only greps the config string, never builds the wheel. |
 | P-5 | high | No `py.typed` in any package — all three typed products are untyped to mypy/pyright when installed. |
 | P-6 | med | Product pyprojects have no authors/classifiers/urls; `license={file=...}` yields no license metadata (PEP 639). Supply-chain-confusion surface combined with P-2. |
@@ -395,10 +395,10 @@ Priority-ordered program:
 3. **Delete the parallel A surface**: one `OutputModel`, one
    `ExtractionError`, one kwargs builder; decide dsl.py's public status
    (export-and-test or hide).
-4. **Right the seam**: move the grammar IR (`tsgrammar/grammar.py`, pure
-   pydantic) into tscore; `_ir_derive` becomes self-contained; tsgrammar
+4. **Right the seam**: move the grammar IR (`pydantree_sitter_grammar/grammar.py`, pure
+   pydantic) into pydantree_sitter; `_ir_derive` becomes self-contained; pydantree_sitter_grammar
    re-exports. Move `_wasm_bridge` to `.scratch/009-phase7/`, keep only the
-   `WasmRuntimeUnavailableError` seam. Fix `tscore/__init__` docstring.
+   `WasmRuntimeUnavailableError` seam. Fix `pydantree_sitter/__init__` docstring.
 5. **Kill the legacy island** (T-8, P-4): delete `src/pydantree`,
    `src/data`, `src/examples` (git history keeps them); retire or repoint
    the root distribution and its console scripts.
@@ -418,7 +418,7 @@ Priority-ordered program:
    (authors/urls/classifiers/PEP 639 license), build-and-inspect the root
    wheel in tests (or delete it per step 5), assert no `__pycache__` in
    wheels, un-hardcode `python3.13` in devenv.nix.
-10. **Docs truth pass**: dsl.py publicness, tscore docstring, user-guide
+10. **Docs truth pass**: dsl.py publicness, pydantree_sitter docstring, user-guide
     §3.9 file swap, expression() spelling, baseline counts, phase table
     through 013, "unpublished" notes on install instructions, stub feature
     framing, and a written statement of Product A's expressiveness ceiling

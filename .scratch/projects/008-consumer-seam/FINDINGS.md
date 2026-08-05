@@ -25,8 +25,8 @@ Re-run:
 devenv shell -- python -m pytest tests/                 # 159 green
 devenv shell -- python .scratch/008-consumer-seam/experiment_run1.py
 devenv shell -- python .scratch/008-consumer-seam/experiment_run2.py
-devenv shell -- python .scratch/007-tsquery-distribution/experiment_phase5.py
-devenv shell -- python .scratch/006-tsquery-bridge/experiment_phase4.py
+devenv shell -- python .scratch/007-query-distribution/experiment_phase5.py
+devenv shell -- python .scratch/006-query-bridge/experiment_phase4.py
 ```
 
 ---
@@ -35,7 +35,7 @@ devenv shell -- python .scratch/006-tsquery-bridge/experiment_phase4.py
 
 | run | go/no-go | verdict | evidence |
 |---|---|---|---|
-| **1 — the packaging seam** | a FRESH venv with only the light wheels (tscore+tsquery) runs the full checked extraction, B's toolchain stays out | **GO** | `r1_*`: fresh venv import graph, tsgrammar unimportable (rc 1), bundle round-trip + community extraction pass, **byte-identical** vs the in-repo (B importable) AND the run_bfree (B stripped) results |
+| **1 — the packaging seam** | a FRESH venv with only the light wheels (pydantree_sitter+pydantree_sitter) runs the full checked extraction, B's toolchain stays out | **GO** | `r1_*`: fresh venv import graph, pydantree_sitter_grammar unimportable (rc 1), bundle round-trip + community extraction pass, **byte-identical** vs the in-repo (B importable) AND the run_bfree (B stripped) results |
 | **2 — the community seam** | the schema path holds over a real grammar we don't own | **GO** | `r2_*`: schema tool + `derive_from_ir` both **byte-for-byte** vs the CLI's fresh node-types.json over tree-sitter-rust (182 rules, 11 externals); the community bundle built from the real source; a B-free consumer extracts a hand-authored rust task, checks active |
 | **3 — the deferred surface** | Job-2 stubs, scanner seeds, wasm probe, registry leak, residuals | **4 LANDED, 1 ASSESSED** (+1 DSL fix in the 6.5 follow-up) | Job-2 `.pyi` stubs landed (mypy-checked); 2 scanner seeds landed (heredoc + matched-delimiter); **registry leak fixed** (worse than documented); wasm **assessed-not-built** (as specced); name-inference + wrapper-field residuals documented-and-moved-on; **the optional-field-capture DSL gap FIXED** (§3.5 — `?` quantifiers) |
 
@@ -43,7 +43,7 @@ devenv shell -- python .scratch/006-tsquery-bridge/experiment_phase4.py
 
 ## 1. Run 1 — the packaging seam at the INSTALL boundary: GO
 
-The CONCEPT §8 distribution (tscore tiny / tsquery light / tsgrammar heavy)
+The CONCEPT §8 distribution (pydantree_sitter tiny / pydantree_sitter light / pydantree_sitter_grammar heavy)
 is now real at the packaging level — the monolith (`pyproject.toml`
 publishing one wheel with all six packages and `tree-sitter>=0.23`) is gone.
 
@@ -61,20 +61,20 @@ The root `pyproject.toml` is now the LEGACY distribution only (the deprecated
 
 | wheel | contents | deps |
 |---|---|---|
-| `pydantree-tscore-0.1.0` | 4 modules (`schema`, `loader`, `_ir_derive`, `__init__`) | pydantic>=2.11, **tree-sitter>=0.26** — **no tsgrammar** |
-| `pydantree-tsquery-0.1.0` | 6 modules | pydantree-tscore>=0.1, pydantic, **tree-sitter>=0.26** — **no tsgrammar** |
-| `pydantree-tsgrammar-0.1.0` | heavy: all modules + **`scanners/indent_scanner.c`** (package data) | pydantree-tscore>=0.1, pydantic, **tree-sitter>=0.26** |
+| `pydantree-pydantree_sitter-0.1.0` | 4 modules (`schema`, `loader`, `_ir_derive`, `__init__`) | pydantic>=2.11, **tree-sitter>=0.26** — **no pydantree_sitter_grammar** |
+| `pydantree-pydantree_sitter-0.1.0` | 6 modules | pydantree-pydantree_sitter>=0.1, pydantic, **tree-sitter>=0.26** — **no pydantree_sitter_grammar** |
+| `pydantree-pydantree_sitter_grammar-0.1.0` | heavy: all modules + **`scanners/indent_scanner.c`** (package data) | pydantree-pydantree_sitter>=0.1, pydantic, **tree-sitter>=0.26** |
 | `pydantree-0.1.2` | legacy wrapper + examples + data only | pydantic, tree-sitter>=0.26, tree-sitter-python |
 
 The `tree-sitter>=0.23` → `>=0.26` pin is tightened everywhere (the code uses
 0.26-only APIs: reparse, `field_name_for_child`, `node.id`, `is_missing`).
 
 **The fresh-venv end-to-end** (`experiment_run1.py`): `uv venv` + `uv pip
-install tscore==0.1.0 tsquery==0.1.0 tree-sitter-json` (a wheelhouse built
+install pydantree_sitter==0.1.0 pydantree_sitter==0.1.0 tree-sitter-json` (a wheelhouse built
 from the split wheels; the index resolves pydantic/tree-sitter/tree-sitter-json).
-Results, all in the fresh venv with tsgrammar genuinely absent:
+Results, all in the fresh venv with pydantree_sitter_grammar genuinely absent:
 
-- `import tsgrammar` → **ModuleNotFoundError** (rc 1) — the seam does not leak;
+- `import pydantree_sitter_grammar` → **ModuleNotFoundError** (rc 1) — the seam does not leak;
 - the Phase-5 cfg bundle round-trip (`Language.load_bundle` → Jobs 1/3/4 →
   the record + field ground truth) **passes**;
 - the community extraction (json schema over `tree_sitter_json` → Person
@@ -85,29 +85,29 @@ Results, all in the fresh venv with tsgrammar genuinely absent:
 
 **Two real distribution findings:**
 
-1. **The `tsquery` name is TAKEN on PyPI — RESOLVED by keeping pydantree.**
-   A real, GPL-licensed `tsquery` (Greg Werbin, 0.1.1) won the resolution
+1. **The `pydantree_sitter` name is TAKEN on PyPI — RESOLVED by keeping pydantree.**
+   A real, GPL-licensed `pydantree_sitter` (Greg Werbin, 0.1.1) won the resolution
    against our wheelhouse wheel (the fresh-venv install silently pulled it
    and the consumer broke). The Phase-6.5 decision: the distributions are
-   pydantree-BRANDED — `pydantree-tscore`, `pydantree-tsquery`,
-   `pydantree-tsgrammar` — while the import packages stay `tscore`/`tsquery`/
-   `tsgrammar` (no code churn; the dependency graph becomes
-   pydantree-tscore). The project identity is pydantree and the bare
-   `tsquery` collision no longer blocks publishing.
+   pydantree-BRANDED — `pydantree-pydantree_sitter`, `pydantree-pydantree_sitter`,
+   `pydantree-pydantree_sitter_grammar` — while the import packages stay `pydantree_sitter`/`pydantree_sitter`/
+   `pydantree_sitter_grammar` (no code churn; the dependency graph becomes
+   pydantree-pydantree_sitter). The project identity is pydantree and the bare
+   `pydantree_sitter` collision no longer blocks publishing.
 2. **The dev flow has a hardlink-staleness caveat.** Hatchling's editable
    install for the flat-layout packages hard-links the package files into
    site-packages. In-place edits propagate, but adding NEW files or rewriting
    a file (a new inode) leaves the installed copy stale — `uv pip install -e
-   src/tscore -e src/tsquery -e src/tsgrammar` must be re-run. This bit the
+   src/pydantree_sitter -e src/pydantree_sitter -e src/pydantree_sitter_grammar` must be re-run. This bit the
    suite twice this phase (new modules). Documented; a `devenv` task wrapping
    the editable install is the natural fix.
 
 **The B-free boundary needed a fix.** The Phase-5 sitecustomize stripped the
 editable `src/` path from `sys.path`; with the per-package editable installs
 the packages now live directly in site-packages (hard links), so the strip is
-no longer enough. The consumer sitecustomize now ALSO blocks `tsgrammar` at
+no longer enough. The consumer sitecustomize now ALSO blocks `pydantree_sitter_grammar` at
 the meta-path-finder level — the B-free boundary is enforced by construction,
-not by path hygiene, and the consumers still assert `import tsgrammar` fails.
+not by path hygiene, and the consumers still assert `import pydantree_sitter_grammar` fails.
 
 ---
 
@@ -130,7 +130,7 @@ layout-independent byproducts), and the derived schema is **byte-for-byte**
 the CLI's own node-types.json (278 kinds; `r2_schema_tool_agreement.txt`).
 `build_community_bundle` (source → `grammar.so` 1.1MB + `node-schema.json` +
 metadata + loader, the same 4-file bundle B's pipeline produces) builds the
-real grammar and a B-free consumer (`consumer_rust.py`, tsgrammar
+real grammar and a B-free consumer (`consumer_rust.py`, pydantree_sitter_grammar
 unimportable) extracts a hand-authored task with the checks active:
 4 function definitions (name/line), 2 with return types (add→u32,
 greet→String), 2 tuple structs' field types as a **field-mode list** over
@@ -228,7 +228,7 @@ truth: `r2b_markdown.txt` / `r2b_markdown_consumer.txt`, `ok: true`.
 ## 3. Run 3 — the deferred surface: 3 landed, 2 assessed
 
 ### 3.1 Job-2 `.pyi` stubs — LANDED
-`tsquery.stubs.generate_stubs(schema, out=...)` emits a `.pyi` beside the
+`pydantree_sitter.stubs.generate_stubs(schema, out=...)` emits a `.pyi` beside the
 schema (the Phase-4 "worth it after distribution" item — distribution is
 proven). Per named kind: field accessors (`def name(self) -> identifier |
 metavariable | None`, repeated fields `-> list[T]`), a `get(field)` overload
@@ -323,7 +323,7 @@ installs them, the B-free consumers copy `src/`).
 - **§11.3 toolchain packaging for B** — CONFIRMED FINE at the install
   boundary: B's toolchain (Rust CLI + gcc) lives entirely in the heavy
   wheel's world; the light install never resolves it (Run 1: `import
-  tsgrammar` fails, and the light wheels declare no tsgrammar dependency).
+  pydantree_sitter_grammar` fails, and the light wheels declare no pydantree_sitter_grammar dependency).
   B's scanner package data rides the heavy wheel (`scanners/indent_scanner.c`
   present there, absent from the light wheels — tested).
 - **§11.4 upstream churn** — the `tree-sitter>=0.26` pin is now a real
@@ -337,7 +337,7 @@ installs them, the B-free consumers copy `src/`).
   carry the current claim (§3.3).
 - **Newly surfaced:** (a) the exact-path derivation was never actually
   byte-for-byte (Phase-4 `_norm` masked it) — now fixed and pinned by tests;
-  (b) the registry `None`-key collision (§3.4); (c) the `tsquery` PyPI name
+  (b) the registry `None`-key collision (§3.4); (c) the `pydantree_sitter` PyPI name
   collision (§1); (d) the optional-field-capture DSL gap (§3.5); (e) the
   editable hardlink staleness (§1); (f) PATTERN tokens are never anonymous
   kinds and both-externals-in-one-state scanner states (probed facts the
@@ -359,7 +359,7 @@ where it wasn't (wasm — not needed for the claim).
 
 **The single most important next step: Phase 7 — real-user adoption, not
 more machinery.** The consumer seam is proven; what it needs now is a user.
-Concretely, in order: (1) **resolve the `tsquery` name problem** before any
+Concretely, in order: (1) **resolve the `pydantree_sitter` name problem** before any
 publishing (a renamed light distribution, or deliberate publishing to
 outrank the GPL package — this is the one blocker between "proven" and
 "installable-by-name"); (2) a real-user adoption pass (someone with a real

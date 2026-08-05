@@ -71,13 +71,13 @@ specced; bash is consumed, not authored.
 
 ## 2. Run 2 — the light-install consumer, BOTH real-user shapes: GO
 
-`experiment_run2.py` builds the light wheels (`pydantree-tscore` +
-`pydantree-tsquery` from src/), creates a FRESH venv with ONLY those +
+`experiment_run2.py` builds the light wheels (`pydantree-pydantree_sitter` +
+`pydantree-pydantree_sitter` from src/), creates a FRESH venv with ONLY those +
 `tree-sitter-bash` **0.25.1 from the real index**, builds the community
 bundle in-repo, and runs the SAME consumer (`consumer_bash.py`) in three
 shapes:
 
-| run | interpreter | tsgrammar | rows vs hand truth |
+| run | interpreter | pydantree_sitter_grammar | rows vs hand truth |
 |---|---|---|---|
 | in-repo bundle | devenv python (B importable) | importable | ok=True |
 | fresh-venv bundle | fresh venv, `Language.load_bundle(dir)` | **unimportable (rc 1)** | ok=True |
@@ -86,7 +86,7 @@ shapes:
 The extraction payloads are **byte-identical across all three**
 (`r8_r2_byte_identical.txt`: all three comparisons true) — the A-surface
 comparison from Phase 5/6 over a fifth grammar. The seam does not leak:
-`import tsgrammar` fails in the light install.
+`import pydantree_sitter_grammar` fails in the light install.
 
 **Where the wheel and bundle shapes differ for a real user (the honest
 answer to the kickoff's question):**
@@ -96,7 +96,7 @@ answer to the kickoff's question):**
    binding the derived schema EXPLICITLY: `Language.load(
    tree_sitter_bash.language(), schema="node-schema.json")`. A wheel ships
    no schema — the user must obtain one (this example ships it; for an
-   arbitrary grammar: run the B-side schema tool once, or `tscore.schema`
+   arbitrary grammar: run the B-side schema tool once, or `pydantree_sitter.schema`
    directly). That is the ONE real extra step the wheel shape imposes — and
    it is exactly the seam's design (the schema is the bridge, derived at
    build time, consumed B-free).
@@ -172,7 +172,7 @@ extraction, prints typed rows, self-checks vs `ground_truth.json`),
 shape works with zero B), the three corpus scripts, and a README a new user
 follows: `uv venv` + light wheels + `tree-sitter-bash` + `python extract.py`
 → typed rows. **Verified in a FRESH venv exactly as a new user runs it**
-(`r8_r4_example_fresh_venv.txt`: `import tsgrammar` fails, 34 rows match).
+(`r8_r4_example_fresh_venv.txt`: `import pydantree_sitter_grammar` fails, 34 rows match).
 Also runs from the dev venv via `--bundle`.
 
 ### The friction catalog — every real-user stumble, with the escape hatch
@@ -231,9 +231,9 @@ installed-by-name from a real index (every wheel-shape test here used
 `--find-links` wheelhouses + the ONE community wheel `tree-sitter-bash`).
 A rehearsal would: publish the three distributions to a real index
 (Tokenless/devpi or Test PyPI), install them BY NAME into a fresh venv
-(`uv pip install pydantree-tscore pydantree-tsquery`), run this exact bash
+(`uv pip install pydantree-pydantree_sitter pydantree-pydantree_sitter`), run this exact bash
 example, and retire the "resolved-in-name but unrehearsed" asterisk. It
-should NOT happen before the `tsquery` name-collision note is re-verified
+should NOT happen before the `pydantree_sitter` name-collision note is re-verified
 (the pydantree-branding decision is committed, not re-litigated here).
 Second-order candidates (explicitly NOT this phase's job): the mixed-
 pattern ordering UX (early error / reorder), per-language scanner copies on

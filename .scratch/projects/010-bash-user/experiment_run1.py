@@ -68,7 +68,7 @@ def main() -> int:
 
     # 1. the schema tool over the real source (the tool's contract)
     banner("1. schema tool -> byte-for-byte vs the CLI's fresh node-types.json")
-    from tsgrammar.schema_tool import derive_schema_for_dir
+    from pydantree_sitter_grammar.schema_tool import derive_schema_for_dir
     tmp = Path(tempfile.mkdtemp(prefix="phase8-r1-"))
     schema_out = tmp / "bash-schema.json"
     derived = derive_schema_for_dir(BASH_FIXTURE, name="bash",

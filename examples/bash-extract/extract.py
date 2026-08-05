@@ -9,7 +9,7 @@ Usage (the "hundreds of grammars" shape — light wheels + a community wheel):
 
     uv venv --python 3.13 .venv
     uv pip install --python .venv/bin/python \
-        pydantree-tscore pydantree-tsquery tree-sitter-bash
+        pydantree-sitter pydantree-sitter tree-sitter-bash
     .venv/bin/python extract.py
 
 (Or, over a pydantree bundle: `python extract.py --bundle <bundle-dir>`.)
@@ -29,7 +29,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 
-from tsquery import Language, M, OutputModel, capture, capture_kind, source_meta
+from pydantree_sitter import Language, M, OutputModel, capture, capture_kind, source_meta
 
 
 class FunctionDef(OutputModel):

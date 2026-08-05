@@ -1,9 +1,9 @@
 ---
 name: pydantree-grammar
-description: Author tree-sitter grammars with tsgrammar (Product B) — the Pydantic DSL, static checks, the conflict loop, expressions/precedence ladders, external scanners, the corpus harness, bundles, and the community-grammar schema tool. Use when building or modifying a grammar for use with pydantree.
+description: Author tree-sitter grammars with pydantree_sitter_grammar (Product B) — the Pydantic DSL, static checks, the conflict loop, expressions/precedence ladders, external scanners, the corpus harness, bundles, and the community-grammar schema tool. Use when building or modifying a grammar for use with pydantree.
 ---
 
-# pydantree — authoring grammars (tsgrammar, Product B)
+# pydantree — authoring grammars (pydantree_sitter_grammar, Product B)
 
 Write tree-sitter grammars in Pydantic: `Grammar DSL -> grammar.json ->
 tree-sitter generate -> gcc -> .so -> bundle`. Full reference:
@@ -12,7 +12,7 @@ tree-sitter generate -> gcc -> .so -> bundle`. Full reference:
 ## The shape
 
 ```python
-import tsgrammar as tg
+import pydantree_sitter_grammar as tg
 
 g = tg.Grammar("cfg")
 g.rule("identifier", tg.pattern(r"[a-zA-Z_][a-zA-Z0-9_]*"), word=True)
@@ -77,7 +77,7 @@ semantic regressions (associativity flips, ladder reorders, dropped
 supertypes) that generate-clean code ships anyway:
 
 ```python
-from tsgrammar.corpus import Corpus, corpus_case
+from pydantree_sitter_grammar.corpus import Corpus, corpus_case
 corpus = Corpus([
     corpus_case("1 + 2 + 3;", "((number) + ((number) + (number)))",
                 name="+ left-assoc", selector="expr"),
@@ -91,7 +91,7 @@ assert result.ok(), result.report()
 ```python
 bundle = result.package("dist/cfg-bundle")     # 4-file bundle for A
 
-from tsgrammar.schema_tool import build_community_bundle, derive_schema_for_dir
+from pydantree_sitter_grammar.schema_tool import build_community_bundle, derive_schema_for_dir
 build_community_bundle("tree-sitter-rust-checkout", "dist/rust-bundle", name="rust")
 schema = derive_schema_for_dir("grammar-src-dir", out="node-schema.json")
 ```
@@ -105,6 +105,6 @@ schema = derive_schema_for_dir("grammar-src-dir", out="node-schema.json")
 - Run everything through `devenv shell`; the venv resolves `src/` directly
   (the `_pydantree_src.pth`), so new files are immediately importable — no
   reinstall. `uv lock` after dependency changes.
-- Real example grammars to copy from: `../../../../.scratch/projects/006-tsquery-bridge/cfg_grammar.py`
+- Real example grammars to copy from: `../../../../.scratch/projects/006-query-bridge/cfg_grammar.py`
   (a config language), `../../../../.scratch/projects/009-phase7/{pyindent,bashmini}.py`
   (scanner grammars), `tests/fixtures/rust/` (a real community grammar).

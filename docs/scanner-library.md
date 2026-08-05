@@ -34,7 +34,7 @@ developers adding a per-language scanner copy to the library.
    cache.
 
 4. **The scanner ships as package data in the heavy wheel**
-   (`pydantree-tsgrammar`), reachable via the library table:
+   (`pydantree-sitter-grammar`), reachable via the library table:
 
    ```python
    tg.scanner_for("pyindent")    # -> Path to py_indent_scanner.c (or None)
@@ -100,7 +100,7 @@ EOF (strict, not silently swallowed).
    scope line: the MECHANISM is what's reusable (e.g. the indentation
    cadence, the heredoc queue); string/expansion subtleties are usually
    out of scope and should be documented as such in the file header.
-2. **Write the scanner** at `src/tsgrammar/scanners/<name>_scanner.c`:
+2. **Write the scanner** at `src/pydantree_sitter_grammar/scanners/<name>_scanner.c`:
    - `enum TokenType` matching the `g.external(...)` order;
    - the five entry points named `tree_sitter_<grammar>_external_scanner_
      {create,destroy,serialize,deserialize,scan}`;
@@ -118,8 +118,8 @@ EOF (strict, not silently swallowed).
    harness) + a parse-error case (what the scanner REFUSES) + a
    `scanner_for` registration check.
 5. **Register**: add a `*_scanner_path()` helper + a `_CANONICAL` entry in
-   `src/tsgrammar/scanners/__init__.py`, re-export from
-   `tsgrammar/__init__.py` (`__all__` too).
+   `src/pydantree_sitter_grammar/scanners/__init__.py`, re-export from
+   `pydantree_sitter_grammar/__init__.py` (`__all__` too).
 6. **Nothing to reinstall** — the dev venv resolves `src/` directly (the
    `_pydantree_src.pth`), so new scanner files are immediately importable.
 7. **Verify the wheel**: `tests/test_packaging.py` builds the heavy wheel

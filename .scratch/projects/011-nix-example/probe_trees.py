@@ -3,7 +3,7 @@
 fleet-inventory models must express). Not extraction — just reading trees."""
 import sys
 sys.path.insert(0, "src")
-from tscore.loader import load_bundle
+from pydantree_sitter.loader import load_bundle
 import tree_sitter as ts
 
 lang = load_bundle("/tmp/phase9/bundle9").language

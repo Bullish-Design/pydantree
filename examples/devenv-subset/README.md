@@ -1,9 +1,9 @@
 # devenv-subset — BOTH halves of pydantree, end to end
 
-This example does what neither half alone can: **Product B (tsgrammar)
+This example does what neither half alone can: **Product B (pydantree_sitter_grammar)
 authors a small grammar for the "devenv config surface" — the shapes real
 `devenv.nix` files actually use — and builds it into a bundle; Product A
-(tsquery) consumes that bundle as typed rows, with record mode working and
+(pydantree_sitter) consumes that bundle as typed rows, with record mode working and
 position-correct lines.** The corpus is four of the author's own sanitized
 `devenv.nix` configs (8–221 lines), the same ones the `../devenv-extract/`
 example consumed through the upstream tree-sitter-nix grammar.
@@ -26,7 +26,7 @@ One script, both halves:
 
 The B-free shape is the same bundle: copy `dist/devenv-bundle` next to a
 consumer that only installs the light wheels
-(`pydantree-tscore pydantree-tsquery`) — `import tsgrammar` is impossible
+(`pydantree-sitter pydantree-sitter`) — `import pydantree_sitter_grammar` is impossible
 there and the extraction still runs (the same separation `../devenv-extract/`
 demonstrates over the community wheel).
 

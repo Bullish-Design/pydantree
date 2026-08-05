@@ -27,7 +27,7 @@ behavioral flags (`Extra`, `Supertype`, `Hidden`, `Inline`, `Word`) as
 **subclasses**. A small `assemble(name, start=...)` compiles the classes into
 the existing builder, so `build()` returns the very same `tg.Grammar` —
 `run_checks`, `build_builder`, the scanner wiring, and Product A are
-untouched **by construction**. A small `tsgrammar.patterns` helper set
+untouched **by construction**. A small `pydantree_sitter_grammar.patterns` helper set
 replaces hand-written regexes with composable, verified strings. The proven
 claim: the devenv grammar (17 rules, externals, scanner, supertypes) written
 in this surface emits grammar.json identical to today's builder-DSL file —
@@ -60,11 +60,11 @@ hatch), and the rule-class surface becomes the primary authoring path.
 ```python
 from typing import Literal
 
-import tsgrammar as tg
-from tsgrammar import (
+import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar import (
     External, Extra, Pattern, R, Rule, Supertype, Token, assemble,
 )
-from tsgrammar.patterns import dotted_path, integer, path_literal, rest_of_line
+from pydantree_sitter_grammar.patterns import dotted_path, integer, path_literal, rest_of_line
 
 class Comment(Extra, Token):                 # behavioral kinds are MIXINS
     __body__ = tg.seq("#", tg.pattern(rest_of_line()))
@@ -132,7 +132,7 @@ Attribute order = production order (Python preserves annotation order).
   The cycle points fall back to the underlying DSL's own string spelling —
   zero new machinery, and it is exactly what the builder DSL writes today.
 
-### 2.4 Pattern helpers (`tsgrammar.patterns`)
+### 2.4 Pattern helpers (`pydantree_sitter_grammar.patterns`)
 
 Composable **regex strings** in the tree-sitter lexer subset (no
 backreferences, no lookaround):
@@ -215,13 +215,13 @@ them.
 
 ## 6. Implementation shape
 
-- **New module(s) in `src/tsgrammar/`** — the metaclass + kinds +
+- **New module(s) in `src/pydantree_sitter_grammar/`** — the metaclass + kinds +
   compilation + `assemble()` (working name `rules.py`) and the helper set
   (`patterns.py`). The venv resolves `src/` directly (no reinstall); the
   hatch force-include already ships the whole package dir.
-- **Exports** via `tsgrammar/__init__.py`: `Rule`, `Pattern`, `Token`,
+- **Exports** via `pydantree_sitter_grammar/__init__.py`: `Rule`, `Pattern`, `Token`,
   `External`, `Extra`, `Supertype`, `Hidden`, `Inline`, `Word`, `R`,
-  `assemble`, plus `tsgrammar.patterns`.
+  `assemble`, plus `pydantree_sitter_grammar.patterns`.
 - **Source sites** for conflict remapping come for free: the class
   definition line and each annotated attribute's line are finer-grained
   `GrammarConflictError` targets than combinator call sites (design target —
@@ -261,7 +261,7 @@ them.
    `patterns` set in the first cut? Prefer minimal; the byte-identity test
    for each helper is the cost of adding one.
 5. **Naming** — `rules.py` vs `models.py`; whether the kinds live in
-   `tsgrammar.rules` and are re-exported flat.
+   `pydantree_sitter_grammar.rules` and are re-exported flat.
 
 ## 9. Non-goals
 
@@ -286,6 +286,6 @@ This directory (`.scratch/013-rule-classes/`) is the implementation project:
    the class surface; end-to-end run against the ground truth; verdict in
    `FINDINGS.md` (REFACTOR step 9).
 
-Deliverable: the class surface as a first-class `tsgrammar` authoring path,
+Deliverable: the class surface as a first-class `pydantree_sitter_grammar` authoring path,
 with the byte-identity gate as its regression test, and the devenv example as
 its canonical demonstration.

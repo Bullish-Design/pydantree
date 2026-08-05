@@ -2,8 +2,8 @@
 
 Covers: BuildResult.package() emits a shippable bundle (grammar.so +
 node-schema.json + tree-sitter.json metadata + a 7-line loader that delegates
-to tscore's shared loading contract); tsquery.Language.load_bundle consumes
-it in ONE call; the bundle is consumed in a SEPARATE process where tsgrammar
+to pydantree_sitter's shared loading contract); pydantree_sitter.Language.load_bundle consumes
+it in ONE call; the bundle is consumed in a SEPARATE process where pydantree_sitter_grammar
 is NOT importable (sitecustomize strips the editable src/ install) with the
 Phase-4 ground truth passing and the checks active; the community-schema tool
 (grammar dir -> CLI generate -> node-types.json -> derive_from_node_types ->
@@ -21,13 +21,13 @@ from pathlib import Path
 
 import pytest
 
-import tsgrammar as tg
-from tsquery import (
+import pydantree_sitter_grammar as tg
+from pydantree_sitter import (
     Language, M, OutputModel, capture, capture_kind, source_meta,
 )
 
-BRIDGE_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "006-tsquery-bridge"
-P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "007-tsquery-distribution"
+BRIDGE_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "006-query-bridge"
+P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "007-query-distribution"
 sys.path.insert(0, str(BRIDGE_DIR))
 sys.path.insert(0, str(P5_DIR))
 
@@ -45,9 +45,9 @@ from cfg_grammar import (  # noqa: E402
     build as build_cfg,
 )
 from json_grammar import build as build_json  # noqa: E402
-from tsgrammar.language import load_language  # noqa: E402
-from tsquery.schema import check_model_schema  # noqa: E402
-from tscore.schema import NodeSchema, derive_from_ir  # noqa: E402
+from pydantree_sitter_grammar.language import load_language  # noqa: E402
+from pydantree_sitter.model_schema import check_model_schema  # noqa: E402
+from pydantree_sitter.schema import NodeSchema, derive_from_ir  # noqa: E402
 
 
 class ServerSection(OutputModel):
@@ -92,8 +92,8 @@ def test_package_bundle_layout_and_loader():
         assert meta["schema"] == "node-schema.json"
         loader_lines = (bundle / "loader.py").read_text().splitlines()
         assert len(loader_lines) <= 8, loader_lines
-        assert "tscore.loader" in (bundle / "loader.py").read_text()
-        assert "tsgrammar" not in (bundle / "loader.py").read_text()
+        assert "pydantree_sitter.loader" in (bundle / "loader.py").read_text()
+        assert "pydantree_sitter_grammar" not in (bundle / "loader.py").read_text()
 
 
 def test_load_bundle_one_liner_checks_and_truth(tmp_path):
@@ -123,7 +123,7 @@ def test_bundle_consumed_in_bfree_subprocess(tmp_path):
     assert data["sections"] == SECTION_GROUND_TRUTH
     assert data["directives"] == LISTEN_GROUND_TRUTH
     assert data["schema_bound"] is True
-    assert "tsgrammar" not in out  # the consumer asserts B is unimportable
+    assert "pydantree_sitter_grammar" not in out  # the consumer asserts B is unimportable
 
 
 def test_bfree_consumer_surface_byte_identical(tmp_path):
@@ -143,7 +143,7 @@ def test_bfree_consumer_surface_byte_identical(tmp_path):
 # ---------------------------------------------------------------------------
 
 def test_community_schema_tool_agrees_and_feeds_bfree_consumer(tmp_path):
-    from tsgrammar.schema_tool import derive_schema_for_dir
+    from pydantree_sitter_grammar.schema_tool import derive_schema_for_dir
     json_model = build_json().build()
     # materialize the json grammar source dir (grammar.json + tree-sitter.json)
     src_dir = tmp_path / "json_grammar"
@@ -169,7 +169,7 @@ def test_community_schema_tool_agrees_and_feeds_bfree_consumer(tmp_path):
 
 
 def test_community_schema_tool_cli(tmp_path):
-    """The one-command tool: `python -m tsgrammar.schema_tool <dir>`."""
+    """The one-command tool: `python -m pydantree_sitter_grammar.schema_tool <dir>`."""
     import os
     import subprocess
     json_model = build_json().build()
@@ -177,7 +177,7 @@ def test_community_schema_tool_cli(tmp_path):
     json_model.emit_bundle(src_dir)
     env = dict(os.environ)
     proc = subprocess.run(
-        [sys.executable, "-m", "tsgrammar.schema_tool", str(src_dir),
+        [sys.executable, "-m", "pydantree_sitter_grammar.schema_tool", str(src_dir),
          "-o", str(tmp_path / "out.json"), "-n", "json"],
         capture_output=True, text=True, env=env, check=False)
     assert proc.returncode == 0, proc.stderr
@@ -199,7 +199,7 @@ def test_schema_tool_over_real_rust_source_byte_for_byte(tmp_path):
     11 externals): derive_schema_for_dir accepts the community layout, runs
     the CLI, and the derived schema is byte-for-byte the CLI's own
     node-types.json — no normalization, no shape differences."""
-    from tsgrammar.schema_tool import derive_schema_for_dir
+    from pydantree_sitter_grammar.schema_tool import derive_schema_for_dir
     out = tmp_path / "rust-schema.json"
     derived = derive_schema_for_dir(RUST_FIXTURE, name="rust",
                                     workdir=tmp_path / "cw",
@@ -212,9 +212,9 @@ def test_schema_tool_over_real_rust_source_byte_for_byte(tmp_path):
 def test_community_bundle_build_and_bfree_extraction(tmp_path):
     """The full Run-2 path over a grammar we don't own: community source ->
     build_community_bundle (generate + gcc + schema + metadata + loader) ->
-    B-free consumer (tsgrammar unimportable) -> hand-authored rust ground
+    B-free consumer (pydantree_sitter_grammar unimportable) -> hand-authored rust ground
     truth, checks active."""
-    from tsgrammar.schema_tool import build_community_bundle
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(RUST_FIXTURE, tmp_path / "bundle",
                                     name="rust", keep=True)
     assert set(p.name for p in bundle.iterdir()) == {
@@ -229,7 +229,7 @@ def test_community_bundle_build_and_bfree_extraction(tmp_path):
         ["add", "main", "greet", "no_return"]
     assert data["tuple_structs"][0] == {
         "name": "Point", "types": ["f64", "f64"], "line": 18}
-    assert "tsgrammar" not in out
+    assert "pydantree_sitter_grammar" not in out
 
 
 def test_community_job1_catches_bad_path_over_real_rust(tmp_path):
@@ -237,8 +237,8 @@ def test_community_job1_catches_bad_path_over_real_rust(tmp_path):
     names a kind the grammar cannot produce (tuple_type is not a node kind in
     rust — struct_item -> ordered_field_declaration_list directly) is
     rejected at validate_with, before any text is parsed."""
-    from tsgrammar.schema_tool import build_community_bundle
-    from tsquery import SchemaCheckError
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
+    from pydantree_sitter import SchemaCheckError
     bundle = build_community_bundle(RUST_FIXTURE, tmp_path / "bundle",
                                     name="rust", keep=True)
     lang = Language.load_bundle(bundle)
@@ -260,7 +260,7 @@ def test_optional_field_capture_is_query_optional(tmp_path):
     a required capture (no Optional, no real default) stays required. This is
     the fix for the Phase-6 finding that `str | None = capture(...)` silently
     excluded every node lacking the field (real rust `fn no_return() {}`)."""
-    from tsgrammar.schema_tool import build_community_bundle
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(RUST_FIXTURE, tmp_path / "bundle",
                                     name="rust", keep=True)
     lang = Language.load_bundle(bundle)
@@ -298,7 +298,7 @@ def test_capture_kind_optionality_quantifies_only_optional_fields(tmp_path):
     materialization with "field required" — surfaced over real bash's
     positional heredoc children). Optional capture_kind fields keep `?`
     (an absent child materializes None)."""
-    from tsgrammar.schema_tool import build_community_bundle
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(BASH_FIXTURE, tmp_path / "bundle",
                                     name="bash", keep=True)
     lang = Language.load_bundle(bundle)
@@ -331,7 +331,7 @@ def test_markdown_community_bundle_and_bfree_extraction(tmp_path):
     FIELD, fenced code via the capture_kind() child-by-kind surface) and
     INLINE elements (code spans / emphasis / strong / links via a nested
     parse of the injected-style `inline` nodes) against hand truth."""
-    from tsgrammar.schema_tool import build_community_bundle
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     md = Path(__file__).resolve().parent / "fixtures" / "markdown"
     mdi = Path(__file__).resolve().parent / "fixtures" / "markdown-inline"
     block = build_community_bundle(md, tmp_path / "b-block", name="markdown")
@@ -347,7 +347,7 @@ def test_markdown_community_bundle_and_bfree_extraction(tmp_path):
     assert data["fenced"][0]["info"] == "python"
     assert data["code_spans"] == ["`code`"]
     assert data["links"] == [{"dest": "https://example.com", "line": 3}]
-    assert "tsgrammar" not in out
+    assert "pydantree_sitter_grammar" not in out
 
 
 def test_capture_kind_job1_rejects_non_child(tmp_path):
@@ -355,8 +355,8 @@ def test_capture_kind_job1_rejects_non_child(tmp_path):
     anchor is rejected before parsing (real markdown: `language` sits under
     info_string, not on fenced_code_block; `link_destination` sits under
     inline_link, not on inline)."""
-    from tsgrammar.schema_tool import build_community_bundle
-    from tsquery import SchemaCheckError
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
+    from pydantree_sitter import SchemaCheckError
     md = Path(__file__).resolve().parent / "fixtures" / "markdown"
     block = build_community_bundle(md, tmp_path / "b-block", name="markdown")
     lang = Language.load_bundle(block)
@@ -386,7 +386,7 @@ def test_schema_tool_over_real_nix_source_byte_for_byte(tmp_path):
     node-types.json — no normalization. (The vendored oracle differs by the
     root/extra serialization flags only — a newer CLI generated it; the tool
     tracks the installed CLI by construction.)"""
-    from tsgrammar.schema_tool import derive_schema_for_dir
+    from pydantree_sitter_grammar.schema_tool import derive_schema_for_dir
     out = tmp_path / "nix-schema.json"
     derived = derive_schema_for_dir(NIX_FIXTURE, name="nix",
                                     workdir=tmp_path / "cw",
@@ -413,11 +413,11 @@ def test_schema_tool_over_real_nix_source_byte_for_byte(tmp_path):
 
 def test_community_bundle_build_and_bfree_fleet_extraction(tmp_path):
     """The full Run-2 path over the real nix grammar: community source ->
-    build_community_bundle -> B-free consumer (tsgrammar unimportable) -> the
+    build_community_bundle -> B-free consumer (pydantree_sitter_grammar unimportable) -> the
     fleet-inventory task over the vendored real devenv.nix files, matching
     the hand truth (130 rows across all seven configs, byte-computed lines —
     the position-bug workaround)."""
-    from tsgrammar.schema_tool import build_community_bundle
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(NIX_FIXTURE, tmp_path / "bundle",
                                     name="nix", keep=True)
     assert set(p.name for p in bundle.iterdir()) == {
@@ -437,7 +437,7 @@ def test_community_bundle_build_and_bfree_fleet_extraction(tmp_path):
         {"repo": "flora", "name": "pkgs.rsync", "line": 51},
         {"repo": "flora", "name": "pkgs.openssh", "line": 51},
     ]
-    assert data["tsgrammar_importable"] is False  # the seam does not leak
+    assert data["pydantree_sitter_grammar_importable"] is False  # the seam does not leak
 
 
 def test_nix_attrpath_capture_rejected_as_str(tmp_path):
@@ -445,8 +445,8 @@ def test_nix_attrpath_capture_rejected_as_str(tmp_path):
     of identifiers + dots) — Job 4 rejects capturing it as str (the
     Phase-8 'no raw text of any node' residual, triggered hard over nix: the
     KEY of every nix binding is context, not a capture)."""
-    from tsgrammar.schema_tool import build_community_bundle
-    from tsquery import SchemaCheckError
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
+    from pydantree_sitter import SchemaCheckError
     bundle = build_community_bundle(NIX_FIXTURE, tmp_path / "bundle",
                                     name="nix", keep=True)
     lang = Language.load_bundle(bundle)
@@ -466,8 +466,8 @@ def test_record_mode_over_nix_binding_set_unsupported(tmp_path):
     key/value fields (the JSON pair shape); nix's binding_set carries a
     `binding` FIELD with attrpath/expression. A documented parameterization
     candidate, not a fit today."""
-    from tsgrammar.schema_tool import build_community_bundle
-    from tsquery import M, OutputModel, UnsupportedShapeError
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
+    from pydantree_sitter import M, OutputModel, UnsupportedShapeError
     bundle = build_community_bundle(NIX_FIXTURE, tmp_path / "bundle",
                                     name="nix", keep=True)
     lang = Language.load_bundle(bundle)

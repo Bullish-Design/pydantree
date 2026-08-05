@@ -3,7 +3,7 @@
 Phase 8 — Run 2: the bash consumer through the LIGHT install, BOTH
 real-user shapes, byte-identical.
 
-  1. the wheels: pydantree-tscore + pydantree-tsquery built from src/
+  1. the wheels: pydantree-pydantree_sitter + pydantree-pydantree_sitter built from src/
      (uv build) into a wheelhouse;
   2. a FRESH venv with ONLY the light wheels + tree-sitter-bash from the
      REAL index (the wheel shape's "hundreds of grammars" install);
@@ -37,7 +37,7 @@ EVIDENCE.mkdir(parents=True, exist_ok=True)
 
 CONSUMER = Path(__file__).parent / "consumer_bash.py"
 CORPUS = ROOT / "examples" / "bash-extract"
-SITECUSTOMIZE = (ROOT / ".scratch" / "007-tsquery-distribution"
+SITECUSTOMIZE = (ROOT / ".scratch" / "007-query-distribution"
                  / "consumer_env" / "sitecustomize.py")
 BASH_FIXTURE = ROOT / "tests" / "fixtures" / "bash"
 
@@ -71,10 +71,10 @@ def main() -> int:
     banner("Run 2 — the light-install bash consumer, both shapes")
 
     # 0. build the light wheels
-    banner("0. build the light wheels (tscore + tsquery)")
+    banner("0. build the light wheels (pydantree_sitter + pydantree_sitter)")
     wheelhouse = tmp / "wheels"
     wheelhouse.mkdir()
-    for pkg in ("tscore", "tsquery"):
+    for pkg in ("pydantree_sitter", "pydantree_sitter"):
         p = run(["uv", "build", "--out-dir", str(wheelhouse)],
                 cwd=SRC / pkg)
         assert p.returncode == 0, p.stderr or p.stdout
@@ -87,15 +87,15 @@ def main() -> int:
     assert p.returncode == 0, p.stderr or p.stdout
     p = run(["uv", "pip", "install", "--python", str(venv / "bin" / "python"),
              "--find-links", str(wheelhouse),
-             "pydantree-tscore==0.1.0", "pydantree-tsquery==0.1.0",
+             "pydantree-pydantree_sitter==0.1.0", "pydantree-pydantree_sitter==0.1.0",
              "tree-sitter-bash"],
             env={**os.environ, "UV_HTTP_TIMEOUT": "300"})
     assert p.returncode == 0, p.stderr or p.stdout
-    # the seam does not leak: tsgrammar unimportable in the light install
+    # the seam does not leak: pydantree_sitter_grammar unimportable in the light install
     p = run([str(venv / "bin" / "python"), "-c",
-             "import tsgrammar"])
+             "import pydantree_sitter_grammar"])
     tsg_rc = p.returncode
-    print(f"  fresh venv `import tsgrammar` rc: {tsg_rc} (must be != 0)")
+    print(f"  fresh venv `import pydantree_sitter_grammar` rc: {tsg_rc} (must be != 0)")
     p = run([str(venv / "bin" / "python"), "-c",
              "import tree_sitter_bash, importlib.metadata; "
              "print(importlib.metadata.version('tree-sitter-bash'))"])
@@ -104,14 +104,14 @@ def main() -> int:
 
     # 2. the community bundle (in-repo, B available)
     banner("2. the community bundle from the vendored source")
-    from tsgrammar.schema_tool import build_community_bundle
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(BASH_FIXTURE, tmp / "bundle",
                                     name="bash", keep=True)
     sizes = {p.name: p.stat().st_size for p in bundle.iterdir()}
     print(json.dumps(sizes, indent=2))
     save("r8_r2_bundle_manifest.txt", json.dumps(sizes, indent=2) + "\n")
 
-    # 3. the consumer env (sitecustomize blocks tsgrammar by construction)
+    # 3. the consumer env (sitecustomize blocks pydantree_sitter_grammar by construction)
     banner("3. consumer env (B-free boundary by construction)")
     env = tmp / "consumer_env"
     (env / "lib").mkdir(parents=True)
@@ -129,7 +129,7 @@ def main() -> int:
     def go(label: str, python: str, extra_env: dict, *args: str) -> str:
         e = dict(os.environ) if label.startswith("inrepo") else {**pyenv, **extra_env}
         if label.startswith("inrepo"):
-            # the in-repo run resolves tscore/tsquery from src/ via the
+            # the in-repo run resolves pydantree_sitter/pydantree_sitter from src/ via the
             # devenv's _pydantree_src.pth — NO sitecustomize (it strips
             # the src/ path), and B stays importable
             e = {**os.environ, **extra_env}
@@ -174,7 +174,7 @@ def main() -> int:
           if ok else "NO-GO")
     save("r8_r2_verdict.txt",
          f"verdict: {'GO' if ok else 'NO-GO'}\n"
-         f"fresh `import tsgrammar` rc: {tsg_rc} (seam does not leak)\n"
+         f"fresh `import pydantree_sitter_grammar` rc: {tsg_rc} (seam does not leak)\n"
          f"tree-sitter-bash wheel: {wheel_version}\n")
     return 0 if ok else 1
 

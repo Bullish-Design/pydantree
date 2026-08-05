@@ -46,14 +46,47 @@ cache).
   target collided with the existing `001-pydantic-winnow-parser`; used the
   next free numbers). CONCEPT.md path references fixed; .gitignore spike
   paths re-pointed.
-- **Wasm:** `src/tscore/_wasm_bridge.py` → `.scratch/projects/009-phase7/wasm_bridge.py`;
+- **Wasm:** `src/pydantree_sitter/_wasm_bridge.py` → `.scratch/projects/009-phase7/wasm_bridge.py`;
   `loader.py`'s wasm branch now raises `WasmRuntimeUnavailableError`
   unconditionally (env-var protocol moved to the moved file's docstring);
   deleted the env-gated real-load test and the `/tmp/rust-bundle`
   non-hermetic test; kept the unavailable-error test (asserts the new error
   names the bridge's scratch home).
-- **Truth pass:** `tscore/__init__.py` false docstring fixed (T-9);
+- **Truth pass:** `pydantree_sitter/__init__.py` false docstring fixed (T-9);
   `docs/architecture.md` module map + wasm seam line; `docs/development.md`;
-  `src/tscore/README.md`.
+  `src/pydantree_sitter/README.md`.
 - **Grep gate:** `grep -rn "pydantree" src/` hits only dist-name strings
   kept until Phase 2.
+
+## Gate 2 — the rename + two-package fold (D1, D2) — mechanical, no logic changes
+
+- **Suite:** 203 passed, 5 xfailed (55.2s) — Gate-1 count + the one test 2.6
+  mandates (`test_importing_light_never_imports_heavy`). The subprocess B-free
+  isolation tests pass against the new names.
+- **Layout:** `src/pydantree_sitter/` (light: schema.py + loader.py +
+  _ir_derive.py from the old seam; typed/dsl/materialize/shapes/stubs +
+  schema→`model_schema.py` from the old A package) and
+  `src/pydantree_sitter_grammar/` (heavy: builder/checks/conflicts/corpus/
+  expressions/language/patterns/pipeline/rules/schema_tool/scanners;
+  `grammar.py`→`ir.py`). Old `src/tscore`, `src/tsquery`, `src/tsgrammar`
+  deleted. Both packages get pyproject.toml (`pydantree-sitter` /
+  `pydantree-sitter-grammar`, 0.1.0), py.typed, LICENSE.
+- **Import rewrite:** mechanical across src/tests/examples/docs/.agents +
+  the .scratch fixtures/consumers the tests stand on. `ir.GrammarModel`
+  (class renamed); `Rule` = the authoring base only, the IR union lives at
+  `ir.Rule` and is out of `__all__` (F-B7, 2.4). The `.scratch` evidence dirs
+  whose names embedded the old product names were renamed so the Gate-2 grep
+  can be empty by construction: `004-tsgrammar`→`004-grammar`,
+  `005-tsgrammar-glr`→`005-grammar-glr`, `006-tsquery-bridge`→`006-query-bridge`,
+  `007-tsquery-distribution`→`007-query-distribution` (81 refs re-pointed).
+- **Dev flow (2.5):** root pyproject members+sources → the two new names;
+  `uv lock`; `devenv.nix` `.pth` globs `lib/python*/site-packages` (P-8:
+  python3.13 no longer hardcoded) and names the new packages;
+  `tests/conftest.py`; `.agents/skills/*` re-pointed (the mechanical sed
+  mangled name triples/dist names — hand-repaired).
+- **Edges (2.6):** light depends on pydantic + tree-sitter; heavy depends on
+  `pydantree-sitter>=0.1`. Wheel-content tests rewritten for the two
+  distributions; fresh-venv light install proves B-free against real
+  artifacts; new in-process B-free import test.
+- **Gate grep:** `grep -rn "tscore\|tsquery\|tsgrammar" src tests examples docs`
+  → empty.

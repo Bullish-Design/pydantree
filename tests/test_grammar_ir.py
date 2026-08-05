@@ -1,4 +1,4 @@
-"""IR tests: the Grammar model mirrors the real 0.25.3 grammar.json schema and
+"""IR tests: the GrammarModel model mirrors the real 0.25.3 grammar.json schema and
 round-trips structurally."""
 
 from __future__ import annotations
@@ -9,12 +9,12 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from tsgrammar.grammar import (
+from pydantree_sitter_grammar.ir import (
     AliasNode,
     BlankNode,
     ChoiceNode,
     FieldNode,
-    Grammar,
+    GrammarModel,
     ImmediateTokenNode,
     PatternNode,
     PrecDynamicNode,
@@ -31,7 +31,7 @@ from tsgrammar.grammar import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-REFERENCE = REPO_ROOT / ".scratch" / "projects" / "004-tsgrammar" / "reference" / "grammar.json"
+REFERENCE = REPO_ROOT / ".scratch" / "projects" / "004-grammar" / "reference" / "grammar.json"
 
 ALL_NODE_TYPES = {
     "SYMBOL", "STRING", "PATTERN", "BLANK", "SEQ", "CHOICE", "REPEAT",
@@ -45,7 +45,7 @@ def _norm(d):
 
 
 def test_minimal_grammar_roundtrip():
-    g = Grammar.model_validate_json(json.dumps({
+    g = GrammarModel.model_validate_json(json.dumps({
         "name": "mini",
         "rules": {
             "source_file": {"type": "REPEAT",
@@ -54,7 +54,7 @@ def test_minimal_grammar_roundtrip():
         },
     }))
     assert g.start_rule == "source_file"
-    again = Grammar.model_validate_json(g.model_dump_json())
+    again = GrammarModel.model_validate_json(g.model_dump_json())
     assert again == g
 
 
@@ -98,7 +98,7 @@ def test_full_schema_reference_roundtrip():
     """The Experiment-A reference exercises every node type; the IR must import
     it and re-emit it semantically equal."""
     ref = json.loads(REFERENCE.read_text())
-    model = Grammar.model_validate_json(json.dumps(ref))
+    model = GrammarModel.model_validate_json(json.dumps(ref))
 
     re_emitted = json.loads(model.model_dump_json(indent=2, exclude_none=True))
     assert _norm(re_emitted) == _norm(ref)
@@ -137,7 +137,7 @@ def test_full_schema_reference_roundtrip():
 
 def test_grammar_level_fields_reject_unknowns():
     with pytest.raises(ValidationError):
-        Grammar.model_validate_json(json.dumps({
+        GrammarModel.model_validate_json(json.dumps({
             "name": "s", "rules": {"a": {"type": "BLANK"}},
             "start": "a",  # no such field in 0.25.3
         }))
@@ -146,7 +146,7 @@ def test_grammar_level_fields_reject_unknowns():
 def test_schema_pointer_key_tolerated():
     """Published grammar.json files carry `$schema`; import must drop it
     while staying strict about everything else."""
-    g = Grammar.model_validate_json(json.dumps({
+    g = GrammarModel.model_validate_json(json.dumps({
         "$schema": "https://example.com/schema.json",
         "name": "s",
         "rules": {"a": {"type": "BLANK"}, "b": {"type": "BLANK"}},
@@ -156,12 +156,12 @@ def test_schema_pointer_key_tolerated():
 
 
 def test_start_rule_is_first_entry():
-    g = Grammar.model_validate(
+    g = GrammarModel.model_validate(
         {"name": "s", "rules": {"a": {"type": "BLANK"}, "b": {"type": "BLANK"}}})
     assert g.start_rule == "a"
 
 
-COMMUNITY_BASH = REPO_ROOT / ".scratch" / "projects" / "004-tsgrammar" / "community" / "bash" / "grammar.json"
+COMMUNITY_BASH = REPO_ROOT / ".scratch" / "projects" / "004-grammar" / "community" / "bash" / "grammar.json"
 
 
 @pytest.mark.skipif(not COMMUNITY_BASH.exists(),
@@ -176,7 +176,7 @@ def test_community_bash_roundtrips_semantically():
     raw = COMMUNITY_BASH.read_text()
     ref = json.loads(raw)
     ref.pop("$schema", None)
-    model = Grammar.model_validate_json(raw)
+    model = GrammarModel.model_validate_json(raw)
     assert len(model.rules) == 101
     assert model.start_rule == "program"
 

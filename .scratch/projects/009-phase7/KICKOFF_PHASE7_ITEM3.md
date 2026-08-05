@@ -15,7 +15,7 @@
 ## Mission
 
 Phase 6 proved the consumer seam at the install boundary (a light install of
-`pydantree-tscore` + `pydantree-tsquery` runs the full checked extraction,
+`pydantree-pydantree_sitter` + `pydantree-pydantree_sitter` runs the full checked extraction,
 B-free) and at the grammar-ownership boundary (the node-schema derivation is
 byte-for-byte with the CLI's node-types.json over FOUR real grammars: rust,
 python, markdown-block, markdown-inline). Two items were explicitly deferred
@@ -42,7 +42,7 @@ Two questions decide it:
    (e.g. tree-sitter-python's indentation scanner, tree-sitter-bash's
    heredoc+$'...' scanner, a CSV/comment scanner)? The go/no-go: 1–2 real
    scanners, each with a mini-grammar + corpus tests, shipped as package data
-   in the heavy wheel and reachable via `tsgrammar.scanners` — OR the honest
+   in the heavy wheel and reachable via `pydantree_sitter_grammar.scanners` — OR the honest
    assessment that the library's value is marginal vs. pointing authors at
    the upstream scanner.c files.
 
@@ -56,7 +56,7 @@ scope correction, not a design failure. Say so plainly either way.
 ## Context: where we are (do not re-derive these)
 
 - **The consumer seam is proven and committed.** Phase 6 (`.scratch/008-consumer-seam/FINDINGS.md`, verdict GO): the distribution split
-  (`pydantree-tscore` / `pydantree-tsquery` light, `pydantree-tsgrammar`
+  (`pydantree-pydantree_sitter` / `pydantree-pydantree_sitter` light, `pydantree-pydantree_sitter_grammar`
   heavy with the scanner package data), the fresh-venv install boundary, the
   community-schema byte-for-byte exact path (rust/python/markdown/
   markdown-inline), the schema-registry leak fix, Job-2 `.pyi` stubs,
@@ -65,16 +65,16 @@ scope correction, not a design failure. Say so plainly either way.
   one (heredoc + matched-delimiter).
 - **The bundle layout is 4 files** (grammar.so + node-schema.json +
   tree-sitter.json metadata + a 7-line loader delegating to
-  `tscore.loader.load_bundle`). `Language.load_bundle(dir)` is the one-line
+  `pydantree_sitter.loader.load_bundle`). `Language.load_bundle(dir)` is the one-line
   consumer. The metadata's `artifact` field names the artifact file
   (default `grammar.so`); the `.so` is loaded via a PyCapsule
-  (`tscore.loader.load_grammar_so`). A `.wasm` artifact would need the
+  (`pydantree_sitter.loader.load_grammar_so`). A `.wasm` artifact would need the
   metadata to point at it and a runtime-aware loader — the seam's natural
   extension point.
-- **The scanner mechanism is airtight.** `tsgrammar.pipeline.build`:
+- **The scanner mechanism is airtight.** `pydantree_sitter_grammar.pipeline.build`:
   externals without a scanner raise `ExternalScannerRequiredError` (before
   gcc's link failure); the cache key content-addresses scanner.c; the
-  scanners live in `src/tsgrammar/scanners/` with `scanner_for(name)` +
+  scanners live in `src/pydantree_sitter_grammar/scanners/` with `scanner_for(name)` +
   per-scanner path helpers. The seeds: `indent_scanner.c` (pymini),
   `heredoc_scanner.c` (hmini), `matched_delimiter_scanner.c` (dmini) — each
   with a mini-grammar in `.scratch/008-consumer-seam/` + tests.
@@ -88,7 +88,7 @@ scope correction, not a design failure. Say so plainly either way.
   Editable installs of the four distributions are in the devenv venv; the
   tests resolve `src/` first via `tests/conftest.py` (the hard-link
   editable caveat: NEW files / replaced files need
-  `uv pip install -e . -e src/tscore -e src/tsquery -e src/tsgrammar`).
+  `uv pip install -e . -e src/pydantree_sitter -e src/pydantree_sitter -e src/pydantree_sitter_grammar`).
 
 ---
 
@@ -99,26 +99,26 @@ scope correction, not a design failure. Say so plainly either way.
    evidence `evidence/r3_wasm_probe.txt`); §3.2 (the scanner seeds + the two
    gotchas); §5 (the recommendation that deferred wasm + the scanner library
    to Phase 7). Appendix facts 2, 4, 5, 9.
-2. **`.scratch/007-tsquery-distribution/FINDINGS.md`** — Appendix facts 5
+2. **`.scratch/007-query-distribution/FINDINGS.md`** — Appendix facts 5
    (the indentation scanner's canonical cadence) and 9 (the bundle = one
    artifact + one loading contract).
 3. **`.scratch/002-pydantic-treesitter/CONCEPT.md`** — §8 (the distribution
-   strategy; tsquery "a wasm runtime" was in the original pitch), §4.6/4.7
+   strategy; pydantree_sitter "a wasm runtime" was in the original pitch), §4.6/4.7
    (external scanners, the build & distribute pipeline).
 4. **Code you will extend (skim, then read the parts you touch):**
-   - `src/tscore/loader.py` — `load_grammar_so` (the PyCapsule load) and
+   - `src/pydantree_sitter/loader.py` — `load_grammar_so` (the PyCapsule load) and
      `load_bundle` (the artifact-name metadata). The wasm twin belongs here
      or beside it.
-   - `src/tsquery/typed.py` — `Language.load_bundle` (the one-line surface).
-   - `src/tsgrammar/pipeline.py` — `build`/`compile_parser` (the C build),
+   - `src/pydantree_sitter/typed.py` — `Language.load_bundle` (the one-line surface).
+   - `src/pydantree_sitter_grammar/pipeline.py` — `build`/`compile_parser` (the C build),
      `BuildResult.package` (the bundle), the scanner cache-keying.
-   - `src/tsgrammar/schema_tool.py` — `build_community_bundle` (the
+   - `src/pydantree_sitter_grammar/schema_tool.py` — `build_community_bundle` (the
      community bundle path — the same `-o`/scanner handling).
-   - `src/tsgrammar/scanners/` — the three seeds + the `scanner_for` table.
+   - `src/pydantree_sitter_grammar/scanners/` — the three seeds + the `scanner_for` table.
    - `tests/test_scanners.py`, `tests/test_packaging.py`,
      `tests/test_bundle.py` — the patterns to extend.
    - `.scratch/008-consumer-seam/{pymini,hmini,dmini}.py` — the mini-grammar
-     pattern (in `.scratch/007-tsquery-distribution/pymini.py` for pymini).
+     pattern (in `.scratch/007-query-distribution/pymini.py` for pymini).
 
 ---
 
@@ -165,7 +165,7 @@ wheels carry the portability story?" A genuine go means a working
    `src/scanner.c`, tree-sitter-bash's `src/scanner.c` — READ them, adapt
    the canonical mechanism, do NOT copy wholesale).
 2. **The mechanism contract** (each must satisfy): lives in
-   `src/tsgrammar/scanners/`, registered in `scanner_for()`, ships as
+   `src/pydantree_sitter_grammar/scanners/`, registered in `scanner_for()`, ships as
    package data (the heavy wheel — verify with a wheel build), with a
    mini-grammar (a `.scratch` module) + corpus tests (the `Corpus` harness)
    + a parse-error test. The two Phase-6 gotchas (mid-whitespace scans,
@@ -195,15 +195,15 @@ wheels carry the portability story?" A genuine go means a working
 2. **Verified facts (don't re-derive):** tree-sitter CLI 0.25.3, bindings
    0.26.0 (LANGUAGE_VERSION=15, MIN_COMPATIBLE=13 — ABI 13–15 all load),
    gcc 14.2.1, pydantic 2.13.4. The devenv venv has NO pip; uv is the
-   manager. Editable installs: `uv pip install -e . -e src/tscore -e
-   src/tsquery -e src/tsgrammar` (re-run after adding NEW files — the
+   manager. Editable installs: `uv pip install -e . -e src/pydantree_sitter -e
+   src/pydantree_sitter -e src/pydantree_sitter_grammar` (re-run after adding NEW files — the
    hard-link editable staleness caveat; `tests/conftest.py` makes the suite
    resolve `src/` first regardless).
 3. **Fixtures you will reuse:** `tests/fixtures/rust/` (a real grammar with
    the byte-for-byte oracle), `tests/fixtures/markdown*/`,
    `.scratch/008-consumer-seam/{hmini,dmini}.py` (the scanner mini-grammar
-   pattern), `.scratch/007-tsquery-distribution/pymini.py` (the indentation
-   seed). The community bundle path: `tsgrammar.schema_tool.build_community_bundle`.
+   pattern), `.scratch/007-query-distribution/pymini.py` (the indentation
+   seed). The community bundle path: `pydantree_sitter_grammar.schema_tool.build_community_bundle`.
 4. **Baseline:** `python -m pytest tests/` should be green (162 at the end
    of Phase 6). Capture the count before you start.
 
@@ -213,7 +213,7 @@ wheels carry the portability story?" A genuine go means a working
 
 - **Commit after each meaningful step**, e.g.:
   `phase7: wasm probe — emcc via <route>, a real .wasm rust artifact, <runtime> load + parse, perf native-vs-wasm <ratio> (assess/land)`,
-  `tsgrammar: scanner library — the <language> scanner (adapted from upstream <file>) + mini-grammar + corpus tests; scanner_for() + package-data check`,
+  `pydantree_sitter_grammar: scanner library — the <language> scanner (adapted from upstream <file>) + mini-grammar + corpus tests; scanner_for() + package-data check`,
   `phase7: findings — the wasm + scanner-library verdict (go / go-with-changes / no-go), evidence captured`.
 - **Write findings as you go** into `.scratch/009-phase7/FINDINGS.md`. The
   code is the foundation; the findings are the deliverable.
@@ -250,7 +250,7 @@ wheels carry the portability story?" A genuine go means a working
 
 ## Appendix — durable facts to build on (all verified in prior phases)
 
-1. The bundle is one artifact + one loading contract: `tscore.loader` is the
+1. The bundle is one artifact + one loading contract: `pydantree_sitter.loader` is the
    shared loader; `Language.load_bundle(dir)` is the one-line consumer; the
    metadata's `artifact` field names the artifact file (default
    `grammar.so`).

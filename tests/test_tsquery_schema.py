@@ -1,4 +1,4 @@
-"""tsquery schema-jobs tests: Jobs 1/3/4 (model↔grammar, value-shape
+"""pydantree_sitter schema-jobs tests: Jobs 1/3/4 (model↔grammar, value-shape
 derivation, capture↔type) and record-level anchoring — each planted Phase-4
 failure surfaces at validate_with/class creation, BEFORE any text is parsed."""
 
@@ -12,9 +12,9 @@ from typing import Annotated
 import pytest
 import tree_sitter_json
 
-import tsgrammar as tg
-from tscore.schema import NodeSchema, derive_from_ir
-from tsquery import (
+import pydantree_sitter_grammar as tg
+from pydantree_sitter.schema import NodeSchema, derive_from_ir
+from pydantree_sitter import (
     Language,
     M,
     Eq,
@@ -27,7 +27,7 @@ from tsquery import (
 )
 
 REPO = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO / ".scratch" / "projects" / "006-tsquery-bridge"))
+sys.path.insert(0, str(REPO / ".scratch" / "projects" / "006-query-bridge"))
 
 TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
     shutil.which("gcc") is not None
@@ -48,7 +48,7 @@ def json_schema() -> NodeSchema:
 
 def cfg_schema() -> tuple[NodeSchema, object, object]:
     from cfg_grammar import build as build_cfg
-    from tsgrammar.language import load_language
+    from pydantree_sitter_grammar.language import load_language
     g = build_cfg()
     res = tg.build_builder(g)
     schema = NodeSchema.from_list(derive_from_ir(g.build()), name="cfg")
@@ -256,7 +256,7 @@ def test_language_load_registry_is_opt_in():
     refused (the Phase-6 leak: rust's bundle registered under None and hit
     every wheel-loaded language)."""
     schema, lang, _g = cfg_schema()
-    from tsquery.typed import _SCHEMA_REGISTRY, _maybe_register
+    from pydantree_sitter.typed import _SCHEMA_REGISTRY, _maybe_register
     # a nameless language is refused
     _maybe_register(None, schema)
     assert None not in _SCHEMA_REGISTRY
@@ -278,7 +278,7 @@ def test_community_path_node_types_schema():
     """A node-schema built from the CLI's node-types.json (derive_from_node_types)
     is equivalent for the shared subset — the community-grammar path."""
     from cfg_grammar import build as build_cfg
-    from tscore.schema import NodeSchema, derive_from_node_types
+    from pydantree_sitter.schema import NodeSchema, derive_from_node_types
     schema_ir, lang, _g = cfg_schema()
     model = build_cfg().build()
     res = tg.build(model)

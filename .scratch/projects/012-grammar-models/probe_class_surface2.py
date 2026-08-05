@@ -32,7 +32,7 @@ import types
 from pathlib import Path
 from typing import Literal, Union, get_args, get_origin
 
-import tsgrammar as tg
+import pydantree_sitter_grammar as tg
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent

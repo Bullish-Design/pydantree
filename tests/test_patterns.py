@@ -1,4 +1,4 @@
-"""tsgrammar.patterns — the helper set, pinned byte-for-byte.
+"""pydantree_sitter_grammar.patterns — the helper set, pinned byte-for-byte.
 
 Each helper's output must equal the EXACT regex string it replaces in the
 hand-written grammar — grammar.json carries the raw string, so any helper
@@ -8,8 +8,8 @@ tests pin each helper directly, including the parameter variants).
 
 from __future__ import annotations
 
-import tsgrammar as tg
-from tsgrammar.patterns import (
+import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar.patterns import (
     dotted_path,
     ident,
     integer,

@@ -13,7 +13,7 @@
 You are working in the **`pydantree`** repo. **Phase 0 is done and passed** —
 the emission pipeline (`grammar.json`-first) and the conflict→Python-source
 remapping are proven feasible (verdict: GO). This session runs the **Phase 1
-spike** defined in the concept: proving **Product A (`tsquery`)** — a Pydantic
+spike** defined in the concept: proving **Product A (`pydantree_sitter`)** — a Pydantic
 query DSL that maps captured tree-sitter nodes into typed `OutputModel`
 instances, working over **prebuilt community grammars with zero dependency on
 Product B**.
@@ -166,13 +166,13 @@ comparison**, not vibes:
 - The **node-schema bridge** / compile-time query validation against the
   grammar / typed node accessors (**Phase 4**). The capture↔field type hints
   above are the Phase-1 stand-in; do not derive or emit node-schemas.
-- **Product B / tsgrammar** anything (**Phases 2–3**): no grammar emission, no
+- **Product B / pydantree_sitter_grammar** anything (**Phases 2–3**): no grammar emission, no
   conflict tooling, no ExpressionGrammar. You consume wheels only.
 - wasm, packaging/wheels, external scanners, the streaming/visitor result
   mode, the full incremental-reparse API (**Phase 5**) — note incremental
   reparse exists in 0.26 (`Tree.edit`/`Parser.parse(old_tree=...)`), don't
   build a wrapper.
-- Package renaming/splitting (`tscore`/`tsquery`/`tsgrammar`). Distribution is
+- Package renaming/splitting (`pydantree_sitter`/`pydantree_sitter`/`pydantree_sitter_grammar`). Distribution is
   a later decision.
 - Performance work of any kind.
 

@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
-import tsgrammar as tg
+import pydantree_sitter_grammar as tg
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-REPORT = (REPO_ROOT / ".scratch" / "projects" / "004-tsgrammar" / "evidence"
+REPORT = (REPO_ROOT / ".scratch" / "projects" / "004-grammar" / "evidence"
           / "b5_conflict_gap_stderr.json")
 
 RAW_CONFLICT = json.dumps({

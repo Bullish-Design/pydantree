@@ -17,8 +17,8 @@ import tree_sitter
 import tree_sitter_json
 import tree_sitter_python
 
-import tsgrammar as tg
-from tsquery import (
+import pydantree_sitter_grammar as tg
+from pydantree_sitter import (
     ExtractionError,
     Language,
     M,
@@ -32,7 +32,7 @@ from tsquery import (
     source_meta,
 )
 
-BRIDGE_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "006-tsquery-bridge"
+BRIDGE_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "006-query-bridge"
 sys.path.insert(0, str(BRIDGE_DIR))
 
 TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
@@ -40,7 +40,7 @@ TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
 
 from cfg_grammar import CORPUS, build as build_cfg  # noqa: E402
 from json_grammar import build as build_json  # noqa: E402
-from tscore.schema import NodeSchema, derive_from_ir  # noqa: E402
+from pydantree_sitter.schema import NodeSchema, derive_from_ir  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -48,7 +48,7 @@ def _isolate_schema_registry():
     """The Phase-4 schema registry is keyed by language name and global;
     binding a schema in one test must not leak into another (a schema-less
     extract would silently pick it up). Snapshot + clear around each test."""
-    from tsquery.typed import _SCHEMA_REGISTRY
+    from pydantree_sitter.typed import _SCHEMA_REGISTRY
     saved = dict(_SCHEMA_REGISTRY)
     _SCHEMA_REGISTRY.clear()
     yield

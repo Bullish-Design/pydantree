@@ -327,7 +327,7 @@ architecture.
 ## 8. Recommendation for the next step
 
 Per the concept's §9 sequencing, the next step is **Phase 1 — Product A
-(tsquery) MVP over community grammars**: query DSL → `.scm`, capture →
+(pydantree_sitter) MVP over community grammars**: query DSL → `.scm`, capture →
 `OutputModel`, shipping over prebuilt wheels (e.g. `tree-sitter-python`,
 already a dev dep). Phase 0 has proven B's core mechanics, so B is de-risked;
 A is the path that delivers standalone value earliest and stress-tests the

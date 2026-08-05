@@ -1,9 +1,9 @@
 ---
 name: pydantree-extraction
-description: Extract typed data from text with tsquery (Product A) — OutputModel declarations, captures (field/kind/record/optional/list/descendant), predicates and markers, schema binding and validate_with, bundles, community grammars, stubs, and the error surface. Use when consuming a grammar with pydantree in your own project.
+description: Extract typed data from text with pydantree_sitter (Product A) — OutputModel declarations, captures (field/kind/record/optional/list/descendant), predicates and markers, schema binding and validate_with, bundles, community grammars, stubs, and the error surface. Use when consuming a grammar with pydantree in your own project.
 ---
 
-# pydantree — typed extraction (tsquery, Product A)
+# pydantree — typed extraction (pydantree_sitter, Product A)
 
 Declare an `OutputModel` — **the model IS the query** — and get
 schema-checked, typed rows over any tree-sitter grammar. Full reference:
@@ -13,7 +13,7 @@ schema-checked, typed rows over any tree-sitter grammar. Full reference:
 
 ```python
 from typing import Annotated
-from tsquery import M, Matches, NodeKind, OutputModel, capture, source_meta
+from pydantree_sitter import M, Matches, NodeKind, OutputModel, capture, source_meta
 import tree_sitter_python
 
 class Assignment(OutputModel):
@@ -57,7 +57,7 @@ predicate field that doesn't match filters the whole record.
 ## Schemas: check BEFORE parsing
 
 ```python
-from tsquery import Language
+from pydantree_sitter import Language
 lang = Language.load_bundle("dist/cfg-bundle")   # one call, checks bound
 ServerSection.validate_with(lang)                # Jobs 1/3/4, no text parsed
 rows = ServerSection.extract(text, language=lang)
@@ -77,7 +77,7 @@ the derivation falls back to the schema-less path.
 - `OutputModel.compiled_source(...)` — the derived .scm (diagnostics).
 - Job-2 stubs:
   ```python
-  from tsquery.stubs import generate_stubs
+  from pydantree_sitter.stubs import generate_stubs
   generate_stubs(lang.schema, out="node_stubs.pyi")
   ```
 
@@ -92,9 +92,8 @@ without the wasm runtime (see ../../docs/architecture.md §3.1).
 ## Facts that matter
 
 - Community grammars ship no schema — derive one from the grammar source
-  with `tsgrammar.schema_tool` (B-side) or bind none (schema-less path).
+  with `pydantree_sitter_grammar.schema_tool` (B-side) or bind none (schema-less path).
 - `tree-sitter>=0.26` is the floor (0.26-only APIs are used).
-- The light install (`pydantree-tscore` + `pydantree-tsquery`) never
-  imports tsgrammar — `import tsgrammar` fails there by design.
-- Run in your own project with `uv pip install pydantree-tscore
-  pydantree-tsquery`.
+- The light install (`pydantree-sitter`) never
+  imports pydantree_sitter_grammar — `import pydantree_sitter_grammar` fails there by design.
+- Run in your own project with `uv pip install pydantree-sitter`.

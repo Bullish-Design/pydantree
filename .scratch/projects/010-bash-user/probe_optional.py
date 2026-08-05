@@ -2,8 +2,8 @@
 import sys
 
 sys.path.insert(0, "src")
-import tsgrammar as tg
-from tsgrammar.schema_tool import build_community_bundle
+import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar.schema_tool import build_community_bundle
 
 bundle = build_community_bundle("tests/fixtures/bash", "/tmp/bash-bundle",
                                 name="bash", keep=True)

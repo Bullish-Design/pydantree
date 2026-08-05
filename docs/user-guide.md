@@ -3,11 +3,11 @@
 You are a developer building your own project on top of pydantree. There are
 two products:
 
-- **`tsquery` (Product A)** — pull **typed data** out of text for which a
+- **`pydantree_sitter` (Product A)** — pull **typed data** out of text for which a
   tree-sitter grammar exists (a community grammar like tree-sitter-python,
-  or one built by tsgrammar). You declare a model; pydantree derives the
+  or one built by pydantree_sitter_grammar). You declare a model; pydantree derives the
   query, runs schema checks, and materializes typed rows.
-- **`tsgrammar` (Product B)** — **author a grammar** as a Pydantic DSL when
+- **`pydantree_sitter_grammar` (Product B)** — **author a grammar** as a Pydantic DSL when
   no community grammar exists (or you need a custom one), build it, and ship
   it as a bundle or consume it directly.
 
@@ -20,26 +20,26 @@ model↔grammar and capture↔type checks run **before any text is parsed**.
 
 ```bash
 # A (consumption) — light: no toolchain
-uv pip install pydantree-tscore pydantree-tsquery
+uv pip install pydantree-sitter pydantree-sitter
 uv pip install tree-sitter-json tree-sitter-python   # community grammars
 
 # B (authoring) — heavy: needs the tree-sitter CLI + a C compiler at build time
-uv pip install pydantree-tsgrammar
+uv pip install pydantree-sitter-grammar
 ```
 
 The distributions are pydantree-branded; the import packages stay
-`tscore` / `tsquery` / `tsgrammar`. A never imports B: `import tsgrammar`
+`pydantree_sitter` / `pydantree_sitter` / `pydantree_sitter_grammar`. A never imports B: `import pydantree_sitter_grammar`
 fails in a light install (the seam is enforced at install time).
 
 ---
 
-## 2. Product A — typed extraction (`tsquery`)
+## 2. Product A — typed extraction (`pydantree_sitter`)
 
 ### 2.1 The model IS the query
 
 ```python
 from typing import Annotated
-from tsquery import M, Matches, NodeKind, OutputModel, capture, source_meta
+from pydantree_sitter import M, Matches, NodeKind, OutputModel, capture, source_meta
 import tree_sitter_python
 
 class Assignment(OutputModel):
@@ -118,7 +118,7 @@ Bind a node-schema and `validate_with` runs Jobs 1/3/4 (model↔grammar,
 value-shape derivation, capture↔type) at bind time — before any text:
 
 ```python
-from tsquery import Language
+from pydantree_sitter import Language
 
 # over a bundle (grammar.so + node-schema.json + metadata + loader)
 lang = Language.load_bundle("dist/cfg-bundle")     # one call, checks bound
@@ -134,7 +134,7 @@ The schema is bound to the Language INSTANCE (a nameless language is refused
 registration; `register=True` opts into a name-keyed convenience).
 
 Community grammars ship no schema — see §4 (the community tool derives one
-from the grammar source) or `tscore.schema` directly.
+from the grammar source) or `pydantree_sitter.schema` directly.
 
 ### 2.5 The rest of the A surface
 
@@ -161,18 +161,18 @@ Generate a `.pyi` beside the schema — per named kind: field accessors,
 `get(field)` overloads, `children(kind)` overloads, supertype aliases:
 
 ```python
-from tsquery.stubs import generate_stubs
+from pydantree_sitter.stubs import generate_stubs
 generate_stubs(lang.schema, out="node_stubs.pyi")
 ```
 
 ---
 
-## 3. Product B — authoring grammars (`tsgrammar`)
+## 3. Product B — authoring grammars (`pydantree_sitter_grammar`)
 
 ### 3.1 A minimal grammar
 
 ```python
-import tsgrammar as tg
+import pydantree_sitter_grammar as tg
 
 g = tg.Grammar("cfg")
 
@@ -294,7 +294,7 @@ catches what generate cannot (it caught a real fixture bug on its first
 outing):
 
 ```python
-from tsgrammar.corpus import Corpus, corpus_case
+from pydantree_sitter_grammar.corpus import Corpus, corpus_case
 
 corpus = Corpus([
     corpus_case("1 + 2 + 3;", "((number) + ((number) + (number)))",
@@ -325,16 +325,16 @@ A community grammar wheel ships no schema. Derive one from the grammar
 SOURCE (a repo checkout with `src/grammar.json` — the standard layout):
 
 ```python
-from tsgrammar.schema_tool import build_community_bundle
+from pydantree_sitter_grammar.schema_tool import build_community_bundle
 build_community_bundle("tree-sitter-rust-checkout", "dist/rust-bundle",
                        name="rust")
 # -> the same 4-file bundle, schema derived from the CLI's node-types.json
 
-from tsgrammar.schema_tool import derive_schema_for_dir
+from pydantree_sitter_grammar.schema_tool import derive_schema_for_dir
 schema = derive_schema_for_dir("tree-sitter-json-checkout", out="node-schema.json")
 ```
 
-CLI form: `python -m tsgrammar.schema_tool <grammar-dir> [-o out.json] [-n name]`.
+CLI form: `python -m pydantree_sitter_grammar.schema_tool <grammar-dir> [-o out.json] [-n name]`.
 
 ---
 
@@ -350,11 +350,11 @@ query": each grammar rule is a CLASS, the class body IS the production, and
 ```python
 from typing import Literal
 
-import tsgrammar as tg
-from tsgrammar import (
+import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar import (
     External, Extra, Pattern, R, Rule, Supertype, Token, assemble,
 )
-from tsgrammar.patterns import dotted_path, integer, rest_of_line
+from pydantree_sitter_grammar.patterns import dotted_path, integer, rest_of_line
 
 class Comment(Extra, Token):                 # behavioral kinds are MIXINS
     __body__ = tg.seq("#", tg.pattern(rest_of_line()))
@@ -413,7 +413,7 @@ class WithExpr(Rule):
     __body__ = tg.seq("with", R(NamePath), ";", tg.ref("value"))  # value defined below
 ```
 
-**Pattern helpers** (`tsgrammar.patterns`) are composable regex STRINGS in
+**Pattern helpers** (`pydantree_sitter_grammar.patterns`) are composable regex STRINGS in
 the tree-sitter lexer subset: `ident(hyphen=)`, `integer()`, `quoted()`,
 `slug()`, `path_literal()`, `dotted_path()`, `rest_of_line()`.
 
@@ -449,14 +449,14 @@ byte-for-byte in `tests/test_patterns.py`.
 
 ```python
 # authoring.py (B)
-import tsgrammar as tg
+import pydantree_sitter_grammar as tg
 g = tg.Grammar("cfg")
 ...  # rules as in §3.1
 result = tg.build_builder(g)
 bundle = result.package("dist/cfg-bundle")
 
 # extraction.py (A — can live in a DIFFERENT process/venv, B-free)
-from tsquery import Language, M, OutputModel, capture, source_meta
+from pydantree_sitter import Language, M, OutputModel, capture, source_meta
 lang = Language.load_bundle("dist/cfg-bundle")
 
 class ServerSection(OutputModel):
@@ -473,7 +473,7 @@ rows = ServerSection.extract(text, language=lang)
 **Consume a community grammar (A only, no B anywhere):**
 
 ```python
-from tsquery import M, NodeKind, OutputModel, capture
+from pydantree_sitter import M, NodeKind, OutputModel, capture
 import tree_sitter_rust
 
 class RustFn(OutputModel):

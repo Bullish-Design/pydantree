@@ -14,7 +14,7 @@ codebase possible".
 - **`REVIEW.md`** — the review. Verdict + top-10, concept critique (C1-C6),
   architecture critique (§2, incl. the `BoundExtractor` proposal and the
   seam-inversion fix), ranked findings for A (F-A1..14), B (F-B1..13),
-  tscore/legacy (T-1..10), tests (§6), packaging/docs (P-1..10), and a
+  pydantree_sitter/legacy (T-1..10), tests (§6), packaging/docs (P-1..10), and a
   10-step priority program (§8).
 - **`CONFIRMED_BUGS.md`** — the live-reproduced bugs with file:line root
   causes.

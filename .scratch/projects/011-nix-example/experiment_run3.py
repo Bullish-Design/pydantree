@@ -30,8 +30,8 @@ def save(name: str, text: str) -> None:
 
 
 def main() -> int:
-    from tsgrammar.schema_tool import build_community_bundle
-    from tsquery import Language
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
+    from pydantree_sitter import Language
     bundle = build_community_bundle(NIX_FIXTURE, "/tmp/phase9/bundle9",
                                     name="nix", keep=True)
     lang = Language.load_bundle(bundle)
@@ -48,7 +48,7 @@ def main() -> int:
     save("r9_r3_compiled_source.scm", scm)
 
     # 2. Job-2 stubs over the nix schema
-    from tsquery.stubs import generate_stubs
+    from pydantree_sitter.stubs import generate_stubs
     stub_path = EVIDENCE / "r9_r3_nix_stubs.pyi"
     generate_stubs(lang.schema, out=str(stub_path))
     stub_text = stub_path.read_text()
@@ -65,8 +65,8 @@ def main() -> int:
     print("\n=== record-mode probe over nix's attrset shape ===")
     probe = []
     try:
-        from tsquery import M, OutputModel, source_meta
-        from tsquery.schema import find_pair_kind
+        from pydantree_sitter import M, OutputModel, source_meta
+        from pydantree_sitter.schema import find_pair_kind
 
         class EnvRecord(OutputModel):
             __match__ = M("source_code", ..., "binding_set", record=True)
@@ -95,7 +95,7 @@ def main() -> int:
         "    attempts each, r9_r3_fleet_stability.txt): flora 30/30",
         "    SIGSEGV; the other six vendored files 0/30 each;",
         "  - our gcc build of v0.3.0: ~6/10 direct walks;",
-        "  - the tsquery EXTRACTION path (query engine + source_meta reads",
+        "  - the pydantree_sitter EXTRACTION path (query engine + source_meta reads",
         "    on anchor nodes only): 0/24 crashes, but 22/55 flora binding",
         "    line numbers are garbage (start_point == start_byte);",
         "  - the tree-sitter CLI 0.25.3 runtime parses flora with CORRECT",

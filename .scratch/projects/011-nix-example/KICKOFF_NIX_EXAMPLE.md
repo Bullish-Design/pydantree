@@ -33,7 +33,7 @@ bash pass didn't?** Concretely:
    see the acquisition note below; `src/grammar.json` + `src/scanner.c` +
    `tree_sitter/` headers + the repo's checked-in `src/node-types.json` as
    the oracle) and vendor it under `tests/fixtures/nix/`. Derive the schema
-   with `tsgrammar.schema_tool.derive_schema_for_dir` and check it
+   with `pydantree_sitter_grammar.schema_tool.derive_schema_for_dir` and check it
    byte-for-byte against the CLI's fresh node-types.json AND the vendored
    oracle. **Resolve the wheel-consistency question FIRST** (documented
    below): the PyPI wheel is `tree-sitter-nix` 0.1.0 but the grammar repo's
@@ -44,7 +44,7 @@ bash pass didn't?** Concretely:
    `Language.load_bundle`) and wheel shape (`uv pip install tree-sitter-nix`
    from the real index → `tree_sitter_nix.language()` + the schema bound
    explicitly). Both in a FRESH venv with only the light wheels, both
-   B-free (`import tsgrammar` fails), both byte-identical to the in-repo
+   B-free (`import pydantree_sitter_grammar` fails), both byte-identical to the in-repo
    results.
 3. **The extraction task — the devenv fleet inventory.** Hand-write the
    ground truth BEFORE the models (the phase convention), then extract from
@@ -111,7 +111,7 @@ fixed first (go-with-changes)?
   corpus the project has ever had.
 - **The dev flow is unchanged (uv-sync).** `devenv shell` runs `uv sync
   --frozen --no-install-workspace --all-extras`; `_pydantree_src.pth`
-  resolves tscore/tsquery/tsgrammar straight from `src/`; `uv lock` after
+  resolves pydantree_sitter/pydantree_sitter/pydantree_sitter_grammar straight from `src/`; `uv lock` after
   dependency changes. No `uv pip install -e` ritual.
 - **Agent skills + docs exist.** `.agents/skills/` (pydantree-dev,
   pydantree-grammar, pydantree-extraction, pydantree-scanners), `docs/`.
@@ -144,9 +144,9 @@ fixed first (go-with-changes)?
 
 ## Code you will touch (skim, then read the parts you use)
 
-- `src/tsgrammar/schema_tool.py` — `derive_schema_for_dir`,
+- `src/pydantree_sitter_grammar/schema_tool.py` — `derive_schema_for_dir`,
   `build_community_bundle` (unchanged; you CALL them).
-- `src/tsquery/typed.py` — the A surface (unchanged; you USE it). Pay
+- `src/pydantree_sitter/typed.py` — the A surface (unchanged; you USE it). Pay
   attention to `_derive_field`/`_derive_record` and the Phase-8 fixes.
 - `tests/test_bundle.py`, `tests/fixtures/bash/`, `tests/fixtures/rust/` —
   the vendoring + test patterns to copy for nix.
@@ -195,14 +195,14 @@ fixed first (go-with-changes)?
 ### Run 2 — the light-install consumer, BOTH real-user shapes
 
 Mirror `experiment_run2.py` exactly:
-1. Build the light wheels (tscore + tsquery), fresh venv with ONLY those +
+1. Build the light wheels (pydantree_sitter + pydantree_sitter), fresh venv with ONLY those +
    `tree-sitter-nix` from the real index.
 2. Bundle shape: `build_community_bundle(tests/fixtures/nix)` → the 4-file
    bundle; in-repo run (B importable) + fresh-venv run (B-free,
    `Language.load_bundle`).
 3. Wheel shape: fresh-venv run (`tree_sitter_nix.language()` + the derived
    schema bound explicitly; B-free).
-4. All three extraction payloads byte-identical; `import tsgrammar` fails
+4. All three extraction payloads byte-identical; `import pydantree_sitter_grammar` fails
    in the fresh venv; the wheel's installed version recorded. Evidence
    `r9_r2_*`. If the wheel's parser provably diverges from the v0.3.0
    source (Run-1 resolution), the byte-identical claim is honestly
@@ -270,7 +270,7 @@ Mirror `experiment_run2.py` exactly:
 
 - **Publishing** (the user deferred it; the recommendation keeps it as the
   next step — note it, don't do it).
-- **Authoring nix** (the grammar is consumed, not authored; no new tsgrammar
+- **Authoring nix** (the grammar is consumed, not authored; no new pydantree_sitter_grammar
   features, no scanner work on the real nix grammar).
 - **New A/B surface**, corpus gold-plating, perf work, touching
   `src/pydantree` (the deprecated wrapper), re-opening the Phase-6/7/8
@@ -296,7 +296,7 @@ Mirror `experiment_run2.py` exactly:
    oracle + the Phase-8 fixes' tests), `tests/test_bundle.py` (the
    capture_kind regression test), `.scratch/010-bash-user/{experiment_run2,
    consumer_bash}.py` (the consumer/experiment pattern),
-   `.scratch/007-tsquery-distribution/bfree.py` (the B-free machinery).
+   `.scratch/007-query-distribution/bfree.py` (the B-free machinery).
 
 ---
 
@@ -354,7 +354,7 @@ Mirror `experiment_run2.py` exactly:
 
 ## Appendix — durable facts (verified in prior phases; build on these)
 
-1. The bundle contract: `tscore.loader` is the shared loader;
+1. The bundle contract: `pydantree_sitter.loader` is the shared loader;
    `Language.load_bundle(dir)` is the one-line consumer; metadata's
    `artifact` names the artifact (default `grammar.so`); the `.so` loads via
    a PyCapsule named `"tree-sitter.Language"` (export `tree_sitter_<name>`).
@@ -378,16 +378,16 @@ Mirror `experiment_run2.py` exactly:
    capture contract (quotes kept), unclosed-heredoc-at-EOF → missing node,
    multi-heredoc-on-one-line broken in the real bash grammar.
 6. B-free boundary: consumer processes strip the `src/` path and block
-   `tsgrammar` at the meta-path-finder level (the `bfree.py` machinery);
-   the fresh-venv shape needs no sitecustomize for tsgrammar (the light
+   `pydantree_sitter_grammar` at the meta-path-finder level (the `bfree.py` machinery);
+   the fresh-venv shape needs no sitecustomize for pydantree_sitter_grammar (the light
    wheels simply don't ship it).
 7. Fresh-venv mechanics: `uv venv` + `uv pip install --find-links
    <wheelhouse>` for the light wheels; community wheels from the real index
    (bash 0.25.1 verified; nix 0.1.0 has manylinux x86_64 + aarch64 wheels —
    installable on this machine).
-8. The wheels: pydantree-tscore / pydantree-tsquery (light) /
-   pydantree-tsgrammar (heavy); import packages stay tscore/tsquery/
-   tsgrammar. **Publishing is deferred by the user — do not publish.**
+8. The wheels: pydantree-pydantree_sitter / pydantree-pydantree_sitter (light) /
+   pydantree-pydantree_sitter_grammar (heavy); import packages stay pydantree_sitter/pydantree_sitter/
+   pydantree_sitter_grammar. **Publishing is deferred by the user — do not publish.**
 9. **NEW (verified this kickoff): the corpus fleet.** 52 repos under
    `~/Documents/Projects/*/devenv.nix`. Stats: 30 `packages = [`, 24
    `env.KEY =`, 28 `scripts.*`, 3 `tasks` blocks, 42 `languages.*`, 47

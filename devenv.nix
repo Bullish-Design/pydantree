@@ -51,13 +51,13 @@
     # into the managed venv that puts the repo's `src/` FIRST on sys.path.
     # A .pth line starting with `import` runs during site-packages processing,
     # so the insert lands before site-packages — every process using this venv
-    # (tests, probes, `python -c`) resolves tscore/tsquery/tsgrammar straight
+    # (tests, probes, `python -c`) resolves pydantree_sitter / pydantree_sitter_grammar straight
     # from src/. No editable copies -> no stale-copy surprises. Runs after the
     # venv is (re)created, idempotently.
     "pydantree:venv-src-pth" = {
       description = "Point the venv at the repo's src/ (editable-copy staleness fix)";
       exec = ''
-        VENV_SP="${config.env.DEVENV_STATE}/venv/lib/python3.13/site-packages"
+        VENV_SP="$(echo "${config.env.DEVENV_STATE}"/venv/lib/python*/site-packages)"
         mkdir -p "$VENV_SP"
         cat > "$VENV_SP/_pydantree_src.pth" <<PTH
 import sys; sys.path.insert(0, "${config.devenv.root}/src")

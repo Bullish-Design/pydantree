@@ -8,7 +8,7 @@ import shutil
 
 import pytest
 
-import tsgrammar as tg
+import pydantree_sitter_grammar as tg
 
 TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
     shutil.which("gcc") is not None
@@ -97,8 +97,8 @@ def test_generate_conflict_raises_named_error(cache_dir):
         tg.ref("number")))
     g.rule("source_file", tg.repeat(tg.ref("expr")))
     g.start("source_file")
-    import tsgrammar as tgm
-    from tsgrammar.conflicts import remap_from_proc
+    import pydantree_sitter_grammar as tgm
+    from pydantree_sitter_grammar.conflicts import remap_from_proc
     json_path = g.emit_bundle(cache_dir / "conflict_t")
     proc = tgm.run_generate(json_path, json_report=True)
     assert proc.returncode == 1

@@ -1,12 +1,12 @@
-"""Phase-6 packaging tests: the distribution split (Run 1).
+"""Packaging tests: the two-distribution split (014 refactor, D1/D2).
 
-The CONCEPT §8 split is now real at the packaging level: tscore + tsquery are
-LIGHT installables (no tsgrammar, no scanner data, tree-sitter>=0.26), and
-tsgrammar is the HEAVY one that carries the external-scanner package data.
-The root pyproject ships ONLY the legacy wrapper + examples + data. These
-tests build the wheels (uv build, fast) and assert the split contents +
-dependencies; the full fresh-venv end-to-end is the Run-1 experiment
-(.scratch/projects/008-consumer-seam/experiment_run1.py).
+`pydantree-sitter` is LIGHT (no pydantree_sitter_grammar, no scanner data,
+tree-sitter>=0.26); `pydantree-sitter-grammar` is HEAVY and carries the
+external-scanner package data and depends on the light package. These tests
+build the wheels (uv build, fast) and assert the split contents +
+dependencies; the full fresh-venv end-to-end installs only the light wheel
+and proves the B-free boundary against real artifacts (the Phase-9 floor
+extends this to py.typed/LICENSE/metadata checks).
 """
 
 from __future__ import annotations
@@ -22,14 +22,12 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 
-# the pydantree-branded distribution names (imports stay tscore/tsquery/…)
-DIST = {"tscore": "pydantree-tscore",
-        "tsquery": "pydantree-tsquery",
-        "tsgrammar": "pydantree-tsgrammar"}
+# the two distributions (imports: pydantree_sitter / pydantree_sitter_grammar)
+DIST = {"light": "pydantree-sitter",
+        "heavy": "pydantree-sitter-grammar"}
 
 
 def _uv_available() -> bool:
-    import shutil
     return shutil.which("uv") is not None
 
 
@@ -37,12 +35,14 @@ pytestmark = pytest.mark.skipif(
     not _uv_available(), reason="uv not on PATH")
 
 
-def _build_wheel(pkg: str, out: Path) -> Path:
+def _build_wheel(which: str, out: Path) -> Path:
+    pkg_dir = SRC / ("pydantree_sitter" if which == "light"
+                     else "pydantree_sitter_grammar")
     proc = subprocess.run(
         ["uv", "build", "--out-dir", str(out)],
-        capture_output=True, text=True, cwd=str(SRC / pkg), check=False)
+        capture_output=True, text=True, cwd=str(pkg_dir), check=False)
     assert proc.returncode == 0, proc.stderr or proc.stdout
-    whl = next(out.glob(f"{DIST[pkg].replace('-', '_')}-*.whl"))
+    whl = next(out.glob(f"{DIST[which].replace('-', '_')}-*.whl"))
     return whl
 
 
@@ -58,71 +58,78 @@ def _wheel_requires(whl: Path) -> list[str]:
             if l.startswith("Requires-Dist:") and "extra" not in l]
 
 
-def test_light_wheels_carry_no_tsgrammar_and_no_scanner(tmp_path):
-    """tscore + tsquery install WITHOUT tsgrammar: no tsgrammar package, no
-    scanner package data, and the dependency lists resolve only pydantic +
-    tree-sitter>=0.26 (+ tscore for tsquery)."""
-    tscore = _build_wheel("tscore", tmp_path)
-    tsquery = _build_wheel("tsquery", tmp_path)
-    ts_wheel = _wheel_contents(tscore)
-    tq_wheel = _wheel_contents(tsquery)
-    for whl, contents, pkg in [(tscore, ts_wheel, "tscore"),
-                               (tsquery, tq_wheel, "tsquery")]:
-        assert any(n.startswith(f"{pkg}/") for n in contents)
-        assert not any("tsgrammar" in n for n in contents), \
-            f"{whl.name} leaks tsgrammar"
-        assert not any("scanner" in n for n in contents), \
-            f"{whl.name} leaks scanner package data"
-        assert not any("pydantree/" in n for n in contents), \
-            f"{whl.name} leaks the legacy wrapper"
-    assert "pydantree-tscore>=0.1" in _wheel_requires(tsquery)
-    for dep in _wheel_requires(tscore):
-        assert not dep.startswith("pydantree-tsgrammar"), \
-            "tscore depends on tsgrammar"
+def test_light_wheel_carries_no_b_and_no_scanner(tmp_path):
+    """The light install: pydantree_sitter only, no pydantree_sitter_grammar
+    package, no scanner package data; dependencies are pydantic +
+    tree-sitter>=0.26 only (no edge to the heavy package)."""
+    light = _build_wheel("light", tmp_path)
+    contents = _wheel_contents(light)
+    assert any(n.startswith("pydantree_sitter/") for n in contents)
+    assert not any("pydantree_sitter_grammar" in n for n in contents), \
+        f"{light.name} leaks the heavy package"
+    assert not any("scanner" in n for n in contents), \
+        f"{light.name} leaks scanner package data"
+    deps = _wheel_requires(light)
+    assert not any(d.startswith("pydantree-sitter-grammar") for d in deps), \
+        "the light package must not depend on the heavy one"
+    assert "pydantic>=2.11" in deps
+    assert "tree-sitter>=0.26" in deps
 
 
-def test_heavy_wheel_carries_the_scanner_and_0_26_pin(tmp_path):
-    """tsgrammar (the heavy build tool) additionally carries the scanner
-    package data (scanners/indent_scanner.c) and the tree-sitter>=0.26
-    dependency floor (the code uses 0.26-only APIs)."""
-    tsg = _build_wheel("tsgrammar", tmp_path)
-    contents = _wheel_contents(tsg)
-    assert "tsgrammar/scanners/indent_scanner.c" in contents
-    deps = _wheel_requires(tsg)
-    assert "pydantree-tscore>=0.1" in deps
-    assert any(d.startswith("tree-sitter>=") for d in deps)
-    tree_pin = [d for d in deps if d.startswith("tree-sitter>=")][0]
-    major = tree_pin.split(">=")[1].split(".")[0]
-    assert int(major) >= 0.26 or tree_pin >= "tree-sitter>=0.26"
+def test_heavy_wheel_carries_the_scanner_and_depends_on_light(tmp_path):
+    """The heavy build tool additionally carries the scanner package data
+    (scanners/indent_scanner.c) and the tree-sitter>=0.26 dependency floor;
+    its one package edge is pydantree-sitter (A still never imports B; B
+    depending on A is the free direction)."""
+    heavy = _build_wheel("heavy", tmp_path)
+    contents = _wheel_contents(heavy)
+    assert "pydantree_sitter_grammar/scanners/indent_scanner.c" in contents
+    deps = _wheel_requires(heavy)
+    assert "pydantree-sitter>=0.1" in deps
+    assert "tree-sitter>=0.26" in deps
 
 
 def test_root_pyproject_is_workspace_only_and_ships_no_distribution():
     """The root project is the uv-workspace + dev-tooling envelope ONLY
     (Phase 1 of the 014 refactor deleted the legacy island and its wheel
-    config). No wheel-build config, no console scripts (the old
-    `src/pydantree`/`data`/`examples` wheel contents are gone); the real
-    products are workspace members under src/."""
+    config). No wheel-build config, no console scripts; the real products
+    are workspace members under src/."""
     text = (ROOT / "pyproject.toml").read_text()
     assert "[tool.hatch.build.targets.wheel]" not in text, \
         "root pyproject must not configure a wheel (no distribution of its own)"
     assert "[project.scripts]" not in text, \
         "root pyproject must not ship console scripts"
-    assert "src/tscore" in text and "src/tsquery" in text \
-        and "src/tsgrammar" in text  # the workspace members
+    assert "src/pydantree_sitter" in text \
+        and "src/pydantree_sitter_grammar" in text  # the workspace members
 
 
 def test_light_wheel_pins_0_26(tmp_path):
-    """The tree-sitter pin tightened >=0.23 -> >=0.26 in every distribution."""
-    for pkg in ("tscore", "tsquery", "tsgrammar"):
-        whl = _build_wheel(pkg, tmp_path / pkg)
+    """The tree-sitter pin tightened >=0.23 -> >=0.26 in both distributions."""
+    for which in ("light", "heavy"):
+        whl = _build_wheel(which, tmp_path / which)
         deps = _wheel_requires(whl)
         pins = [d for d in deps if d.startswith("tree-sitter>=")]
-        assert pins, f"{pkg} has no tree-sitter pin"
-        assert pins[0] == "tree-sitter>=0.26", f"{pkg} pin is {pins[0]}"
+        assert pins, f"{which} has no tree-sitter pin"
+        assert pins[0] == "tree-sitter>=0.26", f"{which} pin is {pins[0]}"
+
+
+def test_importing_light_never_imports_heavy():
+    """The B-free guarantee, trivially stated (D2: A never imports B; B
+    depends on A, not the other way). A fresh interpreter that imports only
+    pydantree_sitter must not have the heavy package in sys.modules — the
+    dev `.pth` puts both on the path, so a stray import would show up here."""
+    code = (
+        "import sys; import pydantree_sitter; "
+        "assert 'pydantree_sitter_grammar' not in sys.modules, "
+        "'importing the light package pulled in the heavy one'"
+    )
+    proc = subprocess.run([sys.executable, "-c", code],
+                          capture_output=True, text=True, check=False)
+    assert proc.returncode == 0, proc.stderr or proc.stdout
 
 
 # ---------------------------------------------------------------------------
-# the fresh-venv install boundary (the Run-1 centerpiece, in-test form)
+# the fresh-venv install boundary (the B-free claim against real artifacts)
 # ---------------------------------------------------------------------------
 
 _TOOLCHAIN = shutil.which("tree-sitter") is not None and \
@@ -133,13 +140,13 @@ _TOOLCHAIN = shutil.which("tree-sitter") is not None and \
                     reason="uv and/or the tree-sitter CLI + gcc not on PATH")
 def test_fresh_venv_light_install_delivers_a_without_b(tmp_path):
     """The CONCEPT §8 claim at the INSTALL boundary, in a test: a fresh venv
-    (no editable src/, no tsgrammar) installs only the light wheels and runs
-    the checked cfg-bundle round-trip; `import tsgrammar` fails."""
+    (no editable src/, no heavy wheel) installs only the light wheel and runs
+    the checked cfg-bundle round-trip; `import pydantree_sitter_grammar`
+    fails against the real artifact."""
     import json
     wheels = tmp_path / "wheels"
     wheels.mkdir()
-    for pkg in ("tscore", "tsquery"):
-        _build_wheel(pkg, wheels)
+    _build_wheel("light", wheels)
     venv = tmp_path / "fresh-venv"
     proc = subprocess.run(["uv", "venv", "--python", sys.executable,
                            str(venv)], capture_output=True, text=True,
@@ -147,29 +154,29 @@ def test_fresh_venv_light_install_delivers_a_without_b(tmp_path):
     assert proc.returncode == 0, proc.stderr or proc.stdout
     proc = subprocess.run(
         ["uv", "pip", "install", "--python", str(venv / "bin" / "python"),
-         "--find-links", str(wheels),
-         "pydantree-tscore==0.1.0", "pydantree-tsquery==0.1.0"],
+         "--find-links", str(wheels), "pydantree-sitter==0.1.0"],
         capture_output=True, text=True, check=False)
     assert proc.returncode == 0, proc.stderr or proc.stdout
-    # the seam does not leak: tsgrammar is not importable in the light install
+    # the seam does not leak: the heavy package is not importable
     proc = subprocess.run([str(venv / "bin" / "python"), "-c",
-                           "import tsgrammar"],
+                           "import pydantree_sitter_grammar"],
                           capture_output=True, text=True, check=False)
-    assert proc.returncode != 0, "tsgrammar IS importable in the light install"
+    assert proc.returncode != 0, \
+        "pydantree_sitter_grammar IS importable in the light install"
 
     # build the cfg bundle (B-side) and round-trip it in the fresh venv
-    from pathlib import Path as _P
-    bridge = _P(__file__).resolve().parents[1] / ".scratch" / "projects" / "006-tsquery-bridge"
+    bridge = Path(__file__).resolve().parents[1] / ".scratch" / "projects" \
+        / "006-query-bridge"
     if str(bridge) not in sys.path:
         sys.path.insert(0, str(bridge))
     from cfg_grammar import CORPUS, LISTEN_GROUND_TRUTH, SECTION_GROUND_TRUTH, build as _cfg
-    import tsgrammar as tg
+    import pydantree_sitter_grammar as tg
     result = tg.build_builder(_cfg())
     bundle = result.package(tmp_path / "bundle")
     consumer = tmp_path / "consumer.py"
     consumer.write_text(f"""
 import json, sys
-from tsquery import Language, M, OutputModel, capture, source_meta
+from pydantree_sitter import Language, M, OutputModel, capture, source_meta
 
 class ServerSection(OutputModel):
     __match__ = M("source_file", "section", record=True)

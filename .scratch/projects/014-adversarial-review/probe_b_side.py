@@ -7,8 +7,8 @@ sys.path.insert(0, str(REPO / "src"))
 
 from typing import Literal
 
-import tsgrammar as tg
-from tsgrammar.rules import Rule, Token, _snake, assemble
+import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar.rules import Rule, Token, _snake, assemble
 
 
 def probe_multi_literal():
@@ -58,7 +58,7 @@ def probe_import_pollution():
     import types as _t
     mod = _t.ModuleType("fake_grammar_mod")
     src = (
-        "from tsgrammar.rules import Rule, Pattern\n"
+        "from pydantree_sitter_grammar.rules import Rule, Pattern\n"
         "class Unrelated(Pattern):\n"
         "    __pattern__ = '[0-9]+'\n"
         "class Start(Rule):\n"

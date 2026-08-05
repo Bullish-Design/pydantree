@@ -1,12 +1,12 @@
 ---
 name: pydantree-dev
-description: Develop the pydantree library itself (tscore/tsquery/tsgrammar). Use when editing library code, running the test suite, debugging builds or scanners, or making changes that touch the package layout, pipeline, loader, or schema. Includes the devenv/uv-sync workflow, module map, and evidence/commit conventions.
+description: Develop the pydantree library itself (pydantree_sitter / pydantree_sitter_grammar). Use when editing library code, running the test suite, debugging builds or scanners, or making changes that touch the package layout, pipeline, loader, or schema. Includes the devenv/uv-sync workflow, module map, and evidence/commit conventions.
 ---
 
 # pydantree — developing the library
 
-Work on the pydantree codebase: `src/tscore` (shared seam), `src/tsquery`
-(Product A, consumption), `src/tsgrammar` (Product B, authoring).
+Work on the pydantree codebase: `src/pydantree_sitter` (Product A + the seam —
+consumption), `src/pydantree_sitter_grammar` (Product B, authoring).
 
 ## Read first
 
@@ -30,7 +30,7 @@ Work on the pydantree codebase: `src/tscore` (shared seam), `src/tsquery`
   (the src/* packages are never copied into the venv) and the
   `pydantree:venv-src-pth` task writes a `_pydantree_src.pth` that puts
   `<repo>/src` FIRST on sys.path — so every process resolves
-  tscore/tsquery/tsgrammar straight from `src/` and edits are live
+  pydantree_sitter / pydantree_sitter_grammar straight from `src/` and edits are live
   immediately. `tests/conftest.py` does the same as belt-and-suspenders.
   (If a probe still disagrees with the suite, suspect the pipeline build
   cache before the code.)
@@ -50,11 +50,11 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
   `{"metadata": {"version": "0.1.0"}}` for ABI 15.
 - The bundle = grammar.so + node-schema.json + tree-sitter.json + loader.py;
   `Language.load_bundle(dir)` is the one-line consumer.
-- The pipeline cache (`~/.cache/tsgrammar`, or `TSGRAMMAR_CACHE`) content-
+- The pipeline cache (`~/.cache/pydantree_sitter_grammar`, or `TSGRAMMAR_CACHE`) content-
   addresses grammar.json + scanner.c + toolchain. A stale cache is a classic
   "my fix doesn't work" gotcha — use a fresh `cache_dir=` when iterating.
 - Tests that need the CLI/gcc self-skip when the toolchain is absent.
-- The wasm seam: `tscore.loader` dispatches on the artifact extension; wasm
+- The wasm seam: `pydantree_sitter.loader` dispatches on the artifact extension; wasm
   loads only with TSGRAMMAR_WASM_LIB / TSGRAMMAR_WASMTIME_LIB set (the
   Phase-7 probe runtime). Verdict: no-go for A's dependency budget.
 - Two scanner gotchas: mid-whitespace calls (skip first) and multiple
@@ -67,7 +67,7 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
   verbatim under `../../.scratch/projects/00X-*/evidence/`; probes are committed as
   `probe_*.py` so verdicts re-run.
 - Commit messages carry a scope prefix + the finding:
-  `tsgrammar: ...`, `tscore: ...`, `phase7: ...`.
+  `pydantree_sitter_grammar: ...`, `pydantree_sitter: ...`, `phase7: ...`.
 - Adding a NEW package file (e.g. a scanner .c or a module) requires: the
   file, the registration (scanner_for table / __all__ / pyproject
   force-include), and the tests — the venv resolves src/ directly, so no

@@ -9,9 +9,8 @@ resolution-markers = [
 [manifest]
 members = [
     "pydantree",
-    "pydantree-tscore",
-    "pydantree-tsgrammar",
-    "pydantree-tsquery",
+    "pydantree-sitter",
+    "pydantree-sitter-grammar",
 ]
 
 [[package]]
@@ -543,9 +542,9 @@ requires-dist = [
 provides-extras = ["dev", "python"]
 
 [[package]]
-name = "pydantree-tscore"
+name = "pydantree-sitter"
 version = "0.1.0"
-source = { editable = "src/tscore" }
+source = { editable = "src/pydantree_sitter" }
 dependencies = [
     { name = "pydantic" },
     { name = "tree-sitter" },
@@ -558,36 +557,19 @@ requires-dist = [
 ]
 
 [[package]]
-name = "pydantree-tsgrammar"
+name = "pydantree-sitter-grammar"
 version = "0.1.0"
-source = { editable = "src/tsgrammar" }
+source = { editable = "src/pydantree_sitter_grammar" }
 dependencies = [
     { name = "pydantic" },
-    { name = "pydantree-tscore" },
+    { name = "pydantree-sitter" },
     { name = "tree-sitter" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "pydantic", specifier = ">=2.11" },
-    { name = "pydantree-tscore", editable = "src/tscore" },
-    { name = "tree-sitter", specifier = ">=0.26" },
-]
-
-[[package]]
-name = "pydantree-tsquery"
-version = "0.1.0"
-source = { editable = "src/tsquery" }
-dependencies = [
-    { name = "pydantic" },
-    { name = "pydantree-tscore" },
-    { name = "tree-sitter" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "pydantic", specifier = ">=2.11" },
-    { name = "pydantree-tscore", editable = "src/tscore" },
+    { name = "pydantree-sitter", editable = "src/pydantree_sitter" },
     { name = "tree-sitter", specifier = ">=0.26" },
 ]
 

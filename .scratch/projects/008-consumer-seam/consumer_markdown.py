@@ -3,8 +3,8 @@ B-free. BLOCK + INLINE elements, as requested.
 
 Consumes the real tree-sitter-markdown (block) and tree-sitter-markdown-inline
 bundles — built from the real grammar SOURCE via
-tsgrammar.schema_tool.build_community_bundle — in a SEPARATE process where
-tsgrammar is NOT importable. The schemas were derived by the community tool
+pydantree_sitter_grammar.schema_tool.build_community_bundle — in a SEPARATE process where
+pydantree_sitter_grammar is NOT importable. The schemas were derived by the community tool
 (byte-for-byte with the CLI's node-types.json); the checks are active; the
 rows must match the HAND-AUTHORED ground truth.
 
@@ -27,14 +27,14 @@ import sys
 from pathlib import Path
 
 try:
-    import tsgrammar  # noqa: F401
+    import pydantree_sitter_grammar  # noqa: F401
     print(json.dumps({"ok": False,
-                      "error": "tsgrammar IS importable — B leaked"}))
+                      "error": "pydantree_sitter_grammar IS importable — B leaked"}))
     sys.exit(1)
 except ModuleNotFoundError:
     pass
 
-from tsquery import (  # noqa: E402
+from pydantree_sitter import (  # noqa: E402
     Language,
     M,
     OutputModel,

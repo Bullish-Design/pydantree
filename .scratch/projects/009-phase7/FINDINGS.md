@@ -16,7 +16,7 @@
   the version-matched wasmtime C API), plus a 16 MB wasmtime native
   dependency in the light install — for a portability win the per-platform
   wheels already deliver (Phase-6 GO). Landed anyway (the seam's natural
-  extension point): `tscore.loader` dispatches on the artifact extension, a
+  extension point): `pydantree_sitter.loader` dispatches on the artifact extension, a
   `.wasm` artifact raises `WasmRuntimeUnavailableError` with the exact state
   of the path, and the real load works when the probe's runtime is wired
   (TSGRAMMAR_WASM_LIB / TSGRAMMAR_WASMTIME_LIB) — tests pinned both ways.
@@ -123,18 +123,18 @@ checked extraction, B-free, byte-identical). The honest comparison: wasm
 buys "one CI job instead of N" at the cost above. **Not worth A's dependency
 budget now** — same verdict Phase 6 reached on less evidence.
 
-**What landed (go-with-changes on the seam):** `tscore.loader` now dispatches
+**What landed (go-with-changes on the seam):** `pydantree_sitter.loader` now dispatches
 on the bundle artifact extension — a `.wasm` artifact raises
 `WasmRuntimeUnavailableError` naming exactly what's missing and what it would
 take (the probe's evidence), or loads through the real wasmtime bridge when
-the runtime is wired (env-pointed, `src/tscore/_wasm_bridge.py`). The
+the runtime is wired (env-pointed, `src/pydantree_sitter/_wasm_bridge.py`). The
 one-line `Language.load_bundle` surface is unchanged for native bundles;
 over a wasm bundle it reports the honest state. `tests/test_wasm.py` pins
 the dispatch, the error, and the env-gated real load over the probe's
 rust.wasm.
 
-**One honest caveat on the landed surface:** `tsquery.Language.load_bundle`
-over a WASM bundle returns the `tscore` `WasmLanguage` (a minimal parse
+**One honest caveat on the landed surface:** `pydantree_sitter.Language.load_bundle`
+over a WASM bundle returns the `pydantree_sitter` `WasmLanguage` (a minimal parse
 surface) but cannot wrap it in the py-tree-sitter `tree_sitter.Language` A's
 DSL machinery expects — the standard binding has no wasm store. That is the
 finding in code form: wasm in A is a binding-ownership question first.

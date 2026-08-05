@@ -1,6 +1,6 @@
 # devenv-extract — the devenv fleet inventory with pydantree
 
-A copyable end-to-end for **Product A** (tsquery) over the **real
+A copyable end-to-end for **Product A** (pydantree_sitter) over the **real
 tree-sitter-nix grammar** (`nix-community/tree-sitter-nix` — a grammar we
 don't own and never authored). The corpus is a subset of the author's OWN
 real `devenv.nix` configs (7 repos, 8–526 lines), and the extraction task is
@@ -21,11 +21,11 @@ schema checks active **before any text is parsed**.
 ```bash
 uv venv --python 3.13 .venv
 uv pip install --python .venv/bin/python \
-    pydantree-tscore pydantree-tsquery tree-sitter-nix
+    pydantree-sitter pydantree-sitter tree-sitter-nix
 .venv/bin/python extract.py
 ```
 
-That's it: the light wheels + the community wheel. `import tsgrammar` is
+That's it: the light wheels + the community wheel. `import pydantree_sitter_grammar` is
 impossible in this venv (the light install does not ship B) and the
 extraction still runs — the full checked A surface over a grammar shipped as
 a PyPI wheel, with the schema derived from the grammar source
@@ -114,5 +114,5 @@ bindings disagree (the corruption). The full evidence is in
   (e.g. `lib.optional … llamaCpp`) are not list elements, so they don't
   appear.
 - The `tree-sitter-nix` wheel's `language()` returns a bare PyCapsule (it
-  was built against an older binding API) — tsquery converts it internally;
+  was built against an older binding API) — pydantree_sitter converts it internally;
   the raw-bindings path needs `tree_sitter.Language(capsule)`.

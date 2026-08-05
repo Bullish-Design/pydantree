@@ -1,4 +1,4 @@
-"""The rule-class surface (`tsgrammar.rules`) — tests.
+"""The rule-class surface (`pydantree_sitter_grammar.rules`) — tests.
 
 The load-bearing test is THE GATE: the class-authored devenv grammar
 (`tests/fixtures/devenv_classes_grammar.py`) must emit grammar.json
@@ -22,8 +22,8 @@ from typing import Literal
 
 import pytest
 
-import tsgrammar as tg
-from tsgrammar.grammar import (
+import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar.ir import (
     BlankNode,
     ChoiceNode,
     FieldNode,
@@ -41,9 +41,9 @@ FIXTURES = TESTS / "fixtures"
 
 
 HEADER = "from __future__ import annotations\n" \
-    "import tsgrammar as tg\n" \
+    "import pydantree_sitter_grammar as tg\n" \
     "from typing import Literal\n" \
-    "from tsgrammar import (Rule, Pattern, Token, External, Extra, " \
+    "from pydantree_sitter_grammar import (Rule, Pattern, Token, External, Extra, " \
     "Supertype, Hidden, Inline, Word, R, assemble)\n"
 
 

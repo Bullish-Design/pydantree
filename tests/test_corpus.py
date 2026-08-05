@@ -1,4 +1,4 @@
-"""tsgrammar.corpus tests — the Phase-5 corpus-testing harness (CONCEPT §4.8,
+"""pydantree_sitter_grammar.corpus tests — the Phase-5 corpus-testing harness (CONCEPT §4.8,
 the systematic guard for the Phase-3 §4 semantic-intent leak).
 
 Covers: the qfilter corpus (expression shapes in the compact style, statement
@@ -17,13 +17,13 @@ from pathlib import Path
 
 import pytest
 
-import tsgrammar as tg
-from tsgrammar.corpus import Corpus, corpus_case, render, render_compact
-from tsgrammar.expressions import semantic_smoke
-from tsgrammar.grammar import ChoiceNode, StrNode, SymbolNode
+import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar.corpus import Corpus, corpus_case, render, render_compact
+from pydantree_sitter_grammar.expressions import semantic_smoke
+from pydantree_sitter_grammar.ir import ChoiceNode, StrNode, SymbolNode
 
-QFILTER_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "005-tsgrammar-glr"
-P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "007-tsquery-distribution"
+QFILTER_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "005-grammar-glr"
+P5_DIR = Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "007-query-distribution"
 sys.path.insert(0, str(QFILTER_DIR))
 sys.path.insert(0, str(P5_DIR))
 

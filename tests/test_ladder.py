@@ -5,8 +5,8 @@ from __future__ import annotations
 
 import pytest
 
-import tsgrammar as tg
-from tsgrammar.grammar import StrNode
+import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar.ir import StrNode
 
 
 def test_int_ladder_ascending_values():
@@ -60,7 +60,7 @@ def test_ladder_prec_helpers_emit_int_nodes():
     g = tg.Grammar("t")
     prec = g.precedence("add", "mul")
     body = tg.seq(tg.ref("e"), "+", tg.ref("e"))
-    from tsgrammar.grammar import PrecLeftNode, PrecNode
+    from pydantree_sitter_grammar.ir import PrecLeftNode, PrecNode
     assert isinstance(prec.left("add", body).node, PrecLeftNode)
     assert prec.left("add", body).node.value == 1
     assert isinstance(prec.prec("mul", body).node, PrecNode)

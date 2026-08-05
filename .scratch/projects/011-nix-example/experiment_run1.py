@@ -124,7 +124,7 @@ def main() -> int:
 
     # 2. derive + the byte-for-byte agreement
     banner("2. derive_schema_for_dir over the vendored v0.3.0 source")
-    from tsgrammar.schema_tool import derive_schema_for_dir
+    from pydantree_sitter_grammar.schema_tool import derive_schema_for_dir
     work = tmp / "derive"
     out = work / "node-schema.json"
     derived = derive_schema_for_dir(NIX_FIXTURE, name="nix", workdir=work,
@@ -185,7 +185,7 @@ def main() -> int:
 
     # 4. the community bundle (generate + gcc) — GLR conflicts at generate?
     banner("4. build_community_bundle over the vendored source")
-    from tsgrammar.schema_tool import build_community_bundle
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(NIX_FIXTURE, tmp / "bundle",
                                     name="nix", keep=True)
     sizes = {p.name: p.stat().st_size for p in bundle.iterdir()}
@@ -195,7 +195,7 @@ def main() -> int:
     # 5. the wheel-consistency PARSE PROBE: wheel's language vs our v0.3.0 build
     banner("5. the wheel-consistency parse probe (wheel vs v0.3.0 build)")
     import tree_sitter as ts
-    from tscore.loader import load_bundle
+    from pydantree_sitter.loader import load_bundle
     v030_lang = load_bundle(bundle).language
     # the wheel: fresh venv, tree-sitter-nix from the real index
     venv = tmp / "wheel-venv"

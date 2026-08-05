@@ -23,8 +23,8 @@ REPO = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import tsgrammar as tg  # noqa: E402
-from tsgrammar import (  # noqa: E402
+import pydantree_sitter_grammar as tg  # noqa: E402
+from pydantree_sitter_grammar import (  # noqa: E402
     Rule, R, assemble,
 )
 
@@ -57,8 +57,8 @@ def check_fixture_sites() -> bool:
         site = g.matching_alternative("pair", ("name_path",)) \
             if attr == "key" else None
         # direct: walk the body nodes, find the field node for the attr
-        from tsgrammar.builder import _iter_body_nodes
-        from tsgrammar.grammar import FieldNode
+        from pydantree_sitter_grammar.builder import _iter_body_nodes
+        from pydantree_sitter_grammar.ir import FieldNode
         found = None
         for node in _iter_body_nodes(g.rules["pair"]):
             if isinstance(node, FieldNode) and node.name == attr:

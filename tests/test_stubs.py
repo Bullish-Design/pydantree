@@ -17,8 +17,8 @@ from pathlib import Path
 
 import pytest
 
-from tscore.schema import NodeSchema
-from tsquery.stubs import generate_stubs
+from pydantree_sitter.schema import NodeSchema
+from pydantree_sitter.stubs import generate_stubs
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "rust"
 MYPY = shutil.which("mypy")

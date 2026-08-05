@@ -7,7 +7,7 @@ import shutil
 
 import pytest
 
-import tsgrammar as tg
+import pydantree_sitter_grammar as tg
 
 TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
     shutil.which("gcc") is not None
@@ -63,7 +63,7 @@ def _named_grammar() -> tg.Grammar:
 def test_expression_emits_single_rule_with_prec_alternatives():
     g = _int_grammar()
     body = g.rules["expr"]
-    from tsgrammar.grammar import (
+    from pydantree_sitter_grammar.ir import (
         ChoiceNode,
         PrecLeftNode,
         PrecNode,
@@ -93,7 +93,7 @@ def test_expression_primary_choice_flattens():
     """A choice primary splices its members into the expr choice (the DSL's
     choice() flattening) — the emitted rule stays one flat choice."""
     g = _int_grammar()
-    from tsgrammar.grammar import SeqNode, SymbolNode
+    from pydantree_sitter_grammar.ir import SeqNode, SymbolNode
     members = g.rules["expr"].members
     assert isinstance(members[-1], SeqNode)   # the parens primary
     assert members[-2] == SymbolNode(name="identifier")

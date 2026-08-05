@@ -120,7 +120,7 @@ What does NOT map, and why:
 - The honest framing: not "model-only" but **"models for the data, combinators
   for the plumbing"** — which mirrors Product A's own reality (record/field
   mode eat fielded kinds; value shapes are *derived*, not declared).
-- A real implementation would put this in `tsgrammar` as a sugar layer over
+- A real implementation would put this in `pydantree_sitter_grammar` as a sugar layer over
   the existing builder (source sites come for free: class def line + each
   annotated attr's line → finer-grained `GrammarConflictError` targets than
   the current combinator call sites). Cost is small; the metaclass is ~120
@@ -148,7 +148,7 @@ Kinds: body — `Pattern`, `Token`, `External`; behavioral mixins — `Extra`,
 `Supertype`, `Hidden`, `Inline`, `Word`. The leaf rules collapse to
 one-liners: `class Number(Pattern): __pattern__ = integer()`.
 
-**Pattern/token helpers** (`tsgrammar.patterns`) — composable regex STRINGS
+**Pattern/token helpers** (`pydantree_sitter_grammar.patterns`) — composable regex STRINGS
 in the tree-sitter lexer subset (no backrefs/lookaround): `ident(hyphen=)`,
 `integer()`, `quoted()`, `slug()`, `path_literal()`, `dotted_path()`,
 `rest_of_line()`. The probe asserts the helper-produced strings equal the

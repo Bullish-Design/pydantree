@@ -1,6 +1,6 @@
 """Load this bundle's grammar into a tree_sitter.Language (B-free)."""
 from pathlib import Path
-from tscore.loader import load_bundle
+from pydantree_sitter.loader import load_bundle
 
 
 def language():

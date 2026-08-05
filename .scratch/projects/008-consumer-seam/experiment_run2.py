@@ -15,7 +15,7 @@ A grammar we DON'T own, end to end:
      by a newer CLI and differs by 38 bytes — upstream churn, documented);
   4. build the community bundle (generate + gcc + schema + metadata + loader);
   5. a B-free consumer extracts a real rust task against HAND-AUTHORED ground
-     truth, checks active, tsgrammar unimportable.
+     truth, checks active, pydantree_sitter_grammar unimportable.
 
 Evidence saved verbatim under evidence/ (r2_*).
 """
@@ -32,7 +32,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 SRC = ROOT / "src"
 sys.path.insert(0, str(SRC))
-sys.path.insert(0, str(ROOT / ".scratch" / "007-tsquery-distribution"))
+sys.path.insert(0, str(ROOT / ".scratch" / "007-query-distribution"))
 sys.path.insert(0, str(ROOT / ".scratch" / "008-consumer-seam"))
 
 EVIDENCE = Path(__file__).parent / "evidence"
@@ -55,7 +55,7 @@ def main() -> int:
 
     # 1. the schema tool over the real source (the tool's contract)
     banner("1. schema tool -> byte-for-byte vs the CLI's node-types.json")
-    from tsgrammar.schema_tool import derive_schema_for_dir
+    from pydantree_sitter_grammar.schema_tool import derive_schema_for_dir
     schema_out = tmp / "rust-schema.json"
     derived = derive_schema_for_dir(RUST_FIXTURE, name="rust",
                                     workdir=tmp / "cw", out=schema_out,
@@ -76,8 +76,8 @@ def main() -> int:
 
     # 2. derive_from_ir over the real grammar.json, byte-for-byte
     banner("2. derive_from_ir over the real grammar.json (exact path)")
-    from tsgrammar.grammar import Grammar as GrammarModel
-    from tscore.schema import NodeSchema, derive_from_ir
+    from pydantree_sitter_grammar.ir import Grammar as GrammarModel
+    from pydantree_sitter.schema import NodeSchema, derive_from_ir
     model = GrammarModel.model_validate(
         json.loads((RUST_FIXTURE / "grammar.json").read_text()))
     ours_ir = NodeSchema.from_list(derive_from_ir(model), name="rust").to_json()
@@ -89,7 +89,7 @@ def main() -> int:
 
     # 3. build the community bundle
     banner("3. build the community bundle (source -> 4 files)")
-    from tsgrammar.schema_tool import build_community_bundle
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(RUST_FIXTURE, tmp / "bundle", name="rust",
                                     workdir=tmp / "bw", keep=True)
     sizes = {p.name: p.stat().st_size for p in bundle.iterdir()}
@@ -97,7 +97,7 @@ def main() -> int:
     save("r2_bundle_manifest.txt", json.dumps(sizes, indent=2) + "\n")
 
     # 4. the B-free consumer vs hand-authored ground truth
-    banner("4. B-free consumer (tsgrammar unimportable) vs hand truth")
+    banner("4. B-free consumer (pydantree_sitter_grammar unimportable) vs hand truth")
     from bfree import run_bfree
     script = (ROOT / ".scratch" / "008-consumer-seam" / "consumer_rust.py").resolve()
     rc, out = run_bfree(script, str(bundle), workdir=tmp / "bfree")

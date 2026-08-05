@@ -16,7 +16,7 @@ interpolation, `''...''` multiline strings with `''${` escapes, lists,
 configs actually use, WITHOUT the full Nix language (no let/in, function
 formals are a simple header, no binary operators, no apply).
 
-Authored with the tsgrammar DSL (Product B) so the consumer-side shape is
+Authored with the pydantree_sitter_grammar DSL (Product B) so the consumer-side shape is
 exactly what Product A wants:
 
   * the attrset's key/value pair is a DIRECT CHILD KIND with `key`/`value`
@@ -37,7 +37,7 @@ Run it with `devenv shell -- python examples/devenv-subset/extract.py`
 
 from __future__ import annotations
 
-import tsgrammar as tg
+import pydantree_sitter_grammar as tg
 
 
 def build() -> tg.Grammar:

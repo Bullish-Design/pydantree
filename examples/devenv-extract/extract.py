@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """devenv-extract — the devenv fleet inventory with pydantree.
 
-A copyable end-to-end for **Product A** (tsquery) over the REAL
+A copyable end-to-end for **Product A** (pydantree_sitter) over the REAL
 tree-sitter-nix grammar (nix-community, v0.3.0 source here; the PyPI wheel
 tree-sitter-nix 0.1.0 for the fresh-venv shape) — a grammar we don't own and
 never authored. The corpus is a subset of the author's OWN real `devenv.nix`
@@ -14,7 +14,7 @@ Usage (the "hundreds of grammars" shape — light wheels + a community wheel):
 
     uv venv --python 3.13 .venv
     uv pip install --python .venv/bin/python \
-        pydantree-tscore pydantree-tsquery tree-sitter-nix
+        pydantree-sitter pydantree-sitter tree-sitter-nix
     .venv/bin/python extract.py
 
 (Or, over a pydantree bundle: `python extract.py --bundle <bundle-dir>`.)
@@ -35,7 +35,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 FLEET = HERE / "fleet"
 
-from tsquery import Language, M, OutputModel, Span, capture, source_meta  # noqa: E402
+from pydantree_sitter import Language, M, OutputModel, Span, capture, source_meta  # noqa: E402
 
 FILES = ("mypi-agent.nix", "pydantree.nix", "terminal-state.nix",
          "structured-agents-v2.nix", "fsdantic.nix", "nixvim.nix")
@@ -163,7 +163,7 @@ def classify(path: str, value: str):
 
 def load_language() -> Language:
     """Default: the wheel shape — tree_sitter_nix.language() (a bare
-    PyCapsule from this wheel — tsquery converts it) with the derived schema
+    PyCapsule from this wheel — pydantree_sitter converts it) with the derived schema
     bound explicitly (the schema ships in this dir). With `--bundle <dir>`:
     the one-line bundle shape."""
     if "--bundle" in sys.argv:

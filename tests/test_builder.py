@@ -7,8 +7,8 @@ import json
 
 import pytest
 
-import tsgrammar as tg
-from tsgrammar.grammar import (
+import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar.ir import (
     AliasNode,
     BlankNode,
     ChoiceNode,
@@ -31,12 +31,12 @@ def test_operator_sugar_and_flattening():
     assert isinstance(tg.ref("x").star().node, RepeatNode)
     assert isinstance(tg.opt("a").node, ChoiceNode)
     assert isinstance(tg.opt("a").node.members[1], BlankNode)
-    from tsgrammar.grammar import Repeat1Node
+    from pydantree_sitter_grammar.ir import Repeat1Node
     assert isinstance(tg.ref("x").plus().node, Repeat1Node)
 
 
 def test_str_becomes_string():
-    from tsgrammar.builder import as_node
+    from pydantree_sitter_grammar.builder import as_node
     assert as_node(";") == StrNode(value=";")
     with pytest.raises(TypeError):
         as_node(42)

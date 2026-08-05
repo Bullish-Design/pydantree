@@ -1,4 +1,4 @@
-# Phase 1 Spike — Findings & Verdict (Product A: tsquery)
+# Phase 1 Spike — Findings & Verdict (Product A: pydantree_sitter)
 
 > **Superseded in direction (2026-08-02).** This spike validated the raw-API
 > substrate (0.26 semantics, predicate placement, per-match repeats, the

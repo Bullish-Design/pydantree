@@ -16,7 +16,7 @@ and heredoc usage (delimiter + body; heredoc_redirect has POSITIONAL
 children, so capture_kind is the surface).
 
 Usage: python consumer_bash.py <corpus-dir> <bundle|wheel> <bundle-or-schema-dir>
-Env: BFREE_REQUIRED=1 asserts tsgrammar is genuinely unimportable.
+Env: BFREE_REQUIRED=1 asserts pydantree_sitter_grammar is genuinely unimportable.
 """
 
 from __future__ import annotations
@@ -28,14 +28,14 @@ from pathlib import Path
 
 if os.environ.get("BFREE_REQUIRED"):
     try:
-        import tsgrammar  # noqa: F401
+        import pydantree_sitter_grammar  # noqa: F401
         print(json.dumps({"ok": False,
-                          "error": "tsgrammar IS importable — B leaked"}))
+                          "error": "pydantree_sitter_grammar IS importable — B leaked"}))
         sys.exit(1)
     except ModuleNotFoundError:
         pass
 
-from tsquery import Language, M, OutputModel, capture, capture_kind, source_meta  # noqa: E402
+from pydantree_sitter import Language, M, OutputModel, capture, capture_kind, source_meta  # noqa: E402
 
 CORPUS = Path(sys.argv[1])
 MODE = sys.argv[2]
@@ -108,7 +108,7 @@ def main() -> int:
     out = {
         "ok": None,  # filled below
         "mode": MODE,
-        "tsgrammar_importable": _b_importable(),
+        "pydantree_sitter_grammar_importable": _b_importable(),
         "schema_bound": lang.schema is not None,
         "schema_kinds": len(lang.schema.kinds()) if lang.schema else None,
         "files": {},
@@ -135,7 +135,7 @@ def main() -> int:
 
 def _b_importable() -> bool:
     try:
-        import tsgrammar  # noqa: F401
+        import pydantree_sitter_grammar  # noqa: F401
         return True
     except ModuleNotFoundError:
         return False

@@ -1,8 +1,8 @@
 """Run 2 — the community seam over a REAL grammar, B-free.
 
 Consumes the tree-sitter-rust community bundle (built from the real grammar
-SOURCE via tsgrammar.schema_tool.build_community_bundle) in a SEPARATE process
-where tsgrammar is NOT importable. The schema was derived by the community
+SOURCE via pydantree_sitter_grammar.schema_tool.build_community_bundle) in a SEPARATE process
+where pydantree_sitter_grammar is NOT importable. The schema was derived by the community
 tool (byte-for-byte with the CLI's node-types.json); the checks are active;
 the extraction rows must match the HAND-AUTHORED ground truth (written on
 paper before the model, from the grammar's semantics).
@@ -22,14 +22,14 @@ import sys
 from pathlib import Path
 
 try:
-    import tsgrammar  # noqa: F401
+    import pydantree_sitter_grammar  # noqa: F401
     print(json.dumps({"ok": False,
-                      "error": "tsgrammar IS importable — B leaked"}))
+                      "error": "pydantree_sitter_grammar IS importable — B leaked"}))
     sys.exit(1)
 except ModuleNotFoundError:
     pass
 
-from tsquery import Language, M, OutputModel, capture, source_meta  # noqa: E402
+from pydantree_sitter import Language, M, OutputModel, capture, source_meta  # noqa: E402
 
 RUST_SAMPLE = """\
 // module doc

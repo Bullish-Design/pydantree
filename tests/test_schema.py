@@ -1,4 +1,4 @@
-"""tscore.schema tests: the node-schema models, the exact-path derivation
+"""pydantree_sitter.schema tests: the node-schema models, the exact-path derivation
 (derive_from_ir) vs the CLI's node-types.json (the agreement check), and the
 community-path derivation (derive_from_node_types) converging on the same
 format."""
@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-import tsgrammar as tg
-from tscore.schema import (
+import pydantree_sitter_grammar as tg
+from pydantree_sitter.schema import (
     NodeSchema,
     derive_from_ir,
     derive_from_node_types,
@@ -75,7 +75,7 @@ def test_derive_from_ir_agrees_with_cli_qfilter():
     sys_path_insert = None
     import sys
     from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "005-tsgrammar-glr"))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / ".scratch" / "projects" / "005-grammar-glr"))
     try:
         import qfilter
     finally:

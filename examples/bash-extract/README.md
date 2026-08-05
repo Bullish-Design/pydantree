@@ -1,6 +1,6 @@
 # bash-extract — typed extraction from real shell scripts
 
-A copyable end-to-end for **Product A** (tsquery) over the **real
+A copyable end-to-end for **Product A** (pydantree_sitter) over the **real
 tree-sitter-bash grammar (0.25.1)** — a grammar we don't own and never
 authored. Three extraction tasks over real shell scripts, as **typed rows**,
 with the schema checks active **before any text is parsed**:
@@ -16,11 +16,11 @@ with the schema checks active **before any text is parsed**:
 ```bash
 uv venv --python 3.13 .venv
 uv pip install --python .venv/bin/python \
-    pydantree-tscore pydantree-tsquery tree-sitter-bash
+    pydantree-sitter pydantree-sitter tree-sitter-bash
 .venv/bin/python extract.py
 ```
 
-That's it: the light wheels + the community wheel. `import tsgrammar` is
+That's it: the light wheels + the community wheel. `import pydantree_sitter_grammar` is
 impossible in this venv (the light install does not ship B) and the
 extraction still runs — the full checked A surface over a grammar shipped
 as a PyPI wheel, with the schema derived from the grammar source

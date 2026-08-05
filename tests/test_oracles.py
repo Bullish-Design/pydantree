@@ -71,8 +71,8 @@ def _import_example(name: str):
 
 @pytest.fixture(scope="session")
 def bash_lang():
-    from tsgrammar.schema_tool import build_community_bundle
-    from tsquery import Language
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
+    from pydantree_sitter import Language
     bundle = build_community_bundle(BASH_FIXTURE, ORACLES / ".built" / "bash",
                                     name="bash", keep=False)
     return Language.load_bundle(bundle)
@@ -80,8 +80,8 @@ def bash_lang():
 
 @pytest.fixture(scope="session")
 def nix_lang():
-    from tsgrammar.schema_tool import build_community_bundle
-    from tsquery import Language
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
+    from pydantree_sitter import Language
     bundle = build_community_bundle(NIX_FIXTURE, ORACLES / ".built" / "nix",
                                     name="nix", keep=False)
     return Language.load_bundle(bundle)
@@ -93,7 +93,7 @@ def build_subset_bundle(mod, out_dir: Path):
     hardcodes DIST; ours lands in out_dir), consumed with
     Language.load_bundle."""
     import sys as _sys
-    import tsgrammar as tg
+    import pydantree_sitter_grammar as tg
 
     _sys.path.insert(0, str(EXAMPLES / "devenv-subset"))
     from grammar import build
@@ -108,7 +108,7 @@ def build_subset_bundle(mod, out_dir: Path):
 
 @pytest.fixture(scope="session")
 def subset_lang():
-    from tsquery import Language
+    from pydantree_sitter import Language
     example = _import_example("devenv-subset")
     bundle = build_subset_bundle(example, ORACLES / ".built" / "subset")
     return Language.load_bundle(bundle)
@@ -303,7 +303,7 @@ def test_fa1_cross_language_second_extract_raises():
     the second language. Fix in Phase 4.2 (binding owns compiled state)."""
     import tree_sitter_json
     import tree_sitter_python
-    from tsquery import Language, M, OutputModel, QueryBuildError, capture
+    from pydantree_sitter import Language, M, OutputModel, QueryBuildError, capture
 
     class PyAssignment2(OutputModel):
         __match__ = M("module", "expression_statement", "assignment")
@@ -323,11 +323,11 @@ def test_fa1_cross_language_second_extract_raises():
 def test_fa2_schema_bound_nested_records_match_schema_less():
     import sys as _sys
     import tree_sitter_json
-    from tsquery import Language, M, OutputModel
+    from pydantree_sitter import Language, M, OutputModel
 
-    _sys.path.insert(0, str(REPO / ".scratch" / "projects" / "006-tsquery-bridge"))
+    _sys.path.insert(0, str(REPO / ".scratch" / "projects" / "006-query-bridge"))
     from json_grammar import build as build_json
-    from tscore.schema import NodeSchema, derive_from_ir
+    from pydantree_sitter.schema import NodeSchema, derive_from_ir
 
     schema = NodeSchema.from_list(derive_from_ir(build_json().build()),
                                   name="json")
@@ -354,7 +354,7 @@ def test_fa2_schema_bound_nested_records_match_schema_less():
                                        "dropped in field mode — Phase 4.3")
 def test_fa3_nodekind_tuple_emits_all_kinds_in_field_mode():
     import tree_sitter_python
-    from tsquery import Language, M, OutputModel, NodeKind, capture
+    from pydantree_sitter import Language, M, OutputModel, NodeKind, capture
     from typing import Annotated
 
     class Flag(OutputModel):
@@ -375,7 +375,7 @@ def test_list_field_with_gap_path_filters_by_ancestry():
     anchor's ancestry does NOT match must yield ZERO rows — the scalar
     branch filters, the list branch must too (one matcher, one call site)."""
     import tree_sitter_python
-    from tsquery import Language, M, OutputModel, capture
+    from pydantree_sitter import Language, M, OutputModel, capture
 
     class NeverCall(OutputModel):
         __match__ = M("object", ..., "call")   # top-level call is under module
@@ -396,8 +396,8 @@ def test_t1_choice_order_required_matches_cli():
     required:false for both orders). Current: the 2nd-branch order reports
     required:true. Phase 3 makes this true by construction (the schema IS
     the CLI byproduct)."""
-    import tsgrammar as tg
-    from tscore.schema import NodeSchema, derive_from_ir
+    import pydantree_sitter_grammar as tg
+    from pydantree_sitter.schema import NodeSchema, derive_from_ir
 
     def derive(first, second):
         g = tg.Grammar("t1")
@@ -427,8 +427,8 @@ def test_t1_choice_order_required_matches_cli():
 # ---------------------------------------------------------------------------
 
 def _generate() -> int:
-    from tsgrammar.schema_tool import build_community_bundle
-    from tsquery import Language
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
+    from pydantree_sitter import Language
 
     built = ORACLES / ".built"
     built.mkdir(parents=True, exist_ok=True)

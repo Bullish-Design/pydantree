@@ -1,5 +1,5 @@
 """wasm_bridge — the wasm-capable runtime bridge (Phase 7 probe; moved out of
-`src/tscore/_wasm_bridge.py` by the 014 refactor — the shipped seam raises
+`src/pydantree_sitter/_wasm_bridge.py` by the 014 refactor — the shipped seam raises
 `WasmRuntimeUnavailableError` unconditionally for .wasm artifacts, and this
 bridge is the probe-grade code a consumer who forks the binding would use).
 
@@ -23,7 +23,7 @@ Runtime requirements (the Phase-7 probe's build, see .scratch/projects/009-phase
 Env-var protocol (now scratch-only; the shipped seam has no wasm path):
 TSGRAMMAR_WASM_LIB / TSGRAMMAR_WASMTIME_LIB point at the two libraries; this
 module's `WasmRuntime(*paths)` drives the load directly (previously wired
-through `tscore.loader.load_grammar_wasm`, deleted with the seam refactor).
+through `pydantree_sitter.loader.load_grammar_wasm`, deleted with the seam refactor).
 Returns WasmLanguage — a minimal parse surface; a wasm language CANNOT be
 wrapped in a tree_sitter.Language capsule (py-tree-sitter 0.26 has no wasm
 store), which is the heart of the Phase-7 wasm verdict.

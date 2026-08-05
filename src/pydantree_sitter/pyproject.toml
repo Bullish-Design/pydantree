@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pydantree-sitter"
+version = "0.1.0"
+description = "Product A — model-only typed extraction over tree-sitter grammars. Light runtime: the C binding + pydantic; no Rust CLI, no compiler."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+keywords = ["tree-sitter", "pydantic", "parser", "ast", "extraction"]
+authors = [
+  { name = "Bullish Design", email = "BullishDesignEngineering@gmail.com" }
+]
+
+dependencies = [
+  "pydantic>=2.11",
+  "tree-sitter>=0.26",  # the 0.26 floor: reparse, field_name_for_child, ...
+]
+
+[tool.hatch.build.targets.wheel.force-include]
+# per-package pyproject inside the package dir; map the dir's contents into
+# the wheel as the `pydantree_sitter` package.
+"." = "pydantree_sitter"

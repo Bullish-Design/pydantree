@@ -9,7 +9,7 @@ import types
 from pathlib import Path
 from typing import Literal
 
-import tsgrammar as tg
+import pydantree_sitter_grammar as tg
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
@@ -24,11 +24,11 @@ from grammar import build as original_build  # noqa: E402
 src = (HERE / "devenv_grammar_classes.py").read_text()
 # point the hypothetical file's imports at the probe machinery
 src = src.replace(
-    "import tsgrammar as tg\nfrom tsgrammar import R, Rule, assemble\n", "")
+    "import pydantree_sitter_grammar as tg\nfrom pydantree_sitter_grammar import R, Rule, assemble\n", "")
 
 P._REGISTRY.clear()  # fresh registry: only the standalone file's classes
 _mod = types.ModuleType("standalone")
-_mod.__dict__.update({"tsgrammar": tg, "tg": tg, "R": P.R, "Rule": P.Rule,
+_mod.__dict__.update({"pydantree_sitter_grammar": tg, "tg": tg, "R": P.R, "Rule": P.Rule,
                       "assemble": P.assemble, "Literal": Literal})
 sys.modules["standalone"] = _mod  # annotation resolution looks up the module
 exec(compile(src, "devenv_grammar_classes.py", "exec"), _mod.__dict__)  # noqa: S102

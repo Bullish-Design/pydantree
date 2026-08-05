@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 from typing import Annotated
 import tree_sitter_python
 import tree_sitter_json
-from tsquery import OutputModel, M, capture, NodeKind
+from pydantree_sitter import OutputModel, M, capture, NodeKind
 
 
 def probe_1_cross_language_compile_cache():
@@ -90,7 +90,7 @@ def probe_4_stderr_warning_noise():
 def probe_5_registry_leak():
     """register=True global registry: schema applies to later bare-language callers."""
     print("=== probe 5: schema registry is global mutable state ===")
-    from tsquery.typed import _SCHEMA_REGISTRY
+    from pydantree_sitter.typed import _SCHEMA_REGISTRY
     print("  registry contents:", dict(_SCHEMA_REGISTRY))
 
 

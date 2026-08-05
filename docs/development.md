@@ -11,7 +11,7 @@ first for the map; this is the "how do I actually run things" doc.
 
   ```bash
   devenv shell -- python -m pytest tests/
-  devenv shell -- python -c "import tsgrammar as tg; ..."
+  devenv shell -- python -c "import pydantree_sitter_grammar as tg; ..."
   ```
 
 - **The venv is managed by `uv sync`** (`languages.python.uv.sync.enable` in
@@ -28,8 +28,8 @@ first for the map; this is the "how do I actually run things" doc.
 
 ### The staleness non-issue (how it's prevented)
 
-The old flow (`uv pip install -e . -e src/tscore -e src/tsquery -e
-src/tsgrammar`) placed a COPY of each package in site-packages, so ANY
+The old flow (`uv pip install -e . -e src/pydantree_sitter -e src/pydantree_sitter -e
+src/pydantree_sitter_grammar`) placed a COPY of each package in site-packages, so ANY
 change under `src/` was invisible to plain imports until you re-ran the
 install — a chronic dev-flow trap. The devenv now prevents it by
 construction:
@@ -39,7 +39,7 @@ construction:
 - The `pydantree:venv-src-pth` task writes a `_pydantree_src.pth` into the
   venv whose `import` line runs `sys.path.insert(0, "<repo>/src")` during
   site-packages processing — so every process using the venv resolves
-  tscore/tsquery/tsgrammar **straight from `src/`**, and edits are live
+  pydantree_sitter / pydantree_sitter_grammar **straight from `src/`**, and edits are live
   immediately (no reinstall, no stale copy).
 - `tests/conftest.py` still resolves `src/` first (belt-and-suspenders, and
   it keeps the suite honest if the devenv is bypassed).
@@ -59,7 +59,7 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
 - **test_wasm.py** has env-gated tests: with
   `TSGRAMMAR_WASM_LIB`/`TSGRAMMAR_WASMTIME_LIB` set (the Phase-7 probe's
   runtime) the real wasm load runs; without them it skips.
-- **The pipeline caches builds** under `~/.cache/tsgrammar` (override with
+- **The pipeline caches builds** under `~/.cache/pydantree_sitter_grammar` (override with
   `TSGRAMMAR_CACHE`). A stale cache made from an older scanner/grammar is a
   classic "my fix doesn't work" gotcha — when iterating on a scanner, point
   `cache_dir=` at a fresh temp dir, or delete the cache entry.
@@ -71,20 +71,20 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
 - Probes/experiments are committed as `.scratch/projects/00X-*/probe_*.py` so a
   verdict can be re-run. Each FINDINGS "Re-run" section lists the commands.
 - Commit messages carry a scope prefix + the finding, e.g.:
-  `tsgrammar: scanner library — ...`, `phase7: wasm probe — ...`,
-  `tscore: ...`. Commit after each meaningful step.
+  `pydantree_sitter_grammar: scanner library — ...`, `phase7: wasm probe — ...`,
+  `pydantree_sitter: ...`. Commit after each meaningful step.
 
 ## 4. Package layout mechanics
 
 - Each product has its own `pyproject.toml` INSIDE its package dir
-  (`src/tscore/pyproject.toml`, ...) with
-  `[tool.hatch.build.targets.wheel.force-include] "." = "tsgrammar"` — the
+  (`src/pydantree_sitter/pyproject.toml`, ...) with
+  `[tool.hatch.build.targets.wheel.force-include] "." = "pydantree_sitter_grammar"` — the
   dir's contents (including `scanners/*.c`) become the wheel's package data.
   Known artifact: `pyproject.toml`/`PKG-INFO` ride inside the wheel package
   (harmless, documented).
-- **Adding a scanner**: put the `.c` in `src/tsgrammar/scanners/`, add a
+- **Adding a scanner**: put the `.c` in `src/pydantree_sitter_grammar/scanners/`, add a
   `*_scanner_path()` helper + a `scanner_for()` entry, re-export from
-  `tsgrammar/__init__.py` (`__all__` too). The dev venv resolves `src/`
+  `pydantree_sitter_grammar/__init__.py` (`__all__` too). The dev venv resolves `src/`
   directly (the `_pydantree_src.pth`), so new files are immediately
   importable — no reinstall. Verify the heavy wheel carries it (see
   `tests/test_packaging.py::test_heavy_wheel_carries_the_scanner_and_0_26_pin`).

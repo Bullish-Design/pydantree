@@ -3,7 +3,7 @@
 Phase 9 — Run 2: the nix consumer through the LIGHT install, BOTH real-user
 shapes, byte-identical.
 
-  1. the wheels: pydantree-tscore + pydantree-tsquery built from src/
+  1. the wheels: pydantree-pydantree_sitter + pydantree-pydantree_sitter built from src/
      (uv build) into a wheelhouse;
   2. a FRESH venv with ONLY the light wheels + tree-sitter-nix from the REAL
      index (the wheel shape's "hundreds of grammars" install — the wheel's
@@ -14,7 +14,7 @@ shapes, byte-identical.
        b. fresh-venv bundle shape (B-free — Language.load_bundle)
        c. fresh-venv WHEEL shape  (B-free — tree_sitter_nix.language()
           + the derived schema bound explicitly — note the wheel returns a
-          bare PyCapsule, which tsquery's _resolve_language converts)
+          bare PyCapsule, which pydantree_sitter's _resolve_language converts)
   5. the extraction payloads must be byte-identical across all three. The
      line numbers are BYTE-computed (the nix position-bug workaround), so
      the flora rows are deterministic across runs.
@@ -41,7 +41,7 @@ EVIDENCE.mkdir(parents=True, exist_ok=True)
 
 CONSUMER = Path(__file__).parent / "consumer_nix.py"
 FLEET = ROOT / "tests" / "fixtures" / "nix" / "fleet"
-SITECUSTOMIZE = (ROOT / ".scratch" / "007-tsquery-distribution"
+SITECUSTOMIZE = (ROOT / ".scratch" / "007-query-distribution"
                  / "consumer_env" / "sitecustomize.py")
 NIX_FIXTURE = ROOT / "tests" / "fixtures" / "nix"
 
@@ -76,10 +76,10 @@ def main() -> int:
     banner("Run 2 — the light-install nix consumer, both shapes")
 
     # 0. build the light wheels
-    banner("0. build the light wheels (tscore + tsquery)")
+    banner("0. build the light wheels (pydantree_sitter + pydantree_sitter)")
     wheelhouse = tmp / "wheels"
     wheelhouse.mkdir()
-    for pkg in ("tscore", "tsquery"):
+    for pkg in ("pydantree_sitter", "pydantree_sitter"):
         p = run(["uv", "build", "--out-dir", str(wheelhouse)],
                 cwd=SRC / pkg)
         assert p.returncode == 0, p.stderr or p.stdout
@@ -92,13 +92,13 @@ def main() -> int:
     assert p.returncode == 0, p.stderr or p.stdout
     p = run(["uv", "pip", "install", "--python", str(venv / "bin" / "python"),
              "--find-links", str(wheelhouse),
-             "pydantree-tscore==0.1.0", "pydantree-tsquery==0.1.0",
+             "pydantree-pydantree_sitter==0.1.0", "pydantree-pydantree_sitter==0.1.0",
              "tree-sitter-nix"],
             env={**os.environ, "UV_HTTP_TIMEOUT": "300"})
     assert p.returncode == 0, p.stderr or p.stdout
-    p = run([str(venv / "bin" / "python"), "-c", "import tsgrammar"])
+    p = run([str(venv / "bin" / "python"), "-c", "import pydantree_sitter_grammar"])
     tsg_rc = p.returncode
-    print(f"  fresh venv `import tsgrammar` rc: {tsg_rc} (must be != 0)")
+    print(f"  fresh venv `import pydantree_sitter_grammar` rc: {tsg_rc} (must be != 0)")
     p = run([str(venv / "bin" / "python"), "-c",
              "import tree_sitter_nix, importlib.metadata; "
              "print(importlib.metadata.version('tree-sitter-nix'))"])
@@ -107,14 +107,14 @@ def main() -> int:
 
     # 2. the community bundle (in-repo, B available)
     banner("2. the community bundle from the vendored v0.3.0 source")
-    from tsgrammar.schema_tool import build_community_bundle
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(NIX_FIXTURE, tmp / "bundle",
                                     name="nix", keep=True)
     sizes = {p.name: p.stat().st_size for p in bundle.iterdir()}
     print(json.dumps(sizes, indent=2))
     save("r9_r2_bundle_manifest.txt", json.dumps(sizes, indent=2) + "\n")
 
-    # 3. the consumer env (sitecustomize blocks tsgrammar by construction)
+    # 3. the consumer env (sitecustomize blocks pydantree_sitter_grammar by construction)
     banner("3. consumer env (B-free boundary by construction)")
     env = tmp / "consumer_env"
     (env / "lib").mkdir(parents=True)
@@ -173,7 +173,7 @@ def main() -> int:
           if ok else "NO-GO")
     save("r9_r2_verdict.txt",
          f"verdict: {'GO' if ok else 'NO-GO'}\n"
-         f"fresh `import tsgrammar` rc: {tsg_rc} (seam does not leak)\n"
+         f"fresh `import pydantree_sitter_grammar` rc: {tsg_rc} (seam does not leak)\n"
          f"tree-sitter-nix wheel: {wheel_version}\n")
     return 0 if ok else 1
 
