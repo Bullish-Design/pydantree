@@ -29,7 +29,7 @@ import json
 import os
 import shutil
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from .ir import GrammarModel
@@ -170,6 +170,10 @@ class BuildResult:
     generate_proc: subprocess.CompletedProcess | None = None
     compile_proc: subprocess.CompletedProcess | None = None
     cached: bool = False
+    warnings: list = field(default_factory=list)
+    # analyzer warnings (B15/REVIEW 018) — no longer discarded. build_builder
+    # replaces them with the builder-Grammar run so messages cite the author's
+    # source sites.
 
     def language(self, grammar_name: str | None = None):
         from .language import load_language
@@ -284,8 +288,9 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     if check:
         from .checks import assert_clean, warnings as check_warnings
         assert_clean(model)
-        for w in check_warnings(model):
-            pass  # surfaced to the caller's renderer; non-fatal
+        build_warnings = list(check_warnings(model))
+    else:
+        build_warnings = []
     cache_dir = Path(cache_dir) if cache_dir is not None else default_cache_dir()
     toolchain = toolchain or detect_toolchain()
     name = grammar_name or model.name
@@ -313,6 +318,7 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
             node_types_json=entry / "src" / "node-types.json",
             node_schema_json=entry / "node-schema.json",
             cached=True,
+            warnings=build_warnings,
         )
 
     # ---- miss: build into a fresh work dir, then promote into the cache ----
@@ -380,6 +386,7 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
         generate_proc=gen,
         compile_proc=cc,
         cached=False,
+        warnings=build_warnings,
     )
 
 
@@ -435,7 +442,7 @@ def build_builder(g, *, cache_dir=None, **kw) -> BuildResult:
     """
     model = g.build()
     try:
-        return build(model, cache_dir=cache_dir, **kw)
+        result = build(model, cache_dir=cache_dir, **kw)
     except GenerateError as e:
         # the conflict report is JSON on the SAME run's stderr (D10 — the
         # --json flag is always on): remap to the author's per-production
@@ -446,6 +453,13 @@ def build_builder(g, *, cache_dir=None, **kw) -> BuildResult:
                 _conflict, err = remap_from_proc(g, e.proc)
                 raise err from None
         raise
+    # warning messages should cite the AUTHOR's source, not the IR (which has
+    # no sites): re-run the analyzer over the builder Grammar (B15). Only when
+    # build() actually ran the checks (kw can pass check=False).
+    if result.warnings and kw.get("check", True):
+        from .checks import warnings as check_warnings
+        result.warnings = check_warnings(g)
+    return result
 
 
 def build_loop(g, *, fix=None, cache_dir=None, max_attempts: int = 8,

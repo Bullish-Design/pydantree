@@ -27,6 +27,35 @@ def _simple_grammar() -> tg.Grammar:
     return g
 
 
+def test_build_warnings_surface(cache_dir):
+    """B15: analyzer warnings are attached to the BuildResult (they used to
+    be computed then discarded) and cite the author's source when the build
+    goes through build_builder."""
+    g = tg.Grammar("warn_t")
+    g.precedence_ordering("low")   # declare the named precedence (CLI-required)
+    g.rule("x", tg.choice(
+        tg.prec("low", tg.ref("a")),
+        tg.prec(1, tg.ref("b"))))
+    g.rule("a", "a")
+    g.rule("b", "b")
+    g.rule("source_file", tg.ref("x"))
+    g.start("source_file")
+
+    result = tg.build_builder(g, cache_dir=cache_dir)
+    assert result.warnings, "expected a precedence-mixing warning"
+    assert any("precedence" in w.message for w in result.warnings)
+    # the site-carrying run: warnings cite the author's file (this test file)
+    assert all(w.site is None or w.site.file.endswith("test_pipeline.py")
+               for w in result.warnings)
+
+    # a warning-free grammar -> empty warnings
+    clean = tg.build_builder(tg.Grammar("clean_t")
+                             .rule("source_file", tg.pattern(r"\w+"))
+                             .start("source_file"),
+                             cache_dir=cache_dir)
+    assert clean.warnings == []
+
+
 def test_grammar_hash_is_content_addressed():
     a = _simple_grammar().build()
     b = _simple_grammar().build()
