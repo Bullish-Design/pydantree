@@ -1,0 +1,48 @@
+# V3 root-cause evidence (2026-08-05)
+
+Devenv's `devenv:python:uv` task runs `uv sync --all-extras --frozen
+--no-install-workspace` (uv 0.6.17, from devenv.lock). In a brand-new
+detached worktree this reported success in ~90ms while the venv could not
+import `pydantic` — a partial sync (root extras only).
+
+## Reproduction
+
+Fresh worktree from clean HEAD: `devenv:python:uv` succeeded (91.06ms),
+`import pydantic` -> ModuleNotFoundError. `.devenv/state/venv/uv.sync.checksum`
+present and matching; site-packages had black/coverage/mypy/pytest (root
+`dev` extras) but NO pydantic/tree_sitter (workspace-member deps).
+
+## Root cause (minimal two-member workspace, uv 0.6.17)
+
+    rootenv (root, extras: dev=[pytest]) + member (deps=[pydantic])
+
+- `uv tree`  -> full workspace shown (rootenv + member + pydantic).
+- `uv sync --all-extras --frozen` (fresh venv) -> installs ONLY the 5 root
+  packages (pytest + iniconfig/packaging/pluggy/pygments). No member, no
+  pydantic. `uv sync --dry-run` -> "Audited 5 packages / Would make no
+  changes".
+- `uv sync --all-extras --frozen --all-packages` -> installs member deps
+  (pydantic, pydantic-core, ...) but NOT the member package.
+- `uv sync --all-extras --frozen --no-install-workspace --all-packages` ->
+  same: pydantic present, member absent. This is the guard's command.
+
+Real repo, fresh worktree, wiped venv:
+
+    Installed 5 packages
+     + annotated-types==0.8.0
+     + pydantic==2.13.4
+     + pydantic-core==2.46.4
+     + tree-sitter==0.26.0
+     + typing-inspection==0.4.2
+    (site-packages: pydantic + tree_sitter present; no pydantree_sitter* dirs)
+
+## Consequence for the guard
+
+The guide's prescribed fix command (`uv sync --all-extras --frozen
+--no-install-workspace`, without `--all-packages`) provably does NOT install
+workspace-member dependencies under uv 0.6.17 — the guard would fail every
+fresh worktree. The implemented `pydantree:ensure-uv-sync` therefore adds
+`--all-packages` (member deps land; `--no-install-workspace` still keeps the
+member packages out of the venv — they resolve from src/ via the
+`_pydantree_src.pth`). `--frozen` keeps uv.lock authoritative; nothing else
+changed (no pip, no editable install, uv.lock untouched).

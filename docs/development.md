@@ -81,6 +81,20 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
 - Tests that need the tree-sitter CLI / gcc are marked `@pytest.mark.toolchain`;
   a conftest auto-skip hook skips them when the toolchain is absent (the
   toolchain-less run is all-skip, zero errors). Fast loop: `-m "not slow"`.
+- **Community node-type fixtures are real oracles** (REVIEW 019 V5/V6):
+  `tests/fixtures/{bash,rust,nix,markdown,markdown-inline}/node-types.json`
+  are the installed CLI's own byproducts, asserted byte-for-byte by
+  `tests/test_community_fixtures.py` (parameterized over the single shared
+  manifest `tests/community_fixture_manifest.py`). Refresh ONLY through the
+  explicit command — pytest never regenerates:
+  ```bash
+  devenv shell -- python tests/regenerate_community_node_types.py          # check
+  devenv shell -- python tests/regenerate_community_node_types.py --write  # refresh
+  ```
+  The golden conflict-report corpus has the same contract, with its own
+  executable regeneration: `devenv shell -- python tests/fixtures/conflicts/regenerate.py
+  [--write]`. Full provenance (exact upstream commits, licenses, acquisition
+  dates, supported CLI range) lives in `tests/fixtures/PROVENANCE.md`.
 - **test_wasm.py** pins the unavailable-error path only: a `.wasm` bundle
   raises `WasmRuntimeUnavailableError` unconditionally (the probe bridge
   moved to `.scratch/projects/009-phase7/wasm_bridge.py`).
