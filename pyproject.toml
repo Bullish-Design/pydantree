@@ -1,52 +1,24 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[tool.uv]
+# REVIEW 018 P2: the root is a VIRTUAL workspace member (no distribution of
+# its own) — `package = false` means uv never builds/installs a `pydantree`
+# wheel; `pip install .` at the root cannot produce one either. The real
+# products ship under src/ as workspace members.
+package = false
 
 [project]
+# The envelope-only metadata (P1: version agrees with both dists, 0.1.0).
 name = "pydantree"
-version = "0.1.2"
-description = "Treesitter, but with more Pydantic."
-readme = "README.md"
+version = "0.1.0"
+description = "Treesitter, but with more Pydantic. (Workspace envelope — the products are pydantree-sitter and pydantree-sitter-grammar under src/.)"
 requires-python = ">=3.11"
-authors = [
-  { name = "Bullish Design", email = "BullishDesignEngineering@gmail.com" }
-]
-license = { file = "LICENSE" }
-keywords = ["tree-sitter", "pydantic", "parser", "ast"]
-
-# The root project is the uv-workspace + dev-tooling envelope ONLY — no
-# distribution of its own (the legacy `src/pydantree` island and the
-# `data`/`examples` wheel contents were deleted in Phase 1 of the 014
-# refactor). The real products ship under src/ as workspace members:
-#
-#   src/pydantree_sitter/pyproject.toml      light — the shared seam
-#   src/pydantree_sitter/pyproject.toml     light — Product A (no toolchain)
-#   src/pydantree_sitter_grammar/pyproject.toml   heavy — Product B (Rust CLI + C toolchain)
-#
-# The distributions are pydantree-BRANDED (pydantree-sitter / -pydantree_sitter /
-# -pydantree_sitter_grammar) while the import packages stay pydantree_sitter / pydantree_sitter_grammar — the
-# bare `pydantree_sitter` name is taken on PyPI by an unrelated GPL package.
-#
-# A consumer installs pydantree_sitter + pydantree_sitter ONLY and gets the full checked
-# extraction; pydantree_sitter_grammar (and the scanner package data) ships separately.
-#
-# Phase 2 of the refactor renames these to pydantree-sitter /
-# pydantree-sitter-grammar; until then the workspace members keep the old
-# names.
-dependencies = [
-  "pydantic>=2.11",
-  "tree-sitter>=0.26",  # the 0.26 floor (was >=0.23 while the code used
-                        # 0.26-only APIs)
-  "tree-sitter-python>=0.23.6",
-]
 
 [project.optional-dependencies]
 # Development tooling (tests, lint, type‑check, coverage). With the uv
 # workspace below, `devenv shell` runs `uv sync --all-extras` automatically
-# (languages.python.uv.sync.enable in devenv.nix) — the root project + these
-# extras land in the managed venv; the workspace src/ packages are resolved
-# straight from `src/` via the venv's `_pydantree_src.pth` (no editable
-# copies → no staleness). Run `uv lock` after changing dependencies.
+# (languages.python.uv.sync.enable in devenv.nix) — the root's extras land in
+# the managed venv; the workspace src/ packages are resolved straight from
+# `src/` via the venv's `_pydantree_src.pth` (no editable copies → no
+# staleness). Run `uv lock` after changing dependencies.
 dev = [
   "pytest>=8.0",
   "black>=24.0",
@@ -61,12 +33,11 @@ python = [
 ]
 
 [tool.uv.workspace]
-# the two products under src/ are uv workspace members — `uv sync`
-# resolves them (and the heavy→light inter-dep) in one lockfile.
-# devenv installs them with --no-install-workspace (devenv's default): the
-# dev venv resolves pydantree_sitter / pydantree_sitter_grammar straight
-# from src/ via the venv's _pydantree_src.pth, so edits are always live
-# (no stale copies).
+# The two products under src/ are uv workspace members — `uv sync` resolves
+# them (and the heavy→light inter-dep) in one lockfile. devenv installs them
+# with --no-install-workspace (devenv's default): the dev venv resolves
+# pydantree_sitter / pydantree_sitter_grammar straight from `src/` via the
+# venv's _pydantree_src.pth, so edits are always live (no stale copies).
 members = ["src/pydantree_sitter", "src/pydantree_sitter_grammar"]
 
 [tool.uv.sources]

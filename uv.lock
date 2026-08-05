@@ -505,13 +505,8 @@ wheels = [
 
 [[package]]
 name = "pydantree"
-version = "0.1.2"
-source = { editable = "." }
-dependencies = [
-    { name = "pydantic" },
-    { name = "tree-sitter" },
-    { name = "tree-sitter-python" },
-]
+version = "0.1.0"
+source = { virtual = "." }
 
 [package.optional-dependencies]
 dev = [
@@ -531,12 +526,9 @@ requires-dist = [
     { name = "black", marker = "extra == 'dev'", specifier = ">=24.0" },
     { name = "coverage", marker = "extra == 'dev'", specifier = ">=7.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
-    { name = "pydantic", specifier = ">=2.11" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4" },
-    { name = "tree-sitter", specifier = ">=0.26" },
     { name = "tree-sitter-json", marker = "extra == 'dev'", specifier = ">=0.24" },
-    { name = "tree-sitter-python", specifier = ">=0.23.6" },
     { name = "tree-sitter-python", marker = "extra == 'python'", specifier = ">=0.23" },
 ]
 provides-extras = ["dev", "python"]
