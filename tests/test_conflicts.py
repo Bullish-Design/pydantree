@@ -182,7 +182,7 @@ def test_ambiguous_resolves_greedy_at_runtime(tmp_path):
     assert not tg.errors(g)
     result = tg.build_builder(g, cache_dir=tmp_path / "cache")
     assert result.generate_proc.returncode == 0
-    lang, _ = tg.load_language(result.so_path, "iflang")
+    lang = tg.load_language(result.so_path, "iflang")
     tree = tg.parse(lang, "if a if b c; else d;")
     assert not tree.root_node.has_error
     # greedy: the else binds to the INNER if
@@ -280,7 +280,7 @@ def test_build_loop_drives_to_clean(tmp_path):
     result = events[-1]
     assert isinstance(result, tg.BuildResult)
     assert len(errors) == 1 and fixed
-    lang, _ = tg.load_language(result.so_path, "loopy")
+    lang = tg.load_language(result.so_path, "loopy")
     tree = tg.parse(lang, "1 + 2 + 3;")
     assert not tree.root_node.has_error
 
@@ -401,6 +401,6 @@ def test_whitespace_default_parses_spaces(tmp_path):
     g.rule("source_file", tg.repeat(tg.ref("number")))
     g.start("source_file")
     result = tg.build_builder(g, cache_dir=tmp_path / "cache")
-    lang, _ = tg.load_language(result.so_path, "ws_default")
+    lang = tg.load_language(result.so_path, "ws_default")
     tree = tg.parse(lang, "1 2 3")
     assert not tree.root_node.has_error

@@ -39,7 +39,7 @@ def test_pymini_builds_and_parses_with_scanner(tmp_path):
     assert not tg.errors(g), issues
     result = tg.build_builder(g, scanner=tg.indent_scanner_path(),
                                cache_dir=tmp_path / "cache")
-    lang, _lib = result.language()
+    lang = result.language()
     r = Corpus([corpus_case(pymini.GOOD, pymini.GOOD_EXPECTED,
                             name="plain blocks"),
                 corpus_case(pymini.NESTED, pymini.NESTED_EXPECTED,
@@ -54,7 +54,7 @@ def test_pymini_comment_line_inside_block_keeps_block(tmp_path):
     g = pymini.build()
     result = tg.build_builder(g, scanner=tg.indent_scanner_path(),
                               cache_dir=tmp_path / "cache")
-    lang, _lib = result.language()
+    lang = result.language()
     tree = tg.parse(lang, pymini.COMMENT_IN_BLOCK)
     errs = []
 
@@ -76,7 +76,7 @@ def test_pymini_dedent_at_eof(tmp_path):
     g = pymini.build()
     result = tg.build_builder(g, scanner=tg.indent_scanner_path(),
                               cache_dir=tmp_path / "cache")
-    lang, _lib = result.language()
+    lang = result.language()
     tree = tg.parse(lang, "if a:\n    b = 1\n")
     errs = []
 
@@ -98,7 +98,7 @@ def test_indent_handling_is_lenient_at_invalid_states(tmp_path):
     g = pymini.build()
     result = tg.build_builder(g, scanner=tg.indent_scanner_path(),
                               cache_dir=tmp_path / "cache")
-    lang, _lib = result.language()
+    lang = result.language()
     tree = tg.parse(lang, "x = 1\n    y = 2\n")  # stray indent at top level
     errs = []
 
@@ -141,7 +141,7 @@ def test_heredoc_scanner_builds_and_parses(tmp_path):
     g = hmini.build()
     result = tg.build_builder(g, scanner=tg.heredoc_scanner_path(),
                               cache_dir=tmp_path / "cache")
-    lang, _lib = result.language()
+    lang = result.language()
     r = Corpus([corpus_case(hmini.GOOD, hmini.GOOD_EXPECTED, name="heredoc")],
                name="hmini").run(build_result=result)
     assert r.ok(), r.report()
@@ -154,7 +154,7 @@ def test_heredoc_empty_body_and_nested_markers(tmp_path):
     g = hmini.build()
     result = tg.build_builder(g, scanner=tg.heredoc_scanner_path(),
                               cache_dir=tmp_path / "cache")
-    lang, _lib = result.language()
+    lang = result.language()
     assert not _parse_errs(lang, hmini.EMPTY_BODY)
     assert not _parse_errs(lang, hmini.NESTED_MARKER)
 
@@ -173,7 +173,7 @@ def test_matched_delimiter_scanner_builds_and_parses(tmp_path):
     g = dmini.build()
     result = tg.build_builder(g, scanner=tg.matched_delimiter_scanner_path(),
                               cache_dir=tmp_path / "cache")
-    lang, _lib = result.language()
+    lang = result.language()
     r = Corpus([corpus_case(dmini.GOOD, dmini.GOOD_EXPECTED, name="groups")],
                name="dmini").run(build_result=result)
     assert r.ok(), r.report()
@@ -190,7 +190,7 @@ def test_matched_delimiter_scanner_is_strict(tmp_path):
     g = dmini.build()
     result = tg.build_builder(g, scanner=tg.matched_delimiter_scanner_path(),
                               cache_dir=tmp_path / "cache")
-    lang, _lib = result.language()
+    lang = result.language()
     assert _parse_errs(lang, dmini.UNBALANCED)
 
 
@@ -237,7 +237,7 @@ def test_pyindent_blank_line_in_block(tmp_path):
     g = pyindent.build()
     result = tg.build_builder(g, scanner=tg.py_indent_scanner_path(),
                               cache_dir=tmp_path / "cache")
-    lang, _lib = result.language()
+    lang = result.language()
     assert not _parse_errs(lang, pyindent.BLANK_IN_BLOCK)
     tree = tg.parse(lang, pyindent.BLANK_IN_BLOCK)
     blk = tree.root_node.named_children[0]
@@ -250,7 +250,7 @@ def test_pyindent_empty_block_is_parse_error(tmp_path):
     g = pyindent.build()
     result = tg.build_builder(g, scanner=tg.py_indent_scanner_path(),
                               cache_dir=tmp_path / "cache")
-    lang, _lib = result.language()
+    lang = result.language()
     assert _parse_errs(lang, pyindent.EMPTY_BLOCK)
 
 
@@ -276,7 +276,7 @@ def test_bashmini_no_delimiter_is_parse_error(tmp_path):
     g = bashmini.build()
     result = tg.build_builder(g, scanner=tg.bash_heredoc_scanner_path(),
                               cache_dir=tmp_path / "cache")
-    lang, _lib = result.language()
+    lang = result.language()
     assert _parse_errs(lang, bashmini.NO_DELIMITER)
 
 

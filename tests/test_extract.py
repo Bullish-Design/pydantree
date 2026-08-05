@@ -43,7 +43,7 @@ def _cfg_lang():
     g = build_cfg()
     result = tg.build_builder(g)
     schema = NodeSchema.from_node_types_json(result.node_schema_json, name="cfg")
-    lang, _lib = result.language()
+    lang = result.language()
     return Language.load(lang, schema=schema,
                          value_map=propose_value_map(schema)), schema
 
@@ -216,7 +216,7 @@ class _FnParams(OutputModel):
 def test_field_mode_list_collects_repeated_field():
     g = _fnlist_grammar()
     result = tg.build_builder(g)
-    lang, _lib = result.language()
+    lang = result.language()
     lang = Language.load(lang)
 
     rows = [r.model_dump() for r in
@@ -233,7 +233,7 @@ def test_field_mode_list_with_schema_bound():
     g = _fnlist_grammar()
     result = tg.build_builder(g)
     schema = NodeSchema.from_node_types_json(result.node_schema_json, name="fnlist")
-    lang, _lib = result.language()
+    lang = result.language()
     lang = Language.load(lang, schema=schema)
 
     _FnParams.validate_with(lang)

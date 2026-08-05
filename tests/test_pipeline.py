@@ -128,7 +128,7 @@ def test_full_pipeline_generate_compile_load_parse(cache_dir):
     assert result.compile_proc is not None
     assert result.compile_proc.returncode == 0
     assert result.so_path.exists()
-    lang, _lib = tg.load_language(result.so_path, "pipeline_t")
+    lang = tg.load_language(result.so_path, "pipeline_t")
     assert lang.abi_version == 15
 
     tree = tg.parse(lang, "1 2 3.5")
@@ -138,7 +138,7 @@ def test_full_pipeline_generate_compile_load_parse(cache_dir):
     # second build hits the cache
     result2 = tg.build_builder(g, cache_dir=cache_dir)
     assert result2.cached is True
-    lang2, _ = tg.load_language(result2.so_path, "pipeline_t")
+    lang2 = tg.load_language(result2.so_path, "pipeline_t")
     tree2 = tg.parse(lang2, "1 2 3.5")
     assert not tree2.root_node.has_error
 
@@ -276,7 +276,7 @@ bool tree_sitter_ext2_external_scanner_scan(void *p, TSLexer *lexer, const bool 
 }
 ''')
         result = tg.build_builder(g, cache_dir=cache_dir, scanner=scanner)
-        lang, _ = tg.load_language(result.so_path, "ext2")
+        lang = tg.load_language(result.so_path, "ext2")
         # one kind in node-types — no extra literal 'FRAG' token
         node_types = result.node_types_json.read_text()
         assert node_types.count('"FRAG"') == 1, node_types
@@ -287,3 +287,24 @@ bool tree_sitter_ext2_external_scanner_scan(void *p, TSLexer *lexer, const bool 
         assert tree.root_node.child_count == 1
     finally:
         sys.modules.pop("ext_author", None)
+
+
+def test_detect_toolchain_degrades_when_binaries_missing(monkeypatch):
+    """B17: a missing CLI/gcc must degrade to 'unknown', not raise inside
+    build() — detect_toolchain probes degrade gracefully."""
+    import subprocess as sp
+    from pydantree_sitter_grammar import pipeline
+
+    pipeline.detect_toolchain.cache_clear()
+
+    def _missing(*args, **kwargs):
+        raise FileNotFoundError("no such binary")
+
+    monkeypatch.setattr(sp, "run", _missing)
+    try:
+        tc = pipeline.detect_toolchain()
+        assert tc.tree_sitter_version == "unknown"
+        assert tc.gcc_version == "unknown"
+        assert tc.python_abi  # the ABI read is not a subprocess probe
+    finally:
+        pipeline.detect_toolchain.cache_clear()

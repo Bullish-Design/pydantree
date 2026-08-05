@@ -210,7 +210,7 @@ def test_schema_tool_over_real_rust_source_byte_for_byte(tmp_path):
     out = tmp_path / "rust-schema.json"
     derived = derive_schema_for_dir(RUST_FIXTURE, name="rust",
                                     workdir=tmp_path / "cw",
-                                    out=out, keep=True)
+                                    out=out)
     assert derived.name == "rust"
     cli = (RUST_FIXTURE / "node-types.json").read_text()
     assert out.read_text() == cli
@@ -223,7 +223,7 @@ def test_community_bundle_build_and_bfree_extraction(tmp_path):
     truth, checks active."""
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(RUST_FIXTURE, tmp_path / "bundle",
-                                    name="rust", keep=True)
+                                    name="rust")
     assert set(p.name for p in bundle.iterdir()) == {
         "grammar.so", "node-schema.json", "tree-sitter.json", "loader.py"}
     rc, out = run_bfree(P8_DIR / "consumer_rust.py", str(bundle),
@@ -247,7 +247,7 @@ def test_community_job1_catches_bad_path_over_real_rust(tmp_path):
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     from pydantree_sitter import SchemaCheckError
     bundle = build_community_bundle(RUST_FIXTURE, tmp_path / "bundle",
-                                    name="rust", keep=True)
+                                    name="rust")
     lang = Language.load_bundle(bundle)
 
     class BadChain(OutputModel):
@@ -269,7 +269,7 @@ def test_optional_field_capture_is_query_optional(tmp_path):
     excluded every node lacking the field (real rust `fn no_return() {}`)."""
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(RUST_FIXTURE, tmp_path / "bundle",
-                                    name="rust", keep=True)
+                                    name="rust")
     lang = Language.load_bundle(bundle)
 
     class RustFnReturn(OutputModel):
@@ -307,7 +307,7 @@ def test_capture_kind_optionality_quantifies_only_optional_fields(tmp_path):
     (an absent child materializes None)."""
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(BASH_FIXTURE, tmp_path / "bundle",
-                                    name="bash", keep=True)
+                                    name="bash")
     lang = Language.load_bundle(bundle)
 
     class HeredocRequired(OutputModel):
@@ -426,7 +426,7 @@ def test_community_bundle_build_and_bfree_fleet_extraction(tmp_path):
     the position-bug workaround)."""
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(NIX_FIXTURE, tmp_path / "bundle",
-                                    name="nix", keep=True)
+                                    name="nix")
     assert set(p.name for p in bundle.iterdir()) == {
         "grammar.so", "node-schema.json", "tree-sitter.json", "loader.py"}
     rc, out = run_bfree(P9_DIR / "consumer_nix.py",
@@ -455,7 +455,7 @@ def test_nix_attrpath_capture_rejected_as_str(tmp_path):
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     from pydantree_sitter import SchemaCheckError
     bundle = build_community_bundle(NIX_FIXTURE, tmp_path / "bundle",
-                                    name="nix", keep=True)
+                                    name="nix")
     lang = Language.load_bundle(bundle)
 
     class BadKey(OutputModel):
@@ -476,7 +476,7 @@ def test_record_mode_over_nix_binding_set_unsupported(tmp_path):
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     from pydantree_sitter import M, OutputModel, ShapeError, propose_value_map
     bundle = build_community_bundle(NIX_FIXTURE, tmp_path / "bundle",
-                                    name="nix", keep=True)
+                                    name="nix")
     lang = Language.load_bundle(bundle)
     lang = Language.load_bundle(bundle,
                                 value_map=propose_value_map(lang.schema))

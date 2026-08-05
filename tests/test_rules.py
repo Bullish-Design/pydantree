@@ -385,7 +385,7 @@ def test_assembled_grammar_passes_checks_build_and_parse():
     assert not tg.errors(g)
     scanner = REPO / "examples" / "devenv-subset" / "scanner.c"
     result = tg.build_builder(g, scanner=str(scanner))
-    lang, _lib = result.language()
+    lang = result.language()
     src = (REPO / "examples" / "devenv-subset" / "fixtures"
            / "pydantree.nix").read_text()
     tree = tg.parse(lang, src)

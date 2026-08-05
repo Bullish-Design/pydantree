@@ -243,7 +243,7 @@ class Corpus:
             from .pipeline import build_builder
             build_result = build_builder(grammar, cache_dir=cache_dir)
         from .language import load_language
-        lang, _lib = load_language(build_result.so_path)
+        lang = load_language(build_result.so_path)
 
         snapshots: list[Path] = []
         if self.snapshots_dir is not None:

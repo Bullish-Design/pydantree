@@ -59,7 +59,7 @@ def cfg_schema() -> tuple[NodeSchema, object, object]:
     g = build_cfg()
     res = tg.build_builder(g)
     schema = NodeSchema.from_node_types_json(res.node_schema_json, name="cfg")
-    lang, _lib = load_language(res.so_path, "cfg")
+    lang = load_language(res.so_path, "cfg")
     wrapper = Language.load(lang, schema=schema,
                             value_map=propose_value_map(schema))
     return schema, wrapper, g

@@ -311,7 +311,7 @@ def test_cond_primary_resolves_bare_cond():
     res = tg.build_builder(g)
     from pydantree_sitter_grammar.language import load_language
     import tree_sitter
-    lang, _ = load_language(res.so_path, "condlang")
+    lang = load_language(res.so_path, "condlang")
     ok, residual = 0, 0
     for src in (b"if (x) y;", b"if (f(x)) y;", b"if x + 1 + 2 y;",
                 b"if x (y);"):

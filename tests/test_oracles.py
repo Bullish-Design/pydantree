@@ -69,7 +69,7 @@ def bash_lang(tmp_path_factory):
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     from pydantree_sitter import Language
     bundle = build_community_bundle(BASH_FIXTURE, tmp_path_factory.mktemp("bash") / "bundle",
-                                    name="bash", keep=False)
+                                    name="bash")
     return Language.load_bundle(bundle)
 
 
@@ -78,7 +78,7 @@ def nix_lang(tmp_path_factory):
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     from pydantree_sitter import Language
     bundle = build_community_bundle(NIX_FIXTURE, tmp_path_factory.mktemp("nix") / "bundle",
-                                    name="nix", keep=False)
+                                    name="nix")
     return Language.load_bundle(bundle)
 
 
@@ -393,13 +393,13 @@ def _generate() -> int:
         built = Path(td)
         bash_mod = _import_example("bash-extract")
         bash = build_community_bundle(BASH_FIXTURE, built / "bash",
-                                      name="bash", keep=False)
+                                      name="bash")
         (ORACLES / "bash-extract.json").write_text(json.dumps(
             collect_bash(bash_mod, Language.load_bundle(bash)), indent=2) + "\n")
 
         nix_mod = _import_example("devenv-extract")
         nix = build_community_bundle(NIX_FIXTURE, built / "nix",
-                                     name="nix", keep=False)
+                                     name="nix")
         (ORACLES / "devenv-extract.json").write_text(json.dumps(
             collect_nix(nix_mod, Language.load_bundle(nix)), indent=2) + "\n")
 

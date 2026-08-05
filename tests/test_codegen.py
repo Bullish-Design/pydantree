@@ -56,7 +56,7 @@ def test_runtime_round_trip_matches_raw_child_by_field_name(tmp_path):
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
 
     bundle = build_community_bundle(FIXTURES, tmp_path / "bundle",
-                                    name="rust", keep=True)
+                                    name="rust")
     lang, _lib = load_grammar_so(bundle / "grammar.so", "rust")
     parser = tree_sitter.Parser(lang)
     src = b"fn add(a: i32, b: i32) -> i32 {\n    a + b\n}\nstruct Point(f64, f64);\n"

@@ -66,13 +66,23 @@ class Toolchain:
 def detect_toolchain() -> Toolchain:
     """Probe the CLI + compiler versions (cached in-process via
     functools.lru_cache — `detect_toolchain.cache_clear()` documented
-    reset; tests that swap the toolchain env call it)."""
-    ts = subprocess.run(
-        ["tree-sitter", "--version"], capture_output=True, text=True, check=False)
-    ts_version = ts.stdout.strip() or ts.stderr.strip() or "unknown"
-    gcc = subprocess.run(
-        ["gcc", "--version"], capture_output=True, text=True, check=False)
-    gcc_version = gcc.stdout.splitlines()[0].strip() if gcc.stdout else "unknown"
+    reset; tests that swap the toolchain env call it). Each probe degrades
+    to "unknown" when the binary is missing (B17 — a missing CLI/gcc must
+    not raise inside build())."""
+    try:
+        ts = subprocess.run(
+            ["tree-sitter", "--version"], capture_output=True, text=True,
+            check=False)
+        ts_version = ts.stdout.strip() or ts.stderr.strip() or "unknown"
+    except (FileNotFoundError, OSError):
+        ts_version = "unknown"
+    try:
+        gcc = subprocess.run(
+            ["gcc", "--version"], capture_output=True, text=True, check=False)
+        gcc_version = gcc.stdout.splitlines()[0].strip() \
+            if gcc.stdout else "unknown"
+    except (FileNotFoundError, OSError):
+        gcc_version = "unknown"
     return Toolchain(
         tree_sitter_version=ts_version,
         gcc_version=gcc_version,
@@ -171,6 +181,9 @@ class BuildResult:
     # source sites.
 
     def language(self, grammar_name: str | None = None):
+        """The loaded tree_sitter.Language (B20 — the underlying .so library
+        is kept alive by language.load_language's registry, so this is safe
+        to pass straight to parse()/Parser())."""
         from .language import load_language
         return load_language(self.so_path, grammar_name)
 
@@ -245,21 +258,36 @@ def _cache_node_schema(entry: Path, model: GrammarModel) -> Path:
     The schema IS the CLI's byproduct (014 refactor D3 — the hand-port
     of node_types.rs is deleted; there is no other derivation). On a warm cache entry
     that predates this (no node-schema.json yet), re-run generate over the
-    entry's grammar.json — the CLI is the authoritative source. Returns the
-    node-schema.json path.
+    entry's grammar.json — the CLI is the authoritative source. The re-run
+    happens in a TemporaryDirectory and only node-types.json is copied into
+    the (content-addressed, immutable) cache entry (B18 — never re-generate
+    inside it). Returns the node-schema.json path.
     """
+    import tempfile
+
     schema_path = entry / "node-schema.json"
     if schema_path.exists():
         return schema_path
     node_types = entry / "src" / "node-types.json"
     if not node_types.exists():
-        gen = run_generate(entry / "grammar.json")
-        if gen.returncode != 0:
-            raise GenerateError(
-                model, gen,
-                detail="warm-cache backfill: re-running generate to "
-                       "recover node-types.json (the schema's only source)")
-        node_types = entry / "src" / "node-types.json"
+        with tempfile.TemporaryDirectory(
+                prefix="pydantree_sitter_grammar-backfill-") as td:
+            work = Path(td)
+            shutil.copyfile(entry / "grammar.json", work / "grammar.json")
+            gen = run_generate(work / "grammar.json")
+            if gen.returncode != 0:
+                raise GenerateError(
+                    model, gen,
+                    detail="warm-cache backfill: re-running generate to "
+                           "recover node-types.json (the schema's only source)")
+            node_types = work / "src" / "node-types.json"
+            if not node_types.exists():
+                raise GenerateError(
+                    model, gen,
+                    detail="warm-cache backfill: generate exited 0 but wrote "
+                           "no src/node-types.json")
+            shutil.copyfile(node_types, schema_path)
+        return schema_path
     shutil.copyfile(node_types, schema_path)
     return schema_path
 

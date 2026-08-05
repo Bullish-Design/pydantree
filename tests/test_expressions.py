@@ -175,7 +175,7 @@ def test_expression_pipeline_and_ground_truth(factory, name, tmp_path):
     issues = tg.run_checks(g)
     assert not tg.errors(g), issues
     result = tg.build_builder(g, cache_dir=tmp_path / "cache")
-    lang, _lib = tg.load_language(result.so_path, name)
+    lang = tg.load_language(result.so_path, name)
     failures = []
     for src, expected, note in CORPUS:
         tree = tg.parse(lang, src)

@@ -85,7 +85,6 @@ def derive_schema_for_dir(grammar_dir: Path | str, *,
     the run unless `keep=True` — pass `out=` to persist the schema.
     """
     grammar_dir = Path(grammar_dir)
-    grammar_json, _scanner = _resolve_grammar_json(grammar_dir), None
 
     work = Path(workdir) if workdir is not None \
         else Path(tempfile.mkdtemp(prefix="pydantree_sitter_grammar-community-"))
@@ -119,14 +118,13 @@ def derive_schema_for_dir(grammar_dir: Path | str, *,
 
 
 def build_community_bundle(grammar_dir: Path | str, out: Path | str, *,
-                           name: str | None = None,
-                           workdir: Path | None = None,
-                           keep: bool = False) -> Path:
+                           name: str | None = None) -> Path:
     """Phase 6 (Run 2): a REAL community grammar source -> a shippable
     bundle, the same 4-file layout B's own pipeline produces (D10: this
     delegates to the pipeline's `build_from_source_dir` + the ONE bundle
     writer — same cache, same errors, same writer; the schema IS the CLI
-    byproduct by construction, D3).
+    byproduct by construction, D3). The pipeline owns the build
+    (content-addressed cache), so there is no workdir/keep (B22).
 
         grammar.so        compiled from the source (parser.c + scanner.c)
         node-schema.json  the generate run's node-types.json byproduct
@@ -138,20 +136,6 @@ def build_community_bundle(grammar_dir: Path | str, out: Path | str, *,
     from .pipeline import build_from_source_dir, write_bundle
     result = build_from_source_dir(grammar_dir, name=name)
     return write_bundle(result, out)
-
-
-def _grammar_name(grammar_dir: Path, src_dir: Path) -> str:
-    """The grammar name from tree-sitter.json metadata, else the dir name."""
-    cfg = grammar_dir / "tree-sitter.json"
-    if cfg.exists():
-        try:
-            meta = json.loads(cfg.read_text())
-            grammars = meta.get("grammars") or []
-            if grammars:
-                return grammars[0].get("name") or src_dir.name
-        except ValueError:
-            pass
-    return src_dir.name
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -175,8 +159,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args:
         print(__doc__)
         return 2
-    schema = derive_schema_for_dir(args[0], name=name, keep=True)
-    Path(out).write_text(schema.to_json())
+    schema = derive_schema_for_dir(args[0], name=name, out=out)
     print(f"wrote {out} ({len(schema.node_types)} kinds)")
     return 0
 
