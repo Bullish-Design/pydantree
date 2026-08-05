@@ -1,0 +1,9 @@
+{
+  "functions": [
+    {"name": "greet", "return_type": "str", "line": 8}
+  ],
+  "assignments": [
+    {"target": "answer", "value": "42", "line": 11},
+    {"target": "flags", "value": "{\"verbose\": True}", "line": 12}
+  ]
+}

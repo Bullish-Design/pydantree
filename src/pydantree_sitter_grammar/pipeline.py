@@ -139,17 +139,50 @@ def run_generate(grammar_json: Path, *, abi15: bool = True) -> subprocess.Comple
 
 def compile_parser(src_dir: Path, so_path: Path, *,
                    scanner: Path | None = None) -> subprocess.CompletedProcess:
-    """gcc -O2 -fPIC -shared parser.c (+ optional scanner.c) -> .so."""
-    cmd = [
-        "gcc", "-O2", "-fPIC", "-shared",
-        "-I", str(src_dir),
-        "-I", str(src_dir / "tree_sitter"),
-        str(src_dir / "parser.c"),
+    """Compile parser.c (+ optional external scanner) into a shared .so.
+
+    C scanner (scanner.c): ONE gcc -O2 -fPIC -shared step.
+    C++ scanner (scanner.cc/.cpp/.cxx — tree-sitter's C++ path, used by
+    several community grammars): TWO compile steps + a g++ link. The
+    generated parser.c uses C designated initializers that g++ REJECTS
+    (verified empirically — "non-trivial designated initializers"), so
+    parser.c is compiled by gcc as C and only the scanner by g++; the g++
+    link pulls in libstdc++ (B3/REVIEW 020). Returns the FIRST failing
+    subprocess (or the final link) so CompileError carries the real stderr.
+    """
+    is_cpp = scanner is not None and \
+        scanner.suffix.lower() in (".cc", ".cpp", ".cxx")
+    inc = ["-I", str(src_dir), "-I", str(src_dir / "tree_sitter")]
+    if not is_cpp:
+        cmd = ["gcc", "-O2", "-fPIC", "-shared", *inc,
+               str(src_dir / "parser.c")]
+        if scanner is not None and scanner.exists():
+            cmd.append(str(scanner))
+        cmd += ["-o", str(so_path)]
+        return subprocess.run(cmd, capture_output=True, text=True, check=False)
+
+    parser_o = so_path.with_name(so_path.name + ".parser.o")
+    scanner_o = so_path.with_name(so_path.name + ".scanner.o")
+    steps = [
+        ["gcc", "-O2", "-fPIC", "-c", str(src_dir / "parser.c"),
+         *inc, "-o", str(parser_o)],
+        ["g++", "-O2", "-fPIC", "-c", str(scanner),
+         *inc, "-o", str(scanner_o)],
+        ["g++", "-shared", str(parser_o), str(scanner_o),
+         "-o", str(so_path)],
     ]
-    if scanner is not None and scanner.exists():
-        cmd.append(str(scanner))
-    cmd += ["-o", str(so_path)]
-    return subprocess.run(cmd, capture_output=True, text=True, check=False)
+    proc = None
+    for step in steps:
+        proc = subprocess.run(step, capture_output=True, text=True, check=False)
+        if proc.returncode != 0:
+            return proc
+    # the objects were intermediate — the .so is the artifact
+    for obj in (parser_o, scanner_o):
+        try:
+            obj.unlink()
+        except OSError:
+            pass
+    return proc
 
 
 # ---------------------------------------------------------------------------
@@ -378,19 +411,28 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
         # workdir root for hand-authored layouts; an explicit `scanner=` arg
         # (for grammars with externals) is copied into the build first.
         if scanner is not None:
-            shutil.copy(scanner, work / "scanner.c")
-        scanner = (src_dir / "scanner.c") if (src_dir / "scanner.c").exists() \
-            else work / "scanner.c"
-        if model.externals and not scanner.exists():
-            # the airtight escape hatch: a grammar with externals MUST link a C
-            # scanner, and the error says so before gcc produces a link failure
+            # keep the SUFFIX (.c vs .cc) so compile_parser can pick gcc vs
+            # g++ (B3/REVIEW 020 — a C++ scanner must reach the compiler as
+            # .cc, not be renamed to scanner.c)
+            shutil.copy(scanner, work / scanner.name)
+            scanner = work / scanner.name
+        else:
+            scanner = next(
+                (c for c in (src_dir / "scanner.c", src_dir / "scanner.cc",
+                             work / "scanner.c", work / "scanner.cc")
+                 if c.exists()), None)
+        if model.externals and scanner is None:
+            # the airtight escape hatch: a grammar with externals MUST link a
+            # C (or C++) scanner, and the error says so before the compiler
+            # produces a link failure
             raise ExternalScannerRequiredError(
                 model,
                 externals=[_external_name(e) for e in model.externals],
                 detail=(f"grammar {model.name!r} declares externals but no "
-                        f"scanner.c was supplied — pass scanner=<path> to "
-                        f"build()/build_builder() (external tokens are provided "
-                        f"by a C scanner at runtime; see the pymini example)."))
+                        f"scanner.c / scanner.cc was supplied — pass "
+                        f"scanner=<path> to build()/build_builder() (external "
+                        f"tokens are provided by a C/C++ scanner at runtime; "
+                        f"see the pymini example)."))
         work_so = work / f"{name}.so"
         cc = compile_parser(src_dir, work_so, scanner=scanner)
         if cc.returncode != 0:
@@ -461,7 +503,9 @@ def build_from_source_dir(src_dir: Path | str, *,
     grammar_json = _resolve_grammar_json(src_dir)
     model = GrammarModel.model_validate_json(grammar_json.read_text())
     if scanner is None:
-        for cand in (grammar_json.parent / "scanner.c", src_dir / "scanner.c"):
+        for cand in (grammar_json.parent / "scanner.c",
+                     grammar_json.parent / "scanner.cc",
+                     src_dir / "scanner.c", src_dir / "scanner.cc"):
             if cand.exists():
                 scanner = cand
                 break

@@ -62,7 +62,8 @@ def _copy_grammar_source(grammar_dir: Path, work: Path):
         shutil.copyfile(cfg, work / "tree-sitter.json")
     rel = dst / "grammar.json"
     scanner = None
-    for cand in (dst / "scanner.c", work / "scanner.c"):
+    for cand in (dst / "scanner.c", dst / "scanner.cc",
+                 work / "scanner.c", work / "scanner.cc"):
         if cand.exists():
             scanner = cand
             break

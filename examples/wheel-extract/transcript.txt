@@ -1,0 +1,73 @@
+=== step 1: bind the models over the tree_sitter_python wheel ===
+language: 'python' — a community wheel (no CLI, no gcc, no bundle build)
+
+Function.compiled_source()  # the query each class IS:
+(module (function_definition name:(_) @name return_type:(_)? @return_type) @__anchor__)
+
+Assignment.compiled_source():
+(module (expression_statement (assignment left:(_) @target right:(_) @value) @__anchor__))
+
+=== step 2: parse the corpus (CST, fields shown) ===
+module
+  expression_statement
+    string
+      string_start '"""'
+      string_content 'A tiny, deterministic...'
+      string_end '"""'
+  function_definition
+    def 'def'
+    name=identifier 'greet'
+    parameters=parameters
+      ( '('
+      typed_parameter
+        identifier 'name'
+        : ':'
+        type=type
+          identifier 'str'
+      ) ')'
+    -> '->'
+    return_type=type
+      identifier 'str'
+    : ':'
+    body=block
+      return_statement
+        return 'return'
+        string
+          string_start 'f"'
+          string_content 'hello '
+          interpolation
+            { '{'
+            expression=identifier 'name'
+            } '}'
+          string_end '"'
+  expression_statement
+    assignment
+      left=identifier 'answer'
+      = '='
+      right=integer '42'
+  expression_statement
+    assignment
+      left=identifier 'flags'
+      = '='
+      right=dictionary
+        { '{'
+        pair
+          key=string
+            string_start '"'
+            string_content 'verbose'
+            string_end '"'
+          : ':'
+          value=true 'True'
+        } '}'
+
+=== step 3: extract typed rows ===
+Function 'greet' -> 'str' at line 8
+Assignment 'answer' = '42' at line 11
+Assignment 'flags' = '{"verbose": True}' at line 12
+
+=== step 4: self-check against ground_truth.json ===
+functions: 1 rows, assignments: 2 rows
+all rows match the hand-written ground truth ✓
+
+=== step 5: the committed per-step transcript oracle ===
+transcript.txt matches this run byte-for-byte ✓

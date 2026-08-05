@@ -62,6 +62,14 @@ capture↔type checks run at **bind time** — before any text is parsed.
   `pydantree-scanners`) that load automatically into pi and other harnesses.
 - The authoritative concept: `.scratch/projects/002-pydantic-treesitter/CONCEPT.md`.
   Per-phase verdicts: `.scratch/projects/00X-*/FINDINGS.md` (see docs/README.md).
+- **Examples** (run them to see each step live):
+  - `examples/wheel-extract/` — Product A over a community WHEEL, **no
+    toolchain**, with a committed per-step transcript oracle
+    (`transcript.txt`, byte-verified by `tests/test_wheel_example.py`).
+  - `examples/bash-extract/`, `examples/devenv-extract/` — A over real
+    grammar sources (need the CLI+gcc at build time).
+  - `examples/devenv-subset/` — B authors a grammar + scanner, builds a
+    bundle, A consumes it (the whole pipeline in one example).
 
 ## Quick facts
 

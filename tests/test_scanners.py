@@ -287,3 +287,107 @@ def test_phase7_scanners_registered_in_library():
     assert tg.scanner_for("hmini") == tg.heredoc_scanner_path()
     assert tg.scanner_for("pymini") == tg.indent_scanner_path()
     assert tg.scanner_for("no_such_grammar") is None
+
+
+def test_cpp_scanner_scanner_cc_builds_with_gpp(tmp_path):
+    """B3/REVIEW 020: a C++ external scanner (scanner.cc) is compiled with
+    g++ — previously only scanner.c/gcc was supported and a .cc grammar
+    raised a misleading 'no scanner.c supplied' (and the explicit scanner=
+    copy renamed it to scanner.c, losing the suffix). The scanner functions
+    are wrapped in extern \"C\" exactly like tree-sitter's own C++ scanner
+    template; the generated parser.c compiles as C++ (it is C/C++-safe by
+    design) and g++ pulls in libstdc++."""
+    import sys
+    import types
+
+    src = (
+        "from pydantree_sitter_grammar import Rule, External, assemble\n"
+        "class Frag(External):\n"
+        "    pass\n"
+        "def build():\n"
+        "    return assemble('extcc', start=Frag, rules=[Frag])\n"
+    )
+    f = tmp_path / "ext_cc.py"
+    f.write_text(src)
+    mod = types.ModuleType("ext_cc")
+    mod.__file__ = str(f)
+    sys.modules["ext_cc"] = mod
+    try:
+        exec(compile(src, str(f), "exec"), mod.__dict__)
+        g = mod.build()
+        scanner = tmp_path / "scanner.cc"
+        scanner.write_text(r'''
+#include "tree_sitter/parser.h"
+extern "C" {
+void *tree_sitter_extcc_external_scanner_create() { return NULL; }
+void tree_sitter_extcc_external_scanner_destroy(void *p) {}
+unsigned tree_sitter_extcc_external_scanner_serialize(void *p, char *b) { return 0; }
+void tree_sitter_extcc_external_scanner_deserialize(void *p, const char *b, unsigned n) {}
+bool tree_sitter_extcc_external_scanner_scan(void *p, TSLexer *lexer, const bool *valid_symbols) {
+  lexer->advance(lexer, false);
+  lexer->mark_end(lexer);
+  lexer->result_symbol = 0;
+  return true;
+}
+}
+''')
+        result = tg.build_builder(g, cache_dir=tmp_path / "cache",
+                                  scanner=scanner)
+        lang = result.language()
+        tree = tg.parse(lang, "h")     # the external fires for ANY token
+        assert not tree.root_node.has_error
+        assert tree.root_node.child_count == 1
+    finally:
+        sys.modules.pop("ext_cc", None)
+
+
+def test_community_layout_discovers_scanner_cc(tmp_path):
+    """B3/REVIEW 020: the community path (build_from_source_dir) discovers a
+    scanner.cc next to grammar.json (the tree-sitter C++ layout) and builds
+    it, instead of raising 'no scanner.c supplied'."""
+    import json
+    import sys
+    import types
+
+    src = (
+        "from pydantree_sitter_grammar import Rule, External, assemble\n"
+        "class Frag(External):\n"
+        "    pass\n"
+        "def build():\n"
+        "    return assemble('extcc2', start=Frag, rules=[Frag])\n"
+    )
+    f = tmp_path / "ext_cc2.py"
+    f.write_text(src)
+    mod = types.ModuleType("ext_cc2")
+    mod.__file__ = str(f)
+    sys.modules["ext_cc2"] = mod
+    try:
+        exec(compile(src, str(f), "exec"), mod.__dict__)
+        g = mod.build()
+        # a community-style source dir: grammar.json + scanner.cc beside it
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        g.build().emit_bundle(src_dir)
+        (src_dir / "scanner.cc").write_text(r'''
+#include "tree_sitter/parser.h"
+extern "C" {
+void *tree_sitter_extcc2_external_scanner_create() { return NULL; }
+void tree_sitter_extcc2_external_scanner_destroy(void *p) {}
+unsigned tree_sitter_extcc2_external_scanner_serialize(void *p, char *b) { return 0; }
+void tree_sitter_extcc2_external_scanner_deserialize(void *p, const char *b, unsigned n) {}
+bool tree_sitter_extcc2_external_scanner_scan(void *p, TSLexer *lexer, const bool *valid_symbols) {
+  lexer->advance(lexer, false);
+  lexer->mark_end(lexer);
+  lexer->result_symbol = 0;
+  return true;
+}
+}
+''')
+        from pydantree_sitter_grammar.pipeline import build_from_source_dir
+        result = build_from_source_dir(tmp_path, name="extcc2",
+                                       cache_dir=tmp_path / "cache")
+        tree = tg.parse(result.language(), "h")
+        assert not tree.root_node.has_error
+        assert tree.root_node.child_count == 1
+    finally:
+        sys.modules.pop("ext_cc2", None)

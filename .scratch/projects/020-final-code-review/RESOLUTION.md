@@ -73,6 +73,39 @@ place, exits — asserts rc 0).
 - `int` over JSON `number` float-text limitation: documented in the user
   guide (bind cannot know; runtime pydantic error).
 
+## Resolution follow-ups (all three now done)
+
+Follow-up commit `review020-followups` (the user's request): move the
+wheel-only tests, add the toolchain-free example, and fix B3.
+
+- **B3 — C++ scanners (was "intentionally not fixed") — DONE.**
+  `pipeline.compile_parser` now detects `scanner.cc/.cpp/.cxx` and compiles
+  with a TWO-STEP gcc+g++ build (parser.c stays C — g++ rejects its C
+  designated initializers, verified empirically — the scanner is compiled by
+  g++ and linked with g++ for libstdc++). `build()`, `build_from_source_dir`
+  and `schema_tool` all discover `scanner.cc`; the explicit `scanner=` copy
+  preserves the suffix (previously renamed to scanner.c, losing it); the
+  `ExternalScannerRequiredError` message mentions both. Tests:
+  `test_scanners.py::test_cpp_scanner_scanner_cc_builds_with_gpp` and
+  `::test_community_layout_discovers_scanner_cc` (both red on pre-fix code).
+- **Toolchain-free live example with a committed per-step transcript oracle
+  — DONE.** `examples/wheel-extract/` — Product A over the tree_sitter_python
+  WHEEL (no CLI, no gcc, no build). `extract.py` prints five steps (bind /
+  parse / extract / self-check / transcript) and compares its own stdout
+  against the COMMITTED `transcript.txt` (the oracle ends with a fixed
+  success line so a green run's stdout equals the file byte-for-byte;
+  `--update` regenerates after eyeballing). `tests/test_wheel_example.py`
+  (NOT toolchain-marked) asserts the example exits 0, its stdout equals
+  `transcript.txt`, the transcript is a real per-step narrative, and the
+  ground truth rows are embedded.
+- **Wheel-only tests moved off the toolchain gate — DONE.**
+  `tests/test_binding_wheel.py` (non-gated) now holds the reparse
+  incremental + mid-buffer-edit tests, `source_meta()` into `int | None`,
+  and the missing-`__match__` friendly-error test — all wheel-only, removed
+  from the toolchain-gated `test_extract.py`. Reviewer gap #4 (Product A's
+  core untested off-toolchain) is closed: the plain shell now runs 156
+  non-toolchain tests (was 152).
+
 ## Evidence
 
 - `evidence/full-suite-final.txt` — 285 passed, exit 0.
