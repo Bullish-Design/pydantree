@@ -24,6 +24,27 @@ first for the map; this is the "how do I actually run things" doc.
   `UV_PROJECT_ENVIRONMENT`; the repo root has its own `.venv` only when a
   developer created one outside devenv — the managed one is
   `.devenv/state/venv`).
+- **Fresh-worktree guard (`pydantree:ensure-uv-sync`)** — uv's `uv sync`
+  defaults to the ROOT project only: the workspace members
+  (`src/pydantree_sitter`, `src/pydantree_sitter_grammar`) and their deps
+  (pydantic, tree-sitter) are excluded unless `--all-packages` is given, so
+  a brand-new worktree's first `devenv shell` used to report sync success
+  with a venv that could not import `pydantic` (REVIEW 019 V3). The guard
+  task validates the actual venv on every shell entry: if
+  `import pydantic, pytest, tree_sitter` fails, it re-runs the same locked
+  sync explicitly against that venv with `--all-packages` (still `--frozen`
+  and `--no-install-workspace` — member packages never land in the venv;
+  they resolve from `src/` via the `.pth`).
+  Clean-worktree smoke check:
+  ```bash
+  WORKTREE_PARENT=$(mktemp -d /tmp/pydantree-v3.XXXXXX)
+  git worktree add --detach "$WORKTREE_PARENT/repo" HEAD
+  cd "$WORKTREE_PARENT/repo"
+  devenv shell -- python -c 'import pydantic, pytest, tree_sitter; print("fresh-worktree imports ok")'
+  devenv shell -- python -m pytest tests/test_oracles.py -q
+  cd /home/andrew/Documents/Projects/pydantree
+  git worktree remove "$WORKTREE_PARENT/repo" && rmdir "$WORKTREE_PARENT"
+  ```
 - **After changing dependencies** (in `pyproject.toml` or a member's), run
   `uv lock` once — the devenv sync uses `--frozen` and will fail loudly if
   the lockfile is stale (that's the signal to lock).
