@@ -50,13 +50,14 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
   `{"metadata": {"version": "0.1.0"}}` for ABI 15.
 - The bundle = grammar.so + node-schema.json + tree-sitter.json + loader.py;
   `Language.load_bundle(dir)` is the one-line consumer.
-- The pipeline cache (`~/.cache/pydantree_sitter_grammar`, or `TSGRAMMAR_CACHE`) content-
+- The pipeline cache (`~/.cache/pydantree_sitter_grammar`, or `PYDANTREE_SITTER_CACHE`) content-
   addresses grammar.json + scanner.c + toolchain. A stale cache is a classic
   "my fix doesn't work" gotcha — use a fresh `cache_dir=` when iterating.
 - Tests that need the CLI/gcc self-skip when the toolchain is absent.
-- The wasm seam: `pydantree_sitter.loader` dispatches on the artifact extension; wasm
-  loads only with TSGRAMMAR_WASM_LIB / TSGRAMMAR_WASMTIME_LIB set (the
-  Phase-7 probe runtime). Verdict: no-go for A's dependency budget.
+- The wasm seam: `pydantree_sitter.loader` dispatches on the artifact
+  extension and raises `WasmRuntimeUnavailableError` UNCONDITIONALLY (the
+  probe bridge moved to `.scratch/projects/009-phase7/wasm_bridge.py`).
+  Verdict: no-go for A's dependency budget.
 - Two scanner gotchas: mid-whitespace calls (skip first) and multiple
   externals valid in one state (fall through when the source disambiguates).
   See `../../docs/scanner-library.md`.
