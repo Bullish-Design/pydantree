@@ -1,0 +1,6 @@
+f15c6db70513d22e0a9ac36d501ddc9e5fcb1098acd9cbb8a83b5ea228d468fc  tests/oracles/bash-extract.json
+451bf23abcb248226fe352708deea979ee57dd470188bc35865aca42e3bba4a1  tests/oracles/devenv-extract.json
+bf56ccef16359d64ab67c81b880a55e57fabf8c156682595ac9ba055679f7cf2  tests/oracles/devenv-subset.json
+f15c6db70513d22e0a9ac36d501ddc9e5fcb1098acd9cbb8a83b5ea228d468fc  /tmp/pydantree-review019.UkcAVR/generated/bash-extract.json
+451bf23abcb248226fe352708deea979ee57dd470188bc35865aca42e3bba4a1  /tmp/pydantree-review019.UkcAVR/generated/devenv-extract.json
+bf56ccef16359d64ab67c81b880a55e57fabf8c156682595ac9ba055679f7cf2  /tmp/pydantree-review019.UkcAVR/generated/devenv-subset.json

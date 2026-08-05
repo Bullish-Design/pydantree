@@ -111,7 +111,124 @@ The pinned versions match the review prompt.
 
 ## Oracle and example verification
 
-Not yet run.
+### Oracle suite
+
+Command:
+
+```bash
+devenv shell -- python -m pytest tests/test_oracles.py -q
+```
+
+Evidence: [`evidence/oracle-run.txt`](evidence/oracle-run.txt)
+
+Result: **8 passed in 0.55s**. Source inspection confirms that `_oracle()`
+reads the checked-in JSON and the three real-example tests compare their
+collectors directly to it. The ground-truth agreement test independently
+loads each example's hand-written `ground_truth.json` and compares it to the
+oracle JSON after removing only note fields.
+
+The suite builds fresh temporary bundles. It does **not** load or compare any
+file under `tests/oracles/.built/`.
+
+### Example scripts
+
+Commands:
+
+```bash
+devenv shell -- python examples/bash-extract/extract.py
+devenv shell -- python examples/devenv-extract/extract.py
+DEVENV_BUNDLE_DIR=/tmp/review019-devenv-bundle \
+  devenv shell -- python examples/devenv-subset/extract.py
+devenv shell -- python examples/bash-extract/extract.py \
+  --bundle tests/oracles/.built/bash
+devenv shell -- python examples/devenv-extract/extract.py \
+  --bundle tests/oracles/.built/nix
+```
+
+Evidence:
+
+- [`evidence/example-bash.txt`](evidence/example-bash.txt)
+- [`evidence/example-devenv.txt`](evidence/example-devenv.txt)
+- [`evidence/example-subset.txt`](evidence/example-subset.txt)
+- [`evidence/example-bash-bundle.txt`](evidence/example-bash-bundle.txt)
+- [`evidence/example-devenv-bundle.txt`](evidence/example-devenv-bundle.txt)
+
+Results:
+
+- The default bash and nix invocations fail before extraction because the
+  managed dev environment lacks `tree_sitter_bash` and `tree_sitter_nix`.
+- The documented bundle paths pass against the committed bundles: bash
+  extracts **34 rows** and nix **102 rows**, all matching the examples' own
+  ground truths.
+- The authored subset builds with the real scanner and extracts **56 rows**,
+  all matching its ground truth.
+
+All three READMEs describe the corpus, models, build/load shape, and
+self-check. The two Product A READMEs' install snippets repeat
+`pydantree-sitter` twice and are not commands supported by this repository's
+mandatory devenv-managed workflow.
+
+### Oracle regeneration stability
+
+The literal regeneration command was first tried in a detached throwaway
+worktree:
+
+```bash
+devenv shell -- python tests/test_oracles.py --generate
+```
+
+Evidence: [`evidence/oracle-regenerate.txt`](evidence/oracle-regenerate.txt)
+
+It failed before generation because the new worktree's `devenv:python:uv`
+task reported success while the managed Python lacked `pydantic`. A second
+probe confirmed the worktree selected its own managed venv and still could
+not import `pydantic`:
+[`evidence/fresh-worktree-import.txt`](evidence/fresh-worktree-import.txt).
+
+To isolate output determinism from that environment failure, the committed
+probe redirects the harness's `ORACLES` output path:
+
+```bash
+devenv shell -- python \
+  .scratch/projects/019-final-verification-review/probe_oracle_regen.py \
+  /tmp/pydantree-review019.UkcAVR/generated
+```
+
+Evidence:
+
+- [`evidence/oracle-regenerate-probe-success.txt`](evidence/oracle-regenerate-probe-success.txt)
+- [`evidence/oracle-regenerate-hashes.txt`](evidence/oracle-regenerate-hashes.txt)
+
+Result: the regenerated bash, nix, and subset JSON files are each
+**byte-for-byte identical** to their checked-in oracle.
+
+### Committed bundle reproducibility
+
+Probe:
+
+```bash
+PYDANTREE_SITTER_CACHE=/tmp/pydantree-review019.UkcAVR/fresh-cache \
+  devenv shell -- python \
+  .scratch/projects/019-final-verification-review/probe_artifact_rebuild.py \
+  /tmp/pydantree-review019.UkcAVR/bundles-fresh
+```
+
+Evidence:
+
+- [`evidence/artifact-rebuild-fresh-cache.txt`](evidence/artifact-rebuild-fresh-cache.txt)
+- [`evidence/artifact-rebuild-hashes.txt`](evidence/artifact-rebuild-hashes.txt)
+
+Result:
+
+- `subset`: all four files reproduce byte-for-byte.
+- `bash` and `nix`: `loader.py` and `node-schema.json` reproduce exactly,
+  but `grammar.so` does not. Bash is 1,335,584 committed bytes versus
+  1,352,112 rebuilt bytes; nix is 98,880 versus 99,024 bytes.
+- Their metadata also drifts: committed `toolchain` is `"community"`; the
+  current pipeline writes `"tree-sitter 0.25.3"`.
+
+No provenance or regeneration document for `.built/` was found. The
+documented `--generate` path regenerates only JSON oracles, not these bundles.
 
 ## Fixture verification
 

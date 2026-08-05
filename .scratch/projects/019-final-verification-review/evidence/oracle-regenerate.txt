@@ -1,0 +1,70 @@
+• Validating lock
+✓ Validating lock in 23.1ms
+• Configuring shell
+• Configuring cachix
+✓ Configuring cachix in 8.11ms
+• Evaluating shell
+• Building pydantree-venv-src-pth
+• Building python3-3.13.5-env
+✓ Building pydantree-venv-src-pth in 66.0ms
+created 4 symlinks in user environment
+✓ Building python3-3.13.5-env in 1.44s
+• Building devenv-profile
+• Building devenv-python-uv
+✓ Building devenv-python-uv in 74.0ms
+created 284 symlinks in user environment
+✓ Building devenv-profile in 157ms
+• Building devenv-shell
+Running phase: buildPhase
+✓ Building devenv-shell in 114ms
+• Building devenv-shell-env
+✓ Building devenv-shell-env in 371ms
+✓ Evaluating shell in 5.72s
+✓ Configuring shell in 5.82s
+• Evaluating bash
+✓ Evaluating bash in 7.47ms
+• Loading tasks
+• Evaluating devenv.config.task.config
+• Building tasks.json
+✓ Building tasks.json in 65.0ms
+✓ Evaluating devenv.config.task.config in 259ms
+✓ Loading tasks in 259ms
+• Running tasks
+• Running devenv:python:uv
+✓ Running devenv:python:uv in 80.8ms
+• Running devenv:enterShell
+✓ Running devenv:enterShell in 8.23ms
+✓ Running tasks in 89.3ms
+Running tasks     devenv:enterShell
+
+Running           devenv:python:uv
+Running           pydantree:venv-src-pth
+Running           devenv:enterShell
+Succeeded         devenv:python:uv (87.42ms)
+Succeeded         pydantree:venv-src-pth (11.59ms)
+Succeeded         devenv:enterShell (17.22ms)
+3 Succeeded
+✨ devenv 2.1.2 is newer than devenv input (1.6.1) in devenv.lock. Run 'devenv update' to sync.
+hello from devenv
+git version 2.49.0
+/tmp/pydantree-review019.UkcAVR/repo/src/pydantree_sitter_grammar/builder.py:111: SyntaxWarning: invalid escape sequence '\s'
+  """Every element of a char-class body is whitespace: `\s`, `\t`, `\n`,
+/tmp/pydantree-review019.UkcAVR/repo/src/pydantree_sitter_grammar/builder.py:132: SyntaxWarning: invalid escape sequence '\s'
+  language is a subset of whitespace: `\s`, a literal space, or a
+Traceback (most recent call last):
+  File "/tmp/pydantree-review019.UkcAVR/repo/tests/test_oracles.py", line 426, in <module>
+    raise SystemExit(_generate())
+                     ~~~~~~~~~^^
+  File "/tmp/pydantree-review019.UkcAVR/repo/tests/test_oracles.py", line 393, in _generate
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
+  File "/tmp/pydantree-review019.UkcAVR/repo/src/pydantree_sitter_grammar/__init__.py", line 50, in <module>
+    from .builder import (
+    ...<22 lines>...
+    )
+  File "/tmp/pydantree-review019.UkcAVR/repo/src/pydantree_sitter_grammar/builder.py", line 35, in <module>
+    from .ir import (
+    ...<19 lines>...
+    )
+  File "/tmp/pydantree-review019.UkcAVR/repo/src/pydantree_sitter_grammar/ir.py", line 42, in <module>
+    from pydantic import BaseModel, Field, PrivateAttr, model_validator
+ModuleNotFoundError: No module named 'pydantic'

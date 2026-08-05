@@ -1,0 +1,103 @@
+• Validating lock
+✓ Validating lock in 20.6ms
+• Configuring shell
+• Configuring cachix
+✓ Configuring cachix in 2.35ms
+• Evaluating shell
+✓ Evaluating shell in 7.76ms (cached)
+✓ Configuring shell in 12.8ms
+• Loading tasks
+• Evaluating devenv.config.task.config
+✓ Evaluating devenv.config.task.config in 371µs (cached)
+✓ Loading tasks in 1.05ms
+• Running tasks
+• Running devenv:python:uv
+✓ Running devenv:python:uv in 84.5ms
+• Running devenv:enterShell
+✓ Running devenv:enterShell in 10.9ms
+✓ Running tasks in 96.0ms
+Running tasks     devenv:enterShell
+
+Running           devenv:python:uv
+Running           devenv:enterShell
+Running           pydantree:venv-src-pth
+Succeeded         devenv:python:uv (109.44ms)
+Succeeded         devenv:enterShell (6.88ms)
+Succeeded         pydantree:venv-src-pth (7.62ms)
+3 Succeeded
+✨ devenv 2.1.2 is newer than devenv input (1.6.1) in devenv.lock. Run 'devenv update' to sync.
+hello from devenv
+git version 2.49.0
+== Product B: author + build ==
+   grammar.py + scanner.c -> /tmp/review019-devenv-bundle
+   bundle: ['grammar.so', 'loader.py', 'node-schema.json', 'tree-sitter.json']
+   checks active · schema: 32 kinds
+
+== Product A: the fleet inventory (typed rows) ==
+── mypi-agent (8 lines) ──
+  package   pkgs.secretspec (line 6)
+
+── pydantree (85 lines) ──
+  env       env.GREET = '"devenv"' (line 5)
+  switch    languages.python.enable (line 20)
+  switch    languages.python.venv.enable (line 22)
+  switch    languages.python.uv.enable (line 24)
+  switch    languages.python.uv.sync.enable (line 26)
+  script    scripts.hello.exec (34 chars, line 44)
+  task      tasks."pydantree:venv-src-pth".exec (232 chars, line 59)
+  shell     enterShell (35 chars, line 70)
+  shell     enterTest (92 chars, line 76)
+  package   pkgs.git (line 11)
+  package   pkgs.tree-sitter (line 12)
+  package   pkgs.gcc (line 13)
+
+── terminal-state (192 lines) ──
+  env       env.GREET = '"terminal-state development environment"' (line 6)
+  env       env.TMUX_TMPDIR = '"${config.env.DEVENV_ROOT}/.tmux"' (line 8)
+  script    scripts.record-terminal.exec (144 chars, line 37)
+  script    scripts.cast-to-gif.exec (205 chars, line 47)
+  script    scripts.play-cast.exec (147 chars, line 60)
+  script    scripts.test.exec (31 chars, line 72)
+  script    scripts.format.exec (110 chars, line 80)
+  script    scripts.lint.exec (138 chars, line 90)
+  script    scripts.build-package.exec (70 chars, line 101)
+  switch    languages.python.enable (line 112)
+  switch    languages.python.venv.enable (line 114)
+  switch    languages.python.uv.enable (line 115)
+  shell     enterShell (1252 chars, line 153)
+  package   tmux (line 14)
+  package   asciinema (line 15)
+  package   agg (line 16)
+  package   imagemagick (line 19)
+  package   ghostscript (line 20)
+  package   dejavu_fonts (line 23)
+  package   liberation_ttf (line 24)
+  package   source-code-pro (line 25)
+  package   git (line 28)
+  package   curl (line 29)
+  package   jq (line 30)
+
+── structured-agents-v2 (221 lines) ──
+  script    scripts.project17-pytest-zellij.exec (583 chars, line 10)
+  script    scripts.project17-json-workload-zellij.exec (4195 chars, line 22)
+  script    scripts.project17-prefix-cache-zellij.exec (2624 chars, line 83)
+  script    scripts.project17-gpu-pytest.exec (1492 chars, line 133)
+  script    scripts.project20-gpu-pytest.exec (1542 chars, line 168)
+  script    scripts.project23-gpu-contract.exec (485 chars, line 202)
+  switch    languages.python.enable (line 212)
+  switch    languages.python.venv.enable (line 214)
+  switch    languages.python.uv.enable (line 215)
+  shell     enterShell (25 chars, line 218)
+  package   pkgs.git (line 5)
+  package   pkgs.uv (line 6)
+  package   pkgs.zellij (line 7)
+
+== record mode over the authored pair shape ==
+  env record     terminal-state:5  GREET="terminal-state development environment", TMUX_TMPDIR="${config.env.DEVENV_ROOT}/.tmux"
+  toolchain      pydantree:19  enable=true, version="3.13"
+  toolchain      pydantree:23  enable=true
+  toolchain      pydantree:25  enable=true
+  toolchain      terminal-state:111  enable=true, version="3.11"
+  toolchain      structured-agents-v2:211  enable=true, version="3.13"
+
+56 rows extracted — all match the hand-written ground truth ✓
