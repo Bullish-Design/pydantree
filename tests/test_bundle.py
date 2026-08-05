@@ -197,11 +197,15 @@ BASH_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "bash"
 P8_DIR = CONSUMERS
 
 
+@pytest.mark.cli_byte_for_byte
 def test_schema_tool_over_real_rust_source_byte_for_byte(tmp_path):
     """The community tool over the REAL tree-sitter-rust source (182 rules,
     11 externals): derive_schema_for_dir accepts the community layout, runs
     the CLI, and the derived schema is byte-for-byte the CLI's own
-    node-types.json — no normalization, no shape differences."""
+    node-types.json — no normalization, no shape differences. The comparison
+    target is the CHECKED-IN 0.25.x byproduct, so this claim is scoped to the
+    verified CLI range (skipped otherwise; the shipped schema is the literal
+    CLI copy regardless)."""
     from pydantree_sitter_grammar.schema_tool import derive_schema_for_dir
     out = tmp_path / "rust-schema.json"
     derived = derive_schema_for_dir(RUST_FIXTURE, name="rust",

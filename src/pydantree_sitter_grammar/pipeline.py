@@ -427,10 +427,11 @@ def build_from_source_dir(src_dir: Path | str, *,
 def build_builder(g, *, cache_dir=None, **kw) -> BuildResult:
     """build() for a builder DSL Grammar (builds the IR first).
 
-    When `tree-sitter generate` fails on an unresolved conflict, re-runs with
-    `--json` and raises `GrammarConflictError` (remapped to the author's
-    per-production DSL source sites) instead of a bare `GenerateError` — the
-    fix-one-rerun loop depends on this.
+    When `tree-sitter generate` fails on an unresolved conflict, the SINGLE
+    `--json` run's stderr (run_generate always passes --json) is remapped to
+    a `GrammarConflictError` (pointed at the author's per-production DSL
+    source sites) instead of a bare `GenerateError` — the fix-one-rerun
+    loop depends on this. No re-run happens on conflict.
     """
     model = g.build()
     try:

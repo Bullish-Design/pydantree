@@ -54,6 +54,48 @@ def test_parse_conflict_json():
     assert c.resolutions[0] == {"Associativity": {"symbols": ["expr"]}}
 
 
+def test_parse_conflict_json_survives_stderr_contamination():
+    """B7: the CLI's own warnings land on stderr ahead of the report — the
+    report must be extracted from the stream, not json.loads'ed wholesale."""
+    contaminated = (
+        "warning: unknown PATTERN flag 'u' in pattern ...\n"
+        "warning: this rule can be simplified...\n"
+        + RAW_CONFLICT + "\n"
+    )
+    c = tg.parse_conflict_json(contaminated)
+    assert c is not None
+    assert c.ambiguous_shape() == "expr '+' expr • '+'"
+
+
+def test_parse_conflict_json_non_string_symbols_render():
+    """B9: resolution `symbols` can carry non-string entries — the renderer
+    must coerce instead of TypeError'ing."""
+    raw = json.dumps({
+        "BuildTables": {"Conflict": {
+            "symbol_sequence": ["expr"],
+            "conflicting_lookahead": "'+'",
+            "possible_interpretations": [
+                {"variable_name": "expr",
+                 "production_step_symbols": ["expr", "'+'", "expr"]},
+            ],
+            "possible_resolutions": [
+                {"Associativity": {"symbols": [{"name": "expr"}, 7]}},
+            ],
+        }},
+    })
+    c = tg.parse_conflict_json(raw)
+    assert c is not None
+    g = tg.Grammar("t")
+    g.rule("expr", tg.choice(
+        tg.seq(tg.ref("expr"), "+", tg.ref("expr")),
+        tg.ref("number")))
+    g.rule("number", tg.pattern(r"\d+"))
+    g.rule("source_file", tg.repeat(tg.ref("expr")))
+    g.start("source_file")
+    err = tg.GrammarConflictError(g, c)
+    assert "associativity" in str(err).lower()
+
+
 def test_parse_conflict_json_non_conflict_returns_none():
     assert tg.parse_conflict_json(json.dumps({"something": "else"})) is None
     assert tg.parse_conflict_json("not json") is None

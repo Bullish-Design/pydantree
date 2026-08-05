@@ -38,6 +38,24 @@ for _d in ("grammars", "bfree"):
 TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
     shutil.which("gcc") is not None
 
+# REVIEW 018 §1.4/B7: major.minor ranges the conflict-report parser
+# (conflicts.py) and the byte-for-byte node-types.json round-trips are
+# verified against. CLI 0.26.x renames the internal serde report path and
+# adds an `extra` field to node-types.json — tests whose claims are coupled
+# to that emission are SKIPPED off-range (tests/test_toolchain_version.py
+# is the loud, failing guard).
+CLI_VERIFIED = {"0.25"}
+
+
+def cli_mm():
+    """The tree-sitter CLI major.minor (None when absent/unparseable)."""
+    import re
+    import subprocess
+    out = subprocess.run(["tree-sitter", "--version"],
+                         capture_output=True, text=True)
+    m = re.search(r"(\d+)\.(\d+)\.\d+", out.stdout or out.stderr)
+    return f"{m.group(1)}.{m.group(2)}" if m else None
+
 
 def pytest_configure(config):
     config.addinivalue_line(
@@ -45,17 +63,33 @@ def pytest_configure(config):
                    "(auto-skipped when absent)")
     config.addinivalue_line(
         "markers", "slow: slow (generate + gcc) — skip with -m 'not slow'")
+    config.addinivalue_line(
+        "markers", "cli_byte_for_byte: the node-types.json byte-for-byte "
+                   "claim vs a checked-in CLI byproduct — skipped when the "
+                   "CLI is outside the verified range (REVIEW 018 §1.4/B7)")
 
 
 def pytest_collection_modifyitems(config, items):
     """Auto-skip `toolchain`-marked tests when the CLI/gcc are absent (7.2):
-    the whole suite then SKIPS cleanly instead of erroring."""
-    if TOOLCHAIN_AVAILABLE:
+    the whole suite then SKIPS cleanly instead of erroring. CLI-version-
+    coupled byte-for-byte tests additionally skip when the installed CLI is
+    outside the verified range — the version guard (test_toolchain_version)
+    is the loud alert; these claims simply cannot be verified off-range."""
+    if not TOOLCHAIN_AVAILABLE:
+        skip = pytest.mark.skip(reason="tree-sitter CLI / gcc not on PATH")
+        for item in items:
+            if item.get_closest_marker("toolchain"):
+                item.add_marker(skip)
         return
-    skip = pytest.mark.skip(reason="tree-sitter CLI / gcc not on PATH")
-    for item in items:
-        if item.get_closest_marker("toolchain"):
-            item.add_marker(skip)
+    mm = cli_mm()
+    if mm is not None and mm not in CLI_VERIFIED:
+        skip = pytest.mark.skip(
+            reason=f"tree-sitter CLI {mm} is outside the verified set "
+                   f"{CLI_VERIFIED} — the node-types.json emission is "
+                   f"version-coupled (REVIEW 018 §1.4/B7)")
+        for item in items:
+            if item.get_closest_marker("cli_byte_for_byte"):
+                item.add_marker(skip)
 
 
 @pytest.fixture(autouse=True)

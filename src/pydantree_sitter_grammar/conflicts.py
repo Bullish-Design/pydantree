@@ -61,13 +61,35 @@ class Conflict:
         return " ".join(self.symbol_sequence) + " • " + self.conflicting_lookahead
 
 
+def _extract_json_object(raw: str):
+    """The JSON object in `raw` (first balanced top-level object that
+    parses). The CLI's stderr is not pure JSON — its own PATTERN-flag
+    warnings land on stderr ahead of the report — so json.loads over the
+    whole stream throws and kills the typed-error feature (B7)."""
+    start = raw.find("{")
+    while start != -1:
+        depth = 0
+        for i in range(start, len(raw)):
+            if raw[i] == "{":
+                depth += 1
+            elif raw[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(raw[start:i + 1])
+                    except json.JSONDecodeError:
+                        break
+        start = raw.find("{", start + 1)
+    return None
+
+
 def parse_conflict_json(raw: str) -> Conflict | None:
-    """Parse the CLI's --json conflict report. Returns None if the output is
-    not a conflict report (e.g. some other error)."""
+    """Parse the CLI's --json conflict report out of stderr. Returns None
+    if the output is not a conflict report (e.g. some other error)."""
+    data = _extract_json_object(raw)
     try:
-        data = json.loads(raw)
         conflict = data["BuildTables"]["Conflict"]
-    except (KeyError, TypeError, json.JSONDecodeError):
+    except (KeyError, TypeError):
         return None
     return Conflict(
         symbol_sequence=tuple(conflict.get("symbol_sequence", [])),
@@ -126,7 +148,7 @@ class GrammarConflictError(Exception):
         lines.append("Suggested fixes from the generator:")
         for i, res in enumerate(c.resolutions, 1):
             for kind, payload in res.items():
-                symbols = ", ".join(payload.get("symbols", []))
+                symbols = ", ".join(map(str, payload.get("symbols", [])))
                 if kind == "Precedence":
                     lines.append(f"  {i}. raise the precedence of {symbols}")
                 elif kind == "Associativity":
