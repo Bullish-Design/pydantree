@@ -1,0 +1,74 @@
+• Validating lock
+✓ Validating lock in 26.2ms
+• Configuring shell
+• Configuring cachix
+✓ Configuring cachix in 4.10ms
+• Evaluating shell
+✓ Evaluating shell in 9.45ms (cached)
+✓ Configuring shell in 17.2ms
+• Loading tasks
+• Evaluating devenv.config.task.config
+✓ Evaluating devenv.config.task.config in 509µs (cached)
+✓ Loading tasks in 1.63ms
+• Running tasks
+• Running devenv:python:uv
+✓ Running devenv:python:uv in 109ms
+• Running devenv:enterShell
+✓ Running devenv:enterShell in 18.6ms
+✓ Running tasks in 128ms
+Running tasks     devenv:enterShell
+
+Running           devenv:python:uv
+Running           devenv:enterShell
+Running           pydantree:venv-src-pth
+Succeeded         devenv:python:uv (102.49ms)
+Succeeded         devenv:enterShell (12.98ms)
+Succeeded         pydantree:venv-src-pth (17.41ms)
+3 Succeeded
+✨ devenv 2.1.2 is newer than devenv input (1.6.1) in devenv.lock. Run 'devenv update' to sync.
+hello from devenv
+git version 2.49.0
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________________ test_sugar_reuses_compiled_query _______________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x758035d32fd0>
+
+    def test_sugar_reuses_compiled_query(monkeypatch):
+        from pydantree_sitter import emit
+    
+        n = {"c": 0}
+        orig = emit.Query.compile
+    
+        def counting(self, lang):
+            if self._compiled is None:
+                n["c"] += 1
+            return orig(self, lang)
+    
+        monkeypatch.setattr(emit.Query, "compile", counting)
+    
+        class Rec(OutputModel):
+            __match__ = M("document", "object", record=True)
+            a: int | None = None
+    
+        text = '{"a": 1}'
+        for _ in range(5):
+            Rec.extract(text, language=tree_sitter_json)
+>       assert n["c"] <= 2, f"recompiled {n['c']}x for 5 identical sugar calls"
+E       AssertionError: recompiled 10x for 5 identical sugar calls
+E       assert 10 <= 2
+
+/tmp/pydantree-review019.UkcAVR/red-a2/tests/test_extract.py:323: AssertionError
+=============================== warnings summary ===============================
+../../../../../tmp/pydantree-review019.UkcAVR/red-a2/src/pydantree_sitter_grammar/patterns.py:57
+  /tmp/pydantree-review019.UkcAVR/red-a2/src/pydantree_sitter_grammar/patterns.py:57: SyntaxWarning: invalid escape sequence '\.'
+    """A nix path literal — `./relative/or/absolute`: `\.[/]` + a slug."""
+
+../../../../../tmp/pydantree-review019.UkcAVR/red-a2/src/pydantree_sitter_grammar/patterns.py:65
+  /tmp/pydantree-review019.UkcAVR/red-a2/src/pydantree_sitter_grammar/patterns.py:65: SyntaxWarning: invalid escape sequence '\.'
+    Shape: `(SEGMENT)(\.ident|"quoted")*` — the FIRST segment may be quoted
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../../../../../tmp/pydantree-review019.UkcAVR/red-a2/tests/test_extract.py::test_sugar_reuses_compiled_query
+1 failed, 2 warnings in 0.28s

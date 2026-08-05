@@ -232,11 +232,111 @@ documented `--generate` path regenerates only JSON oracles, not these bundles.
 
 ## Fixture verification
 
-Not yet run.
+### Focused suites
+
+Commands and results:
+
+```text
+devenv shell -- python -m pytest tests/test_scanners.py -q
+    16 passed in 3.32s
+devenv shell -- python -m pytest tests/test_bundle.py -q
+    18 passed in 32.63s
+devenv shell -- python -m pytest tests/test_conflicts.py -q
+    22 passed in 0.70s
+devenv shell -- python -m pytest tests/test_packaging.py -q
+    6 passed in 6.13s
+```
+
+Evidence: `evidence/fixture-{scanners,bundles,conflicts,packaging}.txt`.
+
+### Scanner and corpus expected trees
+
+All five scanner fixtures' saved `GOOD_EXPECTED` trees are passed into
+`corpus_case` and compared to the real rendered CST by `Corpus.run`; this is
+not a no-error-only check. The expanded pyindent/bashmini expectations are
+also asserted case by case. The corpus harness separately plants
+precedence/associativity/structure regressions that generate cleanly and
+proves the saved expected trees catch them.
+
+### B-free community consumers
+
+The bundle suite runs real source → CLI → gcc → bundle flows over Rust, Bash,
+Markdown, and Nix. The Rust, Markdown, and Nix consumers run in the explicit
+B-free subprocess environment and assert hand-authored output. The Nix run
+covers all seven saved fleet files and its 130-row ground truth. The harness
+copies only Product A and installs a meta-path blocker for Product B; each
+consumer also asserts B cannot import.
+
+### Golden conflict corpus without a toolchain
+
+The golden tests read and assert the three checked-in stderr JSON fixtures,
+including exact involved rules, ambiguous shapes, resolutions, and rendered
+sections. Their code does not invoke the CLI. However, `test_conflicts.py`
+sets a module-wide `pytestmark = pytest.mark.toolchain`, so these two tests
+are skipped when the CLI/gcc are unavailable:
+
+```bash
+devenv shell -- env \
+  PATH=/home/andrew/Documents/Projects/pydantree/.devenv/state/venv/bin \
+  /home/andrew/Documents/Projects/pydantree/.devenv/state/venv/bin/python \
+  -m pytest \
+  tests/test_conflicts.py::test_golden_conflict_corpus_parses_without_the_cli \
+  tests/test_conflicts.py::test_golden_conflicts_render_with_matching_grammar -q
+```
+
+Evidence: [`evidence/golden-no-toolchain.txt`](evidence/golden-no-toolchain.txt)
+
+Result: **2 skipped**.
+
+### Saved byproduct assertion inventory
+
+- Rust's checked-in `node-types.json` has a real byte-for-byte regeneration
+  assertion.
+- Nix regeneration compares the schema output to the same fresh generate
+  run, not to checked-in `tests/fixtures/nix/node-types.json`; the fixture is
+  known to differ.
+- Bash, Markdown, and Markdown-inline checked-in `node-types.json` files are
+  not compared to fresh generator output. The build/extraction tests use a
+  fresh generated schema, so they do not freeze the checked-in byproducts.
+- `tests/fixtures/PROVENANCE.md` exists, but Rust and Markdown are described
+  only as `master`/`fixture-pinned` without exact commits or regeneration
+  commands; the golden `conflicts/` directory is not documented there.
+
+### Packaging boundary and `PYTHONPATH`
+
+The six packaging tests build actual wheels with `uv build`; the install
+boundary creates a fresh venv, installs only the light wheel, proves Product
+B cannot import, and runs a real cfg-bundle extraction. Wheel/source module
+sets and build-metadata exclusions are asserted.
+
+The subprocess inherits this parent `PYTHONPATH`:
+
+```text
+/nix/store/r2xkbqli4rkamshgffaxbkdyp3n1xmaq-devenv-profile/lib/python3.13/site-packages
+```
+
+Evidence:
+[`evidence/packaging-parent-pythonpath.txt`](evidence/packaging-parent-pythonpath.txt).
+That directory contains no pydantree or tree-sitter package, and the explicit
+failed Product-B import would catch a repository `src/` leak. The current
+fresh-venv result is therefore genuine, although explicitly clearing
+`PYTHONPATH` would make the test more portable across caller environments.
 
 ## Review 018 red-against-prefix spot checks
 
-Not yet run.
+Three current test nodes were placed in detached worktrees at the parent of
+their fixes and run with the active managed Python/toolchain:
+
+| fix | parent | current regression | pre-fix result |
+|---|---|---|---|
+| A1 committed `ValueMap` | `c0e2ad3` | `test_committed_valuemap_is_authoritative_in_the_check` | FAIL: pre-fix `_scalar_of` does not accept/use the `ValueMap` argument |
+| A2 sugar memoization | `9ecf9a0` | `test_sugar_reuses_compiled_query` | FAIL: 10 compiles for five calls, expected at most 2 |
+| B16 bundle ABI | `a43b566` | `test_bundle_abi_matches_the_built_language` | FAIL: metadata ABI `9`, runtime ABI `15` |
+
+Evidence: `evidence/red-{a1-valuemap,a2-sugar,b16-abi}.txt`.
+
+The same three nodes on current `main` pass together: **3 passed in 0.34s**
+([`evidence/red-checks-current-green.txt`](evidence/red-checks-current-green.txt)).
 
 ## Gap probes and determinism
 

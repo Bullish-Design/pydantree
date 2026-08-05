@@ -1,0 +1,71 @@
+• Validating lock
+✓ Validating lock in 22.5ms
+• Configuring shell
+• Configuring cachix
+✓ Configuring cachix in 2.27ms
+• Evaluating shell
+✓ Evaluating shell in 8.28ms (cached)
+✓ Configuring shell in 17.0ms
+• Loading tasks
+• Evaluating devenv.config.task.config
+✓ Evaluating devenv.config.task.config in 468µs (cached)
+✓ Loading tasks in 1.51ms
+• Running tasks
+• Running devenv:python:uv
+✓ Running devenv:python:uv in 106ms
+• Running devenv:enterShell
+✓ Running devenv:enterShell in 9.63ms
+✓ Running tasks in 117ms
+Running tasks     devenv:enterShell
+
+Running           devenv:python:uv
+Running           devenv:enterShell
+Running           pydantree:venv-src-pth
+Succeeded         devenv:python:uv (114.19ms)
+Succeeded         devenv:enterShell (12.58ms)
+Succeeded         pydantree:venv-src-pth (15.54ms)
+3 Succeeded
+✨ devenv 2.1.2 is newer than devenv input (1.6.1) in devenv.lock. Run 'devenv update' to sync.
+hello from devenv
+git version 2.49.0
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________________ test_bundle_abi_matches_the_built_language __________________
+
+cache_dir = PosixPath('/tmp/pytest-of-andrew/pytest-5352/test_bundle_abi_matches_the_bu0/cache')
+tmp_path = PosixPath('/tmp/pytest-of-andrew/pytest-5352/test_bundle_abi_matches_the_bu0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77d02ac86650>
+
+    def test_bundle_abi_matches_the_built_language(cache_dir, tmp_path, monkeypatch):
+        """B16: the bundle's `abi` metadata must come from the same source as
+        the cache key (_python_abi -> LANGUAGE_VERSION), not a separate env read
+        that can claim ABI 15 for a 14 artifact. A stale TSGRAMMAR_ABI override
+        must NOT leak into the bundle metadata."""
+        import json
+        import tree_sitter as _ts
+        from pydantree_sitter_grammar.pipeline import write_bundle
+    
+        monkeypatch.setenv("TSGRAMMAR_ABI", "9")  # a stale override (B16)
+        result = tg.build_builder(_simple_grammar(), cache_dir=cache_dir)
+        bundle = write_bundle(result, tmp_path / "bundle")
+        meta = json.loads((bundle / "tree-sitter.json").read_text())
+>       assert meta["abi"] == str(_ts.LANGUAGE_VERSION)
+E       AssertionError: assert '9' == '15'
+E         
+E         - 15
+E         + 9
+
+/tmp/pydantree-review019.UkcAVR/red-b16/tests/test_pipeline.py:72: AssertionError
+=============================== warnings summary ===============================
+../../../../../tmp/pydantree-review019.UkcAVR/red-b16/src/pydantree_sitter_grammar/patterns.py:57
+  /tmp/pydantree-review019.UkcAVR/red-b16/src/pydantree_sitter_grammar/patterns.py:57: SyntaxWarning: invalid escape sequence '\.'
+    """A nix path literal — `./relative/or/absolute`: `\.[/]` + a slug."""
+
+../../../../../tmp/pydantree-review019.UkcAVR/red-b16/src/pydantree_sitter_grammar/patterns.py:65
+  /tmp/pydantree-review019.UkcAVR/red-b16/src/pydantree_sitter_grammar/patterns.py:65: SyntaxWarning: invalid escape sequence '\.'
+    Shape: `(SEGMENT)(\.ident|"quoted")*` — the FIRST segment may be quoted
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../../../../../tmp/pydantree-review019.UkcAVR/red-b16/tests/test_pipeline.py::test_bundle_abi_matches_the_built_language
+1 failed, 2 warnings in 0.42s
