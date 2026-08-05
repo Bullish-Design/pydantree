@@ -95,11 +95,12 @@ def _snake(name: str) -> str:
     return prefix + s2.lower()
 
 
-def _rule_site(depth: int = 2) -> RuleSite:
+def _rule_site(depth: int = 3) -> RuleSite:
     """The class-definition site (file/lineno/source) for conflict
     remapping. Walks up from the metaclass `__new__` frame to the module
-    frame executing the `class` statement (measured: depth 2). Delegates to
-    the ONE caller_site helper (D8 — a frame refactor fails the helper's
+    frame executing the `class` statement (measured: `__new__` is 2 frames
+    up from caller_site, the class statement one more). Delegates to the
+    ONE caller_site helper (D8 — a frame refactor fails the helper's
     tests, not silently mis-attributes)."""
     from .builder import caller_site
     return caller_site(skip=depth)
@@ -284,13 +285,18 @@ def _child(cls: type, t, attr: str | None = None) -> B:
 def _stamp(cls: type, body: B, attr: str | None = None) -> None:
     """Stamp a body's nodes with the class's site (attribute-line precision
     via `__attr_sites__` when known) AT CREATION (D8 — no post-hoc repair;
-    provenance lives on the node)."""
+    provenance lives on the node). Repoints nodes whose site still points
+    into this module (rules.py) — annotation/token/pattern compilation
+    builds combinator nodes HERE, so their `_track` site is a library
+    internal, not the author's file (B10). `__body__` combinator sites land
+    in the author's module and are left alone."""
     site = None
     if attr is not None:
         site = cls.__attr_sites__.get(attr)
     site = site or cls.__site__
     for n in _iter_body_nodes(as_node(body)):
-        if site_of(n) is None:
+        existing = site_of(n)
+        if existing is None or existing.file == _RULES_FILE:
             n._site = site   # pydantic private attr
 
 
@@ -421,6 +427,12 @@ def assemble(name: str, *, start: type,
         # or an External's tok)
         if getattr(cls, "__token__", False) and body.node.type != "TOKEN":
             body = tg_token(body)
+        # source sites (D8, B10): repoint any node still carrying a
+        # rules.py site — annotation-seq wrappers, pattern/token/external
+        # bodies compiled HERE — at the class (or attribute) line.
+        # Author-built `__body__` combinator sites are already the author's
+        # module lines and are left alone (their file is not rules.py).
+        _stamp(cls, body)
         g.rule(rn, body,
                supertype=getattr(cls, "__supertype__", False),
                hidden=getattr(cls, "__hidden__", False),
