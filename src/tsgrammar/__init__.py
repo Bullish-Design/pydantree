@@ -18,6 +18,27 @@ Public surface:
         build, build_builder, detect_toolchain, grammar_hash,
         load_language, parse,
     )
+
+The RULE-CLASS surface ("the model IS the rule"): author each grammar rule
+as a class — the base class is the rule's kind (Pattern/Token/External +
+Extra/Supertype/Hidden/Inline/Word mixins), annotated attributes are ordered
+children, `__body__` is the combinator escape hatch, and `assemble()`
+compiles the classes into the same builder `Grammar`:
+
+    from tsgrammar import (External, Extra, Pattern, R, Rule, Supertype,
+                           Token, assemble)
+
+    class Pair(Rule):
+        key: NamePath
+        eq: Literal["="] = "="
+        value: Value
+
+    def build() -> tg.Grammar:
+        return assemble("devenv", start=SourceFile)
+
+`Rule` is the authoring base class; the IR node union that used to share the
+name lives at `tsgrammar.grammar.Rule` (the node types — SymbolNode,
+StrNode, SeqNode, ... — are exported as before). See `tsgrammar.rules`.
 """
 
 # ruff: noqa: RUF022  (grouped-by-layer __all__, not flat-sorted)
@@ -106,6 +127,20 @@ from .pipeline import (
     grammar_hash,
     run_generate,
 )
+from .rules import (
+    External,
+    Extra,
+    Hidden,
+    Inline,
+    Pattern,
+    R,
+    Rule,
+    Supertype,
+    Token,
+    Word,
+    assemble,
+)
+from . import patterns
 from .scanners import (
     bash_heredoc_scanner_path,
     heredoc_scanner_path,
@@ -123,12 +158,17 @@ __all__ = [
     "token", "tok", "immediate_token", "ref", "pattern", "alias", "blank",
     "prec", "prec_left", "prec_right", "prec_dynamic", "grammar",
     "RuleSite", "B", "Ladder",
-    # IR
+    # IR (the node union that used to share the name `Rule` lives at
+    # tsgrammar.grammar.Rule — `Rule` below is the rule-class base)
     "GrammarModel", "Rule", "RuleNode",
     "SymbolNode", "StrNode", "PatternNode", "BlankNode", "SeqNode",
     "ChoiceNode", "RepeatNode", "Repeat1Node", "FieldNode", "AliasNode",
     "TokenNode", "ImmediateTokenNode", "PrecNode", "PrecLeftNode",
     "PrecRightNode", "PrecDynamicNode", "ReservedNode",
+    # rule-class surface (the model IS the rule)
+    "Rule", "Pattern", "Token", "External",
+    "Extra", "Supertype", "Hidden", "Inline", "Word",
+    "R", "assemble",
     # analyzer
     "run_checks", "errors", "warnings", "assert_clean", "CheckIssue",
     "GrammarCheckError",

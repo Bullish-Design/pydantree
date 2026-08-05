@@ -1,0 +1,24 @@
+Running           devenv:enterShell
+Running           pydantree:venv-src-pth
+Succeeded         devenv:python:uv (86.07ms)
+Succeeded         devenv:enterShell (8.16ms)
+Succeeded         pydantree:venv-src-pth (8.16ms)
+3 Succeeded
+✨ devenv 2.1.2 is newer than devenv input (1.6.1) in devenv.lock. Run 'devenv update' to sync.
+hello from devenv
+git version 2.49.0
+pydantic 2.13.4
+
+[1] Rule(BaseModel) class creation: defines cleanly; forward refs deferred until model_rebuild()
+    - model_fields collected: ['eq', 'key', 'value']
+[2] Literal-default mismatch: BaseModel -> no error raised at class creation
+    (the pure-metaclass surface raises in _from_annotations at assemble() time — the 012 probes' class-time check)
+    NOTE: pydantic v2 validates defaults at INSTANTIATION, not class definition — a bare BaseModel cannot give the class-time check without a custom metaclass anyway.
+[3] ordering: model_fields == __annotations__ order? True  (['key', 'eq', 'value'])
+[4] class-namespace machinery: BaseModel rule -> 107 keys (14 pydantic-generated), metaclass rule -> 33 keys
+      pydantic-generated names: ['__pydantic_complete__', '__pydantic_computed_fields__', '__pydantic_core_schema__', '__pydantic_custom_init__', '__pydantic_decorators__', '__pydantic_extra_info__', '__pydantic_fields__', '__pydantic_generic_metadata__', '__pydantic_parent_namespace__', '__pydantic_post_init__', '__pydantic_serializer__', '__pydantic_setattr_handlers__', '__pydantic_validator__', 'model_config']
+[5] annotation compilation agrees within each surface: True
+      BaseModel:   [('ref', 'b_name_path', 'key'), ('lit', '='), ('ref', 'b_value', 'value')]
+      metaclass:   [('ref', 'a_name_path', 'key'), ('lit', '='), ('ref', 'a_value', 'value')]
+
+VERDICT INPUTS: BaseModel buys [3] nothing (annotations are ordered either way), [2] nothing (class-time check needs a custom metaclass regardless), and costs [1] deferred-model friction + [4] ~5x the namespace machinery. The metaclass matches the 012 probes, so the default recommendation (pure metaclass) holds.

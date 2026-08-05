@@ -1,0 +1,16 @@
+    __rule_name__ override (IndentedStringFragment): indented_string_fragment
+    hidden resolution (NamePath not hidden): name_path
+[4] Comment inherits __token__: True, __extra__: True
+    Number inherits __token__: False
+[5] class definition sites:
+      Comment                  probe_step1_skeleton.py:33: 'class Comment(Extra, Token):'  (source file match: True)
+      NamePath                 probe_step1_skeleton.py:38: 'class NamePath(Token):'  (source file match: True)
+      Number                   probe_step1_skeleton.py:42: 'class Number(Pattern):'  (source file match: True)
+      StringFragment           probe_step1_skeleton.py:46: 'class StringFragment(External):'  (source file match: True)
+      IndentedStringFragment   probe_step1_skeleton.py:50: 'class IndentedStringFragment(External):'  (source file match: True)
+      Interpolation            probe_step1_skeleton.py:54: 'class Interpolation(Rule):'  (source file match: True)
+[6] assemble: 6 rules -> ['interpolation', 'comment', 'name_path', 'number', 'string_fragment', 'indented_string_fragment']
+    externals: ['TOKEN', 'TOKEN']
+    extras: ['PATTERN', 'SYMBOL']
+    start rule first: True
+    checks flag exactly the unreachable rules: True ['indented_string_fragment', 'name_path', 'number', 'string_fragment']
