@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import inspect
 import linecache
+import os
 import sys
 import types
 from typing import Literal, Union, get_args, get_origin
@@ -48,6 +49,8 @@ from .builder import (
     B,
     Grammar,
     RuleSite,
+    _SITES,
+    _iter_body_nodes,
     as_node,
     choice as tg_choice,
     field as tg_field,
@@ -65,6 +68,12 @@ __all__ = [
     "Extra", "Supertype", "Hidden", "Inline", "Word",
     "R", "assemble",
 ]
+
+# this module's own file — body nodes built here (annotation compilation,
+# token/pattern wrapping) get their sites repointed at the class/attribute
+# lines during assemble(); `__body__` combinator sites land in the author's
+# module and are left alone.
+_RULES_FILE = os.path.abspath(__file__)
 
 
 # ---------------------------------------------------------------------------
@@ -98,6 +107,46 @@ def _rule_site(depth: int = 2) -> RuleSite:
         del frame
 
 
+def _attr_sites(cls: type) -> dict[str, RuleSite]:
+    """file/lineno/source for each annotated attribute — the class body's
+    `attr: Type` lines — so conflict remapping can point at `Pair.value`
+    (class + attribute), not a raw combinator line. Found by scanning the
+    class's own source lines for the `attr:` prefix."""
+    sites: dict[str, RuleSite] = {}
+    try:
+        src_lines, start = inspect.getsourcelines(cls)
+    except (OSError, TypeError):
+        return sites
+    for attr in cls.__annotations__:
+        if attr.startswith("__"):
+            continue
+        for i, line in enumerate(src_lines):
+            stripped = line.lstrip()
+            if stripped.startswith(f"{attr}:"):
+                sites[attr] = RuleSite(
+                    cls.__site__.file, start + i, stripped.rstrip("\n"))
+                break
+    return sites
+
+
+def _snapshot_body_sites(body) -> dict[int, RuleSite]:
+    """The combinator call sites of a class's `__body__` expression,
+    captured ONCE at class creation. The builder's global `_SITES` table is
+    drained by the first `assemble()` (each `rule()` registration pops the
+    body's entries), so a SECOND `assemble()` in the same process would
+    otherwise lose every per-node site and fall back to rule-level lines. The
+    DSL re-creates its nodes per `build()` call; class bodies evaluate once,
+    so the snapshot is re-applied by every `assemble()`."""
+    sites: dict[int, RuleSite] = {}
+    if body is None:
+        return sites
+    for n in _iter_body_nodes(as_node(body)):
+        site = _SITES.get(id(n))
+        if site is not None:
+            sites[id(n)] = site
+    return sites
+
+
 class _RuleMeta(type):
     """Registers rule classes: derives `__rule_name__` from the class name
     (overridable with `__rule_name__`) and records the definition site.
@@ -110,6 +159,8 @@ class _RuleMeta(type):
             rn = ns.get("__rule_name__") or _snake(name)
             cls.__rule_name__ = rn
             cls.__site__ = _rule_site()
+            cls.__attr_sites__ = _attr_sites(cls)
+            cls.__body_sites__ = _snapshot_body_sites(ns.get("__body__"))
         return cls
 
 
@@ -245,9 +296,14 @@ def _child(cls: type, t, attr: str | None = None) -> B:
     raise TypeError(f"{cls.__name__}: cannot compile annotation {t!r}")
 
 
-def _from_annotations(cls: type) -> B:
-    """The annotation form: ordered children -> one seq (or a bare member)."""
-    members = []
+def _from_annotations(cls: type) -> tuple[B, dict[int, str]]:
+    """The annotation form: ordered children -> one seq (or a bare member).
+
+    Returns the body plus a node-id -> attribute-name map (for source-site
+    remapping: each annotation-emitted node points at its attribute line).
+    """
+    members: list[B | str] = []
+    attr_nodes: dict[int, str] = {}
     for attr, ann in cls.__annotations__.items():
         if attr.startswith("__"):
             continue
@@ -260,14 +316,18 @@ def _from_annotations(cls: type) -> B:
                     f"{cls.__name__}.{attr}: Literal[{val!r}] default "
                     f"{default!r} does not match — anonymous tokens must "
                     f"default to their Literal value")
-            members.append(val)
+            member: B | str = val
         else:
-            members.append(_child(cls, t, attr=attr))
+            member = _child(cls, t, attr=attr)
+        for n in _iter_body_nodes(as_node(member)):
+            attr_nodes[id(n)] = attr
+        members.append(member)
     if not members:
         raise ValueError(
             f"{cls.__name__}: no children — annotate at least one attribute, "
             f"or give the rule __body__ / __pattern__ / __external__")
-    return members[0] if len(members) == 1 else tg_seq(*members)
+    body = members[0] if len(members) == 1 else tg_seq(*members)
+    return body, attr_nodes
 
 
 def R(cls: type) -> B:
@@ -321,6 +381,7 @@ def assemble(name: str, *, start: type) -> Grammar:
             g.external(tg_tok(ext))
         # body: __body__ (own ns) -> __pattern__ (own ns) -> __external__ ->
         # annotations
+        attr_nodes: dict[int, str] = {}
         body = cls.__dict__.get("__body__")
         if body is None:
             pat = cls.__dict__.get("__pattern__")
@@ -337,7 +398,7 @@ def assemble(name: str, *, start: type) -> Grammar:
             elif ext is not None:
                 body = tg_tok(ext)
             else:
-                body = _from_annotations(cls)
+                body, attr_nodes = _from_annotations(cls)
         if not isinstance(body, B):
             body = B(as_node(body))
         # token-wrap (the guard prevents double-wrapping an already-token body
@@ -349,6 +410,26 @@ def assemble(name: str, *, start: type) -> Grammar:
                hidden=getattr(cls, "__hidden__", False),
                inline=getattr(cls, "__inline__", False),
                word=getattr(cls, "__word__", False))
+        # source sites: the rule points at its CLASS definition; every body
+        # node that was built inside rules.py internals (annotation-emitted
+        # fields/repeats/choices, token/pattern wrappers) is repointed at the
+        # class or the exact attribute line — `__body__` combinator sites
+        # already point at the author's module lines and are left alone.
+        g.sites[rn] = cls.__site__
+        attr_sites = getattr(cls, "__attr_sites__", {})
+        for node in _iter_body_nodes(as_node(body)):
+            current = g._node_sites.get(id(node))
+            if (current is not None
+                    and os.path.abspath(current.file) == _RULES_FILE):
+                attr = attr_nodes.get(id(node))
+                site = (attr_sites.get(attr) if attr is not None
+                        else None) or cls.__site__
+                g._node_sites[id(node)] = site
+        # `__body__` combinator sites are stable per class (evaluated once at
+        # class creation, drained by the first assemble) — re-apply them on
+        # every assemble so repeated build() calls keep per-node remapping.
+        for nid, site in cls.__body_sites__.items():
+            g._node_sites[nid] = site
         if getattr(cls, "__extra__", False):
             g.extra(tg_ref(_resolved_name(cls)))
     g.start(_resolved_name(start))

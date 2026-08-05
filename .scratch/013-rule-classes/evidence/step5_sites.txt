@@ -1,0 +1,19 @@
+[1] pair rule site: /home/andrew/Documents/Projects/pydantree/tests/fixtures/devenv_classes_grammar.py:103: class Pair(Rule):
+[2] pair.key field node site: /home/andrew/Documents/Projects/pydantree/tests/fixtures/devenv_classes_grammar.py:106: key: NamePath
+[2] pair.value field node site: /home/andrew/Documents/Projects/pydantree/tests/fixtures/devenv_classes_grammar.py:108: value: Value
+[3] GrammarConflictError raised; message:
+    GLR conflict in grammar 'conflict-demo' — cannot generate a parser.
+    
+    Ambiguous shape: expr '+' expr • '+'
+    Conflicting rules (from your Python source):
+      - g.rule('expr', ...) defined at /home/andrew/Documents/Projects/pydantree/.scratch/013-rule-classes/probe_step5_sites.py:80: class Expr(Rule):
+    
+    Competing parses (per-production source sites):
+      1. expr: expr  '+'  expr   at /home/andrew/Documents/Projects/pydantree/.scratch/013-rule-classes/probe_step5_sites.py:83: __body__ = tg.choice(tg.seq(tg.ref("expr"), "+", tg.ref("expr")),
+      2. expr: expr  '+'  expr   at /home/andrew/Documents/Projects/pydantree/.scratch/013-rule-classes/probe_step5_sites.py:83: __body__ = tg.choice(tg.seq(tg.ref("expr"), "+", tg.ref("expr")),
+    
+    Suggested fixes from the generator:
+      1. add left/right associativity to expr
+      2. whitelist as intentional ambiguity: conflicts=[expr]
+[4] matching_alternative('expr', [expr '+' expr]) -> /home/andrew/Documents/Projects/pydantree/.scratch/013-rule-classes/probe_step5_sites.py:83: __body__ = tg.choice(tg.seq(tg.ref("expr"), "+", tg.ref("expr")),
+ALL SITE CHECKS: PASS
