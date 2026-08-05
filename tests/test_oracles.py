@@ -25,8 +25,6 @@ Regenerate the oracle JSONs from current code (one-time, then eyeball):
     devenv shell -- python tests/test_oracles.py --generate
 """
 
-from __future__ import annotations
-
 import importlib.util
 import json
 import shutil
@@ -70,19 +68,19 @@ def _import_example(name: str):
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(scope="session")
-def bash_lang():
+def bash_lang(tmp_path_factory):
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     from pydantree_sitter import Language
-    bundle = build_community_bundle(BASH_FIXTURE, ORACLES / ".built" / "bash",
+    bundle = build_community_bundle(BASH_FIXTURE, tmp_path_factory.mktemp("bash") / "bundle",
                                     name="bash", keep=False)
     return Language.load_bundle(bundle)
 
 
 @pytest.fixture(scope="session")
-def nix_lang():
+def nix_lang(tmp_path_factory):
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     from pydantree_sitter import Language
-    bundle = build_community_bundle(NIX_FIXTURE, ORACLES / ".built" / "nix",
+    bundle = build_community_bundle(NIX_FIXTURE, tmp_path_factory.mktemp("nix") / "bundle",
                                     name="nix", keep=False)
     return Language.load_bundle(bundle)
 
@@ -107,11 +105,16 @@ def build_subset_bundle(mod, out_dir: Path):
 
 
 @pytest.fixture(scope="session")
-def subset_lang():
-    from pydantree_sitter import Language
+def subset_lang(tmp_path_factory):
+    from pydantree_sitter import Language, propose_value_map
     example = _import_example("devenv-subset")
-    bundle = build_subset_bundle(example, ORACLES / ".built" / "subset")
-    return Language.load_bundle(bundle)
+    bundle = build_subset_bundle(example, tmp_path_factory.mktemp("subset") / "bundle")
+    lang = Language.load_bundle(bundle)
+    # the example commits the draft ValueMap for its non-JSON grammar
+    if lang.schema is not None:
+        lang = Language.load_bundle(bundle,
+                                    value_map=propose_value_map(lang.schema))
+    return lang
 
 
 # ---------------------------------------------------------------------------
@@ -183,6 +186,8 @@ def collect_subset(mod, lang) -> dict:
     inventory = {"packages": [], "env": [], "scripts": [], "tasks": [],
                  "switches": [], "enterShell": [], "enterTest": []}
     env_records, toolchain_records = [], []
+    env_ext = lang.extractor(mod.EnvRecord, strict=False)
+    tool_ext = lang.extractor(mod.Toolchain, strict=False)
     for fname in mod.FILES:
         repo = fname[:-4]
         src = (mod.FIXTURES / fname).read_bytes()
@@ -228,14 +233,10 @@ def collect_subset(mod, lang) -> dict:
                          "name": src[c.start_byte:c.end_byte].decode(),
                          "line": c.start_point.row + 1})
 
-        for r in [x.model_dump() for x in
-                  mod.EnvRecord.extract_tree(tree, strict=False,
-                                             schema=lang.schema)]:
+        for r in [x.model_dump() for x in env_ext.extract_tree(tree)]:
             r["repo"] = repo
             env_records.append(r)
-        for r in [x.model_dump() for x in
-                  mod.Toolchain.extract_tree(tree, strict=False,
-                                             schema=lang.schema)]:
+        for r in [x.model_dump() for x in tool_ext.extract_tree(tree)]:
             r["repo"] = repo
             toolchain_records.append(r)
 
@@ -294,8 +295,6 @@ def test_oracles_agree_with_the_examples_own_ground_truth():
 # thesis-breaking bugs pinned as xfails (flip in Phase 3 / Phase 4)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.xfail(strict=True, reason="F-A1: silent [] (dsl compile cache "
-                                       "ignores lang) — flip in Phase 4")
 def test_fa1_cross_language_second_extract_raises():
     """F-A1: a model extracted against python then json must RAISE on the
     second language (the query is grammar-specific), never silently return
@@ -319,8 +318,6 @@ def test_fa1_cross_language_second_extract_raises():
 
 
 @requires_toolchain
-@pytest.mark.xfail(strict=True, reason="F-A2: schema-bound nested records "
-                                       "drop every nested match — Phase 4.4")
 def test_fa2_schema_bound_nested_records_match_schema_less():
     import sys as _sys
     import tree_sitter_json
@@ -352,8 +349,6 @@ def test_fa2_schema_bound_nested_records_match_schema_less():
     assert bound == bare
 
 
-@pytest.mark.xfail(strict=True, reason="F-A3: NodeKind tuple alternation "
-                                       "dropped in field mode — Phase 4.3")
 def test_fa3_nodekind_tuple_emits_all_kinds_in_field_mode():
     import tree_sitter_python
     from pydantree_sitter import Language, M, OutputModel, NodeKind, capture
@@ -370,8 +365,6 @@ def test_fa3_nodekind_tuple_emits_all_kinds_in_field_mode():
     assert sorted(r["value"] for r in rows) == ["False", "True"]
 
 
-@pytest.mark.xfail(strict=True, reason="NEW list-branch: '...' path filter "
-                                       "skipped for list[T] fields — 4.3")
 def test_list_field_with_gap_path_filters_by_ancestry():
     """A model with a list[T] field and a '...' path over input where the
     anchor's ancestry does NOT match must yield ZERO rows — the scalar
@@ -394,31 +387,33 @@ def test_list_field_with_gap_path_filters_by_ancestry():
 # ---------------------------------------------------------------------------
 
 def _generate() -> int:
+    import tempfile
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
-    from pydantree_sitter import Language
+    from pydantree_sitter import Language, propose_value_map
 
-    built = ORACLES / ".built"
-    built.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="oracle-gen-") as td:
+        built = Path(td)
+        bash_mod = _import_example("bash-extract")
+        bash = build_community_bundle(BASH_FIXTURE, built / "bash",
+                                      name="bash", keep=False)
+        (ORACLES / "bash-extract.json").write_text(json.dumps(
+            collect_bash(bash_mod, Language.load_bundle(bash)), indent=2) + "\n")
 
-    bash_mod = _import_example("bash-extract")
-    bash = build_community_bundle(BASH_FIXTURE, built / "bash",
-                                  name="bash", keep=False)
-    (ORACLES / "bash-extract.json").write_text(json.dumps(
-        collect_bash(bash_mod, Language.load_bundle(bash)), indent=2) + "\n")
+        nix_mod = _import_example("devenv-extract")
+        nix = build_community_bundle(NIX_FIXTURE, built / "nix",
+                                     name="nix", keep=False)
+        (ORACLES / "devenv-extract.json").write_text(json.dumps(
+            collect_nix(nix_mod, Language.load_bundle(nix)), indent=2) + "\n")
 
-    nix_mod = _import_example("devenv-extract")
-    nix = build_community_bundle(NIX_FIXTURE, built / "nix",
-                                 name="nix", keep=False)
-    (ORACLES / "devenv-extract.json").write_text(json.dumps(
-        collect_nix(nix_mod, Language.load_bundle(nix)), indent=2) + "\n")
+        subset_mod = _import_example("devenv-subset")
+        subset_bundle = build_subset_bundle(subset_mod, built / "subset")
+        lang = Language.load_bundle(subset_bundle)
+        if lang.schema is not None:
+            lang = Language.load_bundle(
+                subset_bundle, value_map=propose_value_map(lang.schema))
+        (ORACLES / "devenv-subset.json").write_text(json.dumps(
+            collect_subset(subset_mod, lang), indent=2) + "\n")
 
-    subset_mod = _import_example("devenv-subset")
-    subset_bundle = build_subset_bundle(subset_mod, built / "subset")
-    (ORACLES / "devenv-subset.json").write_text(json.dumps(
-        collect_subset(subset_mod, Language.load_bundle(subset_bundle)),
-        indent=2) + "\n")
-
-    shutil.rmtree(built, ignore_errors=True)
     print("wrote tests/oracles/{bash-extract,devenv-extract,"
           "devenv-subset}.json")
     return 0

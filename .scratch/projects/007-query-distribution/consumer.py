@@ -25,7 +25,10 @@ try:
 except ModuleNotFoundError:
     pass
 
-from pydantree_sitter import Language, M, OutputModel, capture, source_meta  # noqa: E402
+from pydantree_sitter import (
+    Language, M, OutputModel, capture, propose_value_map,
+    source_meta,
+)  # noqa: E402
 
 BUNDLE = Path(sys.argv[1])
 
@@ -85,6 +88,10 @@ LISTEN_GROUND_TRUTH = [
 
 def main() -> int:
     lang = Language.load_bundle(BUNDLE)
+    # the cfg grammar is not the JSON family — attach the reviewed draft
+    # ValueMap (D6: value shapes are declared data; the draft lives in A)
+    lang = Language.load_bundle(
+        BUNDLE, value_map=propose_value_map(lang.schema))
     # checks active BEFORE any text is parsed
     ServerSection.validate_with(lang)
     Listen.validate_with(lang)

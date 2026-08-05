@@ -176,7 +176,8 @@ def test_fresh_venv_light_install_delivers_a_without_b(tmp_path):
     consumer = tmp_path / "consumer.py"
     consumer.write_text(f"""
 import json, sys
-from pydantree_sitter import Language, M, OutputModel, capture, source_meta
+from pydantree_sitter import (Language, M, OutputModel, capture,
+                              propose_value_map, source_meta)
 
 class ServerSection(OutputModel):
     __match__ = M("source_file", "section", record=True)
@@ -196,6 +197,8 @@ CORPUS = {CORPUS!r}
 GT_SEC = {SECTION_GROUND_TRUTH!r}
 GT_LIS = {LISTEN_GROUND_TRUTH!r}
 lang = Language.load_bundle(sys.argv[1])
+lang = Language.load_bundle(sys.argv[1],
+                            value_map=propose_value_map(lang.schema))
 ServerSection.validate_with(lang)
 Listen.validate_with(lang)
 secs = [r.model_dump() for r in ServerSection.extract(CORPUS, language=lang)]

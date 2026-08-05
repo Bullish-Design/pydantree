@@ -21,7 +21,7 @@ from pydantree_sitter import (
     NodeKind,
     OutputModel,
     SchemaCheckError,
-    UnsupportedShapeError,
+    ShapeError,
     capture,
     source_meta,
 )
@@ -55,13 +55,19 @@ def json_schema() -> NodeSchema:
 
 
 def cfg_schema() -> tuple[NodeSchema, object, object]:
+    """The cfg grammar's schema + a Language carrying it and the reviewed
+    draft ValueMap (D6: value shapes are declared data — the config grammar
+    is not the JSON family, so record mode over it needs a map)."""
     from cfg_grammar import build as build_cfg
+    from pydantree_sitter import propose_value_map
     from pydantree_sitter_grammar.language import load_language
     g = build_cfg()
     res = tg.build_builder(g)
     schema = NodeSchema.from_node_types_json(res.node_schema_json, name="cfg")
     lang, _lib = load_language(res.so_path, "cfg")
-    return schema, lang, g
+    wrapper = Language.load(lang, schema=schema,
+                            value_map=propose_value_map(schema))
+    return schema, wrapper, g
 
 
 JSON_SAMPLE = """\
@@ -166,7 +172,8 @@ def test_r2_failure2_field_missing_on_kind():
 
 def test_r2_failure3_no_derivable_shape():
     """Run-2 #3: a record-mode field type with no derivable shape in the
-    config grammar — the schema says so (not a hardcoded map's import error)."""
+    config grammar is a bind-time ShapeError (shapes resolve against the
+    ValueMap, D6) — never a silent wrong row."""
     schema, lang, _g = cfg_schema()
 
     class BadList(OutputModel):
@@ -174,11 +181,9 @@ def test_r2_failure3_no_derivable_shape():
         host: str
         tags: list[str]  # cfg has no array-like kind
 
-    with pytest.raises(SchemaCheckError) as ei:
+    with pytest.raises(ShapeError) as ei:
         BadList.validate_with(lang, schema=schema)
-    msg = str(ei.value)
-    assert "list" in msg
-    assert ei.value.schema_entry == "value-under-entry"
+    assert "list" in str(ei.value)
 
 
 def test_r2_failure4_bad_match_chain():
@@ -257,29 +262,33 @@ def test_language_load_registry_finds_schema():
                                                 ("localhost", 9090)]
 
 
-def test_language_load_registry_is_opt_in():
-    """Phase 6: the name-keyed convenience survives as an EXPLICIT opt-in
-    (register=True) — a named language's schema is found by later bare-
-    language calls only when the caller opted in; a nameless language is
-    refused (the Phase-6 leak: rust's bundle registered under None and hit
-    every wheel-loaded language)."""
+def test_schema_binding_is_per_instance_never_a_registry():
+    """D5: the global schema registry is deleted — a schema bound to ONE
+    Language instance never affects another instance of the same grammar
+    (the Phase-6 leak class dies by deletion)."""
     schema, lang, _g = cfg_schema()
-    from pydantree_sitter.typed import _SCHEMA_REGISTRY, _maybe_register
-    # a nameless language is refused
-    _maybe_register(None, schema)
-    assert None not in _SCHEMA_REGISTRY
 
     class Server(OutputModel):
         __match__ = M("source_file", "section", record=True)
         host: str
         port: int
 
-    bound = Language.load(lang, schema=schema, register=True)
+    bound = Language.load(lang, schema=schema)
+    bare = Language.load(lang.language)   # the raw grammar, schema-less
+    assert bound.schema is schema
+    assert bare.schema is None
+    # schema-less record mode is the documented JSON family only — a bare
+    # bind over a non-JSON grammar must FAIL LOUDLY, never silently guess
+    from pydantree_sitter import QueryBuildError
+    with pytest.raises(QueryBuildError):
+        bare.extractor(Server)
     from cfg_grammar import CORPUS
-    rows = Server.extract(CORPUS, language=lang)  # bare lang, opted-in
+    rows = Server.extract(CORPUS, language=bound)
     assert [(r.host, r.port) for r in rows] == [("example.com", 8080),
                                                 ("localhost", 9090)]
-    assert _SCHEMA_REGISTRY.get(lang.name) is schema
+    # the compiled state lives on the INSTANCE: rebinding the same model on
+    # the same Language returns the cached Extractor (no shared state)
+    assert bound.extractor(Server) is bound.extractor(Server)
 
 
 def test_community_path_node_types_schema():

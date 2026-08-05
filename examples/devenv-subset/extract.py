@@ -61,7 +61,9 @@ def build_bundle() -> Path:
 # Product A — the models (the A surface over the bundle)
 # --------------------------------------------------------------------------
 
-from pydantree_sitter import Language, M, OutputModel, Span, capture, source_meta  # noqa: E402
+from pydantree_sitter import (  # noqa: E402
+    Language, M, OutputModel, Span, capture, propose_value_map, source_meta,
+)
 
 
 class Pair(OutputModel):
@@ -189,8 +191,17 @@ def main() -> int:
     print("   bundle:", sorted(p.name for p in bundle.iterdir()))
 
     lang = Language.load_bundle(bundle)
-    for model in (Pair, ListLiteral, EnvRecord, Toolchain):
+    # the authored grammar is not the JSON family — value shapes are
+    # declared data (D6): take the reviewed DRAFT map from the schema (this
+    # example commits the draft; a real bundle would ship a reviewed one)
+    if lang.schema is not None:
+        lang = Language.load_bundle(bundle,
+                                    value_map=propose_value_map(lang.schema))
+    for model in (Pair, ListLiteral):
         model.validate_with(lang)
+    # record models bind through the Language (they need the value map)
+    env_ext = lang.extractor(EnvRecord, strict=False)
+    tool_ext = lang.extractor(Toolchain, strict=False)
     print(f"   checks active · schema: {len(lang.schema.kinds())} kinds\n")
 
     print("== Product A: the fleet inventory (typed rows) ==")
@@ -255,12 +266,10 @@ def main() -> int:
                     print(f"  package   {inventory['packages'][-1]['name']} "
                           f"(line {inventory['packages'][-1]['line']})")
 
-        for r in [x.model_dump() for x in
-                  EnvRecord.extract_tree(tree, strict=False, schema=lang.schema)]:
+        for r in [x.model_dump() for x in env_ext.extract_tree(tree)]:
             r["repo"] = repo
             env_records.append(r)
-        for r in [x.model_dump() for x in
-                  Toolchain.extract_tree(tree, strict=False, schema=lang.schema)]:
+        for r in [x.model_dump() for x in tool_ext.extract_tree(tree)]:
             r["repo"] = repo
             toolchain_records.append(r)
         print()

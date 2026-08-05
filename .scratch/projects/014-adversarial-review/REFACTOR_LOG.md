@@ -124,3 +124,50 @@ cache).
 - **Docs (3.5):** architecture.md §3/§5 — the schema IS the CLI byproduct,
   tracked by construction; the exact path is retired.
 - **Gate greps:** `grep -rn "_ir_derive\|derive_from_ir" src tests` → empty.
+
+## Gate 4 — Product A rewrite (D4, D5, D6, D11) — the big one
+
+- **Suite:** 220 passed (49s) — the four thesis-breaking A xfails FLIPPED to
+  plain tests in this phase (F-A1 4.2, F-A3+NEW-list 4.3, F-A2 4.4); the
+  Phase-0 oracle contract is unchanged (all three example extractions
+  byte-identical to the checked-in JSONs).
+- **New machine (beside the old, then deleted):**
+  - `markers.py` — inert markers (M with kind-tuple alternation, capture/
+    capture_kind/source_meta/derived(value), Matches/Eq/AnyOf/NodeKind/
+    Unescaped, RawQuery); isinstance everywhere (F-A13).
+  - `spec.py` — PathStep/FieldBinding/MatchSpec + pure `derive_spec` +
+    DerivingMeta (MRO walk, per-class re-derivation — deep-read item 13);
+    class-creation checks (ForwardRefs resolved via the model's module,
+    nested-in-field-mode rejected legibly, marker conflicts).
+  - `binding.py` — Language (load/from_module/load_bundle with lib kept
+    alive, F-A10; reparse without old_source, F-A11) + Extractor; per-Language
+    (model, strict) cache (D5); warnings as data, warned once at bind (F-A6).
+  - `compiler.py` — the ONE compiler: Jobs 1/3/4 ported (is_possible_descent,
+    expand, capture↔type with the ValueMap ladder: int accepts int-only,
+    float accepts float+int), per-kind pattern emission (F-A3 dies),
+    record-mode compilation consuming ONLY (schema, ValueMap), nested
+    sub-extractors bound at bind (F-A2 dies), raw-query compile at bind
+    (unknown captures listed).
+  - `emit.py` — the dsl emitter core, internal only (dsl.py deleted, F-A9);
+    `match.py` — ONE backtracking ancestor matcher + anchor grouping/merge,
+    property-tested vs a brute-force reference (2000 random cases) and called
+    from exactly one place (the NEW list-branch skip dies by construction);
+    `materialize.py` — one kwargs builder + Span + JSON unescape + MatchFailure
+    (the legacy second OutputModel/capture/extract_records/Diagnostic stacks
+    deleted); `valuemap.py` — ValueMap + JSON_VALUE_MAP + `propose_value_map`
+    (shapes.py demoted to the draft generator, D6).
+  - The unmarked-field symmetry (D4.1): unmarked = bind-by-name in BOTH
+    modes; `derived(value)` is the computed/constant case.
+- **Test cutover:** test_tsquery_port / test_tsquery_schema /
+  test_phase5_apolish / test_bundle rewritten to the new surface (the
+  registry tests became per-instance isolation tests; the DSL tests became
+  raw-query tests — `tests/test_raw_query.py`); new `tests/test_match.py`
+  property tests. All cfg-grammar record tests attach the reviewed draft
+  ValueMap (the cfg grammar is not the JSON family).
+- **Examples:** devenv-subset binds record models through the Extractor with
+  `propose_value_map(lang.schema)` (the authored grammar needs the map);
+  bash/devenv-extract unchanged except imports. devenv-subset self-check:
+  56 rows ✓.
+- **Gate greps:** no `print(` in pydantree_sitter; no
+  `__class__.__name__ ==`; no `_SCHEMA_REGISTRY`/`_derived_cache`/
+  `_schema_derived`.

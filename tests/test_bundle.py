@@ -47,7 +47,6 @@ from cfg_grammar import (  # noqa: E402
 )
 from json_grammar import build as build_json  # noqa: E402
 from pydantree_sitter_grammar.language import load_language  # noqa: E402
-from pydantree_sitter.model_schema import check_model_schema  # noqa: E402
 from pydantree_sitter.schema import NodeSchema  # noqa: E402
 
 
@@ -100,15 +99,18 @@ def test_package_bundle_layout_and_loader():
 def test_load_bundle_one_liner_checks_and_truth(tmp_path):
     bundle, _ = _cfg_bundle(tmp_path)
     lang = Language.load_bundle(bundle)          # the one-liner
-    ServerSection.validate_with(lang)            # checks active
+    assert lang.schema is not None               # the bridge artifact rides it
+    # the cfg grammar is not the JSON family — value shapes are declared
+    # data (D6): attach the reviewed draft map before binding
+    from pydantree_sitter import propose_value_map
+    lang = Language.load_bundle(bundle,
+                                value_map=propose_value_map(lang.schema))
+    ServerSection.validate_with(lang)            # checks active (bind-time)
     Listen.validate_with(lang)
     secs = [r.model_dump() for r in ServerSection.extract(CORPUS, language=lang)]
     listens = [r.model_dump() for r in Listen.extract(CORPUS, language=lang)]
     assert secs == SECTION_GROUND_TRUTH
     assert listens == LISTEN_GROUND_TRUTH
-    # the schema rides the bundle (the bridge artifact)
-    assert lang.schema is not None
-    check_model_schema(ServerSection, lang.schema)
 
 
 # ---------------------------------------------------------------------------
@@ -130,8 +132,11 @@ def test_bundle_consumed_in_bfree_subprocess(tmp_path):
 def test_bfree_consumer_surface_byte_identical(tmp_path):
     """A's extract output is byte-identical with and without B in the process
     (the same model code, same language, two processes)."""
+    from pydantree_sitter import propose_value_map
     bundle, _ = _cfg_bundle(tmp_path)
     lang = Language.load_bundle(bundle)
+    lang = Language.load_bundle(bundle,
+                                value_map=propose_value_map(lang.schema))
     inproc = [r.model_dump() for r in ServerSection.extract(CORPUS, language=lang)]
     rc, out = run_bfree(P5_DIR / "consumer.py", str(bundle), workdir=tmp_path)
     assert rc == 0
@@ -471,16 +476,18 @@ def test_record_mode_over_nix_binding_set_unsupported(tmp_path):
     `binding` FIELD with attrpath/expression. A documented parameterization
     candidate, not a fit today."""
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
-    from pydantree_sitter import M, OutputModel, UnsupportedShapeError
+    from pydantree_sitter import M, OutputModel, ShapeError, propose_value_map
     bundle = build_community_bundle(NIX_FIXTURE, tmp_path / "bundle",
                                     name="nix", keep=True)
     lang = Language.load_bundle(bundle)
+    lang = Language.load_bundle(bundle,
+                                value_map=propose_value_map(lang.schema))
 
     class EnvRecord(OutputModel):
         __match__ = M("source_code", ..., "binding_set", record=True)
         GREET: str
 
-    with pytest.raises(UnsupportedShapeError) as exc:
+    with pytest.raises(ShapeError) as exc:
         EnvRecord.validate_with(lang)
     assert "key" in str(exc.value) and "value" in str(exc.value)
 

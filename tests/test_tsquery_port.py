@@ -15,11 +15,13 @@ from pydantree_sitter import (
     M,
     AnyOf,
     Eq,
+    Language,
     Matches,
     NodeKind,
     OutputModel,
-    UnsupportedShapeError,
+    ShapeError,
     capture,
+    derived,
     source_meta,
 )
 
@@ -216,19 +218,25 @@ def test_derived_field_constant():
         __match__ = M("module", "expression_statement", "assignment")
         name: Annotated[str, Matches(r"^[A-Z][A-Z_]*$")] = capture("left")
         value: Annotated[int, NodeKind("integer")] = capture("right")
-        source: str = "spike"
+        source: str = derived("spike")   # a computed/constant field (4.1)
 
     rows = norm(WithConst.extract(PY_SAMPLE, language=tree_sitter_python))
     assert rows[0]["source"] == "spike"
 
 
-def test_unsupported_shape_at_class_creation():
-    with pytest.raises(UnsupportedShapeError):
+def test_unmappable_shape_raises_at_bind():
+    """A record shape the ValueMap cannot express (list[dict]) raises
+    ShapeError at BIND (shapes resolve against the ValueMap, D6) - never a
+    silent wrong row."""
+    lang = Language.load(tree_sitter_json.language())
 
-        class BadList(OutputModel):
-            __match__ = M("document", "array", "object", record=True)
-            name: str
-            flags: list[bool]  # list[bool] has no JSON v1 shape
+    class BadList(OutputModel):
+        __match__ = M("document", "array", "object", record=True)
+        name: str
+        flags: list[dict]  # no JSON shape maps dict elements
+
+    with pytest.raises(ShapeError):
+        lang.extractor(BadList)
 
 
 def test_nested_record_models():

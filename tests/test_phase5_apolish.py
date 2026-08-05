@@ -24,11 +24,9 @@ from pydantree_sitter import (
     M,
     NodeKind,
     OutputModel,
-    Query,
     SchemaCheckError,
     Unescaped,
     capture,
-    node,
     source_meta,
 )
 
@@ -43,25 +41,14 @@ from json_grammar import build as build_json  # noqa: E402
 from pydantree_sitter.schema import NodeSchema  # noqa: E402
 
 
-@pytest.fixture(autouse=True)
-def _isolate_schema_registry():
-    """The Phase-4 schema registry is keyed by language name and global;
-    binding a schema in one test must not leak into another (a schema-less
-    extract would silently pick it up). Snapshot + clear around each test."""
-    from pydantree_sitter.typed import _SCHEMA_REGISTRY
-    saved = dict(_SCHEMA_REGISTRY)
-    _SCHEMA_REGISTRY.clear()
-    yield
-    _SCHEMA_REGISTRY.clear()
-    _SCHEMA_REGISTRY.update(saved)
-
-
 def _cfg_lang():
+    from pydantree_sitter import propose_value_map
     g = build_cfg()
     result = tg.build_builder(g)
     schema = NodeSchema.from_node_types_json(result.node_schema_json, name="cfg")
     lang, _lib = result.language()
-    return Language.load(lang, schema=schema), schema
+    return Language.load(lang, schema=schema,
+                         value_map=propose_value_map(schema)), schema
 
 
 def _json_lang():
@@ -80,37 +67,33 @@ def test_reparse_incremental():
     t1 = lang.parse("x = 1\n")
     t2 = lang.reparse(t1, "x = 1\ny = 2\n")
     assert t2.root_node.named_child_count == 2
-    # unchanged left subtree is shared (tree-sitter's incremental machinery)
-    q = Query(node("module").child(node("expression_statement")
-                                   .child(node("assignment").capture("a"))))
-    caps = q.compile(t2.language)
-    matches = tree_sitter.QueryCursor(caps).matches(t2.root_node)
-    assert len(matches) == 2
+    # unchanged left subtree is shared (tree-sitter's incremental machinery):
+    # the reparse tree extracts identically
+    class Assignment(OutputModel):
+        __match__ = M("module", "expression_statement", "assignment")
+        name: str = capture("left")
+
+    rows = [r.model_dump() for r in lang.extractor(Assignment).extract_tree(t2)]
+    assert [r["name"] for r in rows] == ["x", "y"]
 
 
-def test_typed_diagnostics():
+def test_parse_errors_are_visible_in_the_tree():
+    """The typed Diagnostics surface (the old Query.validate) is deleted with
+    the public DSL (D11): parse errors surface on the raw tree — ERROR/MISSING
+    nodes — and extraction over them is the caller's choice."""
+    import tree_sitter as _ts
     lang = Language.load(tree_sitter_python.language())
     tree = lang.parse("def (\n")      # a syntax error
-    q = Query(node("module"))
-    clean, diags = q.validate(tree)
-    assert not clean
-    assert diags
-    d = diags[0]
-    assert d.kind == "ERROR"
-    assert d.expected is None
-    assert d.span.line == 1
-    assert d.snippet == "def ("
-    # a MISSING node carries the expected kind (the cfg grammar's
-    # `[server` — the parser knows a ']' is expected)
-    cfg_lang, _schema = _cfg_lang()
-    t2 = cfg_lang.parse("[server")
-    _clean, diags2 = Query(node("source_file")).validate(t2)
-    assert not _clean
-    kinds = {d.kind for d in diags2}
-    assert "MISSING" in kinds
-    missing = [d for d in diags2 if d.kind == "MISSING"]
-    assert missing[0].expected == "]"
-    assert missing[0].span.line == 1
+    errs = []
+
+    def walk(n):
+        if n.type == "ERROR" or n.is_missing:
+            errs.append((n.type, n.start_point.row + 1))
+        for c in n.children:
+            walk(c)
+
+    walk(tree.root_node)
+    assert errs and errs[0][0] == "ERROR"
 
 
 # ---------------------------------------------------------------------------

@@ -1,46 +1,41 @@
-"""pydantree_sitter.materialize — capture -> OutputModel materialization (Product A,
-concept §5.4). Mechanical port of `spike-a/materialize.py`.
+"""pydantree_sitter.materialize — the ONE kwargs builder (014 §4.5).
 
-Design (verified against pydantic 2.13 / tree-sitter 0.26):
+Everything that turns captures into a model row lives here: `Span`,
+`_unescape_json_string`, `build_kwargs` (the single kwargs builder),
+`MatchFailure`, and the extract loops (field + record, both calling the ONE
+matcher in match.py before grouping). Legacy public stacks (the second
+OutputModel / capture / materialize_matches / extract_records / Diagnostic
+surfaces) are deleted.
 
-  * Pydantic v2 lax mode is the coercion engine: we hand the materializer
-    raw capture TEXT to `Model(**kwargs)` and let pydantic coerce
-    "1920" -> int, "98.5" -> float, "true" -> bool, "admin" -> enum.
-  * Field <-> capture binding is by name: field `name` <- capture @name,
-    unless the field declares `= capture("other")`. `= source_meta()` fields
-    are injected from a capture's span (int -> start line; Span -> whole span).
-  * Missing capture: a field with a real default gets it; Optional-without-
-    default and required fields surface as pydantic ValidationError.
-  * Repeated captures -> list: a `list[X]` field collects every node captured
-    under its capture name. (0.26 note: quantified sub-nodes do NOT accumulate
-    captures in one match — the record extractor merges captures across
-    matches sharing a record anchor.)
-  * Multiple nodes feeding one scalar field = AmbiguousCaptureError (a nested
-    structure with the same key as a wanted field) — Phase 4 replaces the
-    nested-collision class with record-level anchoring (see typed.py).
+Nested record fields materialize through the SAME compiler: the binding
+compiles a sub-extractor at bind time (binding.py), and the value node runs
+through it — there is no schema-less/schema-bound interleaving left to get
+wrong (F-A2). Nested models in FIELD mode are rejected at class creation
+(spec.py) — documented TODO.
 """
 
 from __future__ import annotations
 
-import sys
-from typing import Any, Union, get_args, get_origin
-
-from pydantic import BaseModel, ValidationError
-from pydantic.fields import PydanticUndefined
+from dataclasses import dataclass, field as dc_field
+from typing import Any, Optional, get_args, get_origin
 
 import tree_sitter
+from pydantic import ValidationError
 
+from .errors import (
+    AmbiguousCaptureError,
+    ExtractionError,
+)
+from .markers import ANCHOR, RECORD_CAP, _MISSING
+from .match import group_matches, match_ancestor_path, merge_group
 
-# --------------------------------------------------------------------------
-# Output model + binding markers
-# --------------------------------------------------------------------------
-
-class OutputModel(BaseModel):
-    """Base class for extraction targets. Fields map to captures by name."""
+# MatchFailure is defined here (materialize owns per-match diagnostics);
+# ExtractionError (errors.py) carries a list of them.
 
 
 class Span:
     """A source span (line/column, 1-based lines)."""
+
     __slots__ = ("line", "column", "end_line", "end_column",
                  "start_byte", "end_byte", "text")
 
@@ -67,275 +62,310 @@ class Span:
                 f"{self.end_line}:{self.end_column} {self.text!r})")
 
 
-class Diagnostic:
-    """One ERROR/MISSING node in a parse (CONCEPT §5.6, Phase 5).
-
-    `kind` is "ERROR" or "MISSING"; `node_type` is the offending node's type
-    (ERROR) or the kind the parser expected (MISSING); `expected` mirrors
-    node_type for MISSING nodes and is None for ERRORs (tree-sitter always
-    returns a tree with these nodes instead of throwing); `span` is the
-    Span-typed source range and `snippet` the offending text.
-    """
-
-    __slots__ = ("kind", "node_type", "expected", "span", "snippet")
-
-    def __init__(self, kind: str, node_type: str, span: "Span",
-                 snippet: str):
-        self.kind = kind
-        self.node_type = node_type
-        self.expected = node_type if kind == "MISSING" else None
-        self.span = span
-        self.snippet = snippet
-
-    def __repr__(self) -> str:  # pragma: no cover
-        return (f"Diagnostic({self.kind}, {self.node_type!r}, "
-                f"line {self.span.line}, {self.snippet!r})")
-
-
-class _CaptureMarker:
-    """`field = capture("other")` — bind a field to a differently-named capture."""
-
-    __slots__ = ("name",)
-
-    def __init__(self, name: str):
-        self.name = name
-
-
-class _SourceMeta:
-    """`field = source_meta(capture="root")` — inject span/position data."""
-
-    __slots__ = ("capture",)
-
-    def __init__(self, capture: str = "root"):
-        self.capture = capture
-
-
-def capture(name: str) -> _CaptureMarker:
-    return _CaptureMarker(name)
-
-
-def source_meta(capture: str = "root") -> _SourceMeta:
-    return _SourceMeta(capture)
-
-
-class CoercionError(ValueError):
-    """A capture could not be mapped onto the model (pre-pydantic checks)."""
-
-
-class AmbiguousCaptureError(CoercionError):
-    """A scalar field got multiple capture nodes (e.g. nested key collision)."""
-
-
-# --------------------------------------------------------------------------
-# Binding checks (cheap, no grammar introspection)
-# --------------------------------------------------------------------------
-
-def _unwrap_optional(t: Any) -> Any:
-    origin = get_origin(t)
-    if origin in (Union,):
-        args = [a for a in get_args(t) if a is not type(None)]
-        if len(args) == 1:
-            return args[0]
-    return t
-
-
-def binding_warnings(query, model: type[BaseModel], *,
-                     record_mode: bool = False,
-                     span_query=None) -> list[str]:
-    """Warn before parsing when the model and query disagree on captures.
-
-    `span_query` is the query that must provide source_meta captures (in
-    record mode this is the OUTER record query, not the field query).
-    """
-    warnings: list[str] = []
-    query_caps = query.capture_names()
-    span_caps = (span_query or query).capture_names()
-    for name, field in model.model_fields.items():
-        marker = field.default
-        cap_name = marker.name if isinstance(marker, _CaptureMarker) else name
-        if isinstance(marker, _SourceMeta):
-            if marker.capture not in span_caps:
-                warnings.append(
-                    f"field {name!r}: source_meta(capture={marker.capture!r}) "
-                    f"but the query never captures {marker.capture!r}")
-            continue
-        if cap_name not in query_caps:
-            warnings.append(
-                f"field {name!r} feeds from capture {cap_name!r} which the "
-                f"query never captures — it will always be missing")
-            continue
-        if record_mode:
-            # captures are merged across matches sharing a record anchor, so
-            # quantifier-vs-type checks do not apply
-            continue
-        target = _unwrap_optional(field.annotation)
-        is_list = get_origin(target) is list
-        quant = query.quantifier_for(cap_name)
-        if is_list and quant not in ("*", "+"):
-            warnings.append(
-                f"field {name!r} is a list but capture {cap_name!r} is "
-                f"not repeated (quantifier {quant!r}) — it will hold at most "
-                f"one element")
-        elif not is_list and quant in ("*", "+"):
-            warnings.append(
-                f"field {name!r} is scalar but capture {cap_name!r} is "
-                f"repeated (quantifier {quant!r}) — extra captures are dropped")
-    return warnings
-
-
-# --------------------------------------------------------------------------
-# Materialization core
-# --------------------------------------------------------------------------
-
-def _text_of(node: tree_sitter.Node) -> str:
-    b = node.text
-    if b is None:
-        raise CoercionError(
-            f"captured {node.type} node has no text (missing node?) at "
-            f"{node.byte_range}")
-    return b.decode("utf-8", "replace")
-
-
-def build_kwargs(captures: dict[str, list[tree_sitter.Node]],
-                 model: type[BaseModel],
-                 source: bytes = b"") -> dict[str, Any]:
-    """Map a capture dict onto model kwargs (raw text; pydantic coerces)."""
-    kwargs: dict[str, Any] = {}
-    for name, field in model.model_fields.items():
-        marker = field.default
-
-        # source_meta injection
-        if isinstance(marker, _SourceMeta):
-            nodes = captures.get(marker.capture)
-            if not nodes:
-                raise CoercionError(
-                    f"field {name!r}: source_meta(capture={marker.capture!r}) "
-                    f"but the capture dict has no {marker.capture!r} — the "
-                    f"span source is not being captured")
-            node = nodes[0]
-            target = _unwrap_optional(field.annotation)
-            if target is int:
-                kwargs[name] = node.start_point.row + 1
-            else:
-                kwargs[name] = Span.from_node(node)
-            continue
-
-        cap_name = marker.name if isinstance(marker, _CaptureMarker) else name
-        nodes = captures.get(cap_name, [])
-
-        target = _unwrap_optional(field.annotation)
-        origin = get_origin(target)
-
-        # missing capture
-        if not nodes:
-            if origin is list:
-                kwargs[name] = []  # repeated capture, zero occurrences
+def _unescape_json_string(text: str) -> str:
+    """Decode a grammar string literal's content (JSON escape syntax first:
+    \\n \\t \\" \\\\ \\uXXXX). Accepts either the string WRAPPER's full text
+    (with quotes) or the bare content. Falls back to a manual decode when
+    the strict JSON round-trip fails (a grammar lenient about raw newlines)."""
+    import json as _json
+    try:
+        if text.startswith('"') and text.endswith('"') and len(text) >= 2:
+            return _json.loads(text)
+        return _json.loads('"' + text + '"')
+    except ValueError:
+        pass
+    if text.startswith('"') and text.endswith('"') and len(text) >= 2:
+        text = text[1:-1]
+    out: list[str] = []
+    i = 0
+    mapping = {"n": "\n", "t": "\t", "r": "\r", '"': '"',
+               "\\": "\\", "b": "\b", "f": "\f", "/": "/"}
+    while i < len(text):
+        if text[i] == "\\" and i + 1 < len(text):
+            nxt = text[i + 1]
+            if nxt in mapping:
+                out.append(mapping[nxt])
+                i += 2
                 continue
-            if not isinstance(marker, (_CaptureMarker, _SourceMeta)) \
-                    and field.default is not PydanticUndefined:
-                kwargs[name] = field.default
-            continue  # otherwise: pydantic raises "field required" if needed
+            if nxt == "u" and i + 5 <= len(text):
+                try:
+                    out.append(chr(int(text[i + 2:i + 6], 16)))
+                    i += 6
+                    continue
+                except ValueError:
+                    pass
+            out.append(text[i])
+            i += 1
+        else:
+            out.append(text[i])
+            i += 1
+    return "".join(out)
 
-        if origin is list:
-            kwargs[name] = [_text_of(n) for n in nodes]
+
+@dataclass
+class MatchFailure:
+    """One failed match: pattern index, anchor node, Span, snippet, and the
+    structured pydantic errors when the failure was a validation error."""
+
+    pattern: int
+    anchor: Any
+    span: Optional["Span"]
+    snippet: str
+    detail: str
+    pydantic_errors: Optional[list] = None
+
+
+def _text_of(n) -> str:
+    b = n.text
+    return "" if b is None else b.decode("utf-8")
+
+
+def _first_anchor(caps: dict):
+    return (caps.get(ANCHOR) or caps.get(RECORD_CAP) or [None])[0]
+
+
+def _failure(match, detail: str, *, anchor=None,
+             pydantic_errors=None) -> MatchFailure:
+    node = anchor
+    if node is None and match is not None:
+        ns = match.nodes(ANCHOR) or match.nodes(RECORD_CAP)
+        node = ns[0] if ns else None
+    span = Span.from_node(node) if node is not None else None
+    snippet = span.text if span is not None else ""
+    return MatchFailure(pattern=getattr(match, "pi", 0), anchor=node,
+                        span=span, snippet=snippet, detail=detail,
+                        pydantic_errors=pydantic_errors)
+
+
+# ---------------------------------------------------------------------------
+# build_kwargs — the ONE kwargs builder
+# ---------------------------------------------------------------------------
+
+def build_kwargs(model_cls, bindings, caps: dict) -> dict:
+    """Build one model's kwargs from a merged capture dict. Coercion goes
+    through pydantic (the model constructor is the coercion layer); this
+    only picks text/list/meta values."""
+    kwargs: dict = {}
+    for fname, f in model_cls.model_fields.items():
+        b = _binding_for(bindings, fname)
+        if b is None:
+            # derived() field: excluded from the query — its constant value
+            # applies (derived(value)); bare derived() stays absent
+            from .markers import _Derived as _D
+            if isinstance(f.default, _D) and f.default.default is not _MISSING:
+                kwargs[fname] = f.default.default
+            continue
+        if b.is_meta:
+            n = caps.get(b.capture_name)
+            node = n[0] if n else None
+            if node is not None:
+                if f.annotation is int:
+                    kwargs[fname] = node.start_point.row + 1
+                else:
+                    kwargs[fname] = Span.from_node(node)
+            continue
+        nodes = caps.get(b.capture_name, [])
+        if b.nested is not None:
+            # values are already materialized OutputModel instances (the
+            # record recursion built them)
+            if not nodes:
+                if b.is_list:
+                    kwargs[fname] = []
+                elif not f.is_required():
+                    kwargs[fname] = f.default
+                continue
+            kwargs[fname] = nodes if b.is_list else nodes[0]
+            continue
+        if not nodes:
+            if b.is_list:
+                kwargs[fname] = []
+            elif not f.is_required():
+                kwargs[fname] = None if _is_marker_default(f) else f.default
+            elif _is_optional(f.annotation):
+                kwargs[fname] = None
+            continue
+        if b.is_list:
+            if b.unescape:
+                kwargs[fname] = [_unescape_json_string(_text_of(n))
+                                 for n in nodes]
+            else:
+                kwargs[fname] = [_text_of(n) for n in nodes]
         else:
             if len(nodes) > 1:
                 raise AmbiguousCaptureError(
-                    f"field {name!r} is scalar but capture {cap_name!r} "
-                    f"matched {len(nodes)} nodes: "
-                    f"{[_text_of(n)[:20] for n in nodes]!r} (nested "
-                    f"structure with a colliding key?)")
-            kwargs[name] = _text_of(nodes[0])
+                    f"field {fname!r} is scalar but capture "
+                    f"{b.capture_name!r} matched {len(nodes)} nodes "
+                    f"(nested key collision?)")
+            text = _text_of(nodes[0])
+            kwargs[fname] = _unescape_json_string(text) if b.unescape else text
     return kwargs
 
 
-def _warn(msg: str) -> None:
-    print(f"  [binding-warning] {msg}", file=sys.stderr)
+def _binding_for(bindings, fname):
+    for b in bindings:
+        if b.name == fname:
+            return b
+    return None
 
 
-# --------------------------------------------------------------------------
-# Two extraction modes
-# --------------------------------------------------------------------------
+def _is_marker_default(f) -> bool:
+    from .markers import _MARKERS
+    return isinstance(f.default, _MARKERS)
 
-def materialize_matches(query, tree: tree_sitter.Tree, into: type[BaseModel],
-                        *, strict: bool = True) -> list:
-    """Typed mode: run the query over the tree, build `into` instances."""
-    from .dsl import Cursor
-    compiled = query.compile(tree.language)
-    for w in binding_warnings(query, into):
-        _warn(w)
-    cursor = Cursor(compiled, query._quant_maps or [], tree)
 
-    results: list = []
-    errors: list[tuple[int, str, object]] = []
-    for m in cursor.matches():
-        raw = {name: m.nodes(name) for name in set(m._caps)}
+def _is_optional(t) -> bool:
+    from .spec import is_optional
+    return is_optional(t)
+
+
+# ---------------------------------------------------------------------------
+# the extract loops (the ONE matcher call site, before grouping)
+# ---------------------------------------------------------------------------
+
+def extract_field(model_cls, compiled, tree: tree_sitter.Tree, *,
+                  strict: bool) -> list:
+    from .emit import Cursor
+
+    q = compiled.query.compile(tree.language)
+    matches = Cursor(q, compiled.quant_maps, tree).matches()
+    # ONE call site for the ancestor matcher: before grouping, so scalar and
+    # list branches share it (the NEW list-branch skip dies by construction)
+    if compiled.match_path is not None:
+        matches = [m for m in matches
+                   if _anchor_of(m) is not None and
+                   match_ancestor_path(_anchor_of(m), compiled.match_path)]
+    results, errors = [], []
+    if compiled.spec.raw_query is not None:
+        # a raw query has no emitted anchor: ONE row per match; source_meta()
+        # falls back to the first capture's node as the anchor
+        for m in matches:
+            caps = dict(m.caps)
+            if "__anchor__" not in caps:
+                for v in caps.values():
+                    if v:
+                        caps["__anchor__"] = [v[0]]
+                        break
+            try:
+                results.append(model_cls(**build_kwargs(model_cls,
+                                                        compiled.bindings,
+                                                        caps)))
+            except ValidationError as e:
+                errors.append(_failure(m, f"pydantic ValidationError: {e.errors()}",
+                                       pydantic_errors=e.errors()))
+            except AmbiguousCaptureError as e:
+                errors.append(_failure(m, str(e)))
+        if errors and strict:
+            raise ExtractionError(errors, model_cls)
+        return results
+    groups, order = group_matches(matches)
+    for gid in order:
+        caps = merge_group(groups[gid], compiled.bindings)
         try:
-            kwargs = build_kwargs(raw, into, cursor._source)
-            results.append(into(**kwargs))
+            results.append(model_cls(**build_kwargs(model_cls,
+                                                    compiled.bindings, caps)))
         except ValidationError as e:
-            errors.append((m.pi, f"pattern {m.pi}", e))
-        except CoercionError as e:
-            errors.append((m.pi, str(e), None))
+            errors.append(_failure(None,
+                                   f"pydantic ValidationError: {e.errors()}",
+                                   anchor=_first_anchor(caps),
+                                   pydantic_errors=e.errors()))
+        except AmbiguousCaptureError as e:
+            errors.append(_failure(None, str(e), anchor=_first_anchor(caps)))
     if errors and strict:
-        raise ExtractionError(errors, into)
+        raise ExtractionError(errors, model_cls)
     return results
 
 
-class ExtractionError(Exception):
-    """One or more matches failed to materialize."""
-
-    def __init__(self, errors: list, into: type):
-        self.errors = errors
-        self.into = into
-        first = errors[0]
-        detail = first[2] if (len(first) > 2 and first[2] is not None) \
-            else first[1]
-        lines = [
-            f"{len(errors)} match(es) failed to materialize {into.__name__}:",
-            f"  - {detail}",
-        ]
-        super().__init__("\n".join(lines))
+def _anchor_of(match):
+    ns = match.nodes(ANCHOR)
+    return ns[0] if ns else None
 
 
-def extract_records(tree: tree_sitter.Tree, record_query, field_query,
-                    into: type[BaseModel], *,
-                    record_capture: str = "record",
-                    strict: bool = True) -> list:
-    """Record mode: outer query finds record nodes; the inner query runs
-    scoped to each record; captures are merged across the record's matches
-    (order-independent, missing keys allowed) and materialized into `into`."""
-    from .dsl import Cursor
-    rec_compiled = record_query.compile(tree.language)
-    fld_compiled = field_query.compile(tree.language)
-    for w in binding_warnings(field_query, into, record_mode=True,
-                              span_query=record_query):
-        _warn(w)
+def extract_record(model_cls, compiled, tree: tree_sitter.Tree, *,
+                   strict: bool, scoped_to: Any = None) -> list:
+    """Record mode: outer query finds record nodes; inner query (one
+    anchored pattern per field) fills them; nested bindings recurse through
+    their OWN compiled sub-extractor (F-A2: one compiler, no interleaving).
+    `scoped_to` restricts the outer query to a subtree (nested models)."""
+    from .emit import Cursor
 
-    results: list = []
-    errors: list[tuple[Any, str, object]] = []
-    outer = Cursor(rec_compiled, record_query._quant_maps or [], tree)
-    for rm in outer.matches():
-        rec_nodes = rm.nodes(record_capture)
-        if not rec_nodes:
+    rec_q = compiled.records.compile(tree.language)
+    results, errors = [], []
+    if scoped_to is not None:
+        outer = Cursor(rec_q, compiled.records_quant_maps, tree) \
+            .matches_on(scoped_to)
+    else:
+        outer = Cursor(rec_q, compiled.records_quant_maps, tree).matches()
+    for rm in outer:
+        recs = rm.nodes(RECORD_CAP)
+        if not recs:
             continue
-        rec = rec_nodes[0]
-        merged: dict[str, list[tree_sitter.Node]] = {}
-        # seed source_meta captures with the record node so span fields work
-        for fname, field in into.model_fields.items():
-            if isinstance(field.default, _SourceMeta):
-                merged.setdefault(field.default.capture, [rec])
-        for fm in Cursor(fld_compiled, field_query._quant_maps or [], tree) \
-                .matches_on(rec):
-            for cname in set(fm._caps):
-                merged.setdefault(cname, []).extend(fm.nodes(cname))
+        rec = recs[0]
+        if compiled.match_path is not None and \
+                not match_ancestor_path(rec, compiled.match_path):
+            continue
+        kwargs = _record_kwargs(model_cls, compiled, rec, tree)
+        if kwargs is None:
+            continue
         try:
-            kwargs = build_kwargs(merged, into)
-            results.append(into(**kwargs))
+            results.append(model_cls(**kwargs))
         except ValidationError as e:
-            errors.append((rec, f"pydantic ValidationError: {e.errors()}", e))
-        except CoercionError as e:
-            errors.append((rec, str(e), None))
+            errors.append(_failure(rm, f"pydantic ValidationError: {e.errors()}",
+                                   anchor=rec, pydantic_errors=e.errors()))
+        except AmbiguousCaptureError as e:
+            errors.append(_failure(rm, str(e), anchor=rec))
     if errors and strict:
-        raise ExtractionError(errors, into)
+        raise ExtractionError(errors, model_cls)
     return results
+
+
+def _record_kwargs(model_cls, compiled, rec, tree):
+    """Merge a record node's field captures into model kwargs (incl. nested).
+
+    The inner query's patterns are anchored (each captures @__anchor__ on the
+    record node), so only matches anchored at `rec` itself contribute —
+    pairs inside NESTED record nodes are dropped (the spike-a §3 fix,
+    preserved). Nested bindings run their own compiled sub-extractor over
+    the value node.
+    """
+    from .emit import Cursor
+
+    fld_q = compiled.fields.compile(tree.language)
+    merged: dict[str, list] = {}
+    for fm in Cursor(fld_q, compiled.fields_quant_maps, tree).matches_on(rec):
+        anc = fm.nodes(ANCHOR)
+        if not anc or anc[0].id != rec.id:
+            continue  # a nested record's pair — not a record-level key
+        for cname in set(fm.caps):
+            if cname == ANCHOR:
+                continue
+            merged.setdefault(cname, []).extend(fm.nodes(cname))
+    # record-level predicate semantics: a predicate field that did not match
+    # (absent) filters the WHOLE record, like the field-mode query engine
+    filtered = any(
+        b.has_predicate and not merged.get(b.capture_name)
+        for b in compiled.bindings)
+    if filtered:
+        return None
+    merged.setdefault(ANCHOR, [rec])
+    # nested OutputModel fields: materialize the value node with the nested
+    # model's OWN compiled sub-extractor (the F-A2 fix — one compiler)
+    for b in compiled.bindings:
+        if b.nested is None:
+            continue
+        nodes = merged.get(b.capture_name, [])
+        sub = compiled.nested_extractors.get(b.name)
+        out = []
+        for n in nodes:
+            if sub is None:
+                continue
+            rows = sub.extract_tree_scoped(n, tree)
+            if b.is_list:
+                out.extend(rows)
+            elif rows:
+                out.append(rows[0])
+        if not out and not b.is_list and b.optional:
+            merged[b.key] = []
+            continue
+        merged[b.key] = out
+    return build_kwargs(model_cls, compiled.bindings, merged)
+
