@@ -122,7 +122,6 @@ from .pipeline import (
     debug_states,
     default_cache_dir,
     detect_toolchain,
-    generate,
     grammar_hash,
     run_generate,
 )
@@ -179,7 +178,7 @@ __all__ = [
     "Corpus", "CorpusCase", "CorpusResult", "corpus_case", "render",
     "render_compact",
     # pipeline
-    "build", "build_builder", "build_loop", "generate", "run_generate",
+    "build", "build_builder", "build_loop", "run_generate",
     "compile_parser", "debug_states", "detect_toolchain", "grammar_hash",
     "default_cache_dir", "BuildResult", "PipelineError", "GenerateError",
     "CompileError", "ExternalScannerRequiredError",

@@ -45,6 +45,7 @@ from .ir import (
     PrecRightNode,
     Repeat1Node,
     RepeatNode,
+    ReservedNode,
     Rule,
     RuleNode,
     SeqNode,
@@ -105,15 +106,40 @@ def site_of(node: Rule) -> RuleSite | None:
 # node constructors (return Rule nodes directly; thin B wrapper for operators)
 # ---------------------------------------------------------------------------
 
-Node = Rule  # type alias used by the DSL
+
+def _char_class_whitespace(content: str) -> bool:
+    """Every element of a char-class body is whitespace: `\s`, `\t`, `\n`,
+    `\r`, `\f`, `\v`, or a literal space. Anything else (letters, `-`
+    ranges, `^`, ...) makes the class non-whitespace."""
+    i = 0
+    while i < len(content):
+        if content[i] == "\\":
+            if content[i:i + 2] in (r"\s", r"\t", r"\n", r"\r",
+                                    r"\f", r"\v"):
+                i += 2
+                continue
+            return False
+        if content[i] == " ":
+            i += 1
+            continue
+        return False
+    return True
 
 
 def _only_whitespace(pattern: str) -> bool:
-    """Does a PATTERN match only whitespace characters? (F-B5 — intent-based
-    whitespace-extra detection: `\\s`, `[ \\t]+`, `\\s+` all count.)"""
+    """Does a PATTERN match only whitespace characters? (F-B5/B24 —
+    intent-based whitespace-extra detection). True when the pattern's
+    language is a subset of whitespace: `\s`, a literal space, or a
+    character class whose elements are all whitespace (optionally
+    quantified / anchored — the leading/trailing `^ $ ( ) ? : * +` are
+    stripped first). Best-effort: alternation forms (`( |\t)`) are not
+    recognized — the docstring says so, and the cost is only a redundant
+    `\s` extra, never a wrong grammar."""
     stripped = pattern.strip("^$()?:*+")
-    if stripped in (r"\s", " ", r"[ \t]", r"[ \t]+", r"[ \t\r\n]"):
+    if stripped in (r"\s", " "):
         return True
+    if stripped.startswith("[") and stripped.endswith("]"):
+        return _char_class_whitespace(stripped[1:-1])
     return False
 
 
@@ -338,6 +364,10 @@ class Grammar:
     def word_view(self) -> str | None:
         return self._word
 
+    @property
+    def reserved_view(self) -> dict[str, list]:
+        return dict(self._reserved)
+
     # -- authoring ----------------------------------------------------------
     def start(self, name: str) -> Grammar:
         """Declare the start rule. There is no `start` field in grammar.json
@@ -437,7 +467,12 @@ class Grammar:
 
     def word(self, rule_name: str) -> Grammar:
         """Declare the word token rule (keyword extraction; avoids
-        keyword/identifier conflicts). The referenced rule must be a token."""
+        keyword/identifier conflicts). The referenced rule must be a token.
+        Guarded like rule(word=True): only one word rule may be set."""
+        if self._word is not None and self._word != rule_name:
+            raise ValueError(
+                f"word rule already set to {self._word!r} — cannot also "
+                f"be {rule_name!r}")
         self._word = rule_name
         return self
 
@@ -689,10 +724,13 @@ def _production_symbols(node: Rule) -> list[list[str]]:
     the CLI's `production_step_symbols` does (SYMBOL -> name, STRING ->
     `'value'`). A choice inside a seq cross-products into alternative
     productions (the CLI expands choices at rule-normalization time, so each
-    is a distinct production with its own step list)."""
+    is a distinct production with its own step list). PATTERN/repeat
+    rendering is APPROXIMATE (the CLI expands tokens/repeats to auxiliary
+    symbols; here the raw pattern/sequence is shown and per-production
+    attribution falls back to the rule site)."""
     if isinstance(node, (PrecNode, PrecLeftNode, PrecRightNode,
                          PrecDynamicNode, AliasNode, TokenNode,
-                         ImmediateTokenNode, FieldNode)):
+                         ImmediateTokenNode, FieldNode, ReservedNode)):
         return _production_symbols(node.content)
     if isinstance(node, SeqNode):
         results: list[list[str]] = [[]]

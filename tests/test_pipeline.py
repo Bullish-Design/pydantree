@@ -234,3 +234,56 @@ def test_choice_order_required_matches_cli_by_construction(cache_dir):
     s1 = NodeSchema.from_node_types_json(r1.node_schema_json, name="t1")
     s2 = NodeSchema.from_node_types_json(r2.node_schema_json, name="t1")
     assert field_required(s1) == field_required(s2)
+
+
+def test_bodyless_external_emits_scanner_token_not_literal_text(cache_dir, tmp_path):
+    """B12 (REVIEW 018): a bodyless External class must produce a body the
+    CLI resolves to the DECLARED external (pymini's tok() convention), not a
+    literal-text token for the string 'FRAG'. End-to-end: generate succeeds
+    with ONE kind, and a scanner emitting the external makes even non-'FRAG'
+    text parse — a literal-text token could only parse the text 'FRAG'."""
+    import sys
+    import types
+
+    src = (
+        "from pydantree_sitter_grammar import Rule, External, assemble\n"
+        "class Frag(External):\n"
+        "    pass\n"
+        "def build():\n"
+        "    return assemble('ext2', start=Frag, rules=[Frag])\n"
+    )
+    f = tmp_path / "ext_author.py"
+    f.write_text(src)
+    mod = types.ModuleType("ext_author")
+    mod.__file__ = str(f)
+    sys.modules["ext_author"] = mod
+    try:
+        exec(compile(src, str(f), "exec"), mod.__dict__)
+        g = mod.build()
+        # the scanner that emits the single external (symbol 0)
+        scanner = tmp_path / "scanner.c"
+        scanner.write_text(r'''
+#include "tree_sitter/parser.h"
+void *tree_sitter_ext2_external_scanner_create() { return NULL; }
+void tree_sitter_ext2_external_scanner_destroy(void *p) {}
+unsigned tree_sitter_ext2_external_scanner_serialize(void *p, char *b) { return 0; }
+void tree_sitter_ext2_external_scanner_deserialize(void *p, const char *b, unsigned n) {}
+bool tree_sitter_ext2_external_scanner_scan(void *p, TSLexer *lexer, const bool *valid_symbols) {
+  lexer->advance(lexer, false);
+  lexer->mark_end(lexer);
+  lexer->result_symbol = 0;
+  return true;
+}
+''')
+        result = tg.build_builder(g, cache_dir=cache_dir, scanner=scanner)
+        lang, _ = tg.load_language(result.so_path, "ext2")
+        # one kind in node-types — no extra literal 'FRAG' token
+        node_types = result.node_types_json.read_text()
+        assert node_types.count('"FRAG"') == 1, node_types
+        # the external fires for ANY token: 'h' parses via the scanner — a
+        # literal-text token could only parse the text 'FRAG'
+        tree = tg.parse(lang, "h")
+        assert not tree.root_node.has_error
+        assert tree.root_node.child_count == 1
+    finally:
+        sys.modules.pop("ext_author", None)

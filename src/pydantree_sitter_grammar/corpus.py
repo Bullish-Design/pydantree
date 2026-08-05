@@ -215,6 +215,7 @@ class Corpus:
     def __init__(self, cases: Iterable, *, name: str | None = None,
                  anonymous: str = "keep", style: str = "sexp",
                  selector: str | None = None,
+                 expr_kind: str = "expr",
                  snapshots_dir: str | Path | None = None):
         if style not in ("sexp", "compact"):
             raise ValueError(f"style must be 'sexp' or 'compact', got {style!r}")
@@ -223,6 +224,7 @@ class Corpus:
         self.anonymous = anonymous
         self.style = style
         self.selector = selector
+        self.expr_kind = expr_kind   # B23: the compact renderer's expr kind
         self.snapshots_dir = Path(snapshots_dir) if snapshots_dir is not None else None
 
     # -- the runner --------------------------------------------------------
@@ -265,7 +267,8 @@ class Corpus:
                     detail=f"no {case.selector or self.selector or 'root'} node "
                            f"found (parse errors: {_first_error(tree, case.source)})"))
                 continue
-            got = render_compact(target) if self.style == "compact" \
+            got = render_compact(target, expr_kind=self.expr_kind) \
+                if self.style == "compact" \
                 else render(target, anonymous=self.anonymous)
             if got != case.expected:
                 failures.append(CorpusFailure(case, got))

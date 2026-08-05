@@ -259,10 +259,11 @@ def _child(cls: type, t, attr: str | None = None) -> B:
         values = get_args(t)
         if len(values) == 1:
             return str(values[0])
-        # F-B2: Literal["+", "-"] -> choice of anonymous tokens (both
-        # nested and top-level)
-        toks = [tg_choice(*[str(v) for v in values])]
-        return toks[0]
+        # F-B2/B11: Literal["+", "-"] -> choice of anonymous tokens —
+        # FIELD-wrapped so `op: Literal["+", "-"]` keeps the
+        # "attribute name is the CST field" promise (was: an anonymous,
+        # un-wrapped choice)
+        return _wrap(tg_choice(*[str(v) for v in values]), attr)
     if origin in (list,):
         inner = _child(cls, get_args(t)[0])
         if attr is not None and attr != "content":

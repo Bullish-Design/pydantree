@@ -206,3 +206,30 @@ def test_int_ladder_matches_filtlang_baseline_values():
 # bare-cond affordances (was test_phase3a.py — dissolved, 7.5)
 # ---------------------------------------------------------------------------
 
+
+
+# ---------------------------------------------------------------------------
+# B23 (REVIEW 018): semantic_smoke must thread the expression-rule name into
+# the compact renderer — a rule named other than "expr" produced false smoke
+# failures (render_compact defaulted to expr_kind="expr")
+# ---------------------------------------------------------------------------
+
+def test_semantic_smoke_with_renamed_expression_rule(tmp_path):
+    g = tg.Grammar("smoke_val")
+    ladder = g.precedence("add", "mul")
+    g.rule("number", tg.pattern(r"\d+"))
+    g.rule("identifier", tg.pattern(r"[a-zA-Z_][a-zA-Z0-9_]*"))
+    g.word("identifier")
+    tg.expression(g, "value",                       # NOT named "expr"
+                  primary=tg.choice(tg.ref("number"), tg.ref("identifier")),
+                  infix=[("+", "left", "add"), ("*", "left", "mul")],
+                  ladder=ladder)
+    g.rule("statement", tg.seq(tg.ref("value"), ";"))
+    g.rule("source_file", tg.repeat(tg.ref("statement")))
+    g.start("source_file")
+
+    failures = tg.semantic_smoke(
+        g, expr="value", cache_dir=tmp_path / "cache",
+        cases=[("a + b * c;", "((identifier) + ((identifier) * (identifier)))"),
+               ("a * b + c;", "(((identifier) * (identifier)) + (identifier))")])
+    assert failures == []

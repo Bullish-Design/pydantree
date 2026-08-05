@@ -35,6 +35,7 @@ Schema facts pinned to 0.25.3 (see `cli/generate/src/parse_grammar.rs`):
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -201,6 +202,12 @@ Rule = Annotated[
 
 # --- grammar-level container ------------------------------------------------
 
+ABI_15_CONFIG = {"metadata": {"version": "0.1.0"}}
+# the ONE ABI-15 config literal (REVIEW 018 B21) — pipeline.run_generate and
+# GrammarModel.emit_bundle both write it; never redefine the string in two
+# places.
+
+
 class GrammarModel(BaseModel):
     """Mirror of `GrammarJSON` from parse_grammar.rs.
 
@@ -264,7 +271,7 @@ class GrammarModel(BaseModel):
         dirpath.mkdir(parents=True, exist_ok=True)
         cfg = dirpath / "tree-sitter.json"
         if not cfg.exists():
-            cfg.write_text('{"metadata": {"version": "0.1.0"}}\n')
+            cfg.write_text(json.dumps(ABI_15_CONFIG) + "\n")
         json_path = dirpath / "grammar.json"
         self.emit_json(json_path)
         return json_path

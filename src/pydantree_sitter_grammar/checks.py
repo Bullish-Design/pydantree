@@ -171,6 +171,13 @@ class _GrammarView:
             else self._g.word_view
 
     @property
+    def reserved(self) -> dict[str, list[Rule]]:
+        """The grammar-level reserved map (context -> rules) — its refs
+        count as rule usage (B3)."""
+        return self._g.reserved if isinstance(self._g, GrammarModel) \
+            else self._g.reserved_view
+
+    @property
     def start(self) -> str:
         if isinstance(self._g, GrammarModel):
             return self._g.start_rule
@@ -281,9 +288,30 @@ def _first_literal_chars(terminal_key: str) -> set[str]:
 # the checks
 # ---------------------------------------------------------------------------
 
+def _external_token_names(externals) -> set[str]:
+    """The visible names of token/string externals (mirror of
+    pipeline._external_name — same convention, no import cycle): TOKEN
+    unwraps to its content, STRING is its literal, SYMBOL its rule name."""
+    out = set()
+    for e in externals:
+        if isinstance(e, TokenNode):
+            e = e.content
+        if isinstance(e, StrNode):
+            out.add(e.value)
+        elif isinstance(e, SymbolNode):
+            out.add(e.name)
+        else:
+            out.add(str(e))
+    return out
+
+
 def check_undefined_symbols(g) -> list[CheckIssue]:
     view = _view(g)
     external_names = {s.name for ext in view.externals for s in find_symbols(ext)}
+    # B4: tok("NAME") externals are referenced BY NAME by the author — a
+    # bare STRING/TOKEN external is not a SymbolNode, so harvest its visible
+    # name too (the library's own scanner convention)
+    external_names |= _external_token_names(view.externals)
     issues = []
     for name, rule in view.rules.items():
         for s in find_symbols(rule):
@@ -316,6 +344,12 @@ def check_unused_rules(g) -> list[CheckIssue]:
         used |= {s.name for s in find_symbols(extra) if s.name in view.rules}
     for ext in view.externals:
         used |= {s.name for s in find_symbols(ext) if s.name in view.rules}
+    # B3: reserved-word context rules are referenced by the grammar-level
+    # `reserved` map — they must not be reported unused (the CLI doesn't
+    # prune them)
+    for rules in view.reserved.values():
+        for r in rules:
+            used |= {s.name for s in find_symbols(r) if s.name in view.rules}
 
     issues = []
     for name in view.rules:
@@ -383,15 +417,22 @@ def check_pattern_flags(g) -> list[CheckIssue]:
 
 
 def check_precedence_mixing(g) -> list[CheckIssue]:
-    """Named (string) and integer precedence do not compare against each other
-    at conflict time — mixing them inside one rule's alternatives is a warning
-    (Phase-0 finding §1.5)."""
+    """Named (string) and integer precedence do not compare against each
+    other at conflict time — mixing them within one rule's alternatives is a
+    warning (Phase-0 finding §1.5). Inspects Prec* nodes ANYWHERE under each
+    CHOICE member (B5: not just the direct members — prec can sit inside a
+    seq alternative)."""
     view = _view(g)
     issues = []
     for name, rule in view.rules.items():
         for n in iter_all(rule):
             if isinstance(n, ChoiceNode):
-                kinds = {_prec_kind(m) for m in n.members if _prec_kind(m)}
+                kinds = set()
+                for m in n.members:
+                    for sub in iter_all(m):
+                        k = _prec_kind(sub)
+                        if k:
+                            kinds.add(k)
                 if len(kinds) > 1:
                     issues.append(CheckIssue(
                         name,
@@ -488,7 +529,7 @@ def check_alias_on_seq(g) -> list[CheckIssue]:
                         f"alias {n.value!r} wraps a SEQ — the generator aliases "
                         "EVERY named child (kitsink footgun). Alias a single "
                         "hidden symbol: alias('x', True, ref('_contents'))",
-                        view.site(name), warning=True))
+                        view.site(name)))   # error, matching builder.alias() (B6)
     return issues
 
 

@@ -202,7 +202,7 @@ def semantic_smoke(
         from .pipeline import build_builder
         result = build_builder(g, cache_dir=cache_dir)
     corpus = Corpus(cases or DEFAULT_PRECEDENCE_CORPUS, style="compact",
-                    selector=expr)
+                    selector=expr, expr_kind=expr)
     run = corpus.run(build_result=result)
     out: list[str] = []
     for f in run.failures:

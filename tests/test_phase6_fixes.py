@@ -42,9 +42,12 @@ def test_multi_literal_emits_choice_of_anonymous_tokens():
 
     g = assemble("f_b2", start=Start, rules=[Op, Start])
     body = g.rules["op"]
-    # a single attribute compiles to the bare member (the choice directly)
-    assert body.type == "CHOICE"
-    assert sorted(m.value for m in body.members) == ["+", "-"]
+    # B11: the multi-value Literal keeps its FIELD wrap — `op` IS the CST
+    # field (was: an anonymous, un-wrapped choice)
+    assert body.type == "FIELD" and body.name == "op"
+    inner = body.content
+    assert inner.type == "CHOICE"
+    assert sorted(m.value for m in inner.members) == ["+", "-"]
 
 
 def test_multi_literal_default_must_be_one_of_the_values():
@@ -85,6 +88,19 @@ def test_non_whitespace_extra_keeps_the_default():
     g.extra(tg.pattern(r"//[^\n]*"))   # comments — not whitespace
     m = g.build()
     assert [e.value for e in m.extras] == ["\\s", "//[^\\n]*"]
+
+
+def test_tab_newline_class_extra_suppresses_default():
+    """B24 (REVIEW 018): `[ \\t\\n]+` is a whitespace-only class — it must
+    suppress the injected `\\s` default like the canonical `[ \\t]+` (the
+    old fixed-literal recognizer missed it -> two whitespace extras)."""
+    g = tg.Grammar("f_b5c")
+    g.rule("tok", tg.pattern(r"\d+"))
+    g.rule("source_file", tg.repeat(tg.ref("tok")))
+    g.start("source_file")
+    g.extra(tg.pattern(r"[ \t\n]+"))
+    m = g.build()
+    assert [e.value for e in m.extras] == ["[ \\t\\n]+"]
 
 
 # ---- F-B6: replace_rule honors hidden -------------------------------------

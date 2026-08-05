@@ -32,9 +32,8 @@ import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .ir import ABI_15_CONFIG
 from .ir import GrammarModel
-
-ABI_15_CONFIG = {"metadata": {"version": "0.1.0"}}
 
 # the loader shim shipped inside a packaged bundle: it delegates to pydantree_sitter's
 # shared loading contract (the ONE implementation, CONCEPT §8)
@@ -83,12 +82,16 @@ def detect_toolchain() -> Toolchain:
 
 def _python_abi() -> str:
     """The ABI: the actual tree_sitter.LANGUAGE_VERSION when available (the
-    bindings' floor), else the TSGRAMMAR_ABI env override, else "15"."""
+    bindings' floor), else the PYDANTREE_SITTER_ABI env override (the legacy
+    TSGRAMMAR_ABI spelling is honored as fallback, mirroring the cache-dir
+    migration), else "15"."""
+    env = os.environ.get("PYDANTREE_SITTER_ABI") or \
+        os.environ.get("TSGRAMMAR_ABI")
     try:
         import tree_sitter as _ts
         return str(_ts.LANGUAGE_VERSION)
     except Exception:
-        return os.environ.get("TSGRAMMAR_ABI", "15")
+        return env or "15"
 
 
 import functools as _functools
@@ -117,14 +120,6 @@ def run_generate(grammar_json: Path, *, abi15: bool = True) -> subprocess.Comple
             cfg.write_text(json.dumps(ABI_15_CONFIG))
     cmd = ["tree-sitter", "generate", "--json", str(grammar_json)]
     return subprocess.run(cmd, capture_output=True, text=True, cwd=str(dirpath), check=False)
-
-
-def generate(model: GrammarModel, workdir: Path) -> subprocess.CompletedProcess:
-    """Emit grammar.json into `workdir` and run the generator (always
-    --json, D10). Returns the raw CompletedProcess; on success parser.c lands
-    in workdir/src/parser.c."""
-    json_path = model.emit_bundle(workdir)
-    return run_generate(json_path)
 
 
 # ---------------------------------------------------------------------------
@@ -505,22 +500,28 @@ def debug_states(g, rule_name: str, *, workdir: Path | None = None,
                  json_report: bool = False):
     """Wrapper over `tree-sitter generate --report-states-for-rule <name>` —
     the 'why is my unary/^ interaction wrong?' surface. Emits the grammar into
-    `workdir` (a temp dir by default) and returns the raw CLI output text.
-    Rule name `-` reports every rule."""
+    `workdir` (a temp dir by default — TemporaryDirectory, no leaked dirs)
+    and returns the raw CLI output text. Rule name `-` reports every rule."""
     import tempfile
 
-    work = Path(workdir) if workdir is not None \
-        else Path(tempfile.mkdtemp(prefix="pydantree_sitter_grammar-states-"))
-    work.mkdir(parents=True, exist_ok=True)
-    json_path = g.emit_bundle(work)
-    cmd = ["tree-sitter", "generate", str(json_path),
-           "--report-states-for-rule", rule_name]
-    if json_report:
-        cmd.append("--json")
-    proc = subprocess.run(cmd, capture_output=True, text=True,
-                          cwd=str(work), check=False)
-    body = proc.stdout if proc.stdout.strip() else proc.stderr
-    return proc.returncode, body, proc
+    def _run(work: Path):
+        json_path = g.emit_bundle(work)
+        cmd = ["tree-sitter", "generate", str(json_path),
+               "--report-states-for-rule", rule_name]
+        if json_report:
+            cmd.append("--json")
+        proc = subprocess.run(cmd, capture_output=True, text=True,
+                              cwd=str(work), check=False)
+        body = proc.stdout if proc.stdout.strip() else proc.stderr
+        return proc.returncode, body, proc
+
+    if workdir is not None:
+        work = Path(workdir)
+        work.mkdir(parents=True, exist_ok=True)
+        return _run(work)
+    with tempfile.TemporaryDirectory(
+            prefix="pydantree_sitter_grammar-states-") as td:
+        return _run(Path(td))
 
 
 # ---------------------------------------------------------------------------
