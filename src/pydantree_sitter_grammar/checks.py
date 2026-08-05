@@ -189,14 +189,17 @@ def _view(g) -> _GrammarView:
 # ---------------------------------------------------------------------------
 
 def _nullable(node: Rule, view: _GrammarView, seen: set[str]) -> bool:
-    """Nullable computation (cycle-safe). REPEAT is nullable, REPEAT1 is not,
-    BLANK is nullable, CHOICE is nullable if any member is, SEQ if all are."""
+    """Nullable computation (cycle-safe). REPEAT is nullable, REPEAT1 is
+    nullable iff its content is (repeat1(opt(x)) can match empty), BLANK is
+    nullable, CHOICE is nullable if any member is, SEQ if all are. FIELD /
+    ALIAS / PREC* / TOKEN / IMMEDIATE_TOKEN / RESERVED wrappers are nullable
+    iff their content is (mirror of _first_set's fallback)."""
     if isinstance(node, BlankNode):
         return True
     if isinstance(node, RepeatNode):
         return True
     if isinstance(node, Repeat1Node):
-        return False
+        return _nullable(node.content, view, seen)
     if isinstance(node, ChoiceNode):
         return any(_nullable(m, view, seen) for m in node.members)
     if isinstance(node, SeqNode):
@@ -208,6 +211,11 @@ def _nullable(node: Rule, view: _GrammarView, seen: set[str]) -> bool:
         result = _nullable(view.rules[node.name], view, seen)
         seen.remove(node.name)
         return result
+    # transparent wrappers (FIELD / ALIAS / PREC* / TOKEN / IMMEDIATE_TOKEN /
+    # RESERVED) are nullable iff their content is — mirror _first_set's fallback
+    content = getattr(node, "content", None)
+    if isinstance(content, RuleNode):
+        return _nullable(content, view, seen)
     return False
 
 
