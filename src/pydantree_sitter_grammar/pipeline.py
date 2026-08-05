@@ -233,7 +233,9 @@ def write_bundle(result: BuildResult, dir: Path | str, *,
         "name": result.so_path.stem,
         "artifact": "grammar.so",
         "schema": schema_rel,
-        "abi": os.environ.get("TSGRAMMAR_ABI", "15"),
+        "abi": _python_abi(),   # the SAME value the cache key used (B16 — was
+                                 # a separate env-default read that could claim
+                                 # ABI 15 for a 14 artifact)
         "toolchain": detect_toolchain().tree_sitter_version,
     }
     (bundle / "tree-sitter.json").write_text(json.dumps(meta, indent=2))

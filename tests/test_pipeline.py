@@ -56,6 +56,23 @@ def test_build_warnings_surface(cache_dir):
     assert clean.warnings == []
 
 
+def test_bundle_abi_matches_the_built_language(cache_dir, tmp_path, monkeypatch):
+    """B16: the bundle's `abi` metadata must come from the same source as
+    the cache key (_python_abi -> LANGUAGE_VERSION), not a separate env read
+    that can claim ABI 15 for a 14 artifact. A stale TSGRAMMAR_ABI override
+    must NOT leak into the bundle metadata."""
+    import json
+    import tree_sitter as _ts
+    from pydantree_sitter_grammar.pipeline import write_bundle
+
+    monkeypatch.setenv("TSGRAMMAR_ABI", "9")  # a stale override (B16)
+    result = tg.build_builder(_simple_grammar(), cache_dir=cache_dir)
+    bundle = write_bundle(result, tmp_path / "bundle")
+    meta = json.loads((bundle / "tree-sitter.json").read_text())
+    assert meta["abi"] == str(_ts.LANGUAGE_VERSION)
+    assert meta["abi"] != "9"
+
+
 def test_grammar_hash_is_content_addressed():
     a = _simple_grammar().build()
     b = _simple_grammar().build()
