@@ -1,0 +1,7 @@
+{
+  "name": "devenv",
+  "artifact": "grammar.so",
+  "schema": "node-schema.json",
+  "abi": "15",
+  "toolchain": "tree-sitter 0.25.3"
+}

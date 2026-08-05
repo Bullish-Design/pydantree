@@ -1,0 +1,7 @@
+{
+  "name": "bash",
+  "artifact": "grammar.so",
+  "schema": "node-schema.json",
+  "abi": "15",
+  "toolchain": "community"
+}

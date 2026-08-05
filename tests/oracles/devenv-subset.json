@@ -1,0 +1,328 @@
+{
+  "packages": [
+    {
+      "repo": "mypi-agent",
+      "name": "pkgs.secretspec",
+      "line": 6
+    },
+    {
+      "repo": "pydantree",
+      "name": "pkgs.git",
+      "line": 11
+    },
+    {
+      "repo": "pydantree",
+      "name": "pkgs.tree-sitter",
+      "line": 12
+    },
+    {
+      "repo": "pydantree",
+      "name": "pkgs.gcc",
+      "line": 13
+    },
+    {
+      "repo": "terminal-state",
+      "name": "tmux",
+      "line": 14
+    },
+    {
+      "repo": "terminal-state",
+      "name": "asciinema",
+      "line": 15
+    },
+    {
+      "repo": "terminal-state",
+      "name": "agg",
+      "line": 16
+    },
+    {
+      "repo": "terminal-state",
+      "name": "imagemagick",
+      "line": 19
+    },
+    {
+      "repo": "terminal-state",
+      "name": "ghostscript",
+      "line": 20
+    },
+    {
+      "repo": "terminal-state",
+      "name": "dejavu_fonts",
+      "line": 23
+    },
+    {
+      "repo": "terminal-state",
+      "name": "liberation_ttf",
+      "line": 24
+    },
+    {
+      "repo": "terminal-state",
+      "name": "source-code-pro",
+      "line": 25
+    },
+    {
+      "repo": "terminal-state",
+      "name": "git",
+      "line": 28
+    },
+    {
+      "repo": "terminal-state",
+      "name": "curl",
+      "line": 29
+    },
+    {
+      "repo": "terminal-state",
+      "name": "jq",
+      "line": 30
+    },
+    {
+      "repo": "structured-agents-v2",
+      "name": "pkgs.git",
+      "line": 5
+    },
+    {
+      "repo": "structured-agents-v2",
+      "name": "pkgs.uv",
+      "line": 6
+    },
+    {
+      "repo": "structured-agents-v2",
+      "name": "pkgs.zellij",
+      "line": 7
+    }
+  ],
+  "env": [
+    {
+      "repo": "pydantree",
+      "name": "env.GREET",
+      "value": "\"devenv\"",
+      "line": 5
+    },
+    {
+      "repo": "terminal-state",
+      "name": "env.GREET",
+      "value": "\"terminal-state development environment\"",
+      "line": 6
+    },
+    {
+      "repo": "terminal-state",
+      "name": "env.TMUX_TMPDIR",
+      "value": "\"${config.env.DEVENV_ROOT}/.tmux\"",
+      "line": 8
+    }
+  ],
+  "scripts": [
+    {
+      "repo": "pydantree",
+      "name": "scripts.hello.exec",
+      "body": "''\n    echo hello from $GREET\n  ''",
+      "line": 44
+    },
+    {
+      "repo": "terminal-state",
+      "name": "scripts.record-terminal.exec",
+      "body": "''\n        echo \"Recording terminal session...\"\n        echo \"Press Ctrl+D or type 'exit' to stop recording\"\n        asciinema rec \"$@\"\n      ''",
+      "line": 37
+    },
+    {
+      "repo": "terminal-state",
+      "name": "scripts.cast-to-gif.exec",
+      "body": "''\n        if [ -z \"$1\" ] || [ -z \"$2\" ]; then\n          echo \"Usage: cast-to-gif <input.cast> <output.gif>\"\n          exit 1\n        fi\n        echo \"Converting $1 to $2...\"\n        agg \"$1\" \"$2\"\n      ''",
+      "line": 47
+    },
+    {
+      "repo": "terminal-state",
+      "name": "scripts.play-cast.exec",
+      "body": "''\n        if [ -z \"$1\" ]; then\n          echo \"Usage: play-cast <recording.cast>\"\n          exit 1\n        fi\n        asciinema play \"$1\"\n      ''",
+      "line": 60
+    },
+    {
+      "repo": "terminal-state",
+      "name": "scripts.test.exec",
+      "body": "''\n        pytest \"$@\"\n      ''",
+      "line": 72
+    },
+    {
+      "repo": "terminal-state",
+      "name": "scripts.format.exec",
+      "body": "''\n        echo \"Formatting Python code with black...\"\n        black src/ tests/\n        echo \"Done!\"\n      ''",
+      "line": 80
+    },
+    {
+      "repo": "terminal-state",
+      "name": "scripts.lint.exec",
+      "body": "''\n        echo \"Linting with ruff...\"\n        ruff check src/ tests/\n        echo \"Type checking with mypy...\"\n        mypy src/\n      ''",
+      "line": 90
+    },
+    {
+      "repo": "terminal-state",
+      "name": "scripts.build-package.exec",
+      "body": "''\n        echo \"Building package...\"\n        python -m build\n      ''",
+      "line": 101
+    },
+    {
+      "repo": "structured-agents-v2",
+      "name": "scripts.project17-pytest-zellij.exec",
+      "body": "''\n    set -euo pipefail\n    session=\"project17-pytest-$(date -u +%Y%m%dT%H%M%SZ)\"\n    artifact_dir=\"$PWD/artifacts/$session\"\n    mkdir -p \"$artifact_dir\"\n    zellij attach \"$session\" --create-background\n    ZELLIJ_SESSION_NAME=\"$session\" zellij run --name pytest --close-on-exit --cwd \"$PWD\" -- \\\n      ${pkgs.bash}/bin/bash -lc \"pytest -o addopts='-ra' > '$artifact_dir/stdout-stderr.log' 2>&1; status=\\$?; printf '%s\\\\n' \\\"\\$status\\\" > '$artifact_dir/exit-status.txt'; exit \\$status\"\n    echo \"pytest is running in: zellij attach $session\"\n    echo \"artifacts: $artifact_dir\"\n  ''",
+      "line": 10
+    },
+    {
+      "repo": "structured-agents-v2",
+      "name": "scripts.project17-json-workload-zellij.exec",
+      "body": "''\n    set -euo pipefail\n    : \"''${PROJECT17_MODEL:?set PROJECT17_MODEL to the Ornith GGUF path}\"\n    project17_corpus=\"''${PROJECT17_CORPUS:-benchmarks/project17/json_workload_100.jsonl}\"\n    project17_requests=\"''${PROJECT17_REQUESTS:-100}\"\n    project17_mode=\"''${PROJECT17_MODE:-constrained}\"\n    project17_stamp=\"$(date -u +%Y%m%dT%H%M%SZ)\"\n    project17_session=\"project17-json-$project17_stamp\"\n    project17_artifacts=\"$PWD/artifacts/project17-json-$project17_mode-$project17_stamp\"\n    project17_lib=\"''${PROJECT17_LIB_PATH:-$PWD/.devenv/state/venv/lib/python3.13/site-packages/llama_cpp/lib}\"\n    project17_cuda_ld=\"$(tr -d '\\n' < \"$PWD/.scratch/projects/17-llama-cpp-inference-lab/.cuda_runtime_ld\")\"\n    mkdir -p \"$project17_artifacts\"\n    {\n      printf 'session=%s\\n' \"$project17_session\"\n      printf 'started_at_utc=%s\\n' \"$project17_stamp\"\n      printf 'mode=%s\\ncorpus=%s\\nrequests=%s\\nmodel=%s\\n' \"$project17_mode\" \"$project17_corpus\" \"$project17_requests\" \"$PROJECT17_MODEL\"\n      printf 'llama_cpp_lib_path=%s\\n' \"$project17_lib\"\n      printf 'cuda_visible_devices=0\\nn_gpu_layers=-1\\n'\n    } > \"$project17_artifacts/run-config.txt\"\n    git status --short > \"$project17_artifacts/git-status-before.txt\"\n    nvidia-smi --query-gpu=index,name,uuid,driver_version,memory.total,memory.used --format=csv,noheader > \"$project17_artifacts/gpu-before.csv\"\n    nvidia-smi --query-compute-apps=gpu_uuid,pid,process_name,used_memory --format=csv,noheader > \"$project17_artifacts/gpu-processes-before.csv\" || true\n    ps -eo pid,ppid,stat,args > \"$project17_artifacts/processes-before.txt\"\n    zellij attach \"$project17_session\" --create-background\n    ZELLIJ_SESSION_NAME=\"$project17_session\" zellij run --name project17-json --close-on-exit --cwd \"$PWD\" -- \\\n      ${pkgs.bash}/bin/bash -lc '\n        set -euo pipefail\n        out=\"$1\"; mode=\"$2\"; corpus=\"$3\"; requests=\"$4\"; model=\"$5\"; lib=\"$6\"; cuda_ld=\"$7\"; root=\"$8\"\n        cd \"$root\"\n        baseline=\"\"\n        same=\"\"\n        case \"$mode\" in\n          constrained) ;;\n          baseline) baseline=\"--baseline-only\" ;;\n          same-grammar-repeated) same=\"--same-grammar-repeated\" ;;\n          *) printf \"unknown PROJECT17_MODE: %s\\\\n\" \"$mode\" >&2; exit 2 ;;\n        esac\n        export CUDA_VISIBLE_DEVICES=0\n        export LLAMA_CPP_LIB_PATH=\"$lib\"\n        export LD_LIBRARY_PATH=\"$cuda_ld''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\"\n        export PYTHONPATH=\"src:.devenv/state/venv/lib/python3.13/site-packages''${PYTHONPATH:+:$PYTHONPATH}\"\n        printf \"CUDA_VISIBLE_DEVICES=%s\\\\nLLAMA_CPP_LIB_PATH=%s\\\\nLD_LIBRARY_PATH=%s\\\\nPYTHONPATH=%s\\\\n\" \"$CUDA_VISIBLE_DEVICES\" \"$LLAMA_CPP_LIB_PATH\" \"$LD_LIBRARY_PATH\" \"$PYTHONPATH\" > \"$out/runtime-environment.txt\"\n        printf \"%q \" .devenv/state/venv/bin/python benchmarks/project17/run_json_workload.py --model \"$model\" --corpus \"$corpus\" --requests \"$requests\" --artifacts \"$out\" $baseline $same > \"$out/command.txt\"\n        printf \"\\\\n\" >> \"$out/command.txt\"\n        ( while :; do date -u +%FT%TZ; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader; sleep 15; done ) > \"$out/gpu-during.csv\" 2>&1 &\n        monitor=$!\n        trap \"kill $monitor 2>/dev/null || true\" EXIT\n        set +e\n        .devenv/state/venv/bin/python benchmarks/project17/run_json_workload.py --model \"$model\" --corpus \"$corpus\" --requests \"$requests\" --artifacts \"$out\" $baseline $same > \"$out/stdout-stderr.log\" 2>&1\n        rc=$?\n        set -e\n        printf \"%s\\\\n\" \"$rc\" > \"$out/exit-status.txt\"\n        nvidia-smi --query-gpu=index,name,uuid,driver_version,memory.total,memory.used --format=csv,noheader > \"$out/gpu-after.csv\" || true\n        nvidia-smi --query-compute-apps=gpu_uuid,pid,process_name,used_memory --format=csv,noheader > \"$out/gpu-processes-after.csv\" || true\n        ps -eo pid,ppid,stat,args > \"$out/processes-after.txt\"\n        exit \"$rc\"\n      ' -- \"$project17_artifacts\" \"$project17_mode\" \"$project17_corpus\" \"$project17_requests\" \"$PROJECT17_MODEL\" \"$project17_lib\" \"$project17_cuda_ld\" \"$PWD\"\n    printf 'Project 17 benchmark running in Zellij: zellij attach %s\\n' \"$project17_session\"\n    printf 'Artifacts: %s\\n' \"$project17_artifacts\"\n  ''",
+      "line": 22
+    },
+    {
+      "repo": "structured-agents-v2",
+      "name": "scripts.project17-prefix-cache-zellij.exec",
+      "body": "''\n    set -euo pipefail\n    : \"''${PROJECT17_MODEL:?set PROJECT17_MODEL to the Ornith GGUF path}\"\n    stamp=\"$(date -u +%Y%m%dT%H%M%SZ)\"\n    session=\"project17-prefix-cache-$stamp\"\n    out=\"$PWD/artifacts/project17-prefix-cache-$stamp\"\n    cache=\"$PWD/artifacts/project17-prefix-cache-store-$stamp\"\n    lib=\"''${PROJECT17_LIB_PATH:-$PWD/.devenv/state/venv/lib/python3.13/site-packages/llama_cpp/lib}\"\n    cuda_ld=\"$(tr -d '\\n' < \"$PWD/.scratch/projects/17-llama-cpp-inference-lab/.cuda_runtime_ld\")\"\n    mkdir -p \"$out\" \"$cache\"\n    git status --short > \"$out/git-status-before.txt\"\n    nvidia-smi --query-gpu=index,name,uuid,driver_version,memory.total,memory.used --format=csv,noheader > \"$out/gpu-before.csv\"\n    ps -eo pid,ppid,stat,args > \"$out/processes-before.txt\"\n    zellij attach \"$session\" --create-background\n    ZELLIJ_SESSION_NAME=\"$session\" zellij run --name project17-prefix-cache --close-on-exit --cwd \"$PWD\" -- \\\n      ${pkgs.bash}/bin/bash -lc '\n        set -euo pipefail\n        out=\"$1\"; cache=\"$2\"; model=\"$3\"; lib=\"$4\"; cuda_ld=\"$5\"; root=\"$6\"\n        cd \"$root\"\n        export CUDA_VISIBLE_DEVICES=0 LLAMA_CPP_LIB_PATH=\"$lib\"\n        export LD_LIBRARY_PATH=\"$cuda_ld''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\"\n        export PYTHONPATH=\"src:.devenv/state/venv/lib/python3.13/site-packages''${PYTHONPATH:+:$PYTHONPATH}\"\n        env | rg \"^(CUDA_VISIBLE_DEVICES|LLAMA_CPP_LIB_PATH|LD_LIBRARY_PATH|PYTHONPATH)=\" > \"$out/runtime-environment.txt\"\n        extra=\"''${PROJECT17_PREFIX_CACHE_ARGS:-}\"\n        printf \"%q \" .devenv/state/venv/bin/python benchmarks/project17/run_prefix_cache.py --model \"$model\" --artifacts \"$out\" --cache-root \"$cache\" $extra > \"$out/command.txt\"; printf \"\\n\" >> \"$out/command.txt\"\n        ( while :; do date -u +%FT%TZ; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader; sleep 15; done ) > \"$out/gpu-during.csv\" 2>&1 & monitor=$!\n        trap \"kill $monitor 2>/dev/null || true\" EXIT\n        set +e\n        .devenv/state/venv/bin/python benchmarks/project17/run_prefix_cache.py --model \"$model\" --artifacts \"$out\" --cache-root \"$cache\" $extra > \"$out/stdout-stderr.log\" 2>&1\n        rc=$?\n        set -e\n        printf \"%s\\n\" \"$rc\" > \"$out/exit-status.txt\"\n        nvidia-smi --query-gpu=index,name,uuid,driver_version,memory.total,memory.used --format=csv,noheader > \"$out/gpu-after.csv\" || true\n        ps -eo pid,ppid,stat,args > \"$out/processes-after.txt\"\n        exit \"$rc\"\n      ' -- \"$out\" \"$cache\" \"$PROJECT17_MODEL\" \"$lib\" \"$cuda_ld\" \"$PWD\"\n    printf 'Project 17 prefix-cache run: zellij attach %s\\nArtifacts: %s\\n' \"$session\" \"$out\"\n  ''",
+      "line": 83
+    },
+    {
+      "repo": "structured-agents-v2",
+      "name": "scripts.project17-gpu-pytest.exec",
+      "body": "''\n    set -euo pipefail\n    root=\"$PWD\"\n    spike=\"$root/.scratch/projects/17-llama-cpp-inference-lab\"\n    py=\"''${PROJECT17_SPIKE_PY:-$PWD/.devenv/state/venv/bin/python}\"\n    model=\"''${PROJECT17_MODEL:-/home/nixuser/.cache/structured-agents/models/Ornith-1.0-9B-UD-Q4_K_XL.gguf}\"\n    lib=\"''${PROJECT17_LIB_PATH:-$PWD/.devenv/state/venv/lib/python3.13/site-packages/llama_cpp/lib}\"\n    cuda_ld=\"$(tr -d '\\n' < \"$spike/.cuda_runtime_ld\")\"\n    if [ ! -x \"$py\" ]; then echo \"reference python not found: $py (set PROJECT17_SPIKE_PY)\" >&2; exit 2; fi\n    if [ ! -f \"$model\" ]; then echo \"model not found: $model (set PROJECT17_MODEL)\" >&2; exit 2; fi\n    if [ ! -d \"$lib\" ]; then echo \"llama.cpp lib dir not found: $lib\" >&2; exit 2; fi\n    export CUDA_VISIBLE_DEVICES=\"''${PROJECT17_CUDA_DEVICES:-0}\"\n    export LLAMA_CPP_LIB_PATH=\"$lib\"\n    export LLAMA_TEST_MODEL=\"$model\"\n    # /run/opengl-driver/lib first so the real libcuda wins over any CUDA stub;\n    # cuda_ld carries gcc-lib (libstdc++) + cudart/cublas the bindings dlopen.\n    export LD_LIBRARY_PATH=\"/run/opengl-driver/lib:$lib:$cuda_ld''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\"\n    export PYTHONPATH=\"src''${PYTHONPATH:+:$PYTHONPATH}\"\n    printf 'python=%s\\nCUDA_VISIBLE_DEVICES=%s\\nLLAMA_CPP_LIB_PATH=%s\\nLLAMA_TEST_MODEL=%s\\n' \\\n      \"$py\" \"$CUDA_VISIBLE_DEVICES\" \"$LLAMA_CPP_LIB_PATH\" \"$LLAMA_TEST_MODEL\"\n    if [ \"$#\" -gt 0 ]; then\n      exec \"$py\" -m pytest \"$@\"\n    fi\n    exec \"$py\" -m pytest -o addopts='-rs' tests/ -q\n  ''",
+      "line": 133
+    },
+    {
+      "repo": "structured-agents-v2",
+      "name": "scripts.project20-gpu-pytest.exec",
+      "body": "''\n    set -euo pipefail\n    root=\"$PWD\"\n    spike=\"$root/.scratch/projects/17-llama-cpp-inference-lab\"\n    py=\"''${PROJECT20_SPIKE_PY:-$PWD/.devenv/state/venv/bin/python}\"\n    model=\"''${PROJECT20_MODEL:-/home/nixuser/.cache/structured-agents/models/Ornith-1.0-9B-UD-Q4_K_XL.gguf}\"\n    lib=\"''${PROJECT20_FORK_LIB:-/home/nixuser/Documents/Projects/inferference/ci/build/.llamacpp-builds/out-p2fork-24c5d3dbc/lib}\"\n    cuda_ld=\"$(tr -d '\\n' < \"$spike/.cuda_runtime_ld\")\"\n    if [ ! -x \"$py\" ]; then echo \"reference python not found: $py (set PROJECT20_SPIKE_PY)\" >&2; exit 2; fi\n    if [ ! -f \"$model\" ]; then echo \"model not found: $model (set PROJECT20_MODEL)\" >&2; exit 2; fi\n    if [ ! -d \"$lib\" ]; then echo \"fork lib dir not found: $lib (set PROJECT20_FORK_LIB)\" >&2; exit 2; fi\n    export CUDA_VISIBLE_DEVICES=\"''${PROJECT20_CUDA_DEVICES:-0}\"\n    export LLAMA_CPP_LIB_PATH=\"$lib\"\n    export LLAMA_TEST_MODEL=\"$model\"\n    # /run/opengl-driver/lib first so the real libcuda wins over any CUDA stub;\n    # cuda_ld carries gcc-lib (libstdc++) + cudart/cublas the bindings dlopen.\n    export LD_LIBRARY_PATH=\"/run/opengl-driver/lib:$lib:$cuda_ld''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\"\n    export PYTHONPATH=\"src''${PYTHONPATH:+:$PYTHONPATH}\"\n    printf 'python=%s\\nCUDA_VISIBLE_DEVICES=%s\\nLLAMA_CPP_LIB_PATH=%s\\nLLAMA_TEST_MODEL=%s\\n' \\\n      \"$py\" \"$CUDA_VISIBLE_DEVICES\" \"$LLAMA_CPP_LIB_PATH\" \"$LLAMA_TEST_MODEL\"\n    if [ \"$#\" -gt 0 ]; then\n      exec \"$py\" -m pytest \"$@\"\n    fi\n    exec \"$py\" -m pytest -o addopts='-rs' tests/ -q\n  ''",
+      "line": 168
+    },
+    {
+      "repo": "structured-agents-v2",
+      "name": "scripts.project23-gpu-contract.exec",
+      "body": "''\n    set -euo pipefail\n    INF=/home/nixuser/Documents/Projects/inferference\n    export LLAMA_CPP_LIB_PATH=\"$INF/ci/library/.venv/lib/python3.13/site-packages/llama_cpp/lib\"\n    cuda_ld=\"$(tr -d '\\n' < \"$PWD/.scratch/projects/17-llama-cpp-inference-lab/.cuda_runtime_ld\")\"\n    export LD_LIBRARY_PATH=\"/run/opengl-driver/lib:$cuda_ld''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\"\n    exec \"$INF/ci/runner/gpu-serialized.sh\" \"$INF/ci/library/.venv/bin/python\" -m pytest \"$INF/tests/\" -q\n  ''",
+      "line": 202
+    }
+  ],
+  "tasks": [
+    {
+      "repo": "pydantree",
+      "name": "tasks.\"pydantree:venv-src-pth\".exec",
+      "body": "''\n        VENV_SP=\"${config.env.DEVENV_STATE}/venv/lib/python3.13/site-packages\"\n        mkdir -p \"$VENV_SP\"\n        cat > \"$VENV_SP/_pydantree_src.pth\" <<PTH\nimport sys; sys.path.insert(0, \"${config.devenv.root}/src\")\nPTH\n      ''",
+      "line": 59
+    }
+  ],
+  "switches": [
+    {
+      "repo": "pydantree",
+      "path": "languages.python.enable",
+      "line": 20
+    },
+    {
+      "repo": "pydantree",
+      "path": "languages.python.venv.enable",
+      "line": 22
+    },
+    {
+      "repo": "pydantree",
+      "path": "languages.python.uv.enable",
+      "line": 24
+    },
+    {
+      "repo": "pydantree",
+      "path": "languages.python.uv.sync.enable",
+      "line": 26
+    },
+    {
+      "repo": "terminal-state",
+      "path": "languages.python.enable",
+      "line": 112
+    },
+    {
+      "repo": "terminal-state",
+      "path": "languages.python.venv.enable",
+      "line": 114
+    },
+    {
+      "repo": "terminal-state",
+      "path": "languages.python.uv.enable",
+      "line": 115
+    },
+    {
+      "repo": "structured-agents-v2",
+      "path": "languages.python.enable",
+      "line": 212
+    },
+    {
+      "repo": "structured-agents-v2",
+      "path": "languages.python.venv.enable",
+      "line": 214
+    },
+    {
+      "repo": "structured-agents-v2",
+      "path": "languages.python.uv.enable",
+      "line": 215
+    }
+  ],
+  "enterShell": [
+    {
+      "repo": "pydantree",
+      "kind": "enterShell",
+      "body": "''\n    hello\n    git --version\n  ''",
+      "line": 70
+    },
+    {
+      "repo": "terminal-state",
+      "kind": "enterShell",
+      "body": "''\n    echo \"\"\n    echo \"\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\"\n    echo \"\u2551         terminal-state Development Environment             \u2551\"\n    echo \"\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d\"\n    echo \"\"\n    echo \"\ud83d\udce6 Project: terminal-state\"\n    echo \"\ud83d\udc0d Python: $(python --version)\"\n    echo \"\ud83d\udda5\ufe0f  tmux: $(tmux -V)\"\n    echo \"\ud83c\udfac asciinema: $(asciinema --version)\"\n    echo \"\"\n    echo \"Available commands:\"\n    echo \"  record-terminal     - Record terminal session with asciinema\"\n    echo \"  cast-to-gif         - Convert .cast to .gif\"\n    echo \"  play-cast           - Play asciinema recording\"\n    echo \"  test                - Run pytest tests\"\n    echo \"  format              - Format code with black\"\n    echo \"  lint                - Lint code with ruff and mypy\"\n    echo \"  build-package       - Build the Python package\"\n    echo \"\"\n    echo \"Quick start:\"\n    echo \"  1. Install dependencies: uv sync --all-extras\"\n    echo \"  2. Run tests: test\"\n    echo \"  3. Try recording: record-terminal demo.cast\"\n    echo \"  4. Convert to GIF: cast-to-gif demo.cast demo.gif\"\n    echo \"\"\n\n    # Create tmux socket directory if it doesn't exist\n    mkdir -p \"${config.env.DEVENV_ROOT}/.tmux\"\n    echo \"\"\n  ''",
+      "line": 153
+    },
+    {
+      "repo": "structured-agents-v2",
+      "kind": "enterShell",
+      "body": "''\n    git --version\n  ''",
+      "line": 218
+    }
+  ],
+  "enterTest": [
+    {
+      "repo": "pydantree",
+      "kind": "enterTest",
+      "body": "''\n    echo \"Running tests\"\n    git --version | grep --color=auto \"${pkgs.git.version}\"\n  ''",
+      "line": 76
+    }
+  ],
+  "env_records": [
+    {
+      "GREET": "\"terminal-state development environment\"",
+      "TMUX_TMPDIR": "\"${config.env.DEVENV_ROOT}/.tmux\"",
+      "line": 5,
+      "repo": "terminal-state"
+    }
+  ],
+  "toolchain_records": [
+    {
+      "enable": "true",
+      "version": "\"3.13\"",
+      "line": 19,
+      "repo": "pydantree"
+    },
+    {
+      "enable": "true",
+      "version": null,
+      "line": 23,
+      "repo": "pydantree"
+    },
+    {
+      "enable": "true",
+      "version": null,
+      "line": 25,
+      "repo": "pydantree"
+    },
+    {
+      "enable": "true",
+      "version": "\"3.11\"",
+      "line": 111,
+      "repo": "terminal-state"
+    },
+    {
+      "enable": "true",
+      "version": "\"3.13\"",
+      "line": 211,
+      "repo": "structured-agents-v2"
+    }
+  ]
+}

@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO / "src"))
-sys.path.insert(0, str(REPO / ".scratch" / "006-tsquery-bridge"))
+sys.path.insert(0, str(REPO / ".scratch" / "projects" / "006-tsquery-bridge"))
 
 import tree_sitter_json
 from tscore.schema import NodeSchema, derive_from_ir
