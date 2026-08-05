@@ -340,8 +340,100 @@ The same three nodes on current `main` pass together: **3 passed in 0.34s**
 
 ## Gap probes and determinism
 
-Not yet run.
+### Novel Product A use over real Rust
+
+Probe:
+
+```bash
+PYDANTREE_SITTER_CACHE=/tmp/pydantree-review019.UkcAVR/gap-a3-cache \
+  devenv shell -- python \
+  .scratch/projects/019-final-verification-review/probe_realworld_a.py \
+  /tmp/pydantree-review019.UkcAVR/gap-a3
+```
+
+Evidence: [`evidence/gap-realworld-a-final.txt`](evidence/gap-realworld-a-final.txt)
+
+Result: PASS. From the checked-in real Rust grammar source, the probe builds a
+bundle and binds two previously unsaved tasks before parsing:
+
+- a raw sibling query plus `#eq?` predicate extracts public functions at top
+  level and inside a nested module, with `source_meta` lines;
+- an `M("source_file", ..., "call_expression")` descendant query combines
+  `NodeKind("identifier")` and `Matches("^assert_")`, filtering out an
+  unrelated call and retaining two asserted calls with exact lines.
+
+The first iteration intentionally tried to capture Rust's structural
+`arguments` node as `str`; bind-time schema checking rejected it before parse
+(`evidence/gap-realworld-a.txt`). The next run exposed a hand-counted expected
+line error (`evidence/gap-realworld-a-success.txt`), after which the saved
+expectation was corrected and the final run passed. This demonstrates that
+both the checker and oracle can fail for real mistakes.
+
+### Novel Product B use
+
+Probe:
+
+```bash
+devenv shell -- python \
+  .scratch/projects/019-final-verification-review/probe_realworld_b.py \
+  /tmp/pydantree-review019.UkcAVR/gap-b4
+```
+
+Evidence: [`evidence/gap-realworld-b-final.txt`](evidence/gap-realworld-b-final.txt)
+
+Result: PASS. One from-scratch rule-class grammar:
+
+- declares the matched-delimiter external in scanner order and builds with
+  the real canonical C scanner;
+- emits a real named/integer-precedence analyzer warning whose site is the
+  probe's author file;
+- starts with an ambiguous recursive expression rule, receives one real CLI
+  conflict remapped to the author file, fixes it through `build_loop`, and
+  rebuilds cleanly;
+- passes a saved expected CST covering both the external scanner token and
+  left-associative expression structure.
+
+Earlier iterations are retained (`gap-realworld-b.txt`, `-second.txt`, and
+`-third.txt`): they caught a probe assumption about warnings and then an
+actual lexical overlap/incorrect expected CST. The final hand expectation is
+therefore failure-proven rather than copied from a passing run unnoticed.
+
+### Robustness
+
+Existing focused/full-suite results cover conflicting grammars, missing
+scanners, undefined symbols, conflict stderr contamination, and wheel/install
+failures with the real toolchain.
+
+CLI drift was simulated by putting the committed fake `tree-sitter 0.26.1`
+ahead of the pinned binary:
+
+```bash
+devenv shell -- sh -c \
+  'PATH=.scratch/projects/019-final-verification-review/fake-bin:$PATH \
+   python -m pytest tests/test_toolchain_version.py -q'
+```
+
+Evidence:
+[`evidence/robustness-cli-drift.txt`](evidence/robustness-cli-drift.txt)
+
+Result: the single version guard fails in **0.12s** with the exact unsupported
+`0.26` versus supported `0.25` explanation. It is early and loud.
+
+### Determinism/order dependence
+
+Command, run twice sequentially:
+
+```bash
+devenv shell -- python -m pytest -q -p no:randomly
+```
+
+Evidence: `evidence/determinism-run-{1,2}.txt`.
+
+Results: **265 passed in 65.02s** and **265 passed in 63.56s**. No outcome or
+count drift. The only randomized property suite (`test_match.py`) uses a
+fixed `random.Random(20260805)` seed.
 
 ## Final suite
 
-Pending.
+The second deterministic run is the final full-suite result:
+**265 passed in 63.56s**.

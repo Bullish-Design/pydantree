@@ -1,0 +1,72 @@
+• Validating lock
+✓ Validating lock in 18.9ms
+• Configuring shell
+• Configuring cachix
+✓ Configuring cachix in 1.89ms
+• Evaluating shell
+✓ Evaluating shell in 8.10ms (cached)
+✓ Configuring shell in 12.7ms
+• Loading tasks
+• Evaluating devenv.config.task.config
+✓ Evaluating devenv.config.task.config in 586µs (cached)
+✓ Loading tasks in 1.78ms
+• Running tasks
+• Running devenv:python:uv
+✓ Running devenv:python:uv in 104ms
+• Running devenv:enterShell
+✓ Running devenv:enterShell in 7.86ms
+✓ Running tasks in 112ms
+Running tasks     devenv:enterShell
+
+Running           devenv:python:uv
+Running           devenv:enterShell
+Succeeded         devenv:python:uv (78.19ms)
+Running           pydantree:venv-src-pth
+Succeeded         devenv:enterShell (11.98ms)
+Succeeded         pydantree:venv-src-pth (13.08ms)
+3 Succeeded
+✨ devenv 2.1.2 is newer than devenv input (1.6.1) in devenv.lock. Run 'devenv update' to sync.
+hello from devenv
+git version 2.49.0
+Traceback (most recent call last):
+  File "/home/andrew/Documents/Projects/pydantree/.scratch/projects/019-final-verification-review/probe_realworld_a.py", line 101, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/andrew/Documents/Projects/pydantree/.scratch/projects/019-final-verification-review/probe_realworld_a.py", line 79, in main
+    calls = lang.extractor(AssertCall)
+  File "/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/binding.py", line 201, in extractor
+    ext = Extractor(model_cls, self, strict=strict)
+  File "/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/binding.py", line 268, in __init__
+    self.compiled = compile_spec(model, language, value_map=vm)
+                    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py", line 102, in compile_spec
+    _compile_field(compiled, language)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py", line 319, in _compile_field
+    _check_field_bindings(compiled.model, spec, schema,
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                          compiled.value_map, anchor_kinds[0],
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                          bindings, annotations)
+                          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py", line 392, in _check_field_bindings
+    _check_type(model_cls, schema, vm, b, f, possible,
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                f"{anchor_kind}.{b.key}", field_mode=True)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py", line 424, in _check_type
+    _raise(model_cls,
+    ~~~~~~^^^^^^^^^^^
+           f"field {b.name!r} is {_name(target)} but the {where} capture "
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           f"can only ever yield kinds that do not coerce to it: "
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           f"{sorted(possible) or 'none'} (schema entry: {where})",
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           entry=where)
+           ^^^^^^^^^^^^
+  File "/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py", line 226, in _raise
+    raise SchemaCheckError(
+        f"{model_cls.__name__} ({_model_site(model_cls)}): {msg}",
+        schema_entry=entry, model=model_cls)
+pydantree_sitter.errors.SchemaCheckError: AssertCall (/home/andrew/Documents/Projects/pydantree/.scratch/projects/019-final-verification-review/probe_realworld_a.py:59): field 'arguments' is str but the call_expression.arguments capture can only ever yield kinds that do not coerce to it: ['arguments'] (schema entry: call_expression.arguments)

@@ -1,14 +1,21 @@
 # Review 019 — findings and verdict
 
-**Status:** in progress  
+**Status:** complete
 **Date:** 2026-08-05
 
-The live example/oracle behavior is strong so far: all 265 baseline tests pass,
+The live example/oracle behavior is strong: all 265 baseline tests pass,
 the three real-world outputs match both saved oracles and hand-written ground
-truth, and oracle JSON regeneration is byte-stable. The committed prebuilt
-artifact story is not yet shippable as claimed.
+truth, oracle JSON regeneration is byte-stable, and novel A/B probes pass. The
+committed saved-artifact story is not yet shippable as claimed.
 
 ## Findings
+
+Ranked summary:
+
+| severity | findings |
+|---|---|
+| major | V1 unverified/stale `.built` bundles; V4 CLI-free golden tests skip; V5 saved community byproducts mostly unasserted |
+| minor | V2 example install/run documentation; V3 fresh-worktree dependency sync; V6 incomplete provenance; V7 weak source-location precision assertions |
 
 ### V1 — major — committed oracle bundles are outside the verification contract and have drifted
 
@@ -98,6 +105,19 @@ regeneration commands are given. The Review 018 golden `conflicts/` corpus is
 not listed at all. This makes intentional refreshes hard to distinguish from
 accidental drift.
 
+### V7 — minor — two source-location regression tests do not assert the precision named in their claims
+
+`test_attribute_sites_are_more_precise_than_the_class_line` checks only that
+every site has the author's **file**; it never compares the attribute line to
+the class line. A regression collapsing all attribute sites back to the class
+line would pass. Likewise, `test_build_warnings_surface` uses
+`all(w.site is None or ...)`, which passes if every warning loses its site.
+
+Current behavior is good: the novel Product B probe asserts a real analyzer
+warning has a non-null site ending in `probe_realworld_b.py`, and the build-loop
+conflict also names that file. The gap is regression strength for finer line
+precision/nullability, not a reproduced production defect.
+
 ## Review 018 red-against-prefix spot checks
 
 Verified red on the parent of each fix and green on current `main`:
@@ -130,7 +150,22 @@ Current paired run: all three pass.
   cannot import, and real bundle extraction succeeds.
 - Three sampled Review 018 tests are demonstrably red before their fixes and
   green after them.
+- Novel gap probes passed over a real Rust community grammar and a new
+  rule-class/external-scanner/conflict-loop grammar; the probes themselves
+  failed on incorrect schema assumptions and expected CST/line data before
+  their hand expectations were corrected.
+- CLI 0.26 drift fails in one dedicated guard in 0.12 seconds, and two
+  sequential full-suite runs have identical 265-pass outcomes.
 
 ## Verdict
 
-Pending fixture, regression, gap, packaging, and determinism review.
+**CONDITIONAL / not yet solid enough to ship under the strong claim that all
+saved expected outputs and prebuilt artifacts are verified.**
+
+The executable product behavior is ship-quality: real examples, fresh builds,
+B-free consumers, wheels, scanner corpora, novel tasks, robustness guards, and
+determinism are all substantive. Release becomes supportable once V1, V4, and
+V5 are closed: either remove `.built` and unverified byproducts from the stated
+contract, or add provenance/regeneration plus direct assertions; and unmark the
+CLI-free golden tests so they actually run without the toolchain. V2, V3, V6,
+and V7 are follow-up hardening/documentation work.

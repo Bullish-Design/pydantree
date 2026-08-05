@@ -1,0 +1,62 @@
+• Validating lock
+✓ Validating lock in 18.0ms
+• Configuring shell
+• Configuring cachix
+✓ Configuring cachix in 2.61ms
+• Evaluating shell
+✓ Evaluating shell in 9.95ms (cached)
+✓ Configuring shell in 16.2ms
+• Loading tasks
+• Evaluating devenv.config.task.config
+✓ Evaluating devenv.config.task.config in 572µs (cached)
+✓ Loading tasks in 1.51ms
+• Running tasks
+• Running devenv:python:uv
+✓ Running devenv:python:uv in 99.1ms
+• Running devenv:enterShell
+✓ Running devenv:enterShell in 16.7ms
+✓ Running tasks in 116ms
+Running tasks     devenv:enterShell
+
+Running           devenv:python:uv
+Succeeded         devenv:python:uv (82.97ms)
+Running           devenv:enterShell
+Running           pydantree:venv-src-pth
+Succeeded         devenv:enterShell (7.40ms)
+Succeeded         pydantree:venv-src-pth (10.95ms)
+3 Succeeded
+✨ devenv 2.1.2 is newer than devenv input (1.6.1) in devenv.lock. Run 'devenv update' to sync.
+hello from devenv
+git version 2.49.0
+{
+  "public_functions": [
+    {
+      "visibility": "pub",
+      "name": "parse_config",
+      "line": 1
+    },
+    {
+      "visibility": "pub",
+      "name": "validate_schema",
+      "line": 11
+    }
+  ],
+  "assert_calls": [
+    {
+      "function": "assert_valid",
+      "line": 2
+    },
+    {
+      "function": "assert_schema",
+      "line": 12
+    }
+  ]
+}
+Traceback (most recent call last):
+  File "/home/andrew/Documents/Projects/pydantree/.scratch/projects/019-final-verification-review/probe_realworld_a.py", line 100, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/andrew/Documents/Projects/pydantree/.scratch/projects/019-final-verification-review/probe_realworld_a.py", line 95, in main
+    assert got == expected, {"got": got, "expected": expected}
+           ^^^^^^^^^^^^^^^
+AssertionError: {'got': {'public_functions': [{'visibility': 'pub', 'name': 'parse_config', 'line': 1}, {'visibility': 'pub', 'name': 'validate_schema', 'line': 11}], 'assert_calls': [{'function': 'assert_valid', 'line': 2}, {'function': 'assert_schema', 'line': 12}]}, 'expected': {'public_functions': [{'visibility': 'pub', 'name': 'parse_config', 'line': 1}, {'visibility': 'pub', 'name': 'validate_schema', 'line': 10}], 'assert_calls': [{'function': 'assert_valid', 'line': 2}, {'function': 'assert_schema', 'line': 11}]}}

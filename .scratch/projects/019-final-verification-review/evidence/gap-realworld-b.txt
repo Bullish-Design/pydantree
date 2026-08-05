@@ -1,0 +1,40 @@
+• Validating lock
+✓ Validating lock in 28.3ms
+• Configuring shell
+• Configuring cachix
+✓ Configuring cachix in 2.08ms
+• Evaluating shell
+✓ Evaluating shell in 7.99ms (cached)
+✓ Configuring shell in 12.9ms
+• Loading tasks
+• Evaluating devenv.config.task.config
+✓ Evaluating devenv.config.task.config in 432µs (cached)
+✓ Loading tasks in 1.23ms
+• Running tasks
+• Running devenv:python:uv
+✓ Running devenv:python:uv in 109ms
+• Running devenv:enterShell
+✓ Running devenv:enterShell in 13.4ms
+✓ Running tasks in 123ms
+Running tasks     devenv:enterShell
+
+Running           devenv:python:uv
+Running           pydantree:venv-src-pth
+Running           devenv:enterShell
+Succeeded         devenv:python:uv (82.25ms)
+Succeeded         pydantree:venv-src-pth (8.32ms)
+Succeeded         devenv:enterShell (9.27ms)
+3 Succeeded
+✨ devenv 2.1.2 is newer than devenv input (1.6.1) in devenv.lock. Run 'devenv update' to sync.
+hello from devenv
+git version 2.49.0
+Traceback (most recent call last):
+  File "/home/andrew/Documents/Projects/pydantree/.scratch/projects/019-final-verification-review/probe_realworld_b.py", line 123, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/andrew/Documents/Projects/pydantree/.scratch/projects/019-final-verification-review/probe_realworld_b.py", line 70, in main
+    assert any(i.site and i.site.file.endswith("probe_realworld_b.py")
+           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+               for i in issues), [str(i) for i in issues]
+               ^^^^^^^^^^^^^^^^
+AssertionError: []
