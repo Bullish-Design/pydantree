@@ -72,6 +72,12 @@ refactor Phase 1).
    `Language.load_bundle(dir)` is the one-line consumer (keeps the .so lib
    alive, F-A10). `bundle_format` versions the contract (D12): absent = 1
    (accepted); unknown >2 = `BundleError` naming both versions.
+
+   Bundles are generated build outputs, not committed compatibility fixtures.
+   The suite rebuilds them from source with the current supported toolchain;
+   only saved extraction JSON is a durable oracle. Acceptance of an older
+   bundle format is current loader behavior, not a backward-compatibility
+   guarantee for previously generated binaries or metadata.
 3. **The grammar-ownership boundary** (GO, D3): the schema IS the CLI's
    `node-types.json` byproduct — a B-built bundle's `node-schema.json` is the
    generate run's `node-types.json` copied byte-for-byte, and the community

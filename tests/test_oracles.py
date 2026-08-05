@@ -10,6 +10,12 @@ contract across the whole refactor: the Phase 4 Product-A rewrite (and the
 Phase 6 B pass) must not change observable extraction behavior on these
 inputs.
 
+Native grammar bundles are deliberately NOT checked in. Each oracle test
+builds a fresh bundle from the committed grammar/scanner sources through the
+current pipeline. The project makes no backward-compatibility promise for
+previously generated bundle binaries or metadata; the durable contract here is
+the JSON extraction behavior, not a platform-specific `.so`.
+
 Also pins the CORRECT behavior for the review's thesis-breaking bugs — each
 was reproduced at review time and is now a FIXED, positively-tested
 reality (no xfail markers here; the fixes live in their own regression

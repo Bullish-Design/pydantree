@@ -13,6 +13,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Oracle behavior is JSON-only. Native bundles are rebuilt in temporary
+# directories by the tests and are never checked in or compatibility-pinned.
+/tests/oracles/.built/
+
 # Distribution / packaging
 .Python
 build/

@@ -1,8 +1,0 @@
-{
-  "bundle_format": 2,
-  "name": "nix",
-  "artifact": "grammar.so",
-  "schema": "node-schema.json",
-  "abi": "15",
-  "toolchain": "community"
-}

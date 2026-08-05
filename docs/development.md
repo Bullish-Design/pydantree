@@ -63,6 +63,10 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
 - **test_wasm.py** pins the unavailable-error path only: a `.wasm` bundle
   raises `WasmRuntimeUnavailableError` unconditionally (the probe bridge
   moved to `.scratch/projects/009-phase7/wasm_bridge.py`).
+- **Oracle policy**: `tests/oracles/*.json` is the saved behavior contract.
+  Native bundles are rebuilt from committed sources in test temp directories;
+  never commit `tests/oracles/.built/` or treat a generated `.so`/metadata file
+  as a backward-compatibility fixture.
 - **The pipeline caches builds** under `~/.cache/pydantree_sitter_grammar`
   (override with `PYDANTREE_SITTER_CACHE`). Tests point it at a session tmp
   dir (hermetic). A stale cache made from an older scanner/grammar is a
