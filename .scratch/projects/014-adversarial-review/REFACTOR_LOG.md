@@ -90,3 +90,37 @@ cache).
   artifacts; new in-process B-free import test.
 - **Gate grep:** `grep -rn "tscore\|tsquery\|tsgrammar" src tests examples docs`
   → empty.
+
+## Gate 3 — kill the port; version the bundle (D3, D12)
+
+- **Suite:** 208 passed, 4 xfailed (49s) — the T-1 xfail flipped to the
+  by-construction pipeline test; +2 pipeline tests, +7 loader tests.
+- **Pipeline (3.1):** `build()` now copies the generate run's
+  `src/node-types.json` into the cache entry as `node-schema.json`
+  byte-for-byte (`_cache_node_schema`); `_ensure_node_schema` deleted. Warm
+  cache entries missing the schema re-run generate (the CLI is the only
+  source).
+- **Port deleted (3.2):** `src/pydantree_sitter/_ir_derive.py` (974 lines)
+  gone; `derive_from_ir` removed from `schema.py` + the package surface;
+  `NodeSchema.from_node_types_json` / `derive_from_node_types` are the only
+  parse path. Test rewrites: `tests/test_schema.py` now consumes checked-in
+  CLI byproducts (`tests/fixtures/jsonlike{,hidden,alias}/node-types.json`,
+  generated once from the CLI; the alias grammar's original shape was
+  CLI-invalid — repeat-of-empty and a GLR conflict — so the fixture uses
+  CLI-valid shapes and the test pins what the byproduct actually reports);
+  `test_tsquery_schema.py`/`test_phase5_apolish.py`/`test_bundle.py`/
+  `test_oracles.py` re-source schemas from the pipeline byproduct.
+- **T-1 (3.3):** the xfail in `test_oracles.py` is replaced by
+  `tests/test_pipeline.py::test_choice_order_required_matches_cli_by_construction`
+  (both choice orders report the CLI's answer, byte-identical) +
+  `test_bundle_schema_is_the_generate_byproduct_byte_for_byte`.
+- **Bundle format v2 (3.4, D12):** both bundle writers emit
+  `{"bundle_format": 2, ...}`; the loader treats absent as format 1
+  (accepted), rejects non-int and >2 with `BundleError` naming both
+  versions; new `pydantree_sitter/errors.py` (BundleError) and
+  `tests/test_loader.py` covering the TS §7 untested paths (missing
+  tree-sitter.json / name / artifact, unknown format) + real format-1 and
+  format-2 loads.
+- **Docs (3.5):** architecture.md §3/§5 — the schema IS the CLI byproduct,
+  tracked by construction; the exact path is retired.
+- **Gate greps:** `grep -rn "_ir_derive\|derive_from_ir" src tests` → empty.

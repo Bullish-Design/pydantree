@@ -13,7 +13,7 @@ import pytest
 import tree_sitter_json
 
 import pydantree_sitter_grammar as tg
-from pydantree_sitter.schema import NodeSchema, derive_from_ir
+from pydantree_sitter.schema import NodeSchema
 from pydantree_sitter import (
     Language,
     M,
@@ -41,9 +41,17 @@ pytestmark = pytest.mark.skipif(
 # ---------------------------------------------------------------------------
 
 def json_schema() -> NodeSchema:
+    """The json grammar's schema — the CLI byproduct (build once, reuse)."""
+    import functools
     from json_grammar import build as build_json
-    model = build_json().build()
-    return NodeSchema.from_list(derive_from_ir(model), name="json")
+    from pydantree_sitter_grammar.pipeline import build as _build
+
+    @functools.lru_cache(maxsize=1)
+    def _schema() -> NodeSchema:
+        model = build_json().build()
+        res = _build(model)
+        return NodeSchema.from_node_types_json(res.node_schema_json, name="json")
+    return _schema()
 
 
 def cfg_schema() -> tuple[NodeSchema, object, object]:
@@ -51,7 +59,7 @@ def cfg_schema() -> tuple[NodeSchema, object, object]:
     from pydantree_sitter_grammar.language import load_language
     g = build_cfg()
     res = tg.build_builder(g)
-    schema = NodeSchema.from_list(derive_from_ir(g.build()), name="cfg")
+    schema = NodeSchema.from_node_types_json(res.node_schema_json, name="cfg")
     lang, _lib = load_language(res.so_path, "cfg")
     return schema, lang, g
 

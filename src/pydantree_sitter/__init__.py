@@ -43,7 +43,6 @@ from .schema import (
     NodeSchema,
     NodeTypeInfo,
     NodeTypeRef,
-    derive_from_ir,
     derive_from_node_types,
 )
 from .typed import (
@@ -76,5 +75,5 @@ __all__ = [
     "NodeSpec", "NodeView", "MatchView", "Pred", "cap", "node",
     # the seam (the old shared package's schema): the node-schema format + derivations
     "NodeSchema", "NodeTypeInfo", "ChildInfo", "NodeTypeRef",
-    "derive_from_ir", "derive_from_node_types",
+    "derive_from_node_types",
 ]

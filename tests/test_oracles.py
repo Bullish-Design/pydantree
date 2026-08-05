@@ -318,19 +318,21 @@ def test_fa1_cross_language_second_extract_raises():
         PyAssignment2.extract('{"a": 1}', language=js)
 
 
+@requires_toolchain
 @pytest.mark.xfail(strict=True, reason="F-A2: schema-bound nested records "
                                        "drop every nested match — Phase 4.4")
 def test_fa2_schema_bound_nested_records_match_schema_less():
     import sys as _sys
     import tree_sitter_json
+    import pydantree_sitter_grammar as tg
     from pydantree_sitter import Language, M, OutputModel
 
     _sys.path.insert(0, str(REPO / ".scratch" / "projects" / "006-query-bridge"))
     from json_grammar import build as build_json
-    from pydantree_sitter.schema import NodeSchema, derive_from_ir
+    from pydantree_sitter.schema import NodeSchema
 
-    schema = NodeSchema.from_list(derive_from_ir(build_json().build()),
-                                  name="json")
+    schema = NodeSchema.from_node_types_json(
+        tg.build(build_json().build()).node_schema_json, name="json")
 
     class Address(OutputModel):
         __match__ = M("document", "array", "object", record=True)
@@ -385,41 +387,6 @@ def test_list_field_with_gap_path_filters_by_ancestry():
     rows = [r.model_dump() for r in
             NeverCall.extract("f(1, 2)\ng(3)\n", language=py)]
     assert rows == []
-
-
-@pytest.mark.xfail(strict=True, reason="T-1: _ir_derive choice-order "
-                                       "required diverges from the CLI — "
-                                       "port deleted in Phase 3")
-def test_t1_choice_order_required_matches_cli():
-    """The same grammar modulo choice order must derive the SAME schema, and
-    the field must be non-required (one branch lacks it — the CLI emits
-    required:false for both orders). Current: the 2nd-branch order reports
-    required:true. Phase 3 makes this true by construction (the schema IS
-    the CLI byproduct)."""
-    import pydantree_sitter_grammar as tg
-    from pydantree_sitter.schema import NodeSchema, derive_from_ir
-
-    def derive(first, second):
-        g = tg.Grammar("t1")
-        g.start("x")
-        g.rule("x", tg.choice(first, second))
-        g.rule("a", "a")
-        g.rule("b", "b")
-        return NodeSchema.from_list(derive_from_ir(g.build()), name="t1")
-
-    s1 = derive(tg.field("f", tg.ref("b")), "a")   # field in 1st branch
-    s2 = derive("a", tg.field("f", tg.ref("b")))   # field in 2nd branch
-
-    def field_required(s):
-        for nt in s.node_types:
-            if nt.type == "x":
-                f = nt.fields.get("f")
-                return f.required if f else None
-        return None
-
-    assert field_required(s1) is False
-    assert field_required(s2) is False
-    assert s1.to_json() == s2.to_json()
 
 
 # ---------------------------------------------------------------------------

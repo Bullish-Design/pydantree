@@ -40,7 +40,7 @@ TOOLCHAIN_AVAILABLE = shutil.which("tree-sitter") is not None and \
 
 from cfg_grammar import CORPUS, build as build_cfg  # noqa: E402
 from json_grammar import build as build_json  # noqa: E402
-from pydantree_sitter.schema import NodeSchema, derive_from_ir  # noqa: E402
+from pydantree_sitter.schema import NodeSchema  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -59,15 +59,15 @@ def _isolate_schema_registry():
 def _cfg_lang():
     g = build_cfg()
     result = tg.build_builder(g)
-    schema = NodeSchema.from_list(derive_from_ir(g.build()), name="cfg")
+    schema = NodeSchema.from_node_types_json(result.node_schema_json, name="cfg")
     lang, _lib = result.language()
     return Language.load(lang, schema=schema), schema
 
 
 def _json_lang():
     jmodel = build_json().build()
-    tg.build(jmodel)
-    schema = NodeSchema.from_list(derive_from_ir(jmodel), name="json")
+    res = tg.build(jmodel)
+    schema = NodeSchema.from_node_types_json(res.node_schema_json, name="json")
     return Language.load(tree_sitter_json.language(), schema=schema), schema
 
 
@@ -252,7 +252,7 @@ def test_field_mode_list_with_schema_bound():
     wildcard — params hold identifiers) and merges the same way."""
     g = _fnlist_grammar()
     result = tg.build_builder(g)
-    schema = NodeSchema.from_list(derive_from_ir(g.build()), name="fnlist")
+    schema = NodeSchema.from_node_types_json(result.node_schema_json, name="fnlist")
     lang, _lib = result.language()
     lang = Language.load(lang, schema=schema)
 

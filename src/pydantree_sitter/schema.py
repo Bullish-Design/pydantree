@@ -19,42 +19,11 @@ The canonical serialization is the CLI's list form, so a B-built
 `node-schema.json` is byte-compatible with a community grammar's
 `node-types.json`, and A cannot tell which path produced it.
 
-TWO derivation paths converge on that format:
-
-  * `derive_from_ir(GrammarModel)` — the EXACT path: walks the grammar IR's
-    rules, FieldNodes, AliasNodes (aliased names), hidden `_`-rules,
-    `inline` list, `supertypes` list, `start_rule`. Richer than the CLI
-    byproduct (which is post-alias/post-inline flattened): the `tuple` alias
-    and hidden `_*` rules only exist here. The derivation mirrors
-    node_types.rs's algorithm (per-production quantity bookkeeping,
-    fixed-point over recursive rules, hidden-child inheritance, supertype
-    subtypes) so it AGREES with the CLI on the shared subset.
-  * `derive_from_node_types(node_types_json)` — the weaker community path:
-    samples the CLI byproduct directly (supertypes arrive as `subtypes`
-    entries; aliases/inline are already flattened away).
-
-Derivation semantics ported from node_types.rs (verified against the CLI's
-byproduct in tests/test_schema.py):
-
-  * grammar.json REPEAT (0+) is choice(REPEAT1, BLANK) — its content's
-    quantities are (exists, not-required, multiple); REPEAT1 is (exists,
-    required, multiple).
-  * hidden `_`-rules and inline rules are transparent: their visible
-    children/fields inherit into the referencing rule; hidden children's
-    quantities are scaled by the referencing step's repeat quantity.
-  * a rule whose top-level body is ALIAS registers the alias VALUE as the
-    visible kind (the canonical `_tuple: alias("tuple", True, ref(...))`
-    pattern); an ALIAS at a step position contributes the alias kind as a
-    plain child type.
-  * supertype `subtypes` = the supertype rule's visible child types; in
-    field/children lists the CLI REPLACES subtypes with their supertype
-    (process_supertypes) — replicated here.
-  * unused rules are pruned (the CLI silently prunes unreachable rules).
-
-Known simplifications (documented, §11 risk-7 evidence): (a) multiple rules
-aliased under one name merge their fields' `required` flags in the CLI — we
-union quantities instead, so `required` can be overstated for merged aliases;
-(b) anonymous pattern tokens are named by their pattern source text.
+The refactor (D3) deleted the hand-port of node_types.rs: the
+schema's ONLY source is the CLI's own node-types.json byproduct, tracked by
+construction. `NodeSchema.from_node_types_json` / `derive_from_node_types`
+parse that byproduct; a B-built bundle's node-schema.json IS the generate
+run's node-types.json, copied byte-for-byte.
 """
 
 from __future__ import annotations
@@ -285,9 +254,9 @@ class NodeSchema(BaseModel):
 
 
 def derive_from_node_types(node_types_json: Any) -> list[NodeTypeInfo]:
-    """The weaker community path: `node-types.json` (the CLI's byproduct) ->
-    the canonical node-schema list. Aliases/inline are already flattened
-    away; supertypes arrive as `subtypes` entries."""
+    """The (only) path: `node-types.json` (the CLI's byproduct) -> the
+    canonical node-schema list. Aliases/inline are already flattened away;
+    supertypes arrive as `subtypes` entries."""
     if isinstance(node_types_json, (str, Path)):
         node_types_json = json.loads(Path(node_types_json).read_text())
     if isinstance(node_types_json, dict) and "node_types" in node_types_json:
@@ -295,14 +264,3 @@ def derive_from_node_types(node_types_json: Any) -> list[NodeTypeInfo]:
     return [NodeTypeInfo.model_validate(t) for t in node_types_json]
 
 
-def derive_from_ir(grammar) -> list[NodeTypeInfo]:
-    """The exact path: walk a pydantree_sitter_grammar Grammar IR -> the canonical
-    node-schema list (mirrors the CLI's node-types.json).
-
-    Phase 5: the implementation lives in `pydantree_sitter._ir_derive` and imports
-    pydantree_sitter_grammar.ir (B's IR) — so calling this REQUIRES B to be installed.
-    It is imported lazily here so `import pydantree_sitter` / `import pydantree_sitter` stay
-    B-free (the A-side and the bundle path never call it; B's pipeline does).
-    """
-    from ._ir_derive import derive_from_ir as _derive
-    return _derive(grammar)

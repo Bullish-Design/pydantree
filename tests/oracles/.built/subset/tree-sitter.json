@@ -1,4 +1,5 @@
 {
+  "bundle_format": 2,
   "name": "devenv",
   "artifact": "grammar.so",
   "schema": "node-schema.json",

@@ -195,6 +195,7 @@ class BuildResult:
             _shutil.copyfile(self.node_schema_json, bundle / "node-schema.json")
             schema_rel = "node-schema.json"
         metadata = {
+            "bundle_format": 2,          # D12: versioned artifact contract
             "name": self.so_path.stem,
             "artifact": "grammar.so",
             "schema": schema_rel,
@@ -208,14 +209,29 @@ class BuildResult:
         return bundle
 
 
-def _ensure_node_schema(model: GrammarModel, path: Path) -> None:
-    """Write node-schema.json (derived from the IR via pydantree_sitter) if missing.
-    The schema is a pure function of the IR, so it is content-addressed with
-    the rest of the cache entry."""
-    if path.exists():
-        return
-    from pydantree_sitter.schema import NodeSchema, derive_from_ir
-    NodeSchema.from_list(derive_from_ir(model)).write(path)
+def _cache_node_schema(entry: Path, model: GrammarModel) -> Path:
+    """node-schema.json := the cache entry's src/node-types.json, byte-for-byte.
+
+    The schema IS the CLI's byproduct (014 refactor D3 — the hand-port
+    of node_types.rs is deleted; there is no other derivation). On a warm cache entry
+    that predates this (no node-schema.json yet), re-run generate over the
+    entry's grammar.json — the CLI is the authoritative source. Returns the
+    node-schema.json path.
+    """
+    schema_path = entry / "node-schema.json"
+    if schema_path.exists():
+        return schema_path
+    node_types = entry / "src" / "node-types.json"
+    if not node_types.exists():
+        gen = run_generate(entry / "grammar.json")
+        if gen.returncode != 0:
+            raise GenerateError(
+                model, gen,
+                detail="warm-cache backfill: re-running generate to "
+                       "recover node-types.json (the schema's only source)")
+        node_types = entry / "src" / "node-types.json"
+    shutil.copyfile(node_types, schema_path)
+    return schema_path
 
 
 def build(model: GrammarModel, *, cache_dir: Path | None = None,
@@ -228,7 +244,8 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     hit, skip generate+gcc entirely. `grammar_name` defaults to the grammar's
     `name` (the .so export symbol must match). `scanner` optionally points at
     an external-scanner scanner.c to copy into the build (grammars with
-    `externals` need one to link).
+    `externals` need one to link). The bundle's node-schema.json is the
+    generate run's node-types.json byproduct, copied byte-for-byte (D3).
     """
     cache_dir = Path(cache_dir) if cache_dir is not None else default_cache_dir()
     toolchain = toolchain or detect_toolchain()
@@ -246,17 +263,16 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     entry = cache_dir / key
     so_path = entry / f"{name}.so"
     grammar_json = entry / "grammar.json"
-    node_schema_json = entry / "node-schema.json"
 
     if so_path.exists() and grammar_json.exists():
-        _ensure_node_schema(model, node_schema_json)
+        _cache_node_schema(entry, model)
         return BuildResult(
             grammar_json=grammar_json,
             src_dir=entry / "src",
             parser_c=entry / "src" / "parser.c",
             so_path=so_path,
             node_types_json=entry / "src" / "node-types.json",
-            node_schema_json=node_schema_json,
+            node_schema_json=entry / "node-schema.json",
             cached=True,
         )
 
@@ -308,7 +324,7 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     work.rename(entry)
 
     node_types = entry / "src" / "node-types.json"
-    _ensure_node_schema(model, entry / "node-schema.json")
+    _cache_node_schema(entry, model)
     return BuildResult(
         grammar_json=entry / "grammar.json",
         src_dir=entry / "src",

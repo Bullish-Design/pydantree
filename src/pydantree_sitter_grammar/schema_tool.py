@@ -9,10 +9,10 @@ node-schema. The fix is one command over the grammar SOURCE:
         -> derive_from_node_types -> node-schema.json
 
 The tool runs the CLI (build-time, B-side); the OUTPUT (node-schema.json) is
-consumed B-free by A, exactly like a B-built bundle's schema. Over a
-pydantree_sitter_grammar IR the derived schema is equivalent to derive_from_ir's on the
-shared subset (the Phase-4 agreement check — the CLI byproduct is what
-derive_from_ir mirrors).
+consumed B-free by A, exactly like a B-built bundle's schema. Post-014 (D3)
+this is the ONLY derivation: the schema IS the CLI byproduct — a B-built
+bundle's node-schema.json is the generate run's node-types.json copied
+byte-for-byte.
 
 Phase 6: the tool now accepts REAL community grammar source layouts — a
 repo checkout with `src/grammar.json` (the standard tree-sitter layout,
@@ -185,6 +185,7 @@ def build_community_bundle(grammar_dir: Path | str, out: Path | str, *,
     shutil.copyfile(so_path, out / "grammar.so")
     schema.write(out / "node-schema.json")
     (out / "tree-sitter.json").write_text(json.dumps({
+        "bundle_format": 2,             # D12: versioned artifact contract
         "name": grammar_name,
         "artifact": "grammar.so",
         "schema": "node-schema.json",

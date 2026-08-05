@@ -7,9 +7,10 @@ it in ONE call; the bundle is consumed in a SEPARATE process where pydantree_sit
 is NOT importable (sitecustomize strips the editable src/ install) with the
 Phase-4 ground truth passing and the checks active; the community-schema tool
 (grammar dir -> CLI generate -> node-types.json -> derive_from_node_types ->
-node-schema.json) agrees with derive_from_ir and feeds a B-free community
+node-schema.json) feeds a B-free community
 consumer over the tree_sitter_json wheel; A's surface is byte-identical
-in-process vs B-free.
+in-process vs B-free. (The 014 refactor D3: the schema IS the CLI byproduct
+by construction — the IR-derivation port is gone.)
 """
 
 from __future__ import annotations
@@ -47,7 +48,7 @@ from cfg_grammar import (  # noqa: E402
 from json_grammar import build as build_json  # noqa: E402
 from pydantree_sitter_grammar.language import load_language  # noqa: E402
 from pydantree_sitter.model_schema import check_model_schema  # noqa: E402
-from pydantree_sitter.schema import NodeSchema, derive_from_ir  # noqa: E402
+from pydantree_sitter.schema import NodeSchema  # noqa: E402
 
 
 class ServerSection(OutputModel):
@@ -152,9 +153,12 @@ def test_community_schema_tool_agrees_and_feeds_bfree_consumer(tmp_path):
                                     workdir=tmp_path / "cw",
                                     out=tmp_path / "cw" / "node-schema.json",
                                     keep=True)
-    # agreement with the exact path on the shared subset (the Phase-4 check)
-    from_ir = NodeSchema.from_list(derive_from_ir(json_model), name="json")
-    assert derived.to_json() == from_ir.to_json()
+    # by construction (D3): the schema IS the CLI byproduct — the pipeline's
+    # bundle node-schema.json and the schema tool's output both equal the
+    # generate run's node-types.json byte-for-byte
+    pipeline = tg.build(json_model)
+    assert pipeline.node_schema_json.read_bytes() == pipeline.node_types_json.read_bytes()
+    assert derived.to_json() == pipeline.node_types_json.read_text()
 
     # the B-free community consumer: wheel + derived schema, no B
     schema_path = tmp_path / "cw" / "node-schema.json"

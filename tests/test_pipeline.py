@@ -106,3 +106,56 @@ def test_generate_conflict_raises_named_error(cache_dir):
     assert conflict.involved_rules == ["expr"]
     assert "Ambiguous shape" in str(err)
     assert g.sites["expr"].file.endswith("test_pipeline.py")
+
+
+# ---------------------------------------------------------------------------
+# 014 refactor Phase 3 (D3/D12): the schema IS the CLI byproduct, and the
+# T-1 repro (choice-order `required` divergence in the deleted node_types
+# hand-port) becomes trivially true by construction
+# ---------------------------------------------------------------------------
+
+def test_bundle_schema_is_the_generate_byproduct_byte_for_byte(cache_dir):
+    """The bundle's node-schema.json is byte-identical to the generate run's
+    node-types.json — correct by construction (D3: the schema's only source
+    is the CLI byproduct; the port is deleted). This test documents the
+    contract; it cannot drift."""
+    model = _simple_grammar().build()
+    res = tg.build(model, cache_dir=cache_dir)
+    assert res.node_schema_json.read_bytes() == res.node_types_json.read_bytes()
+
+    # a warm-cache second build re-reads the same bytes (no re-derivation)
+    res2 = tg.build(model, cache_dir=cache_dir)
+    assert res2.cached is True
+    assert res2.node_schema_json.read_bytes() == res.node_schema_json.read_bytes()
+
+
+def test_choice_order_required_matches_cli_by_construction(cache_dir):
+    """The T-1 repro (AGENT_REPORTS Report 3): the same grammar modulo choice
+    order used to derive different field-required in the port (2nd-branch
+    order -> required:true, diverging from the CLI's false). With the port
+    deleted, the schema IS the CLI byproduct — both orders report whatever
+    the CLI reports, byte-identically by construction."""
+    def build_order(first, second):
+        g = tg.Grammar("t1")
+        g.start("x")
+        g.rule("x", tg.choice(first, second))
+        g.rule("a", "a")
+        g.rule("b", "b")
+        return tg.build(g.build(), cache_dir=cache_dir)
+
+    r1 = build_order(tg.field("f", tg.ref("b")), "a")   # field in 1st branch
+    r2 = build_order("a", tg.field("f", tg.ref("b")))   # field in 2nd branch
+    assert r1.node_schema_json.read_bytes() == r2.node_schema_json.read_bytes()
+
+    from pydantree_sitter.schema import NodeSchema
+
+    def field_required(schema):
+        for nt in schema.node_types:
+            if nt.type == "x":
+                f = nt.fields.get("f")
+                return f.required if f else None
+        return None
+
+    s1 = NodeSchema.from_node_types_json(r1.node_schema_json, name="t1")
+    s2 = NodeSchema.from_node_types_json(r2.node_schema_json, name="t1")
+    assert field_required(s1) == field_required(s2)

@@ -39,6 +39,8 @@ from pathlib import Path
 
 import tree_sitter
 
+from .errors import BundleError
+
 # ---------------------------------------------------------------------------
 # the low-level load (shared by B and A)
 # ---------------------------------------------------------------------------
@@ -106,22 +108,36 @@ def load_bundle(dir: Path | str) -> Bundle:
     The grammar name (the .so's export symbol) comes from the metadata's
     `name` field — the bundle's .so is renamed `grammar.so`, so the stem is
     not the symbol. The schema is loaded from node-schema.json when present.
+
+    Bundle format (D12): the metadata's `bundle_format` int versioning the
+    artifact contract. Absent = format 1 (the original layout — accepted);
+    an unknown (>2) format is rejected with `BundleError` naming both
+    versions, so the artifact contract can never silently shift.
     """
     dir = Path(dir)
     meta_path = dir / "tree-sitter.json"
     if not meta_path.exists():
-        raise FileNotFoundError(
+        raise BundleError(
             f"not a grammar bundle: {dir} (no tree-sitter.json metadata; "
             f"see pydantree_sitter_grammar BuildResult.package())")
     metadata = json.loads(meta_path.read_text())
+    fmt = metadata.get("bundle_format", 1)
+    if not isinstance(fmt, int):
+        raise BundleError(
+            f"bundle {dir}: bundle_format must be an int, got {fmt!r}")
+    if fmt > 2:
+        raise BundleError(
+            f"bundle {dir}: unknown bundle_format {fmt} — this loader "
+            f"understands formats 1 and 2 (2 is the current; 1 is the "
+            f"original layout, still accepted)")
     name = metadata.get("name")
     if not name:
-        raise ValueError(
+        raise BundleError(
             f"bundle metadata {dir / 'tree-sitter.json'} has no 'name' "
             f"(the grammar's export symbol)")
     so_path = dir / (metadata.get("artifact", "grammar.so"))
     if not so_path.exists():
-        raise FileNotFoundError(
+        raise BundleError(
             f"bundle {dir}: {so_path.name} missing (metadata says "
             f"artifact={so_path.name!r})")
     if so_path.suffix == ".wasm":

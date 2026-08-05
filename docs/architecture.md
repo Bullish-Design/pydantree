@@ -42,7 +42,7 @@ pydantree-branded (`pydantree-sitter`, `pydantree-sitter`,
 
 | package | weight | contents | depends on |
 |---|---|---|---|
-| `pydantree_sitter` | tiny, pure Python | the node-schema format (`schema.py`), the exact-path IR derivation (`_ir_derive.py`, deleted in the 014 refactor), the artifact-loading contract (`loader.py` incl. the wasm seam — the probe bridge moved to `.scratch/projects/009-phase7/`) | pydantic, tree-sitter |
+| `pydantree_sitter` | tiny, pure Python | the node-schema format (`schema.py` — the schema IS the CLI byproduct; the `_ir_derive` port was deleted in the 014 refactor), the artifact-loading contract (`loader.py` incl. the wasm seam — the probe bridge moved to `.scratch/projects/009-phase7/`) | pydantic, tree-sitter |
 | `pydantree_sitter` (A) | light | `typed.py` (OutputModel + Language), `dsl.py` (the query builder), `materialize.py`, `shapes.py`, `schema.py` (schema-rebuilt derivation), `stubs.py` (Job-2 `.pyi`) | pydantree_sitter, pydantic, tree-sitter |
 | `pydantree_sitter_grammar` (B) | heavy | `grammar.py` (IR), `builder.py` (the DSL), `checks.py` (static analysis), `conflicts.py` (GLR conflict remapping), `expressions.py` (precedence ladders), `corpus.py` (the corpus harness), `pipeline.py` (generate → gcc → bundle), `schema_tool.py` (community grammars), `scanners/` (the scanner library) | pydantree_sitter, pydantic, tree-sitter, **plus the CLI + gcc at build time** |
 
@@ -70,12 +70,13 @@ the 014 refactor Phase 1).
    `pydantree_sitter.Language.load_bundle(dir)` is the one-line consumer. The `.so`
    is loaded via a PyCapsule named `"tree-sitter.Language"`; integer-pointer
    loading is deprecated in 0.26.
-3. **The grammar-ownership boundary** (Phase 6, GO): the schema derivation
-   is **byte-for-byte** with the CLI's `node-types.json` over FOUR real
-   grammars (rust, python, markdown, markdown-inline) — the exact path
-   (`pydantree_sitter._ir_derive.derive_from_ir`) mirrors CLI 0.25.3's
-   `node_types.rs`; the community path (`pydantree_sitter_grammar.schema_tool`) derives from
-   the CLI's own byproduct, so it tracks the installed CLI by construction.
+3. **The grammar-ownership boundary** (Phase 6, GO; 014 refactor D3): the
+   schema IS the CLI's `node-types.json` byproduct, tracked by construction —
+   a B-built bundle's `node-schema.json` is the generate run's
+   `node-types.json` copied byte-for-byte, and the community path
+   (`pydantree_sitter_grammar.schema_tool`) derives from the same CLI
+   byproduct. The `node_types.rs` hand-port (`_ir_derive`) was deleted in the
+   014 refactor: the schema has exactly one source.
 
 ### 3.1 The wasm seam (Phase 7, assessed)
 
@@ -114,15 +115,14 @@ Grammar DSL -> IR (grammar.json) -> tree-sitter generate -> src/parser.c
 
 ## 5. The schema bridge (the differentiator)
 
-- **Exact path** (`pydantree_sitter.schema.derive_from_ir(model)`): a faithful port of
-  the CLI's node-types derivation — reachability pruning, aliases-by-symbol,
-  hidden-rule inherit steps, supertype handling, STRING-only anonymous kinds.
-  Byte-for-byte with CLI 0.25.3's node-types.json over rust/python/markdown/
-  markdown-inline (hermetic tests in `tests/test_schema.py`).
-- **Community path** (`pydantree_sitter_grammar.schema_tool.derive_schema_for_dir`): run
-  the CLI over a grammar source dir (accepts the standard `src/grammar.json`
-  community layout), derive from the produced `node-types.json`. One command;
-  `build_community_bundle` goes all the way to a shippable bundle.
+- **One source** (014 refactor D3): the schema IS the CLI's `node-types.json`
+  byproduct. A B-built bundle's `node-schema.json` is the generate run's
+  `node-types.json` copied byte-for-byte (tested as a by-construction
+  contract in `tests/test_pipeline.py`); the community path
+  (`pydantree_sitter_grammar.schema_tool.derive_schema_for_dir`) runs the CLI
+  over a grammar source dir (accepts the standard `src/grammar.json`
+  community layout) and derives from the produced `node-types.json`. The
+  `node_types.rs` hand-port (`_ir_derive`) is deleted.
 - **The checks (Jobs 1/3/4)**: A's `validate_with(language, schema=...)`
   runs model↔grammar (path/fields against the schema), value-shape
   derivation, and capture↔type checks before any text is parsed. The schema
@@ -152,8 +152,8 @@ Grammar DSL -> IR (grammar.json) -> tree-sitter generate -> src/parser.c
 
 ```
 src/pydantree_sitter/
-  schema.py          NodeSchema, NodeTypeInfo, derive_from_ir, derive_from_node_types
-  _ir_derive.py      the exact-path derivation (the node_types.rs port)
+  schema.py          NodeSchema, NodeTypeInfo, derive_from_node_types
+                     (the schema IS the CLI byproduct; the _ir_derive port is deleted)
   loader.py          load_grammar_so, load_bundle, the wasm dispatch + error
                      (the probe bridge moved to .scratch/projects/009-phase7/)
 src/pydantree_sitter/
