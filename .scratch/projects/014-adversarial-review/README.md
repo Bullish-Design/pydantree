@@ -6,6 +6,11 @@ codebase possible".
 
 ## Contents
 
+- **`REFACTOR_GUIDE.md`** — the implementation plan that followed the review
+  and the conceptual re-assessment: decision log (D1-D14, incl. the
+  `pydantree-sitter` naming, the two-package fold, and deleting the
+  `node_types.rs` port), target end-state, phases 0-9 with per-phase gates,
+  finding→step traceability, and final grep gates.
 - **`REVIEW.md`** — the review. Verdict + top-10, concept critique (C1-C6),
   architecture critique (§2, incl. the `BoundExtractor` proposal and the
   seam-inversion fix), ranked findings for A (F-A1..14), B (F-B1..13),
