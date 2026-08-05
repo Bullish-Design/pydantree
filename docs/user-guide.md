@@ -20,16 +20,17 @@ model↔grammar and capture↔type checks run **before any text is parsed**.
 
 ```bash
 # A (consumption) — light: no toolchain
-uv pip install pydantree-sitter pydantree-sitter
+uv pip install pydantree-sitter
 uv pip install tree-sitter-json tree-sitter-python   # community grammars
 
 # B (authoring) — heavy: needs the tree-sitter CLI + a C compiler at build time
 uv pip install pydantree-sitter-grammar
 ```
 
-The distributions are pydantree-branded; the import packages stay
-`pydantree_sitter` / `pydantree_sitter` / `pydantree_sitter_grammar`. A never imports B: `import pydantree_sitter_grammar`
-fails in a light install (the seam is enforced at install time).
+The distributions are the collision-proof pydantree-sitter names; the import
+packages are `pydantree_sitter` / `pydantree_sitter_grammar`. A never imports
+B: `import pydantree_sitter_grammar` fails in a light install (the seam is
+enforced at install time).
 
 ---
 
@@ -48,7 +49,9 @@ class Assignment(OutputModel):
     value: Annotated[int, NodeKind("integer")] = capture("right")
     line: int = source_meta()
 
-rows = Assignment.extract(source_text, language=tree_sitter_python)
+lang = Language.from_module(tree_sitter_python)
+rows = lang.extractor(Assignment).extract(source_text)   # checks run here, once
+rows = Assignment.extract(source_text, language=lang)    # sugar
 # [Assignment(name='x', value=42, line=3), ...]
 ```
 
@@ -59,8 +62,10 @@ rows = Assignment.extract(source_text, language=tree_sitter_python)
   field name.
 - `source_meta()` injects the anchor's source position: `int` → 1-based line,
   `Span` → full byte span.
-- A field WITHOUT a capture and without a default always raises
-  `ValidationError` (a model warning tells you at class creation).
+- An unmarked field is BOUND BY NAME in both modes (record mode: the record
+  key; field mode: the CST field). A COMPUTED field is the marked case:
+  `source: str = derived("spike")` (or bare `derived()` for an absent
+  field) — a derived() field with no value raises at bind with a warning.
 
 **Descendant matching:** `"..."` in the path matches any depth —
 `M("module", ..., "call")` is every call anywhere under a module.
@@ -83,6 +88,7 @@ class Call(OutputModel):
 | `Annotated[T, AnyOf(a, b)]` | `(#any-of? @cap a b)` |
 | `Annotated[T, NodeKind("integer")]` | constrain the matched node kind (tuple = alternation); schema-checked |
 | `Annotated[str, Unescaped()]` | decode the string literal's escapes (JSON-first) — the schema check requires a string-wrapper shape |
+| `= derived(value)` | a COMPUTED field — excluded from the query, materialized from the given value (D4.1: unmarked = bind-by-name) |
 | `str \| None = capture(...)` | **optional capture**: matches WITHOUT the field still materialize (None) — a field-mode capture is query-optional iff the model can materialize without it |
 | `list[T] = capture("field")` | **field-mode list**: merge the repeated field's matches across the shared anchor (the repeated field must sit ON the anchor node) |
 | nested `OutputModel` | a field typed as another `OutputModel` materializes the nested node with the inner model |
@@ -106,35 +112,39 @@ rows = ServerSection.extract(corpus, language=lang)
 
 - The record node is the anchor; the capture name = the record key (attr
   name, or `capture("key")` for an override).
-- The value shape is DERIVED from the grammar's schema (the JSON-v1 hardcoded
-  map is the fallback when no schema is bound).
+- The value shape comes from a `ValueMap` (D6): the JSON builtin for the JSON
+  family / a bundle's `value_map` metadata / your explicit `value_map=`.
+  `propose_value_map(schema)` generates a REVIEWED DRAFT (never silent
+  inference); record mode over a non-JSON grammar without a map is a
+  bind-time `ShapeError`.
 - A predicate field that does not match filters the WHOLE record (like the
   field-mode query engine).
 - Nested `OutputModel` fields materialize nested records.
 
 ### 2.4 Schemas: the checks run before the parse
 
-Bind a node-schema and `validate_with` runs Jobs 1/3/4 (model↔grammar,
-value-shape derivation, capture↔type) at bind time — before any text:
+Binding runs Jobs 1/3/4 (model↔grammar, value-shape derivation,
+capture↔type) at bind time — before any text:
 
 ```python
 from pydantree_sitter import Language
 
 # over a bundle (grammar.so + node-schema.json + metadata + loader)
 lang = Language.load_bundle("dist/cfg-bundle")     # one call, checks bound
-ServerSection.validate_with(lang)                  # schema checks, no parse yet
-rows = ServerSection.extract(corpus, language=lang)
+ext = lang.extractor(ServerSection)                # ALL checks run here, once
+rows = ext.extract(corpus)
 
 # over a bare community wheel: attach the schema explicitly
 schema = "node-schema.json"                        # path, dict, or NodeSchema
 lang = Language.load(tree_sitter_python.language(), schema=schema)
 ```
 
-The schema is bound to the Language INSTANCE (a nameless language is refused
-registration; `register=True` opts into a name-keyed convenience).
-
-Community grammars ship no schema — see §4 (the community tool derives one
-from the grammar source) or `pydantree_sitter.schema` directly.
+The compiled state lives on the Language instance, keyed by (model, strict)
+— no class-level caches, no global registry (D5): a model bound against a
+SECOND language re-checks (a silent cross-language result is impossible).
+The JSON-family check is an exact kind-set check; record mode over a
+non-JSON grammar needs a ValueMap (`propose_value_map` draft or a bundle
+`value_map` entry). Community grammars ship no schema — see §4.
 
 ### 2.5 The rest of the A surface
 
@@ -147,15 +157,15 @@ lang.reparse(old_tree, new)  # incremental reparse (0.26 wrapped)
 
 OutputModel.extract_tree(tree, ...)      # parse once, extract many models
 OutputModel.compiled_source(...)         # the derived .scm (diagnostics)
-OutputModel.validate_with(language, schema=...)   # schema checks early
+ext.query_source                         # the bound query (diagnostics)
 ```
 
-Errors: `ExtractionError` carries one `MatchFailure` per failed match
-(pattern, anchor span, snippet, pydantic errors); `CoercionError` /
-`AmbiguousCaptureError` / `UnsupportedShapeError` / `SchemaCheckError` are
-the typed failure classes.
+Errors (the taxonomy, §1.3): `ExtractionError` carries one `MatchFailure`
+per failed match (pattern, anchor span, snippet, pydantic errors);
+`AmbiguousCaptureError` / `ShapeError` / `SchemaCheckError` /
+`QueryBuildError` / `BundleError` are the typed failure classes.
 
-### 2.6 Job-2 stubs (typed node access)
+### 2.6 Typed CST codegen (typed node access)
 
 Generate a `.pyi` beside the schema — per named kind: field accessors,
 `get(field)` overloads, `children(kind)` overloads, supertype aliases:
@@ -223,8 +233,9 @@ assert not tg.errors(g), issues
 | `tg.prec(n, x)` / `tg.prec_left` / `tg.prec_right` / `tg.prec_dynamic` | precedence |
 
 Rule flags: `hidden=True` (`_name`), `inline=True`, `supertype=True`,
-`alias=`, `word=True` (also the grammar's word token), `ambiguous=True`
-(opt into an intentional GLR ambiguity — the dangling-else shape).
+`word=True` (also the grammar's word token), `ambiguous=True` (opt into an
+intentional GLR ambiguity — the dangling-else shape). Rule-level `alias=`
+was DELETED (F-B1): `tg.alias(...)` is the one way.
 Grammar methods: `g.start(name)`, `g.word(name)`, `g.extra(rule)`,
 `g.external(tg.tok("NEWLINE"), ...)`, `g.conflict("a", "b")`,
 `g.precedence("+", "*")` (a `Ladder` for expression grammars),
@@ -320,22 +331,27 @@ bundle = result.package("dist/cfg-bundle")   # grammar.so + node-schema.json
 lang = Language.load_bundle("dist/cfg-bundle")
 ```
 
+`package(..., typed_api=True)` also drops `typed_api.py` — REAL typed CST
+accessors generated from the schema (D7).
+
 ### 3.8 Community grammars (the schema tool)
 
 A community grammar wheel ships no schema. Derive one from the grammar
 SOURCE (a repo checkout with `src/grammar.json` — the standard layout):
 
 ```python
-from pydantree_sitter_grammar.schema_tool import build_community_bundle
-build_community_bundle("tree-sitter-rust-checkout", "dist/rust-bundle",
-                       name="rust")
-# -> the same 4-file bundle, schema derived from the CLI's node-types.json
+from pydantree_sitter_grammar.pipeline import build_from_source_dir, write_bundle
+result = build_from_source_dir("tree-sitter-rust-checkout", name="rust")
+bundle = write_bundle(result, "dist/rust-bundle")
+# -> the same 4-file bundle, schema = the CLI's own node-types.json byproduct
 
 from pydantree_sitter_grammar.schema_tool import derive_schema_for_dir
 schema = derive_schema_for_dir("tree-sitter-json-checkout", out="node-schema.json")
 ```
 
 CLI form: `python -m pydantree_sitter_grammar.schema_tool <grammar-dir> [-o out.json] [-n name]`.
+The community path never touches the author's checkout (work happens in the
+pipeline cache).
 
 ---
 
@@ -379,7 +395,9 @@ class Value(Supertype):                      # flag as a base class
     __body__ = tg.choice(R(String), R(Number), tg.ref("with_expr"))
 
 def build() -> tg.Grammar:
-    return assemble("devenv", start=SourceFile)
+    import sys
+    return assemble("devenv", start=SourceFile,
+                    rules=module_rules(sys.modules[__name__]))
 ```
 
 **The kinds (the base-class list IS the flag list):** body kinds `Rule`
@@ -419,11 +437,14 @@ the tree-sitter lexer subset: `ident(hyphen=)`, `integer()`, `quoted()`,
 `slug()`, `path_literal()`, `dotted_path()`, `rest_of_line()`.
 
 **Naming and rules of the road:** the rule name is snake_case of the class
-name — override a builtin collision with `__rule_name__` (`class ListRule(Rule)`
-with `__rule_name__ = "list"`). Rule classes are module-level declarations in
-the module that defines the start class (imported rule classes count);
-rules are assembled in definition order, externals before their rules (the
-scanner's expected order).
+name (acronym-aware, F-B4) — override a builtin collision with
+`__rule_name__` (`class ListRule(Rule)` with `__rule_name__ = "list"`).
+`assemble(name, *, start, rules=...)` takes the EXPLICIT class list (D9):
+its order is load-bearing (rule order, and externals order — externals must
+precede their rules in the scanner's expected order). `module_rules(module)`
+collects the classes DEFINED IN a module (imported classes are excluded —
+the silent-join bug died); function-local rule classes work with an
+explicit list.
 
 **When to use which surface:** rule classes for data-shaped rules (what
 Product A's field/record mode consumes) — the annotation form reads as its
@@ -435,7 +456,7 @@ control — it is the escape hatch `__body__` opens into.
 **The byte-identity gate (the discipline):** the class surface is sugar over
 the builder, and the suite enforces it — `tests/test_rules.py`
 `test_gate_devenv_class_grammar_identical_to_builder_dsl` asserts the
-class-authored devenv grammar (`tests/fixtures/devenv_classes_grammar.py`)
+class-authored devenv grammar (`tests/fixtures/devenv_builder_dsl_grammar.py`)
 emits grammar.json DEEP-EQUAL to the builder-DSL spelling
 (`examples/devenv-subset/grammar.py`). Any mapping row (field placement,
 token wrapping, flag reading, helper output) that drifts from the DSL's IR
@@ -467,8 +488,8 @@ class ServerSection(OutputModel):
     debug: bool = False
     line: int = source_meta()
 
-ServerSection.validate_with(lang)          # checks active before parsing
-rows = ServerSection.extract(text, language=lang)
+ext = lang.extractor(ServerSection)        # checks active before parsing
+rows = ext.extract(text)
 ```
 
 **Consume a community grammar (A only, no B anywhere):**
@@ -496,7 +517,9 @@ rows = RustFn.extract(rs_source, language=tree_sitter_rust)
 | model path/field impossible in the grammar | `SchemaCheckError` at `validate_with`, before parsing |
 | capture type not producible by the kind | `SchemaCheckError` |
 | a capture matches several nodes for a scalar | `AmbiguousCaptureError` |
-| a type with no value shape | `UnsupportedShapeError` |
+| a type with no value shape (record mode, or a non-JSON grammar without a ValueMap) | `ShapeError` |
+| a raw query's unknown capture / rejected .scm | `SchemaCheckError` / `QueryBuildError` |
+| bundle metadata missing/invalid or an unknown bundle_format | `BundleError` |
 | one or more matches fail to materialize | `ExtractionError` (per-match `MatchFailure`s) |
 | a bundle's artifact is a `.wasm` with no runtime | `WasmRuntimeUnavailableError` (see the wasm verdict in `docs/architecture.md` §3.1) |
 

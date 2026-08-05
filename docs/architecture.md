@@ -1,9 +1,11 @@
-# pydantree — architecture & codebase map
+# pydantree-sitter — architecture & codebase map
 
 This is the working reference for developers new to the codebase. For the
 full design argument (why two libraries, the build order, the risks) read
-`../.scratch/projects/002-pydantic-treesitter/CONCEPT.md` first. Each phase's findings
-(`../.scratch/projects/00X-*/FINDINGS.md`) add the "what changed and why" record.
+`../.scratch/projects/002-pydantic-treesitter/CONCEPT.md` first (its dated
+addendum records the 014 decisions D1–D14). Each phase's findings
+(`../.scratch/projects/00X-*/FINDINGS.md`) add the "what changed and why"
+record.
 
 ---
 
@@ -11,15 +13,15 @@ full design argument (why two libraries, the build order, the risks) read
 
 ```
  Product B (author)                          Product A (consume)
- pydantree_sitter_grammar (HEAVY)                           pydantree_sitter (LIGHT)
-   Grammar DSL -> grammar.json                  OutputModel class
-   -> tree-sitter generate -> parser.c            |  __match__ = M(...)
-   -> gcc -> grammar.so                          \|/
-   -> derive schema -> node-schema.json     typed rows, checks before parse
+ pydantree_sitter_grammar (HEAVY)            pydantree_sitter (LIGHT)
+   Rule classes / Grammar DSL -> grammar.json   OutputModel class
+   -> tree-sitter generate -> parser.c           |  __match__ = M(...)
+   -> gcc -> grammar.so                         \|/
+   -> node-schema.json (the CLI byproduct)  typed rows, checks at bind
         |                                        /|\
         +------->  the BUNDLE (4 files) <--------+  Language.load_bundle(dir)
                           |
-                     pydantree_sitter (TINY, shared):
+                     pydantree_sitter (LIGHT, the one package):
                      the node-schema format + the artifact-loading contract
 ```
 
@@ -27,176 +29,174 @@ full design argument (why two libraries, the build order, the risks) read
   never seen. Field names/types/defaults + a one-line `__match__` ancestor
   path declare both the pattern and the output type.
 - **B is heavy on purpose**: the Rust CLI + C compiler are B's problem; a
-  consumer of A never resolves them (proven at the install boundary, Phase 6).
-- **The bridge is the differentiator**: `pydantree_sitter` derives a node-schema from
-  the grammar, and A runs model↔grammar + capture↔type checks against it
-  *before any text is parsed*.
+  consumer of A never resolves them (proven at the install boundary).
+- **The bridge is the differentiator**: the schema IS the CLI's
+  `node-types.json` byproduct (tracked by construction, D3), and A runs
+  model↔grammar + capture↔type checks at **bind time** — `lang.extractor(Model)`
+  — before any text is parsed.
 
-## 2. The three packages
+## 2. The two packages
 
 All under `src/`, each with its own `pyproject.toml` (the "pyproject per
-package" layout — see §4 of development.md). The import packages are
-`pydantree_sitter` / `pydantree_sitter` / `pydantree_sitter_grammar`; the PyPI distribution names are
-pydantree-branded (`pydantree-sitter`, `pydantree-sitter`,
-`pydantree-sitter-grammar`) because the bare `pydantree_sitter` name is taken on PyPI.
+package" layout — see §4 of development.md). Import packages
+`pydantree_sitter` / `pydantree_sitter_grammar`; PyPI names
+`pydantree-sitter` / `pydantree-sitter-grammar` (collision-proof, D1).
 
 | package | weight | contents | depends on |
 |---|---|---|---|
-| `pydantree_sitter` | tiny, pure Python | the node-schema format (`schema.py` — the schema IS the CLI byproduct; the `_ir_derive` port was deleted in the 014 refactor), the artifact-loading contract (`loader.py` incl. the wasm seam — the probe bridge moved to `.scratch/projects/009-phase7/`) | pydantic, tree-sitter |
-| `pydantree_sitter` (A) | light | `spec.py` (MatchSpec), `binding.py` (Language/Extractor), `compiler.py`, `emit.py`, `match.py`, `materialize.py`, `valuemap.py`, `codegen.py` (real typed CST accessors) | pydantic, tree-sitter |
-| `pydantree_sitter_grammar` (B) | heavy | `grammar.py` (IR), `builder.py` (the DSL), `checks.py` (static analysis), `conflicts.py` (GLR conflict remapping), `expressions.py` (precedence ladders), `corpus.py` (the corpus harness), `pipeline.py` (generate → gcc → bundle), `schema_tool.py` (community grammars), `scanners/` (the scanner library) | pydantree_sitter, pydantic, tree-sitter, **plus the CLI + gcc at build time** |
+| `pydantree_sitter` | light | `schema.py` (NodeSchema — the byproduct format), `loader.py` (the loading contract + bundle_format), `markers.py` (inert markers), `spec.py` (MatchSpec + OutputModel), `binding.py` (Language/Extractor), `compiler.py` (the ONE compiler), `emit.py` (internal .scm emitter), `match.py` (the ONE ancestor matcher), `materialize.py` (one kwargs builder), `valuemap.py` (ValueMap + propose_value_map), `codegen.py` (real typed CST accessors), `errors.py` (the taxonomy) | pydantic, tree-sitter |
+| `pydantree_sitter_grammar` | heavy | `ir.py` (GrammarModel — the grammar.json mirror), `builder.py` (the DSL), `rules.py` (the rule-class surface + assemble/module_rules), `checks.py` (static analysis), `conflicts.py` (GLR conflict remapping), `expressions.py` (precedence ladders), `corpus.py` (the corpus harness), `pipeline.py` (generate → gcc → bundle; write_bundle; build_from_source_dir), `scanners/` (the scanner library) | pydantree-sitter, pydantic, tree-sitter, **plus the CLI + gcc at build time** |
 
 The root `pyproject.toml` is the uv-workspace + dev-tooling envelope only
-(the legacy `src/pydantree` island and the root distribution were deleted in
-the 014 refactor Phase 1).
+(the legacy island and the root distribution were deleted in the 014
+refactor Phase 1).
 
-## 3. The three seams (what the project has proven)
+## 3. The seams (what the project has proven)
 
-1. **The install boundary** (Phase 6, GO): a fresh venv with only the light
-   wheels runs the full checked extraction; `import pydantree_sitter_grammar` fails (the
-   seam does not leak). The heavy wheel carries the scanner package data;
-   the light wheels never resolve B's toolchain.
-2. **The artifact boundary** (Phase 5/6, GO): the **bundle** is one artifact
-   + one loading contract —
+1. **The install boundary** (GO): a fresh venv with only the light wheel
+   runs the full checked extraction; `import pydantree_sitter_grammar` fails
+   (the seam does not leak). The heavy wheel carries the scanner package
+   data and depends on the light package (A never imports B).
+2. **The artifact boundary** (GO): the **bundle** is one artifact + one
+   loading contract —
 
    ```
    bundle/
      grammar.so          the compiled parser (export tree_sitter_<name>)
-     node-schema.json    the derived bridge artifact
-     tree-sitter.json    metadata: {name, artifact, schema, abi, toolchain}
-     loader.py           a 7-line shim -> pydantree_sitter.loader.load_bundle
+     node-schema.json    the CLI byproduct (D3)
+     tree-sitter.json    metadata: {bundle_format, name, artifact, schema,
+                          abi, toolchain, value_map?}
+     loader.py           a thin shim -> pydantree_sitter.loader.load_bundle
    ```
 
-   `pydantree_sitter.Language.load_bundle(dir)` is the one-line consumer. The `.so`
-   is loaded via a PyCapsule named `"tree-sitter.Language"`; integer-pointer
-   loading is deprecated in 0.26.
-3. **The grammar-ownership boundary** (Phase 6, GO; 014 refactor D3): the
-   schema IS the CLI's `node-types.json` byproduct, tracked by construction —
-   a B-built bundle's `node-schema.json` is the generate run's
-   `node-types.json` copied byte-for-byte, and the community path
-   (`pydantree_sitter_grammar.schema_tool`) derives from the same CLI
-   byproduct. The `node_types.rs` hand-port (`_ir_derive`) was deleted in the
-   014 refactor: the schema has exactly one source.
+   `Language.load_bundle(dir)` is the one-line consumer (keeps the .so lib
+   alive, F-A10). `bundle_format` versions the contract (D12): absent = 1
+   (accepted); unknown >2 = `BundleError` naming both versions.
+3. **The grammar-ownership boundary** (GO, D3): the schema IS the CLI's
+   `node-types.json` byproduct — a B-built bundle's `node-schema.json` is the
+   generate run's `node-types.json` copied byte-for-byte, and the community
+   path (`build_from_source_dir`) derives from the same CLI byproduct. The
+   `node_types.rs` hand-port is deleted: the schema has exactly one source.
 
-### 3.1 The wasm seam (Phase 7, assessed)
+### 3.1 The wasm seam (assessed)
 
-A bundle's metadata may name a `.wasm` artifact. `pydantree_sitter.loader` dispatches
-on the extension: without a wasm-capable runtime it raises
-`WasmRuntimeUnavailableError` (the exact state of the path); with the
-probe's runtime wired (env-pointed `TSGRAMMAR_WASM_LIB` /
-`TSGRAMMAR_WASMTIME_LIB`) it loads through a real wasmtime bridge. The
-verdict: **wasm works** (measured 1.6× the native parse cost over rust) but
-is **not worth A's dependency budget** — py-tree-sitter 0.26 has no wasm
-store, so a wasm load means forking the binding, not pinning a package.
-Per-platform native wheels carry the portability story. See
+A bundle's metadata may name a `.wasm` artifact. `pydantree_sitter.loader`
+dispatches on the extension and raises `WasmRuntimeUnavailableError`
+unconditionally: the probe bridge moved out of the shipped seam
+(`.scratch/projects/009-phase7/wasm_bridge.py`), and a wasm load means
+forking the binding (py-tree-sitter 0.26 has no wasm store), not pinning a
+package. Per-platform native wheels carry the portability story. See
 `../.scratch/projects/009-phase7/FINDINGS.md`.
 
 ## 4. The pipeline (B's build)
 
 ```
-Grammar DSL -> IR (grammar.json) -> tree-sitter generate -> src/parser.c
+Grammar -> IR (grammar.json) -> tree-sitter generate --json -> src/parser.c
    (+ scanner.c) -> gcc -O2 -fPIC -shared -> name.so
 ```
 
-- `pydantree_sitter_grammar.pipeline.build(model, scanner=...)` — content-addressed cache
+- `pipeline.build(model, scanner=..., check=True)` — content-addressed cache
   keyed on `sha256(grammar.json) + scanner.c digest + toolchain version`;
-  on a hit it skips generate+gcc entirely. `build_builder` wraps it for the
-  DSL and remaps generator conflicts to the author's per-production DSL
-  sites (`GrammarConflictError`). `build_loop` is the fix-one-rerun loop:
-  it yields each conflict error (naming the DSL site + the generator's
-  suggested fix), calls your `fix(error, g)`, and re-runs.
+  on a hit it skips generate+gcc entirely. `check=True` (default, D10) runs
+  the static analyzer first. `build_builder` wraps it for the DSL and remaps
+  generator conflicts from the SAME run's `--json` stderr to the author's
+  per-production DSL sites (`GrammarConflictError`). `build_loop` is the
+  fix-one-rerun loop.
+- `build_from_source_dir(src_dir)` — a community grammar source dir through
+  the same pipeline (check=False — community grammars aren't ours to
+  analyze; never touches the author's checkout). `write_bundle(result, dir)`
+  is the ONE bundle writer.
 - **ABI facts**: the CLI needs a `tree-sitter.json` with
   `{"metadata": {"version": "0.1.0"}}` to emit ABI 15 (else ABI 14 — still
-  loads; bindings 0.26 accept ABI 13–15).
+  loads; bindings 0.26 accept ABI 13–15). The bundle's `abi` metadata reads
+  `tree_sitter.LANGUAGE_VERSION` when available (env as override only).
 - **Errors**: `GenerateError` / `CompileError` carry the raw subprocess
   output; `ExternalScannerRequiredError` fires BEFORE gcc's link failure when
   a grammar declares externals but no scanner was supplied.
-- `BuildResult.package(dir)` produces the 4-file bundle.
 
 ## 5. The schema bridge (the differentiator)
 
-- **One source** (014 refactor D3): the schema IS the CLI's `node-types.json`
-  byproduct. A B-built bundle's `node-schema.json` is the generate run's
-  `node-types.json` copied byte-for-byte (tested as a by-construction
-  contract in `tests/test_pipeline.py`); the community path
-  (`pydantree_sitter_grammar.schema_tool.derive_schema_for_dir`) runs the CLI
-  over a grammar source dir (accepts the standard `src/grammar.json`
-  community layout) and derives from the produced `node-types.json`. The
-  `node_types.rs` hand-port (`_ir_derive`) is deleted.
-- **The checks (Jobs 1/3/4)**: A's `validate_with(language, schema=...)`
-  runs model↔grammar (path/fields against the schema), value-shape
-  derivation, and capture↔type checks before any text is parsed. The schema
-  is bound to a `Language` INSTANCE (Phase 6: the old name-keyed registry
-  leaked a bound schema into every later schema-less consumer; a nameless
-  language is refused registration — `register=True` opts into the
-  name-keyed convenience).
+- **One source** (D3): the schema IS the CLI's `node-types.json` byproduct.
+  A B-built bundle's `node-schema.json` is the generate run's
+  `node-types.json` copied byte-for-byte (a by-construction contract, pinned
+  in `tests/test_pipeline.py`); the community path runs the CLI over a
+  grammar source dir (accepts the standard `src/grammar.json` community
+  layout). `NodeSchema.from_node_types_json` / `derive_from_node_types` are
+  the only parse path.
+- **The bind (D5)**: `lang.extractor(Model)` runs all checks once —
+  model↔grammar path/capture checks, capture↔type checks (ValueMap-backed
+  kind ladder), and value-shape resolution — and compiles the query against
+  THAT language. The compiled state lives on the Language instance, keyed by
+  (model, strict): no class-level caches, no global registry (F-A1's silent
+  cross-language cache is impossible by construction).
+- **Value shapes (D6)**: record-mode shapes consume ONLY (schema, ValueMap).
+  `propose_value_map(schema)` is the draft generator (reviewed, committed —
+  never silent inference); `JSON_VALUE_MAP` is the schema-less JSON family.
 
 ## 6. The external-scanner mechanism (summary — full contract in
 [scanner-library.md](scanner-library.md))
 
-- A grammar declares externals (`g.external(tg.tok("NEWLINE"), ...)`) and the
-  build takes `scanner=<path to scanner.c>`. Externals without a scanner →
-  `ExternalScannerRequiredError`; the cache key content-addresses the
-  scanner.c.
-- Library table: `pydantree_sitter_grammar.scanner_for(name)` → the canonical scanner path.
-  Five seeds: `indent_scanner.c` (pymini), `heredoc_scanner.c` (hmini),
-  `matched_delimiter_scanner.c` (dmini), `py_indent_scanner.c` (pyindent —
-  real Python logical-line semantics), `bash_heredoc_scanner.c` (bashmini —
-  the multi-heredoc pending queue).
+- A grammar declares externals and the build takes `scanner=<path to
+  scanner.c>`; the cache key content-addresses the scanner.c.
+- Library table: `scanner_for(name)` → the canonical scanner path. Five
+  seeds: `indent_scanner.c` (pymini), `heredoc_scanner.c` (hmini),
+  `matched_delimiter_scanner.c` (dmini), `py_indent_scanner.c` (pyindent),
+  `bash_heredoc_scanner.c` (bashmini).
 - Two gotchas (proven facts, design for them): the lexer calls the scanner
   **mid-whitespace** (skip it first), and **multiple externals can be valid
-  in one parser state** (the source disambiguates — a `<` is always a
-  heredoc START).
+  in one parser state** (the source disambiguates).
 
 ## 7. Module map (where the code lives)
 
 ```
 src/pydantree_sitter/
+  markers.py         the inert markers (M, capture/capture_kind/source_meta/
+                     derived, Matches/Eq/AnyOf/NodeKind/Unescaped, RawQuery)
+  spec.py            MatchSpec + derive_spec + OutputModel/DerivingMeta
   schema.py          NodeSchema, NodeTypeInfo, derive_from_node_types
-                     (the schema IS the CLI byproduct; the _ir_derive port is deleted)
-  loader.py          load_grammar_so, load_bundle, the wasm dispatch + error
-                     (the probe bridge moved to .scratch/projects/009-phase7/)
-src/pydantree_sitter/
-  typed.py           OutputModel, M, capture/capture_kind/source_meta, Language,
-                     the markers (Matches/Eq/AnyOf/NodeKind/Unescaped), checks
-  dsl.py             the internal query builder (node/cap/Query) — NOT public
-  materialize.py     Span, coercion, diagnostics, failures
-  shapes.py          the record value-shape derivation
-  schema.py          schema_derive (Jobs 1/3/4 over the bound schema)
+                     (the schema IS the CLI byproduct)
+  loader.py          load_grammar_so, load_bundle (bundle_format), the wasm
+                     dispatch + error
+  valuemap.py        ValueMap + JSON_VALUE_MAP + propose_value_map
+  compiler.py        the ONE compiler: MatchSpec + Language -> _Compiled
+                     (checks, shape inference, query emission plan)
+  emit.py            the internal .scm emitter (not public, D11)
+  match.py           the ONE ancestor-path matcher + anchor merge
+  materialize.py     the ONE kwargs builder, Span, unescape, MatchFailure
+  binding.py         Language + Extractor (the explicit bind, D5)
   codegen.py         generate_typed_api (REAL typed CST accessors, D7)
+  errors.py          the error taxonomy (§1.3)
 src/pydantree_sitter_grammar/
-  grammar.py         the IR models (GrammarModel mirror of grammar.json)
+  ir.py              the IR models (GrammarModel mirror of grammar.json)
+                     with the _site private attr (D8)
   builder.py         the author DSL (Grammar, rule/seq/choice/repeat/...,
-                     Ladder, prec*)
-  rules.py           the RULE-CLASS surface ("the model IS the rule"):
-                     Rule/Pattern/Token/External + the behavioral mixins,
-                     the metaclass registry (module-scoped), annotation
-                     compilation, assemble() — sugar that compiles into
-                     builder.py and touches nothing else
-  patterns.py        the regex-string helpers (ident/integer/quoted/slug/
-                     path_literal/dotted_path/rest_of_line) for __pattern__
+                     Ladder, prec*, caller_site/site_of)
+  rules.py           the RULE-CLASS surface (Rule/Pattern/Token/External +
+                     mixins, annotation compilation, assemble/module_rules)
+  patterns.py        the regex-string helpers for __pattern__
   checks.py          author-time static analysis (run_checks/errors/warnings)
   conflicts.py       generator conflict output -> per-production DSL sites
-                     (rule classes provide class + attribute sites)
   expressions.py     expression() + semantic_smoke + DEFAULT_PRECEDENCE_CORPUS
   corpus.py          Corpus/corpus_case + renderers + snapshots
-  pipeline.py        build/build_builder/build_loop, caching, bundles, errors
-  schema_tool.py     community schema path + build_community_bundle
+  pipeline.py        build/build_builder/build_loop, write_bundle,
+                     build_from_source_dir, caching, errors
   language.py        load_language / parse (the thin load wrapper)
   scanners/          the scanner library (five .c seeds + the table)
 tests/
-  conftest.py        resolves src/ first (the editable-staleness mitigation)
-  test_*.py          per-surface suites (see development.md)
+  conftest.py        src-first resolution + the toolchain marker + hermetic
+                     cache isolation
+  test_*.py          per-surface suites; tests/fixtures/ holds the promoted
+                     mini-grammars + consumers + evidence (PROVENANCE.md)
 .scratch/projects/00X-*/      per-phase explorations: FINDINGS.md + evidence/ + probes
-                     + the mini-grammars (pymini/hmini/dmini/pyindent/bashmini)
 ```
 
 ## 8. Durable facts (verified, do not re-derive)
 
 1. tree-sitter CLI **0.25.3**, bindings **0.26.0** (LANGUAGE_VERSION=15,
    MIN_COMPATIBLE=13), gcc **14.2.1**, pydantic **2.13.4**, Python 3.13.
-2. The bundle is one artifact + one loading contract (pydantree_sitter.loader +
-   `Language.load_bundle`).
+2. The bundle is one artifact + one loading contract (`pydantree_sitter.loader`
+   + `Language.load_bundle`); `bundle_format` 2 is the current, 1 is
+   accepted.
 3. The `.so` loads via a PyCapsule named `"tree-sitter.Language"`; the
    export symbol is `tree_sitter_<name>` (recorded in the bundle metadata).
 4. The indentation scanner's canonical cadence: mark_end before the loop,
@@ -205,25 +205,23 @@ tests/
 5. Two scanner gotchas: mid-whitespace scans; multiple externals valid in
    one parser state.
 6. Dev flow: no pip, uv only; the devenv manages the venv with `uv sync`
-   (uv workspace in `pyproject.toml`, `--no-install-workspace` so the src/*
-   members are never copied) and a `_pydantree_src.pth` resolves
-   pydantree_sitter / pydantree_sitter_grammar straight from `src/` — edits are live
-   immediately, staleness is impossible; `tests/conftest.py` resolves `src/`
-   first as belt-and-suspenders. `uv lock` after dependency changes.
-7. The exact-path derivation is byte-for-byte with CLI 0.25.3 over FOUR real
-   grammars — a newer CLI's node-types.json can drift (the community tool
-   path sidesteps this by using the installed CLI's own byproduct).
+   (uv workspace in `pyproject.toml`, `--no-install-workspace`) and a
+   `_pydantree_src.pth` resolves both packages straight from `src/` — edits
+   are live immediately; `tests/conftest.py` resolves `src/` first as
+   belt-and-suspenders. `uv lock` after dependency changes.
+7. The schema tracks the INSTALLED CLI's byproduct by construction (the
+   community tool uses the installed CLI's own node-types.json) — a newer
+   CLI can't silently drift from the schema.
 8. Wasm: real artifact + runtime + parse exist (Phase-7 evidence); the
-   verdict is no-go for A's dependency budget (binding fork + 16MB wasmtime
-   + 1.6× perf) — the loader seam is the extension point.
+   verdict is no-go for A's dependency budget — the loader seam raises the
+   clear error.
 
 ## 9. Where to start reading
 
-1. `../.scratch/projects/002-pydantic-treesitter/CONCEPT.md` — the whole idea.
-2. `src/pydantree_sitter/typed.py` module docstring — Product A's surface.
-3. `src/pydantree_sitter_grammar/__init__.py` — Product B's full public surface in one view.
+1. `../.scratch/projects/002-pydantic-treesitter/CONCEPT.md` — the whole idea
+   (the dated addendum records the 014 decisions).
+2. `src/pydantree_sitter/__init__.py` — Product A's public surface in one view.
+3. `src/pydantree_sitter_grammar/__init__.py` — Product B's public surface.
 4. `src/pydantree_sitter/loader.py` + `src/pydantree_sitter/schema.py` — the seam.
-5. `../.scratch/projects/009-phase7/FINDINGS.md` — the most recent verdicts (wasm +
-   the scanner library).
-6. `tests/test_scanners.py` + `tests/test_wasm.py` — how the newest surfaces
-   are pinned.
+5. `tests/test_oracles.py` + `tests/oracles/` — the observable-behavior
+   contract across the refactor.

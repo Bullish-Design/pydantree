@@ -59,40 +59,40 @@ predicate field that doesn't match filters the whole record.
 ```python
 from pydantree_sitter import Language
 lang = Language.load_bundle("dist/cfg-bundle")   # one call, checks bound
-ServerSection.validate_with(lang)                # Jobs 1/3/4, no text parsed
-rows = ServerSection.extract(text, language=lang)
+ext = lang.extractor(ServerSection)              # ALL checks run here, once
+rows = ext.extract(text)
 
 # bare community wheel + explicit schema:
 lang = Language.load(tree_sitter_rust.language(), schema="node-schema.json")
 ```
 
-The schema is bound to the Language INSTANCE (register=True opts into a
-name-keyed convenience; nameless languages are refused). Without a schema
-the derivation falls back to the schema-less path.
+The compiled state lives on the Language INSTANCE keyed by (model, strict)
+— no class-level caches, no global registry (D5); a model bound against a
+second language re-checks. Record mode over a non-JSON grammar needs a
+ValueMap (`propose_value_map` draft or a bundle `value_map` entry);
+schema-less record mode is the documented JSON family + `JSON_VALUE_MAP`.
 
 ## Other A surface
 
 - `lang.parse(src)` / `lang.reparse(old_tree, new)` — parse + incremental.
 - `OutputModel.extract_tree(tree, ...)` — parse once, extract many models.
 - `OutputModel.compiled_source(...)` — the derived .scm (diagnostics).
-- Job-2 stubs:
-  ```python
-  from pydantree_sitter.codegen import generate_typed_api
-  api_src = generate_typed_api(lang.schema, "mylang_api")  # REAL runtime classes
-  ```
+- Typed CST codegen (D7): `generate_typed_api(lang.schema, "mylang_api")` —
+  REAL runtime classes (the `.pyi` fiction is deleted).
 
 ## Errors
 
 `ExtractionError` (one `MatchFailure` per failed match: pattern, span,
-snippet, pydantic errors), `SchemaCheckError` (at validate_with, before
-parsing), `AmbiguousCaptureError`, `UnsupportedShapeError`,
-`CoercionError`, and `WasmRuntimeUnavailableError` for a `.wasm` bundle
-without the wasm runtime (see ../../docs/architecture.md §3.1).
+snippet, pydantic errors), `SchemaCheckError` / `ShapeError` /
+`QueryBuildError` (at bind, before parsing), `AmbiguousCaptureError`,
+`BundleError`, and `WasmRuntimeUnavailableError` for a `.wasm` bundle (the
+seam raises unconditionally — see ../../docs/architecture.md §3.1).
 
 ## Facts that matter
 
 - Community grammars ship no schema — derive one from the grammar source
-  with `pydantree_sitter_grammar.schema_tool` (B-side) or bind none (schema-less path).
+  with `pydantree_sitter_grammar.pipeline.build_from_source_dir` (B-side) or
+  bind none (schema-less path).
 - `tree-sitter>=0.26` is the floor (0.26-only APIs are used).
 - The light install (`pydantree-sitter`) never
   imports pydantree_sitter_grammar — `import pydantree_sitter_grammar` fails there by design.

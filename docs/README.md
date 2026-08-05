@@ -28,7 +28,7 @@ design argument). This directory is the working reference.
 ## For users (using the library in your own project)
 
 - [user-guide.md](user-guide.md) — install, Product A extraction
-  (`OutputModel`, captures, schemas, bundles, stubs), Product B authoring
+  (`OutputModel`, captures, schemas, bundles, typed-CST codegen), Product B authoring
   (the DSL, checks, the conflict loop, the corpus harness, packaging,
   community grammars, scanners).
 

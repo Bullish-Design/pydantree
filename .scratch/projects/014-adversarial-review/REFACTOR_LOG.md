@@ -268,3 +268,29 @@ cache).
 - **Gate greps:** no .scratch imports, no sys.path.insert in tests/ (the
   only mentions are conftest's own path setup and intentional error-message
   assertions).
+
+## Gate 8 — docs truth pass + rewrite
+
+- **Suite:** 233 passed.
+- **README.md** rewritten for the two-package layout, the new names, the
+  bind idiom, and the two honesty statements (§8.2: A's expressibility
+  ceiling — M() = anchored ancestor path + direct-child captures +
+  predicates, everything else -> `__raw_query__`; value shapes are declared
+  data — `propose_value_map` is a reviewed-draft generator).
+- **docs/architecture.md** rewritten: two packages, the seams, the
+  pipeline (--json always, check=True, write_bundle, build_from_source_dir),
+  the module map (markers/spec/binding/compiler/emit/match/materialize/
+  valuemap/codegen/errors + ir.py), durable facts (bundle_format, the ABI
+  from LANGUAGE_VERSION), where to start reading.
+- **docs/user-guide.md** truth pass: the extractor bind replaces
+  validate_with as the primary idiom, the registry text is gone, the
+  taxonomy (ShapeError/QueryBuildError/BundleError), alias= deleted,
+  assemble(rules=) + module_rules, the community tool at
+  pipeline.build_from_source_dir, typed_api=True bundle hook, the failure
+  surface.
+- **Truth sweep:** baseline counts (233), the §3.9 swapped-file description
+  (devenv_builder_dsl_grammar.py), docs/development.md (toolchain marker,
+  PYDANTREE_SITTER_CACHE, wasm error-only test), the extraction skill
+  regenerated for the new API. `grep tscore/tsquery/tsgrammar docs README
+  .agents` -> empty (the one README mention is the historical note).
+- **CONCEPT.md** gains the dated addendum recording D1–D14.

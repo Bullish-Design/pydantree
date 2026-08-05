@@ -1,7 +1,7 @@
 """The rule-class surface (`pydantree_sitter_grammar.rules`) — tests.
 
 The load-bearing test is THE GATE: the class-authored devenv grammar
-(`tests/fixtures/devenv_classes_grammar.py`) must emit grammar.json
+(`tests/fixtures/devenv_builder_dsl_grammar.py`) must emit grammar.json
 DEEP-EQUAL to the builder-DSL spelling (`examples/devenv-subset/grammar.py`).
 The surface is faithful sugar over the existing builder — any mapping row
 (field placement, token wrapping, flag reading, helper output) that drifts

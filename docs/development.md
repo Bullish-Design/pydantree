@@ -52,15 +52,17 @@ devenv shell -- python -m pytest tests/test_scanners.py -q
 devenv shell -- python -m pytest tests/test_wasm.py -q
 ```
 
-- The suite is the pinned record: 170 green + 1 skip (post Phase 7). The
-  count is captured in each phase's FINDINGS.
-- Tests that need the tree-sitter CLI / gcc skip themselves when the
-  toolchain is absent (`TOOLCHAIN_AVAILABLE` guards).
-- **test_wasm.py** has env-gated tests: with
-  `TSGRAMMAR_WASM_LIB`/`TSGRAMMAR_WASMTIME_LIB` set (the Phase-7 probe's
-  runtime) the real wasm load runs; without them it skips.
-- **The pipeline caches builds** under `~/.cache/pydantree_sitter_grammar` (override with
-  `TSGRAMMAR_CACHE`). A stale cache made from an older scanner/grammar is a
+- The suite is the pinned record: 233 green (post Phase 7). The count is
+  captured in each phase's FINDINGS and the refactor log.
+- Tests that need the tree-sitter CLI / gcc are marked `@pytest.mark.toolchain`;
+  a conftest auto-skip hook skips them when the toolchain is absent (the
+  toolchain-less run is all-skip, zero errors). Fast loop: `-m "not slow"`.
+- **test_wasm.py** pins the unavailable-error path only: a `.wasm` bundle
+  raises `WasmRuntimeUnavailableError` unconditionally (the probe bridge
+  moved to `.scratch/projects/009-phase7/wasm_bridge.py`).
+- **The pipeline caches builds** under `~/.cache/pydantree_sitter_grammar`
+  (override with `PYDANTREE_SITTER_CACHE`). Tests point it at a session tmp
+  dir (hermetic). A stale cache made from an older scanner/grammar is a
   classic "my fix doesn't work" gotcha — when iterating on a scanner, point
   `cache_dir=` at a fresh temp dir, or delete the cache entry.
 

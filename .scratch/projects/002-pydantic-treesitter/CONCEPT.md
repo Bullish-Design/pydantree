@@ -614,3 +614,30 @@ Ship A first over community grammars to prove bet 2
 and earn users cheaply; invest B's effort disproportionately in the GLR-ergonomics
 layer, because that — not the emitter, not the build pipeline — is the whole reason
 Product B deserves to exist.
+
+---
+
+# Addendum — the 014 refactor decisions (D1–D14)
+
+**Date:** 2026-08-05 · this addendum records the decisions of the adversarial
+review + refactor (`.scratch/projects/014-adversarial-review/`); the concept
+doc is the authoritative record and must not silently drift from the shipped
+design. The implementation lives in `pydantree_sitter` /
+`pydantree_sitter_grammar`.
+
+| # | Decision |
+|---|----------|
+| D1 | Name: **pydantree-sitter** (consumer, light) + **pydantree-sitter-grammar** (authoring, heavy); imports `pydantree_sitter` / `pydantree_sitter_grammar`. Collision-proof (the bare `tsquery`/`tscore` names are taken); two regular top-level packages, not a PEP-420 namespace split. |
+| D2 | Two packages, not three: the seam (schema + loader) folds into the light package; B depends on A (A never imports B). "The light package IS the seam." |
+| D3 | Delete the `node_types.rs` port (`_ir_derive`): the schema's ONLY source is the CLI's own `node-types.json` byproduct, tracked by construction. |
+| D4 | Product A: one matching machine — Model → MatchSpec → one compiler → one emitter → one backtracking ancestor matcher → one materializer. |
+| D5 | Explicit binding: `lang.extractor(Model)` runs all checks once; compiled state lives on the Language keyed by (model, strict). No class-level caches, no global registry. |
+| D6 | Value shapes are declared data (`ValueMap`), not name-regex inference; `propose_value_map` is the reviewed-draft generator only. |
+| D7 | Job-2 becomes real codegen: generated runtime wrapper classes (`.pyi` fiction deleted). |
+| D8 | B: provenance lives on the node (private, non-serialized `_site` stamped at construction); the site stores and the drain/snapshot dance are deleted. |
+| D9 | B: grammars are explicit objects — `assemble(name, *, start, rules=[...])`; `module_rules(module)` is the explicit sweep (imported classes excluded). Rule classes are the canonical authoring surface. |
+| D10 | `run_checks` is part of `build()` (check=True default); generate always runs with `--json` (one run); ONE bundle writer; the community tool merges into the pipeline. |
+| D11 | Escape hatch = `__raw_query__` (a literal `.scm`); the query DSL is not public. Sibling order/negation/multi-anchor joins are out of scope → raw query. |
+| D12 | Bundle metadata carries `bundle_format` (int): absent = 1, unknown >2 rejected legibly. |
+| D13 | Deletions: the legacy island (`src/pydantree`, `src/data`, `src/examples`), the root distribution, `_wasm_bridge.py` (→ scratch), `spike-a/`, `spike-a2/`, `KICKOFF_SPIKE.md`. |
+| D14 | Version reset: both dists start at 0.1.0; the PyPI names are registered before any other public step. |
