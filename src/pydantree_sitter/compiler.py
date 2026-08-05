@@ -82,7 +82,14 @@ class _Compiled:
 
 def compile_spec(model_cls, language, *, value_map: ValueMap) -> _Compiled:
     """Compile a model against a Language (all checks run HERE, once)."""
-    spec: MatchSpec = model_cls._match_spec
+    spec: MatchSpec | None = model_cls._match_spec
+    if spec is None:
+        # REVIEW 020: a subclass without __match__/__raw_query__ used to
+        # surface a raw AttributeError at bind; the metaclass now installs
+        # _match_spec = None so the FRIENDLY error is the one you see.
+        raise ShapeError(
+            f"{model_cls.__name__} is not an extraction model: it needs "
+            f"__match__ = M(...) (or __raw_query__ = RawQuery('...')).")
     schema = language.schema
 
     if spec.raw_query is not None:
@@ -130,6 +137,10 @@ def emitted_source(model_cls, schema=None, *, check: bool = False) -> str:
     very SchemaCheckError you called it to inspect; pass check=True to
     run the schema checks."""
     spec = model_cls._match_spec
+    if spec is None:
+        raise ShapeError(
+            f"{model_cls.__name__} is not an extraction model: it needs "
+            f"__match__ = M(...) (or __raw_query__ = RawQuery('...')).")
     compiled = _Compiled(model=model_cls, spec=spec, value_map=JSON_VALUE_MAP,
                          schema=schema, bindings=spec.bindings,
                          match_path=spec.path if spec.has_gap else None)
@@ -268,6 +279,35 @@ def _check_path(model_cls, spec: MatchSpec, schema) -> None:
 # field mode
 # ---------------------------------------------------------------------------
 
+def _field_quant(b: FieldBinding, annotation) -> str:
+    """The emitted quantifier for a field-mode capture: `?` for an optional
+    scalar AND for LIST fields (zero-or-more), "" otherwise (exactly one).
+
+    For a list field `?` means zero-or-more via the anchor-merge machinery
+    (A2/REVIEW 020): the repeated child is fielded, tree-sitter yields ONE
+    match per occurrence, and the matcher merges them by anchor — so an
+    anchor with NO occurrences still matches (a function with no args no
+    longer disappears; the old "" required exactly one and silently dropped
+    the whole row), while N occurrences collect all N. (`*` cannot be used:
+    tree-sitter captures only ONE node per `*`-quantified capture — verified
+    empirically.)"""
+    if get_origin(unwrap_optional(annotation)) is list:
+        return "?"
+    return "?" if b.optional else ""
+
+
+def _capture_spec(k: str, b: FieldBinding, vm):
+    """The captured node for a field-mode binding. A plain `str` field over a
+    string-WRAPPER kind captures the wrapper's INNER content (record mode's
+    shape — the value without quotes/escapes; REVIEW 020 minor); Unescaped()
+    captures the wrapper wholesale (the raw text, decoded at
+    materialization)."""
+    inner = vm.wrappers.get(k) if vm is not None else None
+    if inner and not b.unescape:
+        return node(k).child(node(inner).capture(b.name))
+    return node(k).capture(b.name)
+
+
 def _compile_field(compiled: _Compiled, language, *, check: bool = True) -> None:
 
     spec = compiled.spec
@@ -289,7 +329,7 @@ def _compile_field(compiled: _Compiled, language, *, check: bool = True) -> None
             field_kinds[b.name] = b.kinds
         elif schema is not None and b.source in ("cst_field", "child_kind"):
             field_kinds[b.name] = _infer_field_kind(
-                schema, compiled.value_map, anchor_kinds[0], b,
+                schema, compiled.value_map, anchor_kinds, b,
                 annotations[b.name])
         else:
             field_kinds[b.name] = ("_",)
@@ -301,11 +341,12 @@ def _compile_field(compiled: _Compiled, language, *, check: bool = True) -> None
             if b.is_meta:
                 continue
             k = chosen[b.name]
-            quant = "?" if b.optional else ""
+            quant = _field_quant(b, annotations[b.name])
             if b.source == "child_kind":
                 cur.child(node=node(b.key).capture(b.name), quant=quant)
             else:
-                cur.child(field=b.key, node=node(k).capture(b.name),
+                cur.child(field=b.key,
+                          node=_capture_spec(k, b, compiled.value_map),
                           quant=quant)
             for p in _preds_for(b):
                 cur.where(p)
@@ -317,7 +358,7 @@ def _compile_field(compiled: _Compiled, language, *, check: bool = True) -> None
     compiled.query = Query(*patterns)
     if schema is not None and check:
         _check_field_bindings(compiled.model, spec, schema,
-                              compiled.value_map, anchor_kinds[0],
+                              compiled.value_map, anchor_kinds,
                               bindings, annotations)
 
 
@@ -343,11 +384,16 @@ def _combinations(suffix: tuple, field_kinds: dict):
             yield tuple(step_combo), dict(zip(field_names, field_combo))
 
 
-def _infer_field_kind(schema, vm: ValueMap, anchor_kind: str, b: FieldBinding,
+def _infer_field_kind(schema, vm: ValueMap, anchor_kinds: tuple, b: FieldBinding,
                       annotation) -> tuple:
     """The schema-inferred kind: the single compatible kind (the §2.2 'int
-    defaults to numeric kinds' answer), else the wildcard."""
-    possible = _possible_for(schema, anchor_kind, b)
+    defaults to numeric kinds' answer), else the wildcard. With alternation
+    anchors the possible kinds are the UNION over all anchors (A4/REVIEW
+    020 — the old `anchor_kinds[0]`-only inference under-checked the second
+    alternative)."""
+    possible: set = set()
+    for anchor in anchor_kinds:
+        possible |= _possible_for(schema, anchor, b)
     compatible = {k for k in possible
                   if _kind_coerces(schema, vm, annotation, k)}
     if len(compatible) == 1:
@@ -364,33 +410,43 @@ def _possible_for(schema, anchor_kind: str, b: FieldBinding) -> set:
     return set()
 
 
-def _check_field_bindings(model_cls, spec, schema, vm: ValueMap, anchor_kind,
+def _check_field_bindings(model_cls, spec, schema, vm: ValueMap, anchor_kinds,
                           bindings, annotations) -> None:
+    """Job 3/4 for field mode. With alternation anchors EVERY anchor kind is
+    checked (one emitted pattern per kind — A4/REVIEW 020: the old
+    anchor_kinds[0]-only check let an invalid second alternative escape the
+    actionable SchemaCheckError and fail later as a raw QueryBuildError)."""
     for b in bindings:
         if b.is_meta:
             continue
         f = model_cls.model_fields[b.name]
         if b.source == "child_kind":
-            if b.key not in schema.possible_children(anchor_kind):
+            bad = [a for a in anchor_kinds
+                   if b.key not in schema.possible_children(a)]
+            if bad:
                 _raise(model_cls,
                        f"capture_kind({b.key!r}) on field {b.name!r}: kind "
-                       f"{b.key!r} cannot occur as a child of "
-                       f"{anchor_kind!r} in the grammar (possible children: "
-                       f"{sorted(schema.possible_children(anchor_kind))})",
-                       entry=f"{anchor_kind} -> {b.key}")
+                       f"{b.key!r} cannot occur as a child of {bad[0]!r} in "
+                       f"the grammar (possible children: "
+                       f"{sorted(schema.possible_children(bad[0]))})",
+                       entry=f"{bad[0]} -> {b.key}")
             _check_type(model_cls, schema, vm, b, f, {b.key},
-                        f"{anchor_kind} child {b.key}", field_mode=True)
+                        f"{anchor_kinds} child {b.key}", field_mode=True)
             continue
-        if not schema.has_field(anchor_kind, b.key):
+        missing = [a for a in anchor_kinds
+                   if not schema.has_field(a, b.key)]
+        if missing:
             _raise(model_cls,
                    f"capture({b.key!r}) on field {b.name!r}: kind "
-                   f"{anchor_kind!r} has no CST field {b.key!r} (its fields: "
-                   f"{sorted((schema.get(anchor_kind).fields or {}))})",
-                   entry=f"{anchor_kind}.{b.key}")
-        possible = schema.expand(r.type for r in
-                                 schema.field_types(anchor_kind, b.key))
+                   f"{missing[0]!r} has no CST field {b.key!r} (its fields: "
+                   f"{sorted((schema.get(missing[0]).fields or {}))})",
+                   entry=f"{missing[0]}.{b.key}")
+        possible: set = set()
+        for a in anchor_kinds:
+            possible |= schema.expand(r.type for r in
+                                     schema.field_types(a, b.key))
         _check_type(model_cls, schema, vm, b, f, possible,
-                    f"{anchor_kind}.{b.key}", field_mode=True)
+                    f"{anchor_kinds}.{b.key}", field_mode=True)
 
 
 def _check_type(model_cls, schema, vm: ValueMap, b, f, possible: set,
@@ -472,7 +528,10 @@ def _kind_coerces(schema, vm: ValueMap, target, kind: str) -> bool:
 # id() because NodeSchema is not hashable (pydantic v2 non-frozen) — the
 # cache holds the schema object itself so its id cannot be reused by a
 # different schema (a stale draft for the wrong grammar is a wrong check).
+# A lock makes the memo safe to share across threads (REVIEW 020 minor — the
+# caches were unsynchronized).
 _PROPOSED_CACHE: dict[int, tuple[object, "ValueMap"]] = {}
+_PROPOSED_LOCK = __import__("threading").Lock()
 
 
 def _proposed(schema) -> "ValueMap":
@@ -480,11 +539,12 @@ def _proposed(schema) -> "ValueMap":
     schema object. Declared-data fallback ONLY — kinds the committed map
     declares never reach this."""
     key = id(schema)
-    cached = _PROPOSED_CACHE.get(key)
-    if cached is None or cached[0] is not schema:
-        cached = (schema, propose_value_map(schema))
-        _PROPOSED_CACHE[key] = cached
-    return cached[1]
+    with _PROPOSED_LOCK:
+        cached = _PROPOSED_CACHE.get(key)
+        if cached is None or cached[0] is not schema:
+            cached = (schema, propose_value_map(schema))
+            _PROPOSED_CACHE[key] = cached
+        return cached[1]
 
 
 def _scalar_of(schema, vm: ValueMap | None, kind: str) -> Optional[str]:

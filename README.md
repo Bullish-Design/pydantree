@@ -17,7 +17,7 @@ split is folded into two packages):
   tree-sitter CLI + gcc at build time.
 
 ```python
-from pydantree_sitter import M, NodeKind, OutputModel, capture
+from pydantree_sitter import Language, M, NodeKind, OutputModel, capture
 import tree_sitter_rust
 
 class RustFn(OutputModel):
@@ -25,7 +25,7 @@ class RustFn(OutputModel):
     name: str = capture("name")
     return_type: str | None = capture("return_type")
 
-lang = pydantree_sitter.Language.from_module(tree_sitter_rust)
+lang = Language.from_module(tree_sitter_rust)
 rows = lang.extractor(RustFn).extract(rs_source)     # checks run here, once
 rows = RustFn.extract(rs_source, language=lang)      # sugar
 ```
@@ -75,5 +75,5 @@ capture↔type checks run at **bind time** — before any text is parsed.
   install by design.
 - Dev environment: `devenv shell`; `uv sync` manages the venv (uv workspace,
   no pip); the venv resolves `src/` via a `_pydantree_src.pth`, so edits are
-  live immediately (no stale-copy reinstall). Baseline: 265 green (fast loop
+  live immediately (no stale-copy reinstall). Baseline: 272 green (fast loop
   `-m "not slow"` ~24s).

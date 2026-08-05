@@ -426,9 +426,13 @@ class Grammar:
         """Replace an existing rule's body (re-recording the definition site
         and per-node sites). Used by the fix-one-rerun loop and by iterative
         authoring. Flags match `rule()`; ambiguity/word flags are re-applied
-        idempotently (the old conflict whitelist entry is replaced)."""
+        idempotently. The PREVIOUS body's flag entries (inline/supertype/
+        word/conflicts) are undone first so the new body's flags decide
+        (REVIEW 020 — stale entries used to leak: an inline rule replaced
+        without inline= stayed in the grammar-level inline list)."""
         if name not in self.rules:
             raise ValueError(f"cannot replace unknown rule {name!r}")
+        orig = name
         # F-B6: `hidden` renames to `_<name>` exactly like rule()
         if flags.get("hidden") and not name.startswith("_"):
             new_name = f"_{name}"
@@ -436,9 +440,17 @@ class Grammar:
                 self.rules[new_name] = self.rules.pop(name)
                 self.sites[new_name] = self.sites.pop(name)
             name = new_name
-        # undo the previous ambiguous wrapper/whitelist so the new body's flags
-        # decide
-        self._conflicts = [c for c in self._conflicts if c != [name]]
+        # undo the previous body's flag entries (under BOTH names — a hidden
+        # replace renames the rule, but the old entries reference the
+        # original) so the new body's flags decide
+        self._conflicts = [c for c in self._conflicts
+                           if c != [orig] and c != [name]]
+        if orig in self._inline:
+            self._inline.remove(orig)
+        if orig in self._supertypes:
+            self._supertypes.remove(orig)
+        if self._word in (orig, name):
+            self._word = None
         old = self.rules[name]
         node = as_node(body)
         # D8: sites live on the nodes themselves — nothing to drain, and the

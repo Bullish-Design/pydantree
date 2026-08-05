@@ -490,10 +490,14 @@ def check_start_defined(g) -> list[CheckIssue]:
 
 
 def check_nullable_non_start_rule(g) -> list[CheckIssue]:
-    """Non-start rules must not be nullable — the CLI rejects them with
-    `EmptyString` (Phase-2 appendix fact 2; only the START rule may be
-    nullable, e.g. tree-sitter-bash's `program`). The nullable part belongs in
-    the caller: `seq("(", opt(params), ")")` with `params` non-nullable."""
+    """ADVISORY (B4/REVIEW 020): verified empirically against tree-sitter
+    CLI 0.25.3 — the generator ACCEPTS nullable non-start rules (generate
+    exits 0 and writes parser.c for repeat-of-symbol, opt-in-seq, and
+    FIELD-wrapped opt shapes). This is therefore a WARNING, not an error:
+    `g.rule("items", repeat(ref("item")))` must not block a build. The
+    warning still flags a real design smell — a rule that can match empty is
+    usually an `opt(...)` that belongs in the CALLER:
+    `seq('(', opt(params), ')')` with `params` non-nullable."""
     view = _view(g)
     issues = []
     for name, rule in view.rules.items():
@@ -502,10 +506,11 @@ def check_nullable_non_start_rule(g) -> list[CheckIssue]:
         if _nullable(rule, view, set()):
             issues.append(CheckIssue(
                 name,
-                "rule is nullable — the CLI rejects nullable non-start rules "
-                "(`EmptyString`); move the optional part into the caller "
-                "(e.g. `seq('(', opt(params), ')')` with `params` non-nullable)",
-                view.site(name)))
+                "non-start rule is nullable — the generator accepts this "
+                "(verified against CLI 0.25.3), but the optional part "
+                "usually belongs in the caller (e.g. `seq('(', opt(params), "
+                "')')` with `params` non-nullable)",
+                view.site(name), warning=True))
     return issues
 
 

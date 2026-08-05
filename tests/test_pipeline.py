@@ -326,3 +326,22 @@ def test_detect_toolchain_degrades_when_binaries_missing(monkeypatch):
         assert tc.python_abi  # the ABI read is not a subprocess probe
     finally:
         pipeline.detect_toolchain.cache_clear()
+
+
+def test_build_builder_analyzer_errors_cite_author_sites(cache_dir):
+    """B1/REVIEW 020: on the default build path, analyzer ERRORS used to run
+    against the site-less IR — a typo'd ref() raised with no `at file:line`,
+    undercutting Product B's headline (only warnings were re-run over the
+    sited builder). build_builder now runs the analyzer over the BUILDER
+    grammar first, so every issue carries its DSL source site."""
+    g = tg.Grammar("sited")
+    g.rule("tok", tg.pattern(r"\d+"))
+    g.rule("source_file", tg.ref("tok2"))   # typo'd ref
+    g.start("source_file")
+    with pytest.raises(tg.GrammarCheckError) as exc:
+        tg.build_builder(g, cache_dir=cache_dir)
+    assert exc.value.issues
+    assert all(i.site is not None for i in exc.value.issues), \
+        [str(i) for i in exc.value.issues]
+    # the rendered error names the site
+    assert "at " in str(exc.value)

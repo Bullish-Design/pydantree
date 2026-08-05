@@ -65,14 +65,31 @@ def _extract_json_object(raw: str):
     """The JSON object in `raw` (first balanced top-level object that
     parses). The CLI's stderr is not pure JSON — its own PATTERN-flag
     warnings land on stderr ahead of the report — so json.loads over the
-    whole stream throws and kills the typed-error feature (B7)."""
+    whole stream throws and kills the typed-error feature (B7). Brace
+    counting is STRING-AWARE (B2/REVIEW 020): a `{`/`}` inside a string
+    literal (a block-structured grammar's token, e.g. C/JS/JSON/Rust) must
+    not unbalance the scan — the old counter fell back to the raw generator
+    dump for exactly those grammars, losing the DSL-site remapping."""
     start = raw.find("{")
     while start != -1:
         depth = 0
+        in_string = False
+        escaped = False
         for i in range(start, len(raw)):
-            if raw[i] == "{":
+            c = raw[i]
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif c == "\\":
+                    escaped = True
+                elif c == '"':
+                    in_string = False
+                continue
+            if c == '"':
+                in_string = True
+            elif c == "{":
                 depth += 1
-            elif raw[i] == "}":
+            elif c == "}":
                 depth -= 1
                 if depth == 0:
                     try:
@@ -168,9 +185,15 @@ def remap_from_proc(grammar: Grammar, proc: subprocess.CompletedProcess,
     for callers that want to inspect; callers should raise the error."""
     conflict = parse_conflict_json(proc.stderr)
     if conflict is None:
-        raise RuntimeError(
-            "tree-sitter generate failed but no conflict report was found "
-            f"(exit {proc.returncode}). stderr:\n{proc.stderr[:2000]}")
+        # REVIEW 020 minor: a bare RuntimeError swallowed the underlying
+        # GenerateError (stdout/stderr/exit) — raise the typed pipeline error
+        # instead, carrying the raw evidence.
+        from .pipeline import GenerateError
+        model = grammar.build() if isinstance(grammar, Grammar) else grammar
+        raise GenerateError(
+            model, proc,
+            detail="tree-sitter generate failed but no conflict report was "
+                   "found in the --json stderr")
     if raw_path:
         from pathlib import Path
         Path(raw_path).write_text(proc.stderr)

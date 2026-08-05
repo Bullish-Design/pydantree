@@ -250,7 +250,7 @@ def main() -> int:
         if inventory[key] != truth[key]:
             ok = False
             print(f"  MISMATCH {key}: got {len(inventory[key])} "
-                  f"want {len(want)}")
+                  f"want {len(truth[key])}")
     total = sum(len(v) for v in inventory.values())
     print(f"{total} rows extracted — "
           + ("all match the hand-written ground truth ✓" if ok

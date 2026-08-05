@@ -216,14 +216,22 @@ class Query:
                 f"emitted {len(self.specs)} pattern(s) but Query() parsed "
                 f"{q.pattern_count} — emitter bug")
         if self._raw_fields is not None:
-            caps = {q.capture_name(ci) for ci in range(q.capture_count)}
-            unknown = caps - self._raw_fields
+            all_caps = {q.capture_name(ci) for ci in range(q.capture_count)}
+            unknown = all_caps - self._raw_fields
             if unknown:
                 raise SchemaCheckError(
                     f"__raw_query__ captures {sorted(unknown)} that no field "
                     f"declares — model fields: {sorted(self._raw_fields)}")
-        spec_caps = [self._capture_names_of(s) for s in self.specs] \
-            if self.raw_source is None else [set(caps) if self._raw_fields is not None else set()]
+        if self.raw_source is None:
+            spec_caps = [self._capture_names_of(s) for s in self.specs]
+        else:
+            # A raw query's captures are not per-pattern knowable: every REAL
+            # pattern gets the full capture set (A1/REVIEW 020 — the old
+            # length-1 list IndexError'd Cursor.matches the moment a raw
+            # query had 2+ top-level patterns, i.e. exactly the `a | b`
+            # sibling/negation cases the hatch exists for).
+            all_caps = {q.capture_name(ci) for ci in range(q.capture_count)}
+            spec_caps = [all_caps] * q.pattern_count
         maps: list[dict[str, str]] = []
         for pi, caps in enumerate(spec_caps):
             m: dict[str, str] = {}

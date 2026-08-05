@@ -1,0 +1,73 @@
+# Evidence — suite runs and environment truth
+
+All commands run from repo root, date 2026-08-05.
+
+## Environment
+
+```
+tree-sitter: MISSING on plain-shell PATH
+gcc:         MISSING on plain-shell PATH
+uv:          MISSING on plain-shell PATH
+devenv:      available  -> devenv shell is the ONLY supported run environment
+```
+
+## Full suite inside devenv
+
+```
+devenv shell -- python -m pytest -p no:cacheprovider    # exit 0 (piped)
+-> 272 passed in ~68s, fully green
+```
+
+## Plain shell: toolchain-gated skips
+
+```
+python -m pytest -q -rs   # plain shell
+-> 145 passed, 127 skipped
+```
+
+Skipped set includes **every oracle/live-fixture test** (`@requires_toolchain`),
+and `import pydantree_sitter` itself fails without `tree_sitter`.
+
+## NEW FINDING — exit status 139 (SIGSEGV on native teardown)
+
+```
+# A: plain devenv, capture exit (no pipe masking)
+devenv shell -- python -m pytest tests/test_oracles.py -q >/tmp/o1.txt 2>&1; echo exit=$?
+-> all 11 oracle tests pass, but exit=139 (SIGSEGV)
+
+# B: full suite without pipe
+-> 272 passed ... then exit 139
+
+# C: isolation probes
+devenv shell -- python -m pytest tests/test_extract.py -q        # wheel-only, no bundle .so dlopen
+-> exit 0
+
+devenv shell -- python -m pytest tests/test_oracles.py::test_bash_extract_matches_oracle \
+                                      tests/test_oracles.py::<second-bundle-test> -q
+-> exit 0   (any TWO distinct bundles in one process is fine)
+
+# D: conclusion
+Full test_oracles.py module (three distinct compiled grammars loaded in one
+process) and the full suite reliably exit 139 AFTER reporting all tests
+passed. Single bundle load exits cleanly. Earlier "exit 0" readings were an
+artifact of piping to `tail` (PIPESTATUS[0] captured the pipe). Likely
+tree-sitter Language/Parser finalization order at interpreter shutdown;
+root cause not yet isolated to a specific native combination.
+```
+
+## README claim drift
+
+```
+README.md:78  "Baseline: 265 green (fast loop ...)"
+-> actual: 272 passed
+```
+
+## Hygiene counts
+
+```
+TODO|FIXME|XXX|HACK in src/: 4
+"type: ignore" in src/:       3
+src LOC:                      7,665 (find src -name '*.py' | xargs wc -l)
+test files:                   30 (tests/test_*.py)
+commits:                      152 (git rev-list --count HEAD)
+```

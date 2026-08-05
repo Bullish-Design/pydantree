@@ -19,12 +19,14 @@ import tree_sitter_python
 
 import pydantree_sitter_grammar as tg
 from pydantree_sitter import (
+    Eq,
     ExtractionError,
     Language,
     M,
     NodeKind,
     OutputModel,
     SchemaCheckError,
+    ShapeError,
     Unescaped,
     capture,
     source_meta,
@@ -72,6 +74,33 @@ def test_reparse_incremental():
 
     rows = [r.model_dump() for r in lang.extractor(Assignment).extract_tree(t2)]
     assert [r["name"] for r in rows] == ["x", "y"]
+
+
+def test_reparse_mid_buffer_edit_applies_the_edit():
+    """A3/REVIEW 020: reparse() used to never call old_tree.edit() — a
+    mid-buffer edit re-used the old tree's subtrees at shifted offsets,
+    producing silently wrong trees. The old->new diff is now computed and
+    applied (only the edited region is reparsed)."""
+    lang = Language.load(tree_sitter_python.language())
+    t1 = lang.parse("x = 1\ny = 2\nz = 3\n")
+    # a LENGTH-CHANGING mid-buffer edit: inserting a byte shifts every later
+    # offset — without old_tree.edit() the old tree's subtrees are reused at
+    # their stale positions and `z` parses as garbage.
+    t2 = lang.reparse(t1, "x = 1\ny = 22\nz = 3\n")
+
+    texts = []
+
+    def collect(n):
+        if n.type == "assignment":
+            texts.append(n.text.decode())
+        for c in n.children:
+            collect(c)
+
+    collect(t2.root_node)
+    assert texts == ["x = 1", "y = 22", "z = 3"]
+    # without the edit, tree-sitter's stale-subtree reuse leaves an ERROR
+    # node (verified empirically) — the proper edit protocol parses clean
+    assert not t2.root_node.has_error
 
 
 def test_parse_errors_are_visible_in_the_tree():
@@ -241,6 +270,111 @@ def test_field_mode_list_with_schema_bound():
             _FnParams.extract("f(a, b)\ng(x, y)\n", language=lang)]
     assert rows == [{"name": "f", "params": ["a", "b"]},
                     {"name": "g", "params": ["x", "y"]}]
+
+
+def test_field_mode_list_anchor_with_zero_occurrences_matches():
+    """A2/REVIEW 020: a non-optional list[T] field whose anchor has ZERO
+    occurrences of the repeated child used to vanish — the emitted quantifier
+    was "" (exactly one), so the whole row was silently dropped (a function
+    with no args disappeared). `?` keeps the row with an empty list while N
+    occurrences still collect all N via the anchor merge."""
+    g = tg.Grammar("fnlist4")
+    g.rule("identifier", tg.pattern(r"[a-z]+"), word=True)
+    g.rule("fn_params", tg.seq(
+        tg.field("name", tg.ref("identifier")), "(",
+        tg.repeat(tg.field("param", tg.ref("identifier"))), ")"))
+    g.rule("source_file", tg.repeat(tg.ref("fn_params")))
+    g.start("source_file")
+    lang = Language.load(tg.build_builder(g).language())
+
+    rows = [r.model_dump() for r in
+            _FnParams.extract("f(a, b)\ng()\nh(x)\n", language=lang)]
+    assert rows == [
+        {"name": "f", "params": ["a", "b"]},
+        {"name": "g", "params": []},
+        {"name": "h", "params": ["x"]},
+    ]
+
+
+def test_alternation_anchor_checks_every_kind():
+    """A4/REVIEW 020: for an alternation anchor, bind checks used only
+    anchor_kinds[0] — a field missing on the SECOND alternative escaped the
+    actionable SchemaCheckError and only failed later as a raw
+    QueryBuildError."""
+    lang, _ = _json_lang()
+
+    class BadPair(OutputModel):
+        __match__ = M(("object", "array"))
+        x: str = capture("pair")    # 'array' has no 'pair' field
+
+    with pytest.raises(SchemaCheckError) as exc:
+        lang.extractor(BadPair)
+    assert "'array'" in str(exc.value) and "pair" in str(exc.value)
+
+
+def test_source_meta_into_optional_int():
+    """REVIEW 020 minor: `line: int | None = source_meta()` used to take the
+    Span branch (the annotation is not exactly `int`) and fail validation."""
+    lang = Language.load(tree_sitter_python.language())
+
+    class WithMeta(OutputModel):
+        __match__ = M("module", "expression_statement", "assignment")
+        name: str = capture("left")
+        line: int | None = source_meta()
+
+    rows = [r.model_dump() for r in
+            WithMeta.extract("x = 1\ny = 2\n", language=lang)]
+    assert rows == [{"name": "x", "line": 1}, {"name": "y", "line": 2}]
+
+
+def test_model_without_declaration_raises_friendly_shape_error():
+    """REVIEW 020 minor: a subclass with no __match__/__raw_query__ used to
+    surface a raw AttributeError at bind."""
+    class Bare(OutputModel):
+        label: str = "x"
+
+    lang = Language.load(tree_sitter_python.language())
+    with pytest.raises(ShapeError, match="not an extraction model"):
+        lang.extractor(Bare)
+
+
+def test_field_mode_str_over_string_wrapper_captures_content():
+    """REVIEW 020 minor: a field-mode `str` capture over a string-WRAPPER
+    kind kept the wrapper's quotes/escapes (record mode unwraps). The inner
+    content is now captured — `\"hi\"` -> `hi`."""
+    lang, _ = _json_lang()
+
+    class Pair(OutputModel):
+        __match__ = M("document", "object", "pair")
+        value: Annotated[str, NodeKind("string")] = capture("value")
+
+    rows = [r.model_dump() for r in Pair.extract('{"a": "hi"}', language=lang)]
+    assert rows == [{"value": "hi"}]
+
+
+def test_record_optional_predicate_field_keeps_the_record():
+    """REVIEW 020 minor: a record with an OPTIONAL predicate field that does
+    not match used to drop the WHOLE record; it now just stays absent (None)."""
+    lang, _ = _json_lang()
+
+    class Rec(OutputModel):
+        __match__ = M("document", "object", record=True)
+        name: str
+        tag: Annotated[str | None, Eq("x")] = None
+
+    rows = [r.model_dump() for r in
+            Rec.extract('{"name": "a", "tag": "y"}', language=lang)]
+    assert rows == [{"name": "a", "tag": None}]
+
+    # a REQUIRED predicate field that fails still filters the record
+    class Strict(OutputModel):
+        __match__ = M("document", "object", record=True)
+        name: str
+        tag: Annotated[str, Eq("x")]
+
+    rows = [r.model_dump() for r in
+            Strict.extract('{"name": "a", "tag": "y"}', language=lang)]
+    assert rows == []
 
 
 # ---------------------------------------------------------------------------

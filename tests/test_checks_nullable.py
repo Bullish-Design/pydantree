@@ -36,3 +36,22 @@ def test_nullable_non_start_rule_catches_wrapped():
 
     flagged = {i.rule for i in check_nullable_non_start_rule(g)}
     assert {"params", "loop"} <= flagged
+
+
+def test_nullable_non_start_rule_is_advisory_not_an_error():
+    """B4/REVIEW 020: verified empirically against tree-sitter CLI 0.25.3 —
+    the generator ACCEPTS nullable non-start rules (repeat-of-symbol,
+    opt-in-seq, FIELD-wrapped opt: generate exits 0 and writes parser.c).
+    The check is now a WARNING: `errors()` must be empty so build() does not
+    reject a legitimate `repeat(ref("item"))` list idiom."""
+    g = _g()
+    g.rule("items", tg.repeat(tg.ref("x")))     # nullable non-start — legal
+    g.rule("source_file", tg.ref("items"))
+    g.start("source_file")
+    from pydantree_sitter_grammar.checks import check_nullable_non_start_rule
+
+    issues = check_nullable_non_start_rule(g)
+    assert issues and all(i.warning for i in issues)
+    assert not tg.errors(g)                       # no error-level issue
+    assert all(i.severity == "warning" for i in tg.run_checks(g)
+               if "nullable" in i.message)

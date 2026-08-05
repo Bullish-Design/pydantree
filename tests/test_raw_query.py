@@ -78,6 +78,28 @@ def test_raw_query_with_source_meta_and_predicates():
     assert rows == [{"name": "x", "line": 1}]
 
 
+def test_raw_query_multi_pattern_does_not_index_error():
+    """A1/REVIEW 020: a raw query with 2+ top-level patterns (the `a | b`
+    sibling/negation cases the hatch exists for) used to crash
+    Cursor.matches with IndexError — the quantifier maps were built as a
+    length-1 list for raw queries while tree-sitter reports the REAL
+    pattern index."""
+
+    class Multi(OutputModel):
+        __raw_query__ = RawQuery(
+            "(module (expression_statement (assignment "
+            "left: (identifier) @name right: (_) @value)))\n"
+            "(module (expression_statement (augmented_assignment "
+            "left: (identifier) @name right: (_) @value)))")
+        name: str = capture()
+        value: str = capture()
+
+    lang = Language.from_module(tree_sitter_python)
+    rows = [r.model_dump() for r in lang.extractor(Multi).extract(
+        "x = 1\ny += 2\n")]
+    assert [(r["name"], r["value"]) for r in rows] == [("x", "1"), ("y", "2")]
+
+
 def test_match_and_raw_query_are_mutually_exclusive():
     with pytest.raises(Exception):
 

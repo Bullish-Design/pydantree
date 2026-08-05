@@ -32,7 +32,7 @@ CONSUMERS = Path(__file__).resolve().parent / "fixtures" / "consumers"
 pytestmark = [pytest.mark.toolchain, pytest.mark.slow]
 
 
-from bfree import run_bfree  # noqa: E402
+from bfree import build_consumer_env, run_bfree  # noqa: E402
 from cfg_grammar import (  # noqa: E402
     CORPUS,
     LISTEN_GROUND_TRUTH,
@@ -466,3 +466,36 @@ def test_devenv_subset_example_both_halves(tmp_path):
     # the bundle is the seam: a 4-file artifact ready for B-free consumption
     assert {p.name for p in bundle_dir.iterdir()} == {
         "grammar.so", "node-schema.json", "tree-sitter.json", "loader.py"}
+
+
+def test_loaded_bundle_survives_in_place_rewrite(tmp_path):
+    """REVIEW 020 exit-139 regression: truncating/rewriting a loaded
+    bundle's grammar.so IN PLACE (e.g. rebuilding the bundle into the same
+    directory while a Language from it is alive — exactly what
+    examples/devenv-subset's extract.py does via DEVENV_BUNDLE_DIR) used to
+    SIGBUS/SEGV the process at interpreter shutdown: dlopen maps the file,
+    the truncate+rewrite leaves the mapping's pages past the new EOF, and
+    the language's finalizer touches one. The loader now dlopens from a
+    private snapshot (unlinked after the mapping is established), so the
+    process exits cleanly."""
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
+    bundle = build_community_bundle(RUST_FIXTURE, tmp_path / "bundle",
+                                    name="rust")
+    script = tmp_path / "consume_and_rewrite.py"
+    script.write_text(
+        "import sys\n"
+        "from pydantree_sitter import Language\n"
+        "bundle = sys.argv[1]\n"
+        "lang = Language.load_bundle(bundle)\n"
+        "tree = lang.parse(b'fn main() {}')\n"   # fault in the .so's pages\n"
+        "assert tree.root_node\n"
+        "so = bundle + '/grammar.so'\n"
+        "data = open(so, 'rb').read()\n"          # truncate + rewrite in place\n"
+        "with open(so, 'wb') as f:\n"
+        "    f.write(data)\n"
+        "print('ok')\n")
+    env_dir = build_consumer_env(tmp_path / "env")
+    rc, out = run_bfree(script, str(bundle), workdir=tmp_path,
+                        env_dir=env_dir)
+    assert rc == 0, out
+    assert "ok" in out

@@ -31,7 +31,7 @@ from .errors import (
 from .markers import ANCHOR, RECORD_CAP, _MARKERS, _MISSING
 from .markers import _Derived as _D
 from .match import group_matches, match_ancestor_path, merge_group
-from .spec import is_optional
+from .spec import is_optional, unwrap_optional
 
 # MatchFailure is defined here (materialize owns per-match diagnostics);
 # ExtractionError (errors.py) carries a list of them.
@@ -162,7 +162,10 @@ def build_kwargs(model_cls, bindings, caps: dict) -> dict:
             n = caps.get(b.capture_name)
             node = n[0] if n else None
             if node is not None:
-                if f.annotation is int:
+                if unwrap_optional(f.annotation) is int:
+                    # REVIEW 020 minor: `int | None` source_meta() used to
+                    # fall into the Span branch (annotation is not exactly
+                    # `int`) and fail validation.
                     kwargs[fname] = node.start_point.row + 1
                 else:
                     kwargs[fname] = Span.from_node(node)
@@ -337,10 +340,13 @@ def _record_kwargs(model_cls, compiled, rec, tree):
             if cname == ANCHOR:
                 continue
             merged.setdefault(cname, []).extend(fm.nodes(cname))
-    # record-level predicate semantics: a predicate field that did not match
-    # (absent) filters the WHOLE record, like the field-mode query engine
+    # record-level predicate semantics: a REQUIRED predicate field that did
+    # not match (absent) filters the WHOLE record (the row is invalid, like
+    # the field-mode query engine); an OPTIONAL one just stays absent (None)
+    # — the old check dropped optional predicate fields' records too
+    # (REVIEW 020 minor: optional-field-with-predicate lost the record).
     filtered = any(
-        b.has_predicate and not merged.get(b.capture_name)
+        b.has_predicate and not b.optional and not merged.get(b.capture_name)
         for b in compiled.bindings)
     if filtered:
         return None

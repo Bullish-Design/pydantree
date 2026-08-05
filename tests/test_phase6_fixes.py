@@ -114,6 +114,35 @@ def test_replace_rule_honors_hidden():
     assert "_x" in g.rules and "x" not in g.rules
 
 
+def test_replace_rule_clears_stale_flag_entries():
+    """REVIEW 020 minor: replace_rule left STALE grammar-level flag entries —
+    an inline/supertype/word rule replaced without the flag stayed in the
+    lists (and a replaced word rule kept claiming the word slot). The new
+    body's flags decide; the old entries are undone under both the original
+    and the hidden-renamed name."""
+    g = tg.Grammar("f_b6b")
+    g.rule("tok", tg.pattern(r"[a-z]+"), word=True)
+    g.rule("helper", tg.pattern(r"[0-9]+"), inline=True, supertype=True)
+    g.rule("source_file", tg.repeat(tg.ref("helper")))
+    g.start("source_file")
+
+    # replace the inline/supertype rule WITHOUT the flags -> entries gone
+    g.replace_rule("helper", tg.pattern(r"[0-9]+"))
+    ir = g.build()
+    assert "helper" not in ir.inline
+    assert "helper" not in ir.supertypes
+
+    # replace the word rule WITHOUT word -> the word slot frees up
+    g.replace_rule("tok", tg.pattern(r"[a-z]+"))
+    assert g.build().word is None
+
+    # re-asserting the flags re-registers them (idempotent)
+    g.replace_rule("helper", tg.pattern(r"[0-9]+"),
+                   inline=True, supertype=True)
+    ir2 = g.build()
+    assert "helper" in ir2.inline and "helper" in ir2.supertypes
+
+
 # ---- D9: assemble takes an explicit rules list; module_rules filters ------
 
 def test_module_rules_excludes_imported_classes():

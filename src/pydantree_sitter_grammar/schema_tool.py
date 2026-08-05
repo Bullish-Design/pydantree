@@ -92,29 +92,33 @@ def derive_schema_for_dir(grammar_dir: Path | str, *,
     # copy the grammar sources in (never touch the author's checkout) and run
     # the CLI with an explicit output dir so the byproduct location is
     # layout-independent (grammar.json at root vs src/grammar.json)
-    grammar_json, _scanner = _copy_grammar_source(grammar_dir, work)
-    gen_out = work / "gen"
+    try:
+        grammar_json, _scanner = _copy_grammar_source(grammar_dir, work)
+        gen_out = work / "gen"
 
-    proc = subprocess.run(
-        ["tree-sitter", "generate", str(grammar_json.relative_to(work)),
-         "-o", str(gen_out)],
-        capture_output=True, text=True, cwd=str(work), check=False)
-    if proc.returncode != 0:
-        raise RuntimeError(
-            f"tree-sitter generate failed for {grammar_dir}: "
-            f"{proc.stderr or proc.stdout}")
+        proc = subprocess.run(
+            ["tree-sitter", "generate", str(grammar_json.relative_to(work)),
+             "-o", str(gen_out)],
+            capture_output=True, text=True, cwd=str(work), check=False)
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"tree-sitter generate failed for {grammar_dir}: "
+                f"{proc.stderr or proc.stdout}")
 
-    node_types = gen_out / "node-types.json"
-    if not node_types.exists():
-        raise RuntimeError(
-            f"generate succeeded but wrote no node-types.json in {gen_out}")
-    schema = NodeSchema.from_list(derive_from_node_types(node_types), name=name)
-    out_path = Path(out) if out is not None else work / "node-schema.json"
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    schema.write(out_path)
-    if not keep:
-        shutil.rmtree(work)
-    return schema
+        node_types = gen_out / "node-types.json"
+        if not node_types.exists():
+            raise RuntimeError(
+                f"generate succeeded but wrote no node-types.json in {gen_out}")
+        schema = NodeSchema.from_list(derive_from_node_types(node_types), name=name)
+        out_path = Path(out) if out is not None else work / "node-schema.json"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        schema.write(out_path)
+        return schema
+    finally:
+        # REVIEW 020 minor: a failed generate used to leave the workdir
+        # behind (only the success path removed it).
+        if not keep:
+            shutil.rmtree(work, ignore_errors=True)
 
 
 def build_community_bundle(grammar_dir: Path | str, out: Path | str, *,

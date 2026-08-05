@@ -40,7 +40,9 @@ enforced at install time).
 
 ```python
 from typing import Annotated
-from pydantree_sitter import M, Matches, NodeKind, OutputModel, capture, source_meta
+from pydantree_sitter import (
+    Language, M, Matches, NodeKind, OutputModel, capture, source_meta,
+)
 import tree_sitter_python
 
 class Assignment(OutputModel):
@@ -125,8 +127,15 @@ rows = ServerSection.extract(corpus, language=lang)
   inference); record mode over a non-JSON grammar without a map is a
   bind-time `ShapeError`.
 - A predicate field that does not match filters the WHOLE record (like the
-  field-mode query engine).
+  field-mode query engine) — unless the field is OPTIONAL, in which case it
+  just stays absent (`None`).
 - Nested `OutputModel` fields materialize nested records.
+
+> **Numeric note (REVIEW 020):** the JSON builtin ValueMap declares `number`
+> as `int` — so an `int` field over a JSON `number` passes the bind checks
+> but fails at runtime on float text (`3.14` → pydantic `ValidationError`).
+> Declare `float` (coerces both) or `int | float` when the corpus may
+> contain decimals.
 
 ### 2.4 Schemas: the checks run before the parse
 

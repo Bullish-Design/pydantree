@@ -327,7 +327,8 @@ def derive_spec(model_cls: type["OutputModel"]) -> MatchSpec:
         return MatchSpec(path=(), record=False, raw_query=str(raw_query),
                          bindings=tuple(bindings))
 
-    path = tuple(PathStep((k,)) if isinstance(k, str) else k
+    path = tuple(PathStep((k,)) if isinstance(k, str) else
+                 (PathStep(k) if isinstance(k, tuple) else k)
                  for k in match.path)
     return MatchSpec(path=path, record=match.record,
                      record_pair=match.record_pair,
@@ -379,6 +380,12 @@ class DerivingMeta(ModelMetaclass):
         if has_decl:
             cls._match_spec = derive_spec(cls)
             cls._binding_warnings = tuple(binding_warnings(cls))
+        else:
+            # REVIEW 020 minor: a subclass with no declaration used to have
+            # NO _match_spec attribute — binding surfaced a raw
+            # AttributeError. Installing None lets compile_spec raise the
+            # friendly ShapeError ("not an extraction model").
+            cls._match_spec = None
         return cls
 
 

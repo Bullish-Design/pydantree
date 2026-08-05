@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import ctypes
 import json
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -53,10 +54,36 @@ def load_grammar_so(so_path: Path | str, grammar_name: str | None = None):
     `grammar_name` is the export symbol (`tree_sitter_<name>`) and defaults to
     the .so's file stem. Returns `(language, lib)` — keep `lib` alive for the
     language's lifetime (the PyCapsule does not own the C library).
+
+    The .so is dlopen'd from a PRIVATE snapshot that is unlinked right after
+    the mapping is established (REVIEW 020 — the exit-139 root cause): dlopen
+    mmaps the file, and an in-place truncate/rewrite of a mapped .so (e.g. a
+    bundle REBUILT into the same directory while a Language from it is alive,
+    exactly what examples/devenv-subset does) leaves the mapping's pages
+    beyond the new EOF — the process then SIGBUSes/SEGVs at interpreter
+    shutdown when the language's finalizer touches one. Loading from an
+    unlinked snapshot makes a loaded language immune to later rewrites of the
+    bundle dir.
     """
+    import os
+    import tempfile
     so_path = Path(so_path).resolve()
     name = grammar_name or so_path.stem
-    lib = ctypes.CDLL(str(so_path))
+    fd, snapshot = tempfile.mkstemp(prefix=f"pydantree-{name}-", suffix=".so")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            shutil.copyfileobj(so_path.open("rb"), fh)
+        lib = ctypes.CDLL(snapshot)
+    except Exception:
+        try:
+            os.unlink(snapshot)
+        except OSError:
+            pass
+        raise
+    try:
+        os.unlink(snapshot)   # the mapping is established — the name is not
+    except OSError:           # needed anymore (Windows: keep the file)
+        pass
     fn = getattr(lib, f"tree_sitter_{name}")
     fn.restype = ctypes.c_void_p
     ptr = fn()

@@ -92,9 +92,10 @@ def detect_toolchain() -> Toolchain:
 
 def _python_abi() -> str:
     """The ABI: the actual tree_sitter.LANGUAGE_VERSION when available (the
-    bindings' floor), else the PYDANTREE_SITTER_ABI env override (the legacy
-    TSGRAMMAR_ABI spelling is honored as fallback, mirroring the cache-dir
-    migration), else "15"."""
+    bindings' floor). The PYDANTREE_SITTER_ABI env override (legacy spelling
+    TSGRAMMAR_ABI) is honored ONLY when the bindings' version is unavailable
+    — a stale override must never mislabel an artifact (B16; REVIEW 020: the
+    docstring previously claimed override semantics the code never had)."""
     env = os.environ.get("PYDANTREE_SITTER_ABI") or \
         os.environ.get("TSGRAMMAR_ABI")
     try:
@@ -286,6 +287,13 @@ def _cache_node_schema(entry: Path, model: GrammarModel) -> Path:
                     model, gen,
                     detail="warm-cache backfill: generate exited 0 but wrote "
                            "no src/node-types.json")
+            # REVIEW 020 minor: the backfill must ALSO populate the entry's
+            # OWN src/node-types.json — callers report
+            # node_types_json = entry/src/node-types.json, which used to
+            # dangle after a backfill (only node-schema.json was written).
+            src_dir = entry / "src"
+            src_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(node_types, src_dir / "node-types.json")
             shutil.copyfile(node_types, schema_path)
         return schema_path
     shutil.copyfile(node_types, schema_path)
@@ -352,40 +360,47 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
         shutil.rmtree(work)
     work.mkdir(parents=True, exist_ok=True)
 
-    json_path = model.emit_bundle(work)
-    gen = run_generate(json_path)
-    if gen.returncode != 0:
-        # leave evidence behind; the caller decides how to render the failure
-        raise GenerateError(model, gen)
+    try:
+        json_path = model.emit_bundle(work)
+        gen = run_generate(json_path)
+        if gen.returncode != 0:
+            # leave evidence behind; the caller decides how to render the failure
+            raise GenerateError(model, gen)
 
-    src_dir = work / "src"
-    parser_c = src_dir / "parser.c"
-    if not parser_c.exists():
-        raise GenerateError(
-            model, gen,
-            detail=f"generate exited 0 but wrote no parser.c (check stdout:\n{gen.stdout})")
+        src_dir = work / "src"
+        parser_c = src_dir / "parser.c"
+        if not parser_c.exists():
+            raise GenerateError(
+                model, gen,
+                detail=f"generate exited 0 but wrote no parser.c (check stdout:\n{gen.stdout})")
 
-    # scanner.c sits beside parser.c (canonical location); fall back to the
-    # workdir root for hand-authored layouts; an explicit `scanner=` arg
-    # (for grammars with externals) is copied into the build first.
-    if scanner is not None:
-        shutil.copy(scanner, work / "scanner.c")
-    scanner = (src_dir / "scanner.c") if (src_dir / "scanner.c").exists() \
-        else work / "scanner.c"
-    if model.externals and not scanner.exists():
-        # the airtight escape hatch: a grammar with externals MUST link a C
-        # scanner, and the error says so before gcc produces a link failure
-        raise ExternalScannerRequiredError(
-            model,
-            externals=[_external_name(e) for e in model.externals],
-            detail=(f"grammar {model.name!r} declares externals but no "
-                    f"scanner.c was supplied — pass scanner=<path> to "
-                    f"build()/build_builder() (external tokens are provided "
-                    f"by a C scanner at runtime; see the pymini example)."))
-    work_so = work / f"{name}.so"
-    cc = compile_parser(src_dir, work_so, scanner=scanner)
-    if cc.returncode != 0:
-        raise CompileError(model, cc)
+        # scanner.c sits beside parser.c (canonical location); fall back to the
+        # workdir root for hand-authored layouts; an explicit `scanner=` arg
+        # (for grammars with externals) is copied into the build first.
+        if scanner is not None:
+            shutil.copy(scanner, work / "scanner.c")
+        scanner = (src_dir / "scanner.c") if (src_dir / "scanner.c").exists() \
+            else work / "scanner.c"
+        if model.externals and not scanner.exists():
+            # the airtight escape hatch: a grammar with externals MUST link a C
+            # scanner, and the error says so before gcc produces a link failure
+            raise ExternalScannerRequiredError(
+                model,
+                externals=[_external_name(e) for e in model.externals],
+                detail=(f"grammar {model.name!r} declares externals but no "
+                        f"scanner.c was supplied — pass scanner=<path> to "
+                        f"build()/build_builder() (external tokens are provided "
+                        f"by a C scanner at runtime; see the pymini example)."))
+        work_so = work / f"{name}.so"
+        cc = compile_parser(src_dir, work_so, scanner=scanner)
+        if cc.returncode != 0:
+            raise CompileError(model, cc)
+    except BaseException:
+        # REVIEW 020 minor: a failed generate/compile used to leave the
+        # `.work` dir behind — clean it up on ANY failure (success promotes
+        # the dir into the cache below).
+        shutil.rmtree(work, ignore_errors=True)
+        raise
 
     # promote into the cache (D10): build in a sibling work dir, then
     # rename-if-absent — if a concurrent build won the race, discard ours.
@@ -466,6 +481,17 @@ def build_builder(g, *, cache_dir=None, **kw) -> BuildResult:
     loop depends on this. No re-run happens on conflict.
     """
     model = g.build()
+    run_checks = kw.get("check", True)
+    if run_checks:
+        # B1 (REVIEW 020): run the analyzer over the BUILDER Grammar FIRST so
+        # analyzer ERRORS cite the author's DSL source sites; build()'s
+        # site-less IR re-run is then skipped (check=False) — the sited run
+        # covered the same checks with more information. Previously only
+        # warnings were re-run over the builder and a typo'd ref("nam")
+        # raised with no `at file:line` at all.
+        from .checks import assert_clean
+        assert_clean(g)
+        kw = {**kw, "check": False}
     try:
         result = build(model, cache_dir=cache_dir, **kw)
     except GenerateError as e:
@@ -481,7 +507,7 @@ def build_builder(g, *, cache_dir=None, **kw) -> BuildResult:
     # warning messages should cite the AUTHOR's source, not the IR (which has
     # no sites): re-run the analyzer over the builder Grammar (B15). Only when
     # build() actually ran the checks (kw can pass check=False).
-    if result.warnings and kw.get("check", True):
+    if run_checks:
         from .checks import warnings as check_warnings
         result.warnings = check_warnings(g)
     return result

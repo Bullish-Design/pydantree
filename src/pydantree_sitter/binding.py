@@ -81,6 +81,9 @@ def _transient_language(lang: "Language", schema=None) -> "Language":
 # Inputs that are neither hashable nor weak-referenceable simply skip the
 # cache (the TypeError is the signal, not an error).
 _LANGUAGE_CACHE: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
+# WeakKeyDictionary is not thread-safe; the sugar path can race from two
+# threads (REVIEW 020 minor — the caches were unsynchronized).
+_LANGUAGE_LOCK = __import__("threading").Lock()
 
 
 def _language_for(language):
@@ -92,16 +95,18 @@ def _language_for(language):
         return None
     if isinstance(language, Language):
         return language
-    try:
-        cached = _LANGUAGE_CACHE.get(language)
-    except TypeError:
-        cached = None                     # unhashable/unweakable input
-    if cached is not None:
-        return cached
+    with _LANGUAGE_LOCK:
+        try:
+            cached = _LANGUAGE_CACHE.get(language)
+        except TypeError:
+            cached = None                     # unhashable/unweakable input
+        if cached is not None:
+            return cached
     lang, schema = _resolve_language(language)
     built = Language(lang, schema=schema)
     try:
-        _LANGUAGE_CACHE[language] = built
+        with _LANGUAGE_LOCK:
+            _LANGUAGE_CACHE[language] = built
     except TypeError:
         pass
     return built
@@ -110,6 +115,35 @@ def _language_for(language):
 # ---------------------------------------------------------------------------
 # Language
 # ---------------------------------------------------------------------------
+
+def _point_of(text: bytes, byte: int) -> tuple:
+    """The (row, column) of a byte offset (tree-sitter edit points)."""
+    row = text.count(b"\n", 0, byte)
+    last_nl = text.rfind(b"\n", 0, byte)
+    return (row, byte - (last_nl + 1))
+
+
+def _apply_edit(tree: tree_sitter.Tree, old_text: bytes, new_text: bytes) -> None:
+    """Apply the old_text -> new_text diff to `tree` before reparsing: the
+    tree-sitter edit protocol requires telling the tree EXACTLY what changed
+    (start/end byte offsets + points); without it, `Parser.parse(new_source,
+    old_tree)` reuses the old tree's nodes at their recorded offsets and
+    mid-buffer edits produce silently wrong trees (A3/REVIEW 020)."""
+    start = 0
+    limit = min(len(old_text), len(new_text))
+    while start < limit and old_text[start] == new_text[start]:
+        start += 1
+    old_end = len(old_text)
+    new_end = len(new_text)
+    while old_end > start and new_end > start \
+            and old_text[old_end - 1] == new_text[new_end - 1]:
+        old_end -= 1
+        new_end -= 1
+    tree.edit(start, old_end, new_end,
+              _point_of(old_text, start),
+              _point_of(old_text, old_end),
+              _point_of(new_text, new_end))
+
 
 class Language:
     """A tree_sitter.Language + an optionally-bound node-schema + ValueMap.
@@ -211,12 +245,21 @@ class Language:
 
     def reparse(self, old_tree: tree_sitter.Tree,
                 source: str | bytes) -> tree_sitter.Tree:
-        """Incremental reparse (the 0.26 API, wrapped): `Parser.parse(new
-        source, old_tree)` — the binding applies the edits internally from
-        the old tree's positions. The old `old_source=` parameter is deleted
-        (F-A11)."""
+        """Incremental reparse: compute the old->new diff, apply
+        `old_tree.edit(...)`, then `Parser.parse(new_source, old_tree)`.
+
+        tree-sitter does NOT diff automatically — without `edit()` a
+        mid-buffer change reuses the old tree's nodes at shifted offsets and
+        the result is SILENTLY wrong (A3/REVIEW 020). The old text is
+        recovered from the tree's root node (the parse retained it), so no
+        `old_source=` parameter is needed; if it cannot be recovered the
+        edit is skipped (the pre-fix behavior, correct for EOF appends).
+        The old `old_source=` parameter was deleted (F-A11)."""
         if isinstance(source, str):
             source = source.encode("utf-8")
+        old_text = old_tree.root_node.text
+        if old_text is not None and old_text != source:
+            _apply_edit(old_tree, old_text, source)
         return tree_sitter.Parser(self._lang).parse(source, old_tree)
 
 

@@ -1,0 +1,76 @@
+# Evidence — code-level verification of the headline findings
+
+## A1 — raw-query IndexError (confirmed in code)
+
+- `src/pydantree_sitter/emit.py:225-226`: for a raw query, `spec_caps` is
+  built as a length-1 list.
+- `src/pydantree_sitter/emit.py:269`: `Cursor.matches` indexes
+  `_quant_maps[pi]` with tree-sitter's REAL pattern index.
+- A `RawQuery` with 2+ top-level patterns (the `a | b` sibling/negation
+  cases) indexes past the length-1 list -> IndexError.
+
+## A2 — empty-list anchor drop (confirmed in code)
+
+- `src/pydantree_sitter/compiler.py:304`: non-optional field-mode `list[T]`
+  emits `quant=""`, not `"*"`.
+- Consequence: anchor whose repeated child occurs zero times fails to match;
+  the whole row is dropped (e.g. a function with no args disappears).
+
+## A3 — reparse never applies edits (confirmed in code)
+
+- `src/pydantree_sitter/binding.py:212-220`: docstring claims edits are
+  applied internally; no `old_tree.edit(...)` call exists. tree-sitter does
+  not auto-diff. Only correct for EOF appends (the only tested case).
+
+## A4 — alternation anchors under-check (confirmed in code)
+
+- `src/pydantree_sitter/compiler.py:280,291,320`: bind-time checks/inference
+  use only `anchor_kinds[0]`; invalid second alternation alternatives escape
+  `SchemaCheckError` and fail later as raw `QueryBuildError`.
+
+## B1 — analyzer errors lose source attribution (confirmed in code)
+
+- `src/pydantree_sitter_grammar/pipeline.py:313-316` and `484-486`: checks run
+  against the site-less IR; only WARNINGS are re-run over the sited builder.
+  A typo'd `ref("nam")` raises with no `at file:line`.
+
+## B2 — conflict JSON extraction brace-blind (confirmed in code)
+
+- `src/pydantree_sitter_grammar/conflicts.py:64-83`: brace counting is not
+  string-aware; block-structured grammars (C/JS/JSON/Rust) hitting a GLR
+  conflict fall back to the raw generator dump. Golden fixtures use only
+  if/then/else, so the path is untested.
+
+## B3 — C++ scanners unsupported
+
+- `src/pydantree_sitter_grammar/pipeline.py:139-151,373`: only `scanner.c` /
+  `gcc` handled; never `scanner.cc` / `g++`. `build_community_bundle` on
+  html/cpp/ruby raises a misleading "no scanner.c supplied".
+
+## B4 — nullable-non-start check may over-reject
+
+- `src/pydantree_sitter_grammar/checks.py:492-509`: errors on every nullable
+  non-start rule and treats `repeat(...)` as always-nullable; idioms like
+  `g.rule("items", repeat(ref("item")))` may be rejected by default.
+
+## Example bug — want NameError (confirmed)
+
+- `examples/devenv-extract/extract.py:253`: `f"want {len(want)}"` references
+  undefined `want`; should be `len(truth[key])`. The mismatch-DIAGNOSTIC path
+  itself raises NameError.
+
+## Doc snippets don't run (confirmed)
+
+- `README.md:27`: uses `pydantree_sitter.Language.from_module(...)` but only
+  names are imported *from* the module -> `pydantree_sitter` unbound.
+- `docs/user-guide.md:52`: `Language.from_module` without importing `Language`.
+
+## Minor items (locations)
+
+- `src/pydantree_sitter/materialize.py:165`: `source_meta()` into
+  `int | None` breaks.
+- Product B: temp/`.work` leaks on failure (`pipeline.py`, `schema_tool.py`);
+  `PYDANTREE_SITTER_ABI` documented as override but is only a fallback;
+  `remap_from_proc` raises bare `RuntimeError` swallowing `GenerateError`;
+  `replace_rule` leaves stale flag entries; `node_types_json` can dangle
+  after a warm-cache schema backfill.

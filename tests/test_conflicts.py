@@ -106,6 +106,36 @@ def test_parse_conflict_json_non_conflict_returns_none():
     assert tg.parse_conflict_json("not json") is None
 
 
+def test_parse_conflict_json_brace_tokens_inside_strings():
+    """B2/REVIEW 020: the JSON extractor's brace counting is STRING-aware —
+    a block-structured grammar's `{`/`}` literals (C/JS/JSON/Rust) inside
+    symbol strings must not unbalance the scan (the old counter fell back to
+    None for exactly those grammars, losing the DSL-site remapping)."""
+    report = {
+        "BuildTables": {"Conflict": {
+            "symbol_sequence": ["block", "'{'", "'}'"],
+            "conflicting_lookahead": "'}'",
+            "possible_interpretations": [
+                {"variable_name": "block",
+                 "production_step_symbols":
+                 ["block", "'{'", "statement", "'}'"],
+                 "step_index": 4, "done": True,
+                 "preceding_symbols": ["block", "'{'", "statement"],
+                 "conflicting_lookahead": "'}'",
+                 "precedence": None, "associativity": None},
+            ],
+            "possible_resolutions": [
+                {"Precedence": {"symbols": ["block"]}},
+            ],
+        }}
+    }
+    raw = ("warning: pattern flag 'u' is ignored\n" + json.dumps(report))
+    c = tg.parse_conflict_json(raw)
+    assert c is not None
+    assert c.ambiguous_shape() == "block '{' '}' • '}'"
+    assert c.involved_rules == ["block"]
+
+
 def test_conflict_error_names_dsl_sites_and_fixes():
     g = tg.Grammar("t")
     g.rule("expr", tg.choice(

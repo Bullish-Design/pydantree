@@ -1,0 +1,33 @@
+# Evidence — live fixtures, saved outputs, examples, docs
+
+## What exists (verified)
+
+- Three real end-to-end examples, each with `extract.py` that prints a
+  per-step narrative, self-checks rows against hand-written
+  `ground_truth.json`, and exits 0/1:
+  - `examples/bash-extract/` — real tree-sitter-bash 0.25.1 over real shell
+    scripts (34 rows).
+  - `examples/devenv-extract/` — the author's own `devenv.nix` files
+    (102 rows).
+  - `examples/grammar-authoring/` — from-scratch DSL-authored grammar
+    (56 rows).
+- `tests/oracles/*.json` — human-readable, regenerable (`--generate`),
+  drift-proof (generator and checker share collectors), cross-checked against
+  independent ground truth. Native `.so` deliberately NOT committed (correct).
+- Example CLIs re-run as subprocesses to prove they stay runnable.
+
+## Gaps (verified)
+
+1. Saved outputs capture FINAL data only; the per-step transcripts the
+   examples PRINT (schema kinds/checks, per-file/per-row traces,
+   author+build sections) are snapshotted NOWHERE. Subprocess tests assert
+   only a substring like "34 rows extracted".
+2. ALL of it requires the full devenv/CLI+gcc toolchain; off-devenv nothing
+   runs and the library won't import. No toolchain-free example exists.
+3. Headline Product A features with NO live example with saved output:
+   `__raw_query__`/`RawQuery`, `Matches`/`Eq`/`AnyOf` predicates, `NodeKind`
+   alternation, `Unescaped`, `derived()`, nested-model fields — unit tests
+   only (some gated).
+4. Product A extraction core (`materialize.py`, `emit.py`, `binding.py`,
+   `compiler.py`) is exercised mainly through toolchain-gated integration
+   tests -> effectively untested in any env without CLI+gcc.
