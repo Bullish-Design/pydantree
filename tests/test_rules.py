@@ -76,32 +76,40 @@ def _ir_dict(build):
     return json.loads(build().build().model_dump_json(exclude_none=True))
 
 
+def _load_devenv_example(name: str):
+    """The class-authored devenv grammar (the migrated example)."""
+    return _load_module(name, REPO / "examples" / "devenv-subset" /
+                        "grammar.py")
+
+
+def _load_devenv_dsl(name: str):
+    """The preserved builder-DSL spelling (the gate's reference side)."""
+    return _load_module(name, FIXTURES / "devenv_builder_dsl_grammar.py")
+
+
 def test_gate_devenv_class_grammar_identical_to_builder_dsl():
     """THE GATE — byte-identity. The same grammar authored two ways must emit
     the same grammar.json: rule order, externals, extras, flags, and every
-    regex string in the IR."""
-    classes = _load_module(
-        "devenv_classes_grammar", FIXTURES / "devenv_classes_grammar.py")
-    example = _load_module(
-        "devenv_example_grammar", REPO / "examples" / "devenv-subset" /
-        "grammar.py")
+    regex string in the IR. The class side is the migrated example; the DSL
+    side is the preserved pre-migration spelling."""
+    classes = _load_devenv_example("devenv_example_class")
+    dsl = _load_devenv_dsl("devenv_example_dsl")
 
     new = _ir_dict(classes.build)
-    old = _ir_dict(example.build)
+    old = _ir_dict(dsl.build)
     assert new == old
     assert list(new["rules"]) == list(old["rules"])
     assert len(new["rules"]) == 17
 
     # the assembled grammar passes the checks the DSL version passes
     assert not tg.errors(classes.build())
-    assert not tg.errors(example.build())
+    assert not tg.errors(dsl.build())
 
 
 def test_gate_rule_order_matches_example():
     """Rule registration order (definition order) + start-first reordering
     matches the builder-DSL file exactly (the CLI's root + pruning contract)."""
-    classes = _load_module(
-        "devenv_classes_grammar2", FIXTURES / "devenv_classes_grammar.py")
+    classes = _load_devenv_example("devenv_example_class2")
     g = classes.build()
     m = g.build()
     assert list(m.rules)[0] == "source_file"
@@ -116,8 +124,7 @@ def test_gate_rule_order_matches_example():
 def test_gate_external_and_extra_placement():
     """Externals (definition order, SCREAMING_SNAKE default) and the comment
     extra land exactly where the DSL file puts them."""
-    classes = _load_module(
-        "devenv_classes_grammar3", FIXTURES / "devenv_classes_grammar.py")
+    classes = _load_devenv_example("devenv_example_class3")
     m = classes.build().build()
     assert [e.type for e in m.externals] == ["TOKEN", "TOKEN"]
     assert [e.content.value for e in m.externals] == [
@@ -370,8 +377,7 @@ def test_assembled_grammar_passes_checks_build_and_parse():
     """The assembled devenv grammar passes run_checks clean, builds with the
     scanner, and parses a real fixture — the full B-side pipeline over the
     class surface (probe [4]/[5] as a test)."""
-    classes = _load_module(
-        "devenv_classes_grammar4", FIXTURES / "devenv_classes_grammar.py")
+    classes = _load_devenv_example("devenv_example_class4")
     g = classes.build()
     assert not tg.errors(g)
     scanner = REPO / "examples" / "devenv-subset" / "scanner.c"

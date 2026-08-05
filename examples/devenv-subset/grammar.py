@@ -7,8 +7,8 @@ interpolation, `''...''` multiline strings with `''${` escapes, lists,
 configs actually use, WITHOUT the full Nix language (no let/in, function
 formals are a simple header, no binary operators, no apply).
 
-Authored with the tsgrammar DSL (Product B) so the consumer-side shape is
-exactly what Product A wants:
+Authored with the tsgrammar RULE-CLASS surface (Product B) so the
+consumer-side shape is exactly what Product A wants:
 
   * the attrset's key/value pair is a DIRECT CHILD KIND with `key`/`value`
     FIELDS — the pair-kind detection record mode needs (upstream
@@ -18,9 +18,43 @@ exactly what Product A wants:
     text-yielding leaf, so `key: str = capture("key")` passes the schema
     checks (upstream nix's structural attrpath is rejected);
   * the multiline-string fragments come from a tiny external scanner
-    (scanner.c) — the same mechanism upstream uses, but simple enough to be
-    position-stable (upstream's 7.6 KB scanner triggers a tree-sitter 0.26
-    position corruption on large files — the Phase-9 finding).
+    (scanner.c) — position-stable (upstream's 7.6 KB scanner triggers a
+    tree-sitter 0.26 position corruption on large files).
+
+The surface — each rule is a class; the class body IS the production:
+
+  * the BASE CLASS is the rule's KIND — the subclass list is the flag list:
+
+        class Number(Pattern)          # bare regex rule      (__pattern__)
+        class NamePath(Token)          # token-wrapped        (__pattern__/body)
+        class StringFragment(External) # external-scanner token
+        class Comment(Extra, Token)    # behavioral kinds are MIXINS
+        class Value(Supertype)
+
+  * annotated attributes are ORDERED CHILDREN; the attribute name is the CST
+    field (except `Literal[...]` attributes, which are anonymous tokens, and
+    the reserved label `content`, which is an UNNAMED child — the IR's own
+    slot name):
+
+        key: NamePath           -> field("key", ref("name_path"))
+        element: list[Value]    -> repeat(field("element", ref("value")))
+        value: String | Number  -> field("value", choice(ref, ref))
+        maybe: Number | None    -> field("maybe", opt(ref))
+        eq: Literal["="] = "="  -> the anonymous token "=" (the default MUST
+                                   equal the Literal value — checked at class
+                                   definition, before any build)
+
+  * `__body__` is the escape hatch for shapes annotations can't express
+    (unnamed sequences, bare alternations): the combinator DSL as-is, with
+    `R(SomeClass)` as a reference — or `tg.ref("name")` at the mutual-
+    recursion cycle points, where the referenced class isn't in scope yet.
+  * pattern helpers (`tsgrammar.patterns`) return composable regex STRINGS
+    in the tree-sitter lexer subset: `ident()`, `integer()`, `quoted()`,
+    `slug()`, `path_literal()`, `dotted_path()`, `rest_of_line()`.
+  * `__rule_name__` overrides the class-name -> rule-name spelling (`list`).
+
+`build()` returns the SAME `tg.Grammar` the builder DSL returns — the
+pipeline below (run_checks, generate, gcc, bundle) is untouched.
 
 Run it with `devenv shell -- python examples/devenv-subset/extract.py`
 (builds the bundle with B, then extracts with A).
@@ -28,83 +62,133 @@ Run it with `devenv shell -- python examples/devenv-subset/extract.py`
 
 from __future__ import annotations
 
+from typing import Literal
+
 import tsgrammar as tg
+from tsgrammar import (
+    External, Extra, Pattern, R, Rule, Supertype, Token, assemble,
+)
+from tsgrammar.patterns import dotted_path, integer, path_literal, rest_of_line
+
+# ---- lexical --------------------------------------------------------------
+
+class Comment(Extra, Token):
+    """`# ...` to end of line — an extra (never a tree node)."""
+    __body__ = tg.seq("#", tg.pattern(rest_of_line()))
+
+
+class NamePath(Token):
+    """ONE token: `pkgs`  `config.env.DEVENV_ROOT`  `scripts.hello.exec`
+    `"quoted"`  `tasks."quoted".exec` — the text-yielding key leaf Product A
+    needs (`key: str = capture("key")`)."""
+    __pattern__ = dotted_path()
+
+
+class Number(Pattern):
+    __pattern__ = integer()
+
+
+class PathLiteral(Token):
+    __pattern__ = path_literal()
+
+
+class StringFragment(External):
+    """External-scanner token (scanner.c): a `"..."` string body chunk."""
+
+
+class IndentedStringFragment(External):
+    """External-scanner token: a `''...''` multiline string body chunk."""
+
+
+# ---- strings --------------------------------------------------------------
+
+class Interpolation(Rule):
+    """`${ value }` — the fielded child is what Product A captures."""
+    open: Literal["${"] = "${"
+    expression: Value
+    close: Literal["}"] = "}"
+
+
+class String(Rule):
+    open: Literal['"'] = '"'
+    content: list[StringFragment | Interpolation]
+    close: Literal['"'] = '"'
+
+
+class IndentedString(Rule):
+    open: Literal["''"] = "''"
+    content: list[IndentedStringFragment | Interpolation]
+    close: Literal["''"] = "''"
+
+
+# ---- structure ------------------------------------------------------------
+
+class Pair(Rule):
+    """The direct-child-kind pair with key/value FIELDS — the exact shape
+    record mode's pair-kind detection needs."""
+    key: NamePath
+    eq: Literal["="] = "="
+    value: Value
+    semi: Literal[";"] = ";"
+
+
+class Attrset(Rule):
+    open: Literal["{"] = "{"
+    content: list[Pair]
+    close: Literal["}"] = "}"
+
+
+class ListRule(Rule):
+    """`[ ... ]` — `list` is a builtin, hence `__rule_name__`."""
+    __rule_name__ = "list"
+    open: Literal["["] = "["
+    element: list[Value]
+    close: Literal["]"] = "]"
+
+
+class WithExpr(Rule):
+    """`with pkgs; value` — two UNNAMED refs (annotations are fielded by
+    construction; Python can't repeat `_`), so `__body__`. `tg.ref("value")`
+    is a cycle point: `Value` is defined below — grammars are cyclic DAGs."""
+    __body__ = tg.seq("with", R(NamePath), ";", tg.ref("value"))
+
+
+class Value(Supertype):
+    """The supertype over every value shape — a bare alternation (a CHOICE
+    has no field names to annotate). `tg.ref("with_expr")` is the cycle
+    point back to `WithExpr`."""
+    __body__ = tg.choice(R(String), R(IndentedString), R(ListRule),
+                         R(Attrset), R(NamePath), R(Number), R(PathLiteral),
+                         tg.ref("with_expr"))
+
+
+class Formal(Rule):
+    """`{ pkgs, lib, config, inputs, ... }:` header — each formal OPTIONALLY
+    eats its trailing comma (the real nix grammar's trick: the comma attaches
+    to the preceding formal, so `{ a, b }` and `{ a, b, ... }` are
+    unambiguous)."""
+    __body__ = tg.seq(R(NamePath), tg.opt(","))
+
+
+class Formals(Rule):
+    __body__ = tg.seq("{", tg.repeat(R(Formal)), tg.opt("..."), "}")
+
+
+class SourceFile(Rule):
+    __body__ = tg.seq(tg.opt(tg.seq(R(Formals), ":")), R(Attrset))
 
 
 def build() -> tg.Grammar:
-    g = tg.Grammar("devenv")
-
-    # ---- lexical ----------------------------------------------------------
-    g.rule("comment", tg.token(tg.seq("#", tg.pattern(r"[^\n]*"))))
-    g.extra(tg.ref("comment"))
-
-    # identifiers, dotted paths, and quoted path segments — ONE token rule,
-    # so keys, value refs and formals share a single text-yielding leaf kind.
-    # The FIRST segment may be a quoted string too (a standalone quoted key
-    # like tasks' `"pydantree:venv-src-pth" = { ... }`):
-    #   pkgs  config.env.DEVENV_ROOT  scripts.hello.exec  "quoted"
-    #   tasks."quoted".exec
-    g.rule("name_path", tg.token(tg.pattern(
-        r'("[^"]*"|[a-zA-Z_][a-zA-Z0-9_-]*)(\.[a-zA-Z_][a-zA-Z0-9_-]*|"[^"]*")*')))
-    g.rule("number", tg.pattern(r"[0-9]+"))
-    g.rule("path_literal", tg.token(tg.pattern(r"\.[/][A-Za-z0-9_./-]+")))
-
-    # the string fragments are external-scanner tokens (scanner.c)
-    g.external(tg.tok("STRING_FRAGMENT"), tg.tok("INDENTED_STRING_FRAGMENT"))
-    g.rule("string_fragment", tg.tok("STRING_FRAGMENT"))
-    g.rule("indented_string_fragment", tg.tok("INDENTED_STRING_FRAGMENT"))
-
-    # ---- strings ----------------------------------------------------------
-    g.rule("interpolation", tg.seq("${",
-                                   tg.field("expression", tg.ref("value")),
-                                   "}"))
-    g.rule("string", tg.seq('"',
-                            tg.repeat(tg.choice(tg.ref("string_fragment"),
-                                                tg.ref("interpolation"))),
-                            '"'))
-    g.rule("indented_string", tg.seq("''",
-                                     tg.repeat(tg.choice(
-                                         tg.ref("indented_string_fragment"),
-                                         tg.ref("interpolation"))),
-                                     "''"))
-
-    # ---- structure --------------------------------------------------------
-    # the KEY/VALUE PAIR: a direct child kind of the attrset with key/value
-    # fields — the exact shape record mode's pair-kind detection needs
-    g.rule("pair", tg.seq(tg.field("key", tg.ref("name_path")), "=",
-                          tg.field("value", tg.ref("value")), ";"))
-    g.rule("attrset", tg.seq("{", tg.repeat(tg.ref("pair")), "}"))
-    g.rule("list", tg.seq("[",
-                          tg.repeat(tg.field("element", tg.ref("value"))),
-                          "]"))
-    g.rule("with_expr", tg.seq("with", tg.ref("name_path"), ";",
-                               tg.ref("value")))
-    g.rule("value", tg.choice(tg.ref("string"), tg.ref("indented_string"),
-                              tg.ref("list"), tg.ref("attrset"),
-                              tg.ref("name_path"), tg.ref("number"),
-                              tg.ref("path_literal"), tg.ref("with_expr")),
-           supertype=True)
-    # the `{ pkgs, lib, config, inputs, ... }:` header — each formal OPTIONALLY
-    # eats its trailing comma (the real nix grammar's trick: the comma
-    # attaches to the preceding formal, so `{ a, b }` and `{ a, b, ... }` are
-    # unambiguous)
-    g.rule("formal", tg.seq(tg.ref("name_path"), tg.opt(",")))
-    g.rule("formals", tg.seq(
-        "{",
-        tg.repeat(tg.ref("formal")),
-        tg.opt("..."),
-        "}"))
-    g.rule("source_file", tg.seq(
-        tg.opt(tg.seq(tg.ref("formals"), ":")),
-        tg.ref("attrset")))
-    g.start("source_file")
-    return g
+    """Drop-in for the builder-DSL `build()` — the SAME `tg.Grammar` object,
+    so `run_checks`, `build_builder`, and the bundle pipeline are untouched.
+    `assemble()` compiles the rule classes into the builder's registry."""
+    return assemble("devenv", start=SourceFile)
 
 
 if __name__ == "__main__":
     import sys
     sys.path.insert(0, "src")
     g = build()
-    print("rule count:", len(g.rules()))
+    print("rule count:", len(g.rules))
     for w in tg.run_checks(g):
         print(w)
