@@ -293,3 +293,31 @@ def test_unescaped_over_cfg_string():
     src = '[x]\ntitle = "A\\nB"\n'
     rows = Server.extract(src, language=lang)
     assert rows[0].title == "A\nB"
+
+
+# ---------------------------------------------------------------------------
+# A2 (REVIEW 018): the documented sugar one-liner must not recompile and
+# re-check every call — memoized per-input Language on the sugar path
+# ---------------------------------------------------------------------------
+
+def test_sugar_reuses_compiled_query(monkeypatch):
+    from pydantree_sitter import emit
+
+    n = {"c": 0}
+    orig = emit.Query.compile
+
+    def counting(self, lang):
+        if self._compiled is None:
+            n["c"] += 1
+        return orig(self, lang)
+
+    monkeypatch.setattr(emit.Query, "compile", counting)
+
+    class Rec(OutputModel):
+        __match__ = M("document", "object", record=True)
+        a: int | None = None
+
+    text = '{"a": 1}'
+    for _ in range(5):
+        Rec.extract(text, language=tree_sitter_json)
+    assert n["c"] <= 2, f"recompiled {n['c']}x for 5 identical sugar calls"

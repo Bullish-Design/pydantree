@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import types
 import warnings
+import weakref
 from pathlib import Path
 
 import tree_sitter
@@ -71,15 +72,38 @@ def _transient_language(lang: "Language", schema=None) -> "Language":
                     else lang._schema, value_map=lang._value_map)
 
 
+# memoized per-input Language for the sugar path (A2/REVIEW 018):
+# `Model.extract(text, language=module)` used to build a FRESH Language per
+# call, silently re-running every check and recompiling every query — the
+# documented one-liner was the pathological path. Weak keys: the module /
+# tree_sitter.Language / callable stays alive, the Language dies with it.
+# Inputs that are neither hashable nor weak-referenceable simply skip the
+# cache (the TypeError is the signal, not an error).
+_LANGUAGE_CACHE: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
+
+
 def _language_for(language):
     """Normalize the sugar `language=` argument: None | Language | module |
-    tree_sitter.Language -> Language or None."""
+    tree_sitter.Language -> Language or None. Memoized per input (the
+    explicit-`schema=` route builds a transient copy AFTER this and stays
+    uncached)."""
     if language is None:
         return None
     if isinstance(language, Language):
         return language
+    try:
+        cached = _LANGUAGE_CACHE.get(language)
+    except TypeError:
+        cached = None                     # unhashable/unweakable input
+    if cached is not None:
+        return cached
     lang, schema = _resolve_language(language)
-    return Language(lang, schema=schema)
+    built = Language(lang, schema=schema)
+    try:
+        _LANGUAGE_CACHE[language] = built
+    except TypeError:
+        pass
+    return built
 
 
 # ---------------------------------------------------------------------------
