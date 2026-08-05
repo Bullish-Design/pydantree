@@ -171,3 +171,25 @@ cache).
 - **Gate greps:** no `print(` in pydantree_sitter; no
   `__class__.__name__ ==`; no `_SCHEMA_REGISTRY`/`_derived_cache`/
   `_schema_derived`.
+
+## Gate 5 — typed CST codegen (D7)
+
+- **Suite:** 222 passed (54s).
+- **codegen.py:** `generate_typed_api(schema, module_name)` emits a REAL
+  runtime module (the stubs.py .pyi fiction is deleted, F-A4): TypedNode
+  wraps a tree_sitter.Node (kind/text/line/children), one class per named
+  kind with field accessors typed from the schema (required+single -> T,
+  optional -> T | None, repeated -> list[T] via field_name_for_child), a
+  children(kind) accessor, supertypes as unions (emitted dependency-first —
+  unions reference other unions; anonymous refs -> TypedNode), KIND_MAP +
+  wrap(). Class names via the acronym-aware camel helper (shared with F-B4).
+- **Two shipping forms:** the A-side function, and the bundle hook
+  `BuildResult.package(..., typed_api=True)` dropping `typed_api.py` beside
+  the schema.
+- **Tests (tests/test_codegen.py):** module execs over the real rust schema
+  (163 kinds); runtime round-trip (parse real rust, wrap(), field accessors
+  == raw child_by_field_name, repeated fields, children accessor); mypy over
+  a consumer importing the GENERATED RUNTIME module (the F-A4 spirit —
+  type-checks AND runs); acronym-aware naming.
+- **Deleted:** stubs.py + test_stubs.py (the mypy-only fiction test).
+- **Gate grep:** `grep -rn "stubs" src` -> empty.

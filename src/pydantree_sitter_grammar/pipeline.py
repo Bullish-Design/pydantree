@@ -173,7 +173,8 @@ class BuildResult:
         return NodeSchema.from_node_types_json(self.node_schema_json)
 
     def package(self, dir: Path | str, *,
-                include_loader: bool = True) -> Path:
+                include_loader: bool = True,
+                typed_api: bool = False) -> Path:
         """Package the build into a shippable bundle directory (Phase 5 — the
         artifact seam in production):
 
@@ -181,6 +182,7 @@ class BuildResult:
             node-schema.json  the derived node-schema (bridge artifact)
             tree-sitter.json  bundle metadata (name = the export symbol)
             loader.py         a thin shim over pydantree_sitter.loader.load_bundle
+            typed_api.py      REAL typed CST accessors (014 §5/D7, typed_api=True)
 
         The bundle is consumed B-free — pydantree_sitter.Language.load_bundle(dir) —
         or by anyone with pydantree_sitter + tree_sitter (loader.py delegates to
@@ -194,6 +196,13 @@ class BuildResult:
         if self.node_schema_json is not None and self.node_schema_json.exists():
             _shutil.copyfile(self.node_schema_json, bundle / "node-schema.json")
             schema_rel = "node-schema.json"
+        if typed_api and self.node_schema_json is not None \
+                and self.node_schema_json.exists():
+            from pydantree_sitter.codegen import write_typed_api
+            from pydantree_sitter.schema import NodeSchema
+            schema = NodeSchema.from_node_types_json(self.node_schema_json)
+            write_typed_api(schema, bundle / "typed_api.py",
+                            module_name=f"typed_api_{self.so_path.stem}")
         metadata = {
             "bundle_format": 2,          # D12: versioned artifact contract
             "name": self.so_path.stem,

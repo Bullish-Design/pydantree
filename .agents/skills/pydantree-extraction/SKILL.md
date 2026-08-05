@@ -77,8 +77,8 @@ the derivation falls back to the schema-less path.
 - `OutputModel.compiled_source(...)` — the derived .scm (diagnostics).
 - Job-2 stubs:
   ```python
-  from pydantree_sitter.stubs import generate_stubs
-  generate_stubs(lang.schema, out="node_stubs.pyi")
+  from pydantree_sitter.codegen import generate_typed_api
+  api_src = generate_typed_api(lang.schema, "mylang_api")  # REAL runtime classes
   ```
 
 ## Errors

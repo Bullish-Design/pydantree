@@ -161,8 +161,9 @@ Generate a `.pyi` beside the schema — per named kind: field accessors,
 `get(field)` overloads, `children(kind)` overloads, supertype aliases:
 
 ```python
-from pydantree_sitter.stubs import generate_stubs
-generate_stubs(lang.schema, out="node_stubs.pyi")
+from pydantree_sitter.codegen import generate_typed_api
+# REAL runtime classes (not .pyi fiction — F-A4): the module imports and runs
+api_src = generate_typed_api(lang.schema, "mylang_api")
 ```
 
 ---

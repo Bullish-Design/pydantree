@@ -43,7 +43,7 @@ pydantree-branded (`pydantree-sitter`, `pydantree-sitter`,
 | package | weight | contents | depends on |
 |---|---|---|---|
 | `pydantree_sitter` | tiny, pure Python | the node-schema format (`schema.py` — the schema IS the CLI byproduct; the `_ir_derive` port was deleted in the 014 refactor), the artifact-loading contract (`loader.py` incl. the wasm seam — the probe bridge moved to `.scratch/projects/009-phase7/`) | pydantic, tree-sitter |
-| `pydantree_sitter` (A) | light | `typed.py` (OutputModel + Language), `dsl.py` (the query builder), `materialize.py`, `shapes.py`, `schema.py` (schema-rebuilt derivation), `stubs.py` (Job-2 `.pyi`) | pydantree_sitter, pydantic, tree-sitter |
+| `pydantree_sitter` (A) | light | `spec.py` (MatchSpec), `binding.py` (Language/Extractor), `compiler.py`, `emit.py`, `match.py`, `materialize.py`, `valuemap.py`, `codegen.py` (real typed CST accessors) | pydantic, tree-sitter |
 | `pydantree_sitter_grammar` (B) | heavy | `grammar.py` (IR), `builder.py` (the DSL), `checks.py` (static analysis), `conflicts.py` (GLR conflict remapping), `expressions.py` (precedence ladders), `corpus.py` (the corpus harness), `pipeline.py` (generate → gcc → bundle), `schema_tool.py` (community grammars), `scanners/` (the scanner library) | pydantree_sitter, pydantic, tree-sitter, **plus the CLI + gcc at build time** |
 
 The root `pyproject.toml` is the uv-workspace + dev-tooling envelope only
@@ -163,7 +163,7 @@ src/pydantree_sitter/
   materialize.py     Span, coercion, diagnostics, failures
   shapes.py          the record value-shape derivation
   schema.py          schema_derive (Jobs 1/3/4 over the bound schema)
-  stubs.py           generate_stubs (Job-2 .pyi from the schema)
+  codegen.py         generate_typed_api (REAL typed CST accessors, D7)
 src/pydantree_sitter_grammar/
   grammar.py         the IR models (GrammarModel mirror of grammar.json)
   builder.py         the author DSL (Grammar, rule/seq/choice/repeat/...,
