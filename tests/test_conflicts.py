@@ -1,5 +1,10 @@
 """Conflict-remapping tests: parsing the CLI's --json report and rendering the
-GrammarConflictError with DSL source sites (using a recorded real report)."""
+GrammarConflictError with DSL source sites (using a recorded real report).
+
+The file mixes pure conflict-report tests (JSON parsing, remapping, rendering,
+static analysis — no toolchain) with a small set of explicitly marked
+@toolchain integration tests that generate/compile/load a real grammar through
+the CLI and gcc."""
 
 from __future__ import annotations
 
@@ -136,7 +141,9 @@ def test_real_generator_report_parses():
 # test_phase3_surface.py — dissolved into the per-surface suite, 7.5)
 # ---------------------------------------------------------------------------
 
-pytestmark = pytest.mark.toolchain
+# Only the tests that generate, compile, load, or parse a generated grammar
+# carry the toolchain marker; every pure conflict-report test below runs
+# without the CLI/gcc (the golden corpus is the structural drift guard).
 
 # ---------------------------------------------------------------------------
 # intentional ambiguity opt-in
@@ -175,6 +182,7 @@ def test_ambiguous_synthesizes_prec_dynamic_and_conflicts():
     assert m.conflicts == [["if_stmt"]]
 
 
+@pytest.mark.toolchain
 def test_ambiguous_resolves_greedy_at_runtime(tmp_path):
     """The whitelisted dangling else must generate clean (exit 0) and parse
     `if a if b c; else d;` with the inner-if-else binding (greedy)."""
@@ -191,6 +199,7 @@ def test_ambiguous_resolves_greedy_at_runtime(tmp_path):
     assert "else: (expr_stmt (expr (identifier))))" in sexp
 
 
+@pytest.mark.toolchain
 def test_dangling_else_without_opt_in_conflicts(tmp_path):
     """Same grammar WITHOUT the opt-in must hit an unresolved GLR conflict."""
     g = _dangling_else_grammar(ambiguous=False)
@@ -220,6 +229,7 @@ def _prec_gap_grammar() -> tg.Grammar:
     return g
 
 
+@pytest.mark.toolchain
 def test_conflict_cites_per_production_seq_line(tmp_path):
     g = _prec_gap_grammar()
     json_path = g.emit_bundle(tmp_path / "gap")
@@ -252,6 +262,7 @@ def test_matching_alternative_distinguishes_operators():
 # fix-one-rerun loop
 # ---------------------------------------------------------------------------
 
+@pytest.mark.toolchain
 def test_build_loop_drives_to_clean(tmp_path):
     """The loop: yield the conflict, apply the generator's suggested fix
     (Associativity), re-run — must land on a clean generate, and the fixed
@@ -285,6 +296,7 @@ def test_build_loop_drives_to_clean(tmp_path):
     assert not tree.root_node.has_error
 
 
+@pytest.mark.toolchain
 def test_build_loop_fails_after_max_attempts(tmp_path):
     g = tg.Grammar("never")
     g.rule("number", tg.pattern(r"\d+"))
@@ -306,6 +318,7 @@ def test_build_loop_fails_after_max_attempts(tmp_path):
 # debug_states
 # ---------------------------------------------------------------------------
 
+@pytest.mark.toolchain
 def test_debug_states_returns_report(tmp_path):
     g = tg.Grammar("states")
     g.rule("number", tg.pattern(r"\d+"))
@@ -393,6 +406,7 @@ def test_word_sugar():
         g2.rule("b", tg.pattern(r"\w+"), word=True)
 
 
+@pytest.mark.toolchain
 def test_whitespace_default_parses_spaces(tmp_path):
     """The Phase-2 finding §2.1 'no default whitespace extra' — the first test
     inputs failed on spaces. The default must make spaces just work."""
