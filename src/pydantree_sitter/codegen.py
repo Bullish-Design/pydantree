@@ -85,7 +85,10 @@ def generate_typed_api(schema: NodeSchema, module_name: str) -> str:
     L.append("")
     L.append("    @property")
     L.append("    def line(self) -> int:")
-    L.append("        return self.node.start_point.row + 1")
+    # tuple access, not `.row`: the 0.26.0 Point getters corrupt the heap
+    # (py-tree-sitter#472). Generated code ships to users, so it must not
+    # carry the bad access pattern — see materialize.Span.from_node.
+    L.append("        return self.node.start_point[0] + 1")
     L.append("")
     L.append("    def children(self, kind: str | None = None) -> list[TypedNode]:")
     L.append("        out = []")

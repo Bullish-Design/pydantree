@@ -55,10 +55,27 @@ class Span:
 
     @classmethod
     def from_node(cls, node: tree_sitter.Node) -> "Span":
+        # `Point` is a tuple — unpack it, never read `.row` / `.column`.
+        #
+        # tree-sitter 0.26.0 reworked Point into a tuple subclass whose
+        # `.row` / `.column` getters return a BORROWED reference instead of a
+        # new one. Every read of a non-immortal int (any value above 256,
+        # CPython's small-int cache bound) leaves the int one refcount short,
+        # so it is freed while the Point still owns it — allocator corruption
+        # that detonates later in an unrelated allocation (SIGSEGV/SIGBUS/
+        # SIGABRT, or a hang). Reading 246 such values is enough.
+        # Upstream: tree-sitter/py-tree-sitter#472, fixed by #466 (merged
+        # 2026-07-08) but NOT in any release as of 0.26.0.
+        #
+        # Tuple access goes through PyTuple_GET_ITEM, which is correct, and
+        # yields identical values on 0.25.x, 0.26.0 and the fixed build — so
+        # this needs no version pin and can stay after 0.26.1 ships.
         r = node.range
+        start_row, start_column = r.start_point
+        end_row, end_column = r.end_point
         text = node.text.decode("utf-8", "replace") if node.text else ""
-        return cls(r.start_point.row + 1, r.start_point.column,
-                   r.end_point.row + 1, r.end_point.column,
+        return cls(start_row + 1, start_column,
+                   end_row + 1, end_column,
                    r.start_byte, r.end_byte, text)
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -166,7 +183,8 @@ def build_kwargs(model_cls, bindings, caps: dict) -> dict:
                     # REVIEW 020 minor: `int | None` source_meta() used to
                     # fall into the Span branch (annotation is not exactly
                     # `int`) and fail validation.
-                    kwargs[fname] = node.start_point.row + 1
+                    # tuple access, not `.row` — see Span.from_node
+                    kwargs[fname] = node.start_point[0] + 1
                 else:
                     kwargs[fname] = Span.from_node(node)
             continue
