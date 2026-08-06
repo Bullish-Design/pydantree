@@ -57,7 +57,7 @@ from .schema import (
 from .spec import OutputModel
 from .valuemap import JSON_VALUE_MAP, ValueMap, propose_value_map
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     # the model surface

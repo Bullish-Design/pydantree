@@ -505,7 +505,7 @@ wheels = [
 
 [[package]]
 name = "pydantree"
-version = "0.1.0"
+version = "0.2.0"
 source = { virtual = "." }
 
 [package.optional-dependencies]
@@ -535,7 +535,7 @@ provides-extras = ["dev", "python"]
 
 [[package]]
 name = "pydantree-sitter"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "src/pydantree_sitter" }
 dependencies = [
     { name = "pydantic" },
@@ -550,7 +550,7 @@ requires-dist = [
 
 [[package]]
 name = "pydantree-sitter-grammar"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "src/pydantree_sitter_grammar" }
 dependencies = [
     { name = "pydantic" },

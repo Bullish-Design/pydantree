@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pydantree-sitter-grammar"
-version = "0.1.0"
+version = "0.2.0"
 description = "Product B — author tree-sitter grammars in Pydantic. Heavy build tool: pydantree-sitter + the tree-sitter CLI + a C toolchain; produces the artifacts A consumes."
 readme = "README.md"
 requires-python = ">=3.11"

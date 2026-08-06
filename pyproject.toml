@@ -6,9 +6,9 @@
 package = false
 
 [project]
-# The envelope-only metadata (P1: version agrees with both dists, 0.1.0).
+# The envelope-only metadata (P1: version agrees with both dists, 0.2.0).
 name = "pydantree"
-version = "0.1.0"
+version = "0.2.0"
 description = "Treesitter, but with more Pydantic. (Workspace envelope — the products are pydantree-sitter and pydantree-sitter-grammar under src/.)"
 requires-python = ">=3.11"
 

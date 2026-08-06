@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pydantree-sitter"
-version = "0.1.0"
+version = "0.2.0"
 description = "Product A — model-only typed extraction over tree-sitter grammars. Light runtime: the C binding + pydantic; no Rust CLI, no compiler."
 readme = "README.md"
 requires-python = ">=3.11"
