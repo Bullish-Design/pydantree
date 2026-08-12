@@ -220,3 +220,12 @@ devenv.local.nix
 /.scratch/projects/015-phase1-spike-a/work/
 # Phase 2 spike (Product A model-only): generated artifacts, same policy
 /.scratch/projects/016-spike-a2-model-only/work/
+
+# Agent-files convention (copyroom docs/user/agent-files.md): `.agents/` is
+# dual-use. `.agents/skills/` IS tracked, as are AGENTS.md and CLAUDE.md; the
+# rest of `.agents/` is platform/tool runtime state and stays ignored.
+.agents/**
+!.agents/skills/
+!.agents/skills/**
+!AGENTS.md
+!CLAUDE.md
