@@ -24,7 +24,7 @@ inputs:
   # `git+https` with an explicit rev, because that form records `rev` and
   # `narHash` in devenv.lock. `git+file` records neither and follows the head.
   devman:
-    url: "git+https://github.com/Bullish-Design/devman?ref=main&rev=9610f97d1cb48330b4e4b75dd423b0b6a47107ab"
+    url: "git+https://github.com/Bullish-Design/devman?ref=main&rev=df9cfe5ae3f5e6d77bb23300d4aa5c87adc478fc"
 
 imports:
   - shellij/modules
