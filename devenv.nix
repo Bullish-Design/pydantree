@@ -45,8 +45,40 @@
     echo hello from $GREET
   '';
 
+  # devman — the automation plane (CONCEPT.md §5).
+  #
+  # BOTH groups, which is the unusual choice and is deliberate. `python` shadows
+  # `check` and `validate`, so what taking `base` as well buys is exactly one
+  # thing: base's `full-test`, which adds `devenv test` after lint and test.
+  #
+  # The cost §7.4 warns about is real but small. base's workflows call
+  # `base:lint` and `base:test`, so those names must exist — and a devenv task
+  # with only `after` and no `exec` runs its dependency and fails when that
+  # dependency fails, so they are two lines rather than two more bodies.
+  devman = {
+    enable = true;
+    project = "pydantree";
+    groups = [ "base" "python" ];
+  };
+
   # https://devenv.sh/tasks/
   tasks = {
+    # ---------------------------------------------------------------------
+    # The task names the devman groups' workflows call. The group states which
+    # tasks run and in what order; this repository states what each one is.
+    #
+    # `mypy` takes an explicit `src`: this repository has no [tool.mypy] in
+    # pyproject.toml, so a bare `mypy` has nothing to check. That is what
+    # "the repository defines the group's task names" means in practice —
+    # the group file names a task and never a tool or its arguments.
+    "python:lint".exec = "ruff check .";
+    "python:typecheck".exec = "mypy src";
+    "python:test".exec = "pytest";
+
+    # base's two names, aliased rather than duplicated.
+    "base:lint".after = [ "python:lint" ];
+    "base:test".after = [ "python:test" ];
+
     # Fresh-worktree dependency guard (REVIEW 019 V3). devenv's own
     # `devenv:python:uv` syncs ONLY the root project (uv 0.6.x `uv sync`
     # defaults to the root; the workspace members `src/pydantree_sitter` and
