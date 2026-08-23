@@ -1,0 +1,45 @@
+
+========================================================================
+D1 — TWO repeated fields on one anchor: cartesian match blow-up?
+========================================================================
+q: (source_file (item a:(word)? @a b:(word)? @b) @__anchor__)
+   a= ['x', 'y', 'z', 'x', 'y', 'z']  b= ['p', 'p', 'p', 'q', 'q', 'q']
+   a= ['m']  b= ['n']
+   a= []  b= []
+EXPECT a=['x','y','z'] b=['p','q']  — duplicates mean cartesian merge
+raw tree-sitter match count for 3x2 occurrences: 6
+
+========================================================================
+D2 — MISSING / ERROR nodes materialize silently
+========================================================================
+malformed source rows: [(['x'], [])]
+tree has_error: True
+sexp: (source_file (item a: (word) (MISSING ")")))
+
+========================================================================
+D3 — self-recursive nested record model
+========================================================================
+schema kinds: ['array', 'comment', 'document', 'escape_sequence', 'false', 'null', 'number', 'object', 'pair', 'string', 'string_content', 'true', 'value']
+RecursionError (unbounded nested-extractor recursion)
+
+========================================================================
+D4 — record mode: path alternation silently uses only the FIRST kind
+========================================================================
+raised: SchemaCheckError RecAlt (/home/andrew/Documents/Projects/pydantree/.scratch/projects/021-deep-adversarial-review/probes/probe_d_toolchain.py:108): __match__ chain (PathStep(kinds=('document',)), PathStep(kinds=('object', 'array'))): 'array' cannot occur as a child of 'object' in the grammar (possible children of 'ob
+
+========================================================================
+D5 — field-mode alternation anchor: kind inferred from the UNION
+========================================================================
+raised: SchemaCheckError Alt (/home/andrew/Documents/Projects/pydantree/.scratch/projects/021-deep-adversarial-review/probes/probe_d_toolchain.py:135): __match__ chain (PathStep(kinds=('source_file',)), PathStep(kinds=('na', 'nb'))): 'nb' cannot occur as a child of 'na' in the grammar (possible children of 'na': ['num'])
+
+========================================================================
+D6 — cross-language extract_tree has no guard
+========================================================================
+cross-language rows: [Item2(a=[])]
+
+========================================================================
+D7 — propose_value_map on a non-JSON grammar + record mode
+========================================================================
+proposed: {'format_version': 1, 'scalars': {'a': 'str', 'b': 'str', 'num': 'str', 'word': 'str'}, 'wrappers': {}, 'arrays': {}}
+
+TMP = /tmp/probe-d-y46a33yz

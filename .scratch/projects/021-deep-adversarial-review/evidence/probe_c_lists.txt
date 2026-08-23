@@ -1,0 +1,47 @@
+
+======================================================================
+C1 — one repeated field (python subscript: value + subscript*)
+======================================================================
+q: (module (expression_statement (subscript value:(_) @value subscript:(_)? @subscript) @__anchor__))
+  value= a subs= ['1', '2', '3']
+  value= b subs= ['9']
+  value= c subs= ['']
+
+======================================================================
+C2 — repeated field + optional field on ONE anchor (duplicate risk)
+======================================================================
+q: (module (import_from_statement module_name:(_) @module_name name:(_)? @name) @__anchor__)
+  module= a.b names= ['x', 'y', 'z']
+  module= q names= ['w']
+
+======================================================================
+C3 — TWO repeated fields on one anchor
+======================================================================
+q: (module (for_statement left:(_)? @left right:(_)? @right) @__anchor__)
+  left= ['a, b'] right= ['x, y, z']
+
+======================================================================
+C4 — scalar field fed by a repeated grammar field => AmbiguousCaptureError?
+======================================================================
+q: (module (expression_statement (subscript value:(_) @value subscript:(_) @subscript) @__anchor__))
+RAISED AmbiguousCaptureError field 'subscript' is scalar but capture 'subscript' matched 3 nodes (nested key collision?)
+
+======================================================================
+C5 — capture_kind on positional children + list
+======================================================================
+q: (module (function_definition (block (expression_statement)? @stmts) @__anchor__))
+  line= 2 stmts= ['a', 'b', 'c']
+
+======================================================================
+C6 — '...' gap path + anchor merge
+======================================================================
+q: (assignment left:(_) @left) @__anchor__
+rows: ['x', 'y', 'z']
+
+======================================================================
+C7 — how many matches does tree-sitter give for a repeated '?' capture
+======================================================================
+match count: 3
+  pi 0 {'a': ['from a.b import x, y, z'], 'm': ['a.b'], 'n': ['x']}
+  pi 0 {'a': ['from a.b import x, y, z'], 'm': ['a.b'], 'n': ['y']}
+  pi 0 {'a': ['from a.b import x, y, z'], 'm': ['a.b'], 'n': ['z']}

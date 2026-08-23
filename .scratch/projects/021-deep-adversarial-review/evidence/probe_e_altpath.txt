@@ -1,0 +1,22 @@
+
+========================================================================
+E1 — the 020 regression test's ACTUAL error message
+========================================================================
+BadPair (/home/andrew/Documents/Projects/pydantree/.scratch/projects/021-deep-adversarial-review/probes/probe_e_altpath.py:33): __match__ chain (PathStep(kinds=('object', 'array')),): 'array' cannot occur as a child of 'object' in the grammar (possible children of 'object': ['pair'])
+
+-> the test asserts only "'array'" and "pair" are in the message; both appear in the WRONG (chain) error, so the guard is vacuous.
+
+========================================================================
+E2 — a VALID alternation anchor is rejected outright
+========================================================================
+REJECTED: Either (/home/andrew/Documents/Projects/pydantree/.scratch/projects/021-deep-adversarial-review/probes/probe_e_altpath.py:49): __match__ chain (PathStep(kinds=('document',)), PathStep(kinds=('object', 'array'))): 'array' cannot occur as a child of 'object' in the grammar (possible children of 'object': ['pair'])
+
+========================================================================
+E3 — same, single-step alternation with a field valid on both
+========================================================================
+REJECTED: SchemaCheckError EitherOk (/home/andrew/Documents/Projects/pydantree/.scratch/projects/021-deep-adversarial-review/probes/probe_e_altpath.py:65): __match__ chain (PathStep(kinds=('document',)), PathStep(kinds=('object', 'array'))): 'array' cannot occur as a child of 'object' in the grammar (possible children of 'object': ['pair'])
+
+========================================================================
+E4 — alternation where kind[1] IS a child of kind[0] (accidentally passes)
+========================================================================
+REJECTED: SchemaCheckError Nested (/home/andrew/Documents/Projects/pydantree/.scratch/projects/021-deep-adversarial-review/probes/probe_e_altpath.py:78): capture('value') on field 'x': kind 'object' has no CST field 'value' (its fields: [])

@@ -1,0 +1,70 @@
+
+========================================================================
+F1 — names in __all__ that the module does not define
+========================================================================
+pydantree_sitter: __all__ has 31 names; missing: []
+pydantree_sitter_grammar: __all__ has 95 names; missing: ['rule']
+
+========================================================================
+F2 — documented public API that is NOT exported
+========================================================================
+  pipeline.write_bundle: in package namespace? False
+  pipeline.build_from_source_dir: in package namespace? False
+  pipeline.Toolchain: in package namespace? False
+  schema_tool.derive_schema_for_dir: in package namespace? False
+  schema_tool.build_community_bundle: in package namespace? False
+
+========================================================================
+F3 — bundle_format: what actually differs between 1 and 2?
+========================================================================
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/errors.py:76:    `bundle_format` is unknown. Names both versions when rejecting a format,
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/loader.py:140:    Bundle format (D12): the metadata's `bundle_format` int versioning the
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/loader.py:152:    fmt = metadata.get("bundle_format", 1)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/loader.py:155:            f"bundle {dir}: bundle_format must be an int, got {fmt!r}")
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/loader.py:158:            f"bundle {dir}: unknown bundle_format {fmt} — this loader "
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:274:        "bundle_format": 2,          # D12: versioned artifact contract
+/home/andrew/Documents/Projects/pydantree/tests/test_loader.py:4:refactor (D12) versions the artifact contract with `bundle_format` (absent =
+/home/andrew/Documents/Projects/pydantree/tests/test_loader.py:58:def test_unknown_bundle_format_is_rejected_naming_both_versions(tmp_path):
+/home/andrew/Documents/Projects/pydantree/tests/test_loader.py:60:        tmp_path, {"bundle_format": 99, "name": "cfg",
+/home/andrew/Documents/Projects/pydantree/tests/test_loader.py:69:def test_non_int_bundle_format_is_rejected(tmp_path):
+/home/andrew/Documents/Projects/pydantree/tests/test_loader.py:71:        tmp_path, {"bundle_format": "two", "name": "cfg",
+/home/andrew/Documents/Projects/pydantree/tests/test_loader.py:75:    assert "bundle_format" in str(exc.value)
+/home/andrew/Documents/Projects/pydantree/tests/test_loader.py:80:    """Absent bundle_format = format 1 (the original layout) — accepted, not
+/home/andrew/Documents/Projects/pydantree/tests/test_loader.py:88:    assert metadata["bundle_format"] == 2
+/home/andrew/Documents/Projects/pydantree/tests/test_loader.py:89:    del metadata["bundle_format"]            # roll back to format 1
+/home/andrew/Documents/Projects/pydantree/tests/test_loader.py:100:    """The current format: bundle_format 2 in the metadata, loaded normally."""
+/home/andrew/Documents/Projects/pydantree/tests/test_loader.py:107:    assert metadata.get("bundle_format") == 2
+/home/andrew/Documents/Projects/pydantree/docs/architecture.md:47:| `pydantree_sitter` | light | `schema.py` (NodeSchema — the byproduct format), `loader.py` (the loading contract + bundle_format), `markers.py` (inert markers), `spec.py` (MatchSpec + OutputModel), `binding.py` (Language/Extractor), `compiler.py` (the ONE compiler), `emit.py` (internal .scm emitter), `match.py` (the ONE ancestor matcher), `materialize.py` (one kwargs builder), `valuemap.py` (ValueMap + propose_value_map), `codegen.py` (real typed CST accessors), `errors.py` (the taxonomy) | pydantic, tree-sitter |
+/home/andrew/Documents/Projects/pydantree/docs/architecture.md:67:     tree-sitter.json    metadata: {bundle_format, name, artifact, schema,
+/home/andrew/Documents/Projects/pydantree/docs/architecture.md:73:   alive, F-A10). `bundle_format` versions the contract (D12): absent = 1
+/home/andrew/Documents/Projects/pydantree/docs/architecture.md:165:  loader.py          load_grammar_so, load_bundle (bundle_format), the wasm
+/home/andrew/Documents/Projects/pydantree/docs/architecture.md:205:   + `Language.load_bundle`); `bundle_format` 2 is the current, 1 is
+/home/andrew/Documents/Projects/pydantree/docs/user-guide.md:538:| bundle metadata missing/invalid or an unknown bundle_format | `BundleError` |
+
+
+========================================================================
+F4 — rule-class External: what body does the rule get?
+========================================================================
+externals: [{'type': 'TOKEN', 'content': {'type': 'STRING', 'value': 'NEWLINE'}}]
+rule 'newline': {'type': 'TOKEN', 'content': {'type': 'STRING', 'value': 'NEWLINE'}}
+rule 'stmt': {'type': 'FIELD', 'name': 'body', 'content': {'type': 'SYMBOL', 'name': 'newline'}}
+
+========================================================================
+F5 — _snake / class_name are duplicated, not shared
+========================================================================
+  'HTTPServer' -> _snake 'http_server' -> class_name 'HttpServer' NOT a round trip
+  'JSONValue' -> _snake 'json_value' -> class_name 'JsonValue' NOT a round trip
+  'IOPort' -> _snake 'io_port' -> class_name 'IoPort' NOT a round trip
+  '_Type' -> _snake '_type' -> class_name 'Type' NOT a round trip
+  'ABC' -> _snake 'abc' -> class_name 'Abc' NOT a round trip
+
+========================================================================
+F6 — Ladder int mode: prec values are positional, silently renumbered
+========================================================================
+add = 1 mul = 2
+after insert('cmp', before='add'): add = 2 mul = 3  (values of already-emitted prec() calls changed)
+
+========================================================================
+F7 — Grammar.build() injects a `\s` extra even when extras are named rules
+========================================================================
+extras: [{'type': 'PATTERN', 'value': '\\s', 'flags': None}, {'type': 'SYMBOL', 'name': 'ws_rule'}]

@@ -1,0 +1,30 @@
+
+======================================================================
+declaration order name -> return_type (grammar order)
+======================================================================
+source: (module (function_definition name:(_) @name return_type:(_)? @ret) @__anchor__)
+rows: [('f', 'int'), ('g', None)]
+
+======================================================================
+declaration order return_type -> name (REVERSED)
+======================================================================
+RAISED: QueryBuildError
+emitted .scm rejected by Query(): Impossible pattern at row 0, column 51
+---
+(module (function_definition return_type:(_)? @ret name:(_) @name) @__anchor__)
+
+======================================================================
+same, but both required (no '?')
+======================================================================
+RAISED: QueryBuildError
+emitted .scm rejected by Query(): Impossible pattern at row 0, column 44
+---
+(module (function_definition body:(_) @body name:(_) @name) @__anchor__)
+
+======================================================================
+schema-less bind with a VALID kind but a bogus field name
+======================================================================
+RAISED: QueryBuildError
+emitted .scm rejected by Query(): Invalid field name at row 0, column 29: no_such_field
+---
+(module (function_definition no_such_field:(_) @x) @__anchor__)

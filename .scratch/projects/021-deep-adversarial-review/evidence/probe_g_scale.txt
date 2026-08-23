@@ -1,0 +1,22 @@
+
+========================================================================
+G1 — field ORDER is load-bearing even with a bound schema
+========================================================================
+  PairOk: OK  q=(document (object (pair key:(string (string_content) @key) value:(_) @value) @__anchor__))
+  PairReversed: QueryBuildError: emitted .scm rejected by Query(): Impossible pattern at row 0, column 41
+---
+(document (object (pair value:(_) @value key:(string (string_content) @key)) @__anc
+  -> the bind-time schema checks pass; the failure is a raw QueryBuildError from tree-sitter about a pattern the user never wrote.
+
+========================================================================
+G2 — cartesian blow-up: 3 repeated fields
+========================================================================
+  n=  2 per field -> len(a)=     8 len(b)=     8 len(c)=     8   (0.2 ms)   expected 2 each
+  n=  4 per field -> len(a)=    64 len(b)=    64 len(c)=    64   (0.5 ms)   expected 4 each
+  n=  8 per field -> len(a)=   512 len(b)=   512 len(c)=   512   (4.7 ms)   expected 8 each
+  n= 12 per field -> len(a)=  1728 len(b)=  1728 len(c)=  1728   (14.5 ms)   expected 12 each
+
+========================================================================
+G3 — the same shape with ONE list field is correct
+========================================================================
+  len(a) = 12 (expected 12)

@@ -1,0 +1,24 @@
+✨ devenv 2.1.2 is newer than devenv input (1.6.1) in devenv.lock. Run 'devenv update' to sync.
+hello from devenv
+git version 2.49.0
+........................................................................ [ 21%]
+........................................................................ [ 42%]
+........................................................................ [ 63%]
+........................................................................ [ 84%]
+......................................................                   [100%]
+=============================== warnings summary ===============================
+tests/test_point_access.py::test_no_point_attribute_reads[builder.py]
+  <unknown>:111: SyntaxWarning: invalid escape sequence '\s'
+
+tests/test_point_access.py::test_no_point_attribute_reads[builder.py]
+  <unknown>:132: SyntaxWarning: invalid escape sequence '\s'
+
+tests/test_point_access.py::test_no_point_attribute_reads[patterns.py]
+  <unknown>:57: SyntaxWarning: invalid escape sequence '\.'
+
+tests/test_point_access.py::test_no_point_attribute_reads[patterns.py]
+  <unknown>:65: SyntaxWarning: invalid escape sequence '\.'
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+342 passed, 4 warnings in 77.98s (0:01:17)
+EXIT=0

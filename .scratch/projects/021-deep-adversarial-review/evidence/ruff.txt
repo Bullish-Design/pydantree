@@ -1,0 +1,173 @@
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/__init__.py:55:5: F401 `.schema.derive_from_node_types` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/__init__.py:62:11: RUF022 `__all__` is not sorted
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/binding.py:14:8: F401 [*] `types` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/binding.py:26:19: F401 [*] `.spec.OutputModel` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/binding.py:33:11: RUF022 [*] `__all__` is not sorted
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/binding.py:161:17: RUF023 [*] `Language.__slots__` is not sorted
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/codegen.py:55:5: PLR0912 Too many branches (21 > 12)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/codegen.py:55:5: PLR0915 Too many statements (115 > 50)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/codegen.py:61:5: F841 Local variable `by_kind` is assigned to but never used
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/codegen.py:128:32: F541 [*] f-string without any placeholders
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/codegen.py:139:89: E501 Line too long (91 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/codegen.py:165:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/codegen.py:201:89: E501 Line too long (89 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:23:21: F401 [*] `.errors.QueryBuildError` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:182:36: ARG001 Unused function argument: `spec`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:191:5: F841 Local variable `annotations` is assigned to but never used
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:229:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:231:89: E501 Line too long (91 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:311:5: PLR0912 Too many branches (13 > 12)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:311:41: ARG001 Unused function argument: `language`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:377:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:384:43: B905 `zip()` without an explicit `strict=` parameter
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:413:5: PLR0913 Too many arguments in function definition (7 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:413:5: PLR0917 Too many positional arguments (7 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:413:38: ARG001 Unused function argument: `spec`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:414:37: ARG001 Unused function argument: `annotations`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:452:5: PLR0913 Too many arguments in function definition (8 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:452:5: PLR0917 Too many positional arguments (7 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:596:42: ARG001 Unused function argument: `language`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:658:47: ARG001 Unused function argument: `model_cls`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:734:5: PLR0913 Too many arguments in function definition (6 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:734:5: PLR0917 Too many positional arguments (6 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:755:5: PLR0913 Too many arguments in function definition (6 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:755:5: PLR0917 Too many positional arguments (6 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:775:5: PLR0913 Too many arguments in function definition (6 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:775:5: PLR0917 Too many positional arguments (6 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:803:25: ARG001 Unused function argument: `schema`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:816:5: PLR0913 Too many arguments in function definition (6 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/compiler.py:816:5: PLR0917 Too many positional arguments (6 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/emit.py:35:17: RUF023 [*] `Pred.__slots__` is not sorted
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/emit.py:73:17: RUF023 [*] `NodeSpec.__slots__` is not sorted
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/emit.py:266:17: RUF023 [*] `Cursor.__slots__` is not sorted
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/emit.py:276:89: E501 Line too long (91 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/emit.py:292:17: RUF023 [*] `MatchView.__slots__` is not sorted
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/errors.py:7:89: E501 Line too long (91 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/loader.py:4:89: E501 Line too long (100 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/loader.py:13:89: E501 Line too long (94 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/loader.py:68:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/loader.py:69:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/loader.py:78:9: SIM105 Use `contextlib.suppress(OSError)` instead of `try`-`except`-`pass`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/loader.py:83:5: SIM105 Use `contextlib.suppress(OSError)` instead of `try`-`except`-`pass`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/loader.py:156:14: PLR2004 Magic value used in comparison, consider replacing `2` with a constant variable
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/match.py:43:5: PLR0911 Too many return statements (7 > 6)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/match.py:83:9: SIM108 Use ternary operator `gid = 0 if not anc else anc[0].id` instead of `if`-`else`-block
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/materialize.py:19:45: F401 [*] `dataclasses.field` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/materialize.py:20:35: F401 [*] `typing.get_args` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/materialize.py:20:45: F401 [*] `typing.get_origin` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/materialize.py:43:17: RUF023 [*] `Span.__slots__` is not sorted
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/materialize.py:46:9: PLR0913 Too many arguments in function definition (7 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/materialize.py:46:9: PLR0917 Too many positional arguments (7 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/materialize.py:91:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/materialize.py:93:73: PLR2004 Magic value used in comparison, consider replacing `2` with a constant variable
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/materialize.py:98:69: PLR2004 Magic value used in comparison, consider replacing `2` with a constant variable
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/materialize.py:165:5: PLR0912 Too many branches (20 > 12)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/materialize.py:244:5: PLR0912 Too many branches (13 > 12)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/schema.py:3:89: E501 Line too long (99 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/schema.py:32:25: F401 [*] `collections.defaultdict` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/schema.py:131:89: E501 Line too long (89 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/schema.py:132:89: E501 Line too long (89 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/schema.py:135:89: E501 Line too long (96 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:22:45: F401 [*] `dataclasses.field` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:24:5: F401 [*] `typing.Annotated` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:33:8: F401 [*] `pydantic` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:34:33: F401 [*] `pydantic.ValidationError` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:40:5: F401 [*] `.markers.ANCHOR` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:61:11: RUF022 [*] `__all__` is not sorted
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:347:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:425:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:446:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:451:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:451:30: F401 [*] `.binding.Language` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:467:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:467:26: F401 [*] `.binding.Language` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:472:17: F541 [*] f-string without any placeholders
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:473:17: F541 [*] f-string without any placeholders
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/spec.py:474:17: F541 [*] f-string without any placeholders
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/valuemap.py:84:12: SIM300 [*] Yoda condition detected
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/__init__.py:88:89: E501 Line too long (89 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/__init__.py:142:15: F401 `.patterns` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/builder.py:111:59: W605 [*] Invalid escape sequence: `\s`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/builder.py:132:42: W605 [*] Invalid escape sequence: `\s`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/builder.py:137:6: W605 [*] Invalid escape sequence: `\s`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/builder.py:243:28: RUF100 [*] Unused `noqa` directive (non-enabled: `TRY004`)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/builder.py:286:89: E501 Line too long (90 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/builder.py:379:9: PLR0913 Too many arguments in function definition (8 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/builder.py:447:31: PLR1714 Consider merging multiple comparisons: `c not in ([orig], [name])`. Use a `set` if the elements are hashable.
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/builder.py:454:9: F841 Local variable `old` is assigned to but never used
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/builder.py:734:5: PLR0911 Too many return statements (9 > 6)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/checks.py:150:89: E501 Line too long (109 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/checks.py:198:5: PLR0911 Too many return statements (9 > 6)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/checks.py:229:5: PLR0911 Too many return statements (10 > 6)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/checks.py:298:13: PLW2901 `for` loop variable `e` overwritten by assignment target
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/checks.py:372:89: E501 Line too long (93 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/conflicts.py:191:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/conflicts.py:198:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/corpus.py:78:51: PLR2004 Magic value used in comparison, consider replacing `2` with a constant variable
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/corpus.py:166:23: ARG002 Unused method argument: `style`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/corpus.py:215:9: PLR0913 Too many arguments in function definition (7 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/corpus.py:236:89: E501 Line too long (90 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/corpus.py:243:13: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/corpus.py:245:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/corpus.py:253:89: E501 Line too long (92 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/corpus.py:280:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/corpus.py:290:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/expressions.py:70:5: PLR0913 Too many arguments in function definition (9 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/expressions.py:70:5: PLR0912 Too many branches (14 > 12)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/expressions.py:87:69: RUF002 Docstring contains ambiguous `×` (MULTIPLICATION SIGN). Did you mean `x` (LATIN SMALL LETTER X)?
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/expressions.py:134:9: B007 Loop control variable `label` not used within loop body
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/expressions.py:199:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/expressions.py:202:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/ir.py:45:7: PLW1641 Object does not implement `__hash__` method
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/ir.py:198:89: E501 Line too long (233 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/ir.py:257:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/ir.py:258:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/ir.py:268:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/language.py:2:89: E501 Line too long (92 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/language.py:5:89: E501 Line too long (94 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/language.py:33:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/patterns.py:1:89: E501 Line too long (91 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/patterns.py:26:11: RUF022 [*] `__all__` is not sorted
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/patterns.py:57:56: W605 [*] Invalid escape sequence: `\.`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/patterns.py:65:23: W605 [*] Invalid escape sequence: `\.`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/patterns.py:66:56: W605 [*] Invalid escape sequence: `\.`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/patterns.py:69:40: W605 [*] Invalid escape sequence: `\.`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:18:89: E501 Line too long (89 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:102:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:108:1: E402 Module level import not at top of file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:123:89: E501 Line too long (91 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:133:89: E501 Line too long (93 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:181:9: SIM105 Use `contextlib.suppress(OSError)` instead of `try`-`except`-`pass`
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:197:89: E501 Line too long (89 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:221:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:229:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:258:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:268:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:269:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:300:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:336:5: PLR0913 Too many arguments in function definition (6 > 5)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:336:5: PLR0912 Too many branches (14 > 12)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:336:5: PLR0915 Too many statements (58 > 50)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:355:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:408:89: E501 Line too long (96 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:536:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:546:13: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:555:9: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:582:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:583:9: B007 Loop control variable `attempt` not used within loop body
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:603:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/pipeline.py:643:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/rules.py:42:8: F401 [*] `linecache` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/rules.py:66:11: RUF022 [*] `__all__` is not sorted
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/rules.py:88:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/rules.py:105:5: PLC0415 `import` should be at the top-level of a file
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/rules.py:232:62: RUF100 [*] Unused `noqa` directive (non-enabled: `S307`)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/rules.py:368:5: PLR0912 Too many branches (15 > 12)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/rules.py:424:23: RUF059 Unpacked variable `attr_nodes` is never used
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/scanners/__init__.py:1:89: E501 Line too long (91 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/scanners/__init__.py:32:11: RUF022 [*] `__all__` is not sorted
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/schema_tool.py:1:89: E501 Line too long (92 > 88)
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/schema_tool.py:26:8: F401 [*] `json` imported but unused
+/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter_grammar/schema_tool.py:141:5: PLC0415 `import` should be at the top-level of a file
+Found 171 errors.
+[*] 41 fixable with the `--fix` option (11 hidden fixes can be enabled with the `--unsafe-fixes` option).

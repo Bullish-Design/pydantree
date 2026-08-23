@@ -1,0 +1,78 @@
+
+========================================================================
+P1 — README headline: from_module gives NO schema => NO checks
+========================================================================
+schema bound? None
+bind raised: QueryBuildError emitted .scm rejected by Query(): Invalid node type at row 0, column 9: not_a_real_kind_at_all
+---
+(module (not_a_real_kind_at_all nope_not_a_field:(_) @name) @__anchor__)
+
+========================================================================
+P2 — self-recursive nested record model
+========================================================================
+jsonlike kinds: ['array', 'escape_sequence', 'false', 'number', 'pair', 'source_file', 'string', 'string_content', 'true', 'value']
+other: ShapeError record mode over grammar ? needs a ValueMap: the schema is not the JSON family. Run propose_value_map(schema) and pass the reviewed result — e.g. Language.load(..., schema=schema, value_map=vm) or a bundle `value_map` metadata entry. (Value shapes are declared data, never silent name-regex inference
+
+========================================================================
+P3 — two field-mode list[str] fields on one anchor: duplicates?
+========================================================================
+name= f n_body= 1 n_params= 1
+   body= ['x = 1\n    y = 2\n    z = 3']
+   params= ['(a, b, c)']
+
+========================================================================
+P3b — repeated fielded child, single list field
+========================================================================
+RAISED QueryBuildError emitted .scm rejected by Query(): Impossible pattern at row 0, column 51
+---
+(module (function_definition return_type:(_)? @ret name:(_) @name) @__anchor__)
+
+========================================================================
+P4 — cross-language extract_tree (no guard?)
+========================================================================
+same-language rows: ['x']
+CROSS-LANGUAGE extract_tree returned: []
+
+========================================================================
+P5 — record mode ignores path alternation + non-first anchor kinds
+========================================================================
+raised: ShapeError record mode over grammar ? needs a ValueMap: the schema is not the JSON family. Run propose_value_map(schema) and pass the reviewed result — e.g. Language.load(..., schema=schema, value_map=vm) or a bundle `value_map` metadata entry. (Value shapes are declared data, never silent name-regex inference
+
+========================================================================
+P6 — record key shapes: only the FIRST is emitted
+========================================================================
+
+========================================================================
+P7 — alternation anchor: field kind inferred from the UNION, emitted for ALL
+========================================================================
+(see analysis: _infer_field_kind unions over anchors, _combinations emits the same kind for every anchor pattern)
+
+========================================================================
+P8 — C2 claim: 'never silent name-regex inference' vs _scalar_of fallback
+========================================================================
+with an EMPTY (committed) ValueMap, the name-regex draft still assigns a scalar meaning to 3 rust kinds; sample:
+    false -> bool
+    float_literal -> float
+    true -> bool
+
+========================================================================
+P9 — WasmRuntimeUnavailableError is outside the taxonomy
+========================================================================
+MRO: ['WasmRuntimeUnavailableError', 'RuntimeError', 'Exception', 'BaseException', 'object']
+is a PydantreeSitterError? False
+exported from pydantree_sitter? False
+
+========================================================================
+P10 — RawQuery is decorative: a plain str works identically
+========================================================================
+plain-str raw query rows: ['x', 'y']
+
+========================================================================
+P11 — Extractor cache keyed on (model, strict) never evicts
+========================================================================
+Language._extractors is a plain dict, no bound: <class 'dict'> 3
+
+========================================================================
+P12 — bundle_format 0 / negative accepted
+========================================================================
+loader accepts any int <= 2 including 0 and negatives (see loader.py)
