@@ -58,7 +58,7 @@
   devman = {
     enable = true;
     project = "pydantree";
-    groups = [ "base" "python" ];
+    groups = [ "base" ];
   };
 
   # https://devenv.sh/tasks/
@@ -76,7 +76,7 @@
     "python:test".exec = "pytest";
 
     # base's two names, aliased rather than duplicated.
-    "base:lint".after = [ "python:lint" ];
+    "base:check".after = [ "python:lint" "python:typecheck" ];
     "base:test".after = [ "python:test" ];
 
     # Fresh-worktree dependency guard (REVIEW 019 V3). devenv's own
