@@ -19,7 +19,7 @@ from pathlib import Path
 import tree_sitter
 
 from .compiler import compile_spec
-from .errors import ShapeError
+from .errors import BundleError, ShapeError
 from .loader import load_bundle
 from .materialize import _record_kwargs, extract_field, extract_record
 from .schema import NodeSchema
@@ -67,10 +67,40 @@ def _load_schema(schema):
     raise TypeError(f"cannot build a node-schema from {type(schema)!r}")
 
 
+# ---------------------------------------------------------------------------
+# ast-grep language resolution (022 §7)
+# ---------------------------------------------------------------------------
+
+# ast-grep compiles a fixed language set into its wheel; pydantree builds any
+# grammar. The two sets are not the same, and the mismatch must be explicit.
+# This map covers only the languages project 022 ships with a grammar
+# agreement record — it is the DEFAULT, and an explicit `astgrep_name=` or a
+# bundle metadata key always wins.
+_ASTGREP_NAMES = {
+    "python": "python",
+}
+
+
+def _default_astgrep_name(lang: tree_sitter.Language) -> str | None:
+    """Guess the ast-grep language id from a tree_sitter.Language.
+
+    `tree_sitter.Language.name` is None for some grammar wheels
+    (`tree_sitter_json` is one), so this returns None often. None is not a
+    failure here — it means `Pattern` must be told the name explicitly, and
+    `UnsupportedLanguageError` says so.
+    """
+    name = lang.name
+    if not name:
+        return None
+    return _ASTGREP_NAMES.get(name.lower())
+
+
 def _transient_language(lang: "Language", schema=None) -> "Language":
     """A copy of `lang` with an explicit schema (the sugar path)."""
     return Language(lang._lang, schema=schema if schema is not None
-                    else lang._schema, value_map=lang._value_map)
+                    else lang._schema, value_map=lang._value_map,
+                    astgrep_name=lang._astgrep_name,
+                    syntax_check=lang._syntax_check)
 
 
 # memoized per-input Language for the sugar path (A2/REVIEW 018):
@@ -158,9 +188,12 @@ class Language:
     here by construction).
     """
 
-    __slots__ = ("_lang", "_schema", "_value_map", "_lib", "_extractors")
+    __slots__ = ("_lang", "_schema", "_value_map", "_lib", "_extractors",
+                 "_astgrep_name", "_patterns", "_syntax_check",
+                 "_bundle_path", "_bundle_symbol")
 
-    def __init__(self, lang, schema=None, value_map=None):
+    def __init__(self, lang, schema=None, value_map=None, astgrep_name=None,
+                 syntax_check=None):
         if isinstance(lang, Language):
             # wrapping another Language carries its schema AND value map
             # (the ONE Language-unwrap owner; _resolve_language handles the
@@ -169,6 +202,10 @@ class Language:
                 schema = lang._schema
             if value_map is None:
                 value_map = lang._value_map
+            if astgrep_name is None:
+                astgrep_name = lang._astgrep_name
+            if syntax_check is None:
+                syntax_check = lang._syntax_check
             lang = lang._lang
         raw, schema = _resolve_language(lang, schema)
         self._lang = raw
@@ -176,18 +213,35 @@ class Language:
         self._value_map = value_map
         self._lib = None
         self._extractors: dict = {}
+        # 022 §7 resolution order: explicit argument, then bundle metadata
+        # (set by `load_bundle`), then the built-in map.
+        self._astgrep_name = astgrep_name
+        # 022 follow-up: the third-parser seam. An explicit check wins; the
+        # `syntax_check` property falls back to the registry.
+        self._syntax_check = syntax_check
+        # set by load_bundle: what `register_astgrep` needs to hand ast-grep
+        self._bundle_path = None
+        self._bundle_symbol = None
+        # compiled Patterns, cached on THIS instance exactly as `_extractors`
+        # is — a Pattern is bound to one Language and can never leak to
+        # another (the F-A1 argument, applied to patterns).
+        self._patterns: dict = {}
 
     # -- construction -------------------------------------------------------
 
     @classmethod
-    def load(cls, lang, schema=None, *, value_map=None) -> "Language":
+    def load(cls, lang, schema=None, *, value_map=None,
+             astgrep_name=None, syntax_check=None) -> "Language":
         """Wrap a language (module / tree_sitter.Language / capsule)."""
-        return cls(lang, schema=schema, value_map=value_map)
+        return cls(lang, schema=schema, value_map=value_map,
+                   astgrep_name=astgrep_name, syntax_check=syntax_check)
 
     @classmethod
-    def from_module(cls, mod, schema=None, value_map=None) -> "Language":
+    def from_module(cls, mod, schema=None, value_map=None,
+                    astgrep_name=None, syntax_check=None) -> "Language":
         """A grammar module (e.g. tree_sitter_python) as a Language."""
-        return cls(mod, schema=schema, value_map=value_map)
+        return cls(mod, schema=schema, value_map=value_map,
+                   astgrep_name=astgrep_name, syntax_check=syntax_check)
 
     @classmethod
     def load_bundle(cls, dir, *, value_map=None) -> "Language":
@@ -204,6 +258,14 @@ class Language:
             lang._value_map = value_map
         elif bundle.metadata.get("value_map"):
             lang._value_map = ValueMap.model_validate(bundle.metadata["value_map"])
+        # 022 §7: a bundle may declare which ast-grep grammar it corresponds
+        # to. Most custom grammars have no counterpart and leave this unset.
+        lang._astgrep_name = bundle.metadata.get("astgrep_name")
+        # The artifact, for `register_astgrep`. The .so's export symbol is
+        # `tree_sitter_<name>`; the file is renamed on packaging, so the
+        # metadata is the only source for both.
+        lang._bundle_path = bundle.path / bundle.metadata.get("artifact", "grammar.so")
+        lang._bundle_symbol = f"tree_sitter_{bundle.metadata['name']}"
         return lang
 
     # -- accessors ----------------------------------------------------------
@@ -223,6 +285,80 @@ class Language:
     @property
     def language(self) -> tree_sitter.Language:
         return self._lang
+
+    @property
+    def astgrep_name(self) -> str | None:
+        """The ast-grep language identifier, or None when ast-grep has no
+        grammar for this Language (022 §7).
+
+        None is the answer for every grammar built by
+        `pydantree-sitter-grammar`, and for a wheel whose
+        `tree_sitter.Language.name` is None. `Pattern` turns it into
+        `UnsupportedLanguageError`; pass `astgrep_name=` to override.
+        """
+        if self._astgrep_name is not None:
+            return self._astgrep_name
+        return _default_astgrep_name(self._lang)
+
+    @property
+    def astgrep_is_bundle(self) -> bool:
+        """Did this Language come from a bundle whose .so ast-grep can load?"""
+        return self._bundle_path is not None
+
+    def register_astgrep(self, name: str | None = None, *, extensions=None,
+                         meta_var_char: str | None = None,
+                         expando_char: str | None = None) -> str:
+        """Register THIS bundle's grammar with ast-grep, and use it.
+
+            lang = Language.load_bundle("bundles/obsidian")
+            lang.register_astgrep()
+            pat = Pattern(Rule(kind="wiki_link"), language=lang)
+
+        ast-grep then parses with the same shared library pydantree does, so
+        the two cannot disagree about node kinds or byte ranges — §4's
+        divergence risk does not exist for such a Language, and its
+        `GrammarAgreement` is `verified` with `same_artifact=True`.
+
+        Returns the registered name and sets `astgrep_name` to it.
+        Registration is process-global (ast-grep's design); re-registering a
+        name with a different artifact raises.
+        """
+        if self._bundle_path is None:
+            raise BundleError(
+                "register_astgrep() needs a Language built by "
+                "Language.load_bundle(): ast-grep loads the bundle's "
+                "grammar.so directly, and a Language wrapping a wheel has no "
+                "such file to hand it.")
+        from .pattern import register_bundle_language
+        name = name or f"{self._lang.name or 'grammar'}"
+        registered = register_bundle_language(
+            name, self._bundle_path, self._bundle_symbol,
+            extensions=extensions, meta_var_char=meta_var_char,
+            expando_char=expando_char)
+        self._astgrep_name = registered
+        return registered
+
+    @property
+    def syntax_check(self):
+        """The language's own validity check, or None (022 follow-up).
+
+        A `SyntaxCheck` is `Callable[[str], None]` that RAISES on invalid
+        source. `pattern.py` uses it to verify a rewrite, because
+        tree-sitter's `has_error` is weaker than a real parser and accepts
+        source the language rejects.
+
+        Resolution: an explicit `syntax_check=` argument, then
+        `syntax.SYNTAX_CHECKS` keyed by `astgrep_name`. Pass
+        `syntax_check=False` to DISABLE the registry lookup and run without
+        a language parser — the rewrite verifier then falls back to its
+        structural proxy.
+        """
+        if self._syntax_check is False:
+            return None
+        if self._syntax_check is not None:
+            return self._syntax_check
+        from .syntax import syntax_check_for
+        return syntax_check_for(self.astgrep_name)
 
     # -- binding ------------------------------------------------------------
 

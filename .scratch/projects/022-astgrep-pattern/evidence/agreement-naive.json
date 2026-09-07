@@ -1,0 +1,345 @@
+{
+  "astgrep_py_version": "0.45.3",
+  "tree_sitter_python_version": "0.25.0",
+  "tree_sitter_version": "0.26.0",
+  "offset_mode": "naive (char offsets used AS byte offsets)",
+  "corpus": {
+    "files": 13,
+    "lines": 3834,
+    "files_with_non_ascii": 13
+  },
+  "node_set_named": {
+    "pydantree_nodes": 20296,
+    "exact_matches": 110,
+    "rate": 0.00542,
+    "only_astgrep_kinds": {
+      "identifier": 6658,
+      "attribute": 1150,
+      "call": 994,
+      "argument_list": 975,
+      "expression_statement": 915,
+      "string_content": 798,
+      "string": 723,
+      "string_end": 719,
+      "string_start": 707,
+      "block": 700,
+      "type": 598,
+      "assignment": 575,
+      "none": 295,
+      "if_statement": 289,
+      "comment": 284,
+      "comparison_operator": 270,
+      "dotted_name": 265,
+      "return_statement": 263,
+      "parameters": 208,
+      "function_definition": 208
+    },
+    "only_pydantree_kinds": {
+      "identifier": 6658,
+      "attribute": 1150,
+      "call": 994,
+      "argument_list": 975,
+      "expression_statement": 915,
+      "string_content": 798,
+      "string": 723,
+      "string_end": 719,
+      "string_start": 707,
+      "block": 700,
+      "type": 598,
+      "assignment": 575,
+      "none": 295,
+      "if_statement": 289,
+      "comment": 284,
+      "comparison_operator": 270,
+      "dotted_name": 265,
+      "return_statement": 263,
+      "parameters": 208,
+      "function_definition": 208
+    },
+    "files_with_any_mismatch": [
+      "__init__.py",
+      "binding.py",
+      "codegen.py",
+      "compiler.py",
+      "emit.py",
+      "errors.py",
+      "loader.py",
+      "markers.py",
+      "match.py",
+      "materialize.py",
+      "schema.py",
+      "spec.py",
+      "valuemap.py"
+    ]
+  },
+  "node_set_all_incl_anonymous": {
+    "pydantree_nodes": 30686,
+    "exact_matches": 198,
+    "rate": 0.006452,
+    "only_astgrep_kinds": {
+      "identifier": 6658,
+      ")": 1297,
+      "(": 1289,
+      ".": 1185,
+      "attribute": 1150,
+      ",": 1063,
+      ":": 1011,
+      "call": 994,
+      "argument_list": 975,
+      "expression_statement": 915,
+      "string_content": 798,
+      "=": 742,
+      "string": 723,
+      "string_end": 719,
+      "string_start": 707,
+      "block": 700,
+      "type": 598,
+      "assignment": 575,
+      "if": 362,
+      "]": 340
+    },
+    "only_pydantree_kinds": {
+      "identifier": 6658,
+      ")": 1297,
+      "(": 1289,
+      ".": 1185,
+      "attribute": 1150,
+      ",": 1063,
+      ":": 1011,
+      "call": 994,
+      "argument_list": 975,
+      "expression_statement": 915,
+      "string_content": 798,
+      "=": 742,
+      "string": 723,
+      "string_end": 719,
+      "string_start": 707,
+      "block": 700,
+      "type": 598,
+      "assignment": 575,
+      "if": 362,
+      "]": 340
+    },
+    "files_with_any_mismatch": [
+      "__init__.py",
+      "binding.py",
+      "codegen.py",
+      "compiler.py",
+      "emit.py",
+      "errors.py",
+      "loader.py",
+      "markers.py",
+      "match.py",
+      "materialize.py",
+      "schema.py",
+      "spec.py",
+      "valuemap.py"
+    ]
+  },
+  "resolution": {
+    "whole_match": {
+      "total": 2948,
+      "resolved": 2,
+      "failure_rate": 0.999322,
+      "failures_by_pattern": {
+        "$F($$$ARGS)": 958,
+        "$A = $B": 473,
+        "$OBJ.$METHOD($$$ARGS)": 422,
+        "if $COND: $$$BODY": 289,
+        "return $VAL": 260,
+        "$A: $T = $B": 82,
+        "for $VAR in $ITER: $$$BODY": 76,
+        "from $MOD import $$$NAMES": 64,
+        "def $NAME($$$ARGS): $$$BODY": 56,
+        "not $X": 56,
+        "$A if $C else $B": 49,
+        "raise $EXC($$$ARGS)": 38,
+        "@$DEC": 34,
+        "class $NAME: $$$BODY": 26,
+        "import $MOD": 22,
+        "class $NAME($$$BASES): $$$BODY": 16,
+        "[$X for $Y in $Z]": 15,
+        "while $COND: $$$BODY": 5,
+        "{$K: $V}": 2,
+        "lambda $$$ARGS: $BODY": 1
+      }
+    },
+    "capture": {
+      "total": 7663,
+      "resolved": 155,
+      "failure_rate": 0.979773,
+      "failures_by_pattern_metavar": {
+        "$F($$$ARGS) :: $$$ARGS": 1708,
+        "$F($$$ARGS) :: $F": 953,
+        "$OBJ.$METHOD($$$ARGS) :: $$$ARGS": 483,
+        "$A = $B :: $A": 469,
+        "$A = $B :: $B": 463,
+        "$OBJ.$METHOD($$$ARGS) :: $METHOD": 420,
+        "$OBJ.$METHOD($$$ARGS) :: $OBJ": 415,
+        "if $COND: $$$BODY :: $$$BODY": 376,
+        "from $MOD import $$$NAMES :: $$$NAMES": 292,
+        "if $COND: $$$BODY :: $COND": 286,
+        "return $VAL :: $VAL": 257,
+        "def $NAME($$$ARGS): $$$BODY :: $$$ARGS": 239,
+        "$A: $T = $B :: $T": 82,
+        "$A: $T = $B :: $B": 81,
+        "$A: $T = $B :: $A": 77,
+        "for $VAR in $ITER: $$$BODY :: $$$BODY": 77,
+        "for $VAR in $ITER: $$$BODY :: $ITER": 76,
+        "for $VAR in $ITER: $$$BODY :: $VAR": 73,
+        "from $MOD import $$$NAMES :: $MOD": 64,
+        "not $X :: $X": 57
+      }
+    },
+    "kind_disagreements": {
+      "not_operator|argument_list": 1,
+      "call|identifier": 1
+    }
+  },
+  "per_pattern": {
+    "def $NAME($$$ARGS): $$$BODY": {
+      "matches": 56,
+      "m_ok": 0,
+      "caps": 360,
+      "c_ok": 9
+    },
+    "class $NAME: $$$BODY": {
+      "matches": 26,
+      "m_ok": 0,
+      "caps": 52,
+      "c_ok": 0
+    },
+    "class $NAME($$$BASES): $$$BODY": {
+      "matches": 16,
+      "m_ok": 0,
+      "caps": 50,
+      "c_ok": 0
+    },
+    "return $VAL": {
+      "matches": 260,
+      "m_ok": 0,
+      "caps": 260,
+      "c_ok": 3
+    },
+    "raise $EXC($$$ARGS)": {
+      "matches": 38,
+      "m_ok": 0,
+      "caps": 86,
+      "c_ok": 0
+    },
+    "if $COND: $$$BODY": {
+      "matches": 289,
+      "m_ok": 0,
+      "caps": 665,
+      "c_ok": 3
+    },
+    "for $VAR in $ITER: $$$BODY": {
+      "matches": 76,
+      "m_ok": 0,
+      "caps": 229,
+      "c_ok": 3
+    },
+    "while $COND: $$$BODY": {
+      "matches": 5,
+      "m_ok": 0,
+      "caps": 10,
+      "c_ok": 0
+    },
+    "with $CTX as $VAR: $$$BODY": {
+      "matches": 1,
+      "m_ok": 0,
+      "caps": 3,
+      "c_ok": 0
+    },
+    "$OBJ.$METHOD($$$ARGS)": {
+      "matches": 422,
+      "m_ok": 0,
+      "caps": 1344,
+      "c_ok": 26
+    },
+    "$A = $B": {
+      "matches": 473,
+      "m_ok": 0,
+      "caps": 946,
+      "c_ok": 14
+    },
+    "$A: $T = $B": {
+      "matches": 82,
+      "m_ok": 0,
+      "caps": 246,
+      "c_ok": 6
+    },
+    "import $MOD": {
+      "matches": 22,
+      "m_ok": 0,
+      "caps": 22,
+      "c_ok": 0
+    },
+    "from $MOD import $$$NAMES": {
+      "matches": 64,
+      "m_ok": 0,
+      "caps": 360,
+      "c_ok": 4
+    },
+    "assert $COND": {
+      "matches": 0,
+      "m_ok": 0,
+      "caps": 0,
+      "c_ok": 0
+    },
+    "try: $$$BODY except $EXC: $$$HANDLER": {
+      "matches": 0,
+      "m_ok": 0,
+      "caps": 0,
+      "c_ok": 0
+    },
+    "lambda $$$ARGS: $BODY": {
+      "matches": 1,
+      "m_ok": 0,
+      "caps": 1,
+      "c_ok": 0
+    },
+    "[$X for $Y in $Z]": {
+      "matches": 15,
+      "m_ok": 0,
+      "caps": 45,
+      "c_ok": 5
+    },
+    "{$K: $V}": {
+      "matches": 2,
+      "m_ok": 0,
+      "caps": 4,
+      "c_ok": 0
+    },
+    "$F($$$ARGS)": {
+      "matches": 959,
+      "m_ok": 1,
+      "caps": 2741,
+      "c_ok": 80
+    },
+    "not $X": {
+      "matches": 57,
+      "m_ok": 1,
+      "caps": 57,
+      "c_ok": 0
+    },
+    "$A if $C else $B": {
+      "matches": 49,
+      "m_ok": 0,
+      "caps": 147,
+      "c_ok": 2
+    },
+    "yield $V": {
+      "matches": 1,
+      "m_ok": 0,
+      "caps": 1,
+      "c_ok": 0
+    },
+    "@$DEC": {
+      "matches": 34,
+      "m_ok": 0,
+      "caps": 34,
+      "c_ok": 0
+    }
+  }
+}

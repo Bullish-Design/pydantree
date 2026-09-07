@@ -7,6 +7,11 @@
       ExtractionError         # per-match failures (strict mode), carries MatchFailure list
       AmbiguousCaptureError   # scalar field fed by multiple captures
       BundleError             # loader: missing/invalid metadata, unknown format
+      PatternError            # the pattern module (022 §9)
+        PatternBuildError       # a rule failed validation / ast-grep rejected it
+        PatternResolutionError  # a byte range did not resolve exactly (§4.1)
+        PatternRewriteError     # overlapping edits, or a broken re-parse
+        UnsupportedLanguageError# no ast-grep grammar for this Language
 
 `SchemaCheckError` is a sibling of coercion failures, not a subclass (the old
 `SchemaCheckError < CoercionError < ValueError` smell is gone — coercion
@@ -75,3 +80,77 @@ class BundleError(PydantreeSitterError):
     """A bundle directory is missing/invalid metadata, or its
     `bundle_format` is unknown. Names both versions when rejecting a format,
     so a consumer can tell what it must upgrade to."""
+
+
+# ---------------------------------------------------------------------------
+# the pattern module (022 §9)
+# ---------------------------------------------------------------------------
+
+class PatternError(PydantreeSitterError):
+    """Base for `pydantree_sitter.pattern` failures.
+
+    It also carries the missing-dependency case: `ast-grep-py` is an optional
+    extra, so `Pattern(...)` raises this when the engine is absent. That is
+    deliberate — construction is where ALL of a Pattern's checks run (022
+    §17.4), and "the extra is not installed" is one of them.
+    """
+
+
+class PatternBuildError(PatternError):
+    """A rule failed validation, or ast-grep rejected the pattern.
+
+    Raised by `Rule` validators without a grammar (empty rule, bad regex,
+    over a bound) and by `Pattern.__init__` with one (unknown node kind,
+    unparseable pattern).
+    """
+
+
+class PatternResolutionError(PatternError):
+    """An ast-grep byte range did not resolve to an EXACT node in
+    pydantree's own tree (022 §4.1).
+
+    ast-grep finds. pydantree resolves. Disagreement is an error, never a
+    guess: there is no fallback to the smallest enclosing node, because a
+    plausible neighbouring node makes an extraction succeed with a wrong
+    row, and that is the one failure mode this project exists to prevent.
+
+    Carries the byte range, the pattern, the nearest node kind, and the
+    grammar-agreement digest — enough to reproduce the divergence without
+    the original session.
+    """
+
+    def __init__(self, message: str, *, start_byte: int, end_byte: int,
+                 pattern: str | None = None, nearest_kind: str | None = None,
+                 agreement: str | None = None):
+        self.start_byte = start_byte
+        self.end_byte = end_byte
+        self.pattern = pattern
+        self.nearest_kind = nearest_kind
+        self.agreement = agreement
+        detail = [f"bytes {start_byte}..{end_byte}"]
+        if pattern is not None:
+            detail.append(f"pattern {pattern!r}")
+        if nearest_kind is not None:
+            detail.append(f"nearest node kind {nearest_kind!r}")
+        if agreement is not None:
+            detail.append(f"agreement {agreement}")
+        super().__init__(f"{message} ({', '.join(detail)})")
+
+
+class PatternRewriteError(PatternError):
+    """A rewrite was refused: the edits overlap, or applying them breaks the
+    parse (022 §8, §8.1).
+
+    Overlap means the pattern matched nested occurrences. The correct
+    behaviour is to refuse, not to pick one.
+    """
+
+
+class UnsupportedLanguageError(PatternError):
+    """The bound `Language` has no ast-grep grammar.
+
+    ast-grep compiles a fixed language set into its wheel; pydantree builds
+    any grammar. A grammar from `pydantree-sitter-grammar` is simply outside
+    that set, and the message says so plainly rather than implying a missing
+    install.
+    """

@@ -29,6 +29,13 @@ dependencies = [
   "tree-sitter>=0.26",  # the 0.26 floor: reparse, field_name_for_child, ...
 ]
 
+[project.optional-dependencies]
+# Project 022 — structural pattern matching and rewrite (`pydantree_sitter.pattern`).
+# Optional on purpose: the base runtime stays the C binding + pydantic. The
+# module imports `ast_grep_py` inside `Pattern.__init__`, never at import
+# time, so `from pydantree_sitter import Pattern` works without this extra.
+pattern = ["ast-grep-py>=0.39"]
+
 [project.urls]
 Homepage = "https://github.com/Bullish-Design/pydantree"
 Source = "https://github.com/Bullish-Design/pydantree"
@@ -52,6 +59,10 @@ Source = "https://github.com/Bullish-Design/pydantree"
 "markers.py" = "pydantree_sitter/markers.py"
 "match.py" = "pydantree_sitter/match.py"
 "materialize.py" = "pydantree_sitter/materialize.py"
+"agreement.py" = "pydantree_sitter/agreement.py"
+"pattern.py" = "pydantree_sitter/pattern.py"
+"rules.py" = "pydantree_sitter/rules.py"
 "schema.py" = "pydantree_sitter/schema.py"
 "spec.py" = "pydantree_sitter/spec.py"
+"syntax.py" = "pydantree_sitter/syntax.py"
 "valuemap.py" = "pydantree_sitter/valuemap.py"

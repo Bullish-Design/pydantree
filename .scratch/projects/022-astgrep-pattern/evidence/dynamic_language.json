@@ -1,0 +1,15 @@
+{
+  "bundle": "/tmp/jbundle",
+  "exported_symbols": [
+    "tree_sitter_json"
+  ],
+  "source": "{\"host\": \"x\", \"port\": 1}",
+  "pydantree_nodes": 22,
+  "astgrep_nodes": 22,
+  "identical_node_sets": true,
+  "kind_rule_matches": [
+    "\"host\": \"x\"",
+    "\"port\": 1"
+  ],
+  "pattern_matches_with_default_sigil": []
+}

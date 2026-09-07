@@ -173,6 +173,13 @@ src/pydantree_sitter/
   binding.py         Language + Extractor (the explicit bind, D5)
   codegen.py         generate_typed_api (REAL typed CST accessors, D7)
   errors.py          the error taxonomy (§1.3)
+  rules.py           Rule — the validated ast-grep rule model (022 §6)
+  syntax.py          SyntaxCheck — what the LANGUAGE calls valid, which is
+                     not what tree-sitter calls valid (durable fact 12)
+  agreement.py       the two-parser boundary: char->byte offsets,
+                     GrammarAgreement, the recorded evidence (022 §4)
+  pattern.py         Pattern/PatternMatch/Edit/ReplaceResult — structural
+                     search + rewrite over ast-grep (022). NOT match.py.
 src/pydantree_sitter_grammar/
   ir.py              the IR models (GrammarModel mirror of grammar.json)
                      with the _site private attr (D8)
@@ -196,6 +203,64 @@ tests/
                      mini-grammars + consumers + evidence (PROVENANCE.md)
 .scratch/projects/00X-*/      per-phase explorations: FINDINGS.md + evidence/ + probes
 ```
+
+## 7a. Structural pattern matching (project 022, the `pattern` extra)
+
+`pydantree_sitter.pattern` answers the two questions the extraction surface
+does not: *where is this shape*, and *change this shape to that*. It wraps
+`ast-grep-py`; it reimplements nothing.
+
+```python
+pat = Pattern("def $NAME($$$ARGS): $$$BODY", language=lang)
+for m in pat.find_all(src):
+    m.span, m.node, m.captures["NAME"], m.captures["ARGS"]
+result = pat.replace_all(src, "def $NAME($$$ARGS) -> None: $$$BODY")
+result.count, result.edits, result.new_source
+```
+
+The division of labour is the whole design: **ast-grep finds, pydantree
+resolves and types**. Two grammar revisions parse the same source — ast-grep's
+vendored one and the wheel pydantree loads — so every byte range ast-grep
+reports is looked up in pydantree's own tree and must match a node EXACTLY, by
+range and by kind. No exact node raises `PatternResolutionError`. There is no
+fallback to the nearest node, because a plausible neighbour makes an
+extraction succeed with a wrong row.
+
+**A pydantree-built grammar is the best-supported case, not the unsupported
+one.** `Language.load_bundle(...).register_astgrep()` hands the bundle's
+`grammar.so` to ast-grep via `register_dynamic_language`. Both engines then
+load the SAME artifact, so there are not two grammars to disagree — the
+agreement record is `verified` with `same_artifact=True` by construction.
+Registration is process-global (ast-grep's design); rebinding a name to a
+different artifact raises.
+
+`Rule` is the point of the module for its consumer (`codeman`, project 024).
+An untrusted model sends a validated Pydantic structure — kinds checked
+against the bound node-schema by name, bounded in depth, width and string
+length — rather than a free pattern string, which is closer to an argument
+vector.
+
+Rewrites are data: `replace_all` returns `Edit` records and the new text, and
+writes no file. Verification runs in three tiers, weakest first:
+
+1. tree-sitter — no NEW parse error. Always. Universal but weak.
+2. **the language's own parser** (`syntax.py`) — the tier that works.
+   tree-sitter's recovery accepts source CPython rejects (durable fact 12).
+3. each edit site is one node — a structural proxy. Cheap and universal, but
+   it over-refuses, so it is the AUTO default only where tier 2 is absent.
+
+The options exist so the tool stays usable at its edges:
+`on_overlap="refuse"|"outermost"|"innermost"`, `reindent=` for multi-line
+templates, `single_node=` to force or forbid tier 3, and `validate=False` for
+a dry run that returns the edits WITH the diagnosis instead of refusing.
+
+`match.py` and `pattern.py` are different things and never import each other.
+In `match.py` a *capture* is an `OutputModel` field binding; in `pattern.py` a
+*metavariable* is a `$NAME`. `PatternMatch.captures` holds metavariables, and
+that is the one place the two vocabularies touch.
+
+Full findings, including the offset conversion and the three places the
+concept did not survive contact: `.scratch/projects/022-astgrep-pattern/`.
 
 ## 8. Durable facts (verified, do not re-derive)
 
@@ -222,6 +287,26 @@ tests/
 8. Wasm: real artifact + runtime + parse exist (Phase-7 evidence); the
    verdict is no-go for A's dependency budget — the loader seam raises the
    clear error.
+9. ast-grep and `tree_sitter_python` agree EXACTLY over
+   `src/pydantree_sitter/` — every node, anonymous included, and every
+   pattern capture (022 Phase 0). Measured at `ast-grep-py` 0.45.3,
+   `tree-sitter-python` 0.25.0, `tree-sitter` 0.26.0;
+   `tests/test_pattern_agreement.py` re-measures it and fails the suite on a
+   bump that breaks it.
+10. `ast_grep_py` reports CHARACTER offsets (`Pos.index`), never byte
+    offsets. Convert at the boundary with `agreement.char_to_byte_table`.
+    Skipping it drops node agreement from 100 % to 0.54 % on this corpus.
+11. `ast_grep_py.SgNode.replace()` does NOT expand metavariables (verified on
+    0.42.0 and 0.45.3), unlike the `ast-grep` CLI. `pattern.py` expands
+    templates itself, and matches the CLI's output byte-for-byte.
+12. **tree-sitter's `has_error` is weaker than the language's own parser.**
+    `def f(a): x = 1\n    return x` carries NO ERROR node — tree-sitter
+    recovers by reparenting `return x` to module level, out of the function —
+    while CPython raises `SyntaxError: unexpected indent`. Over this
+    package's source, `has_error` missed 19 of 19 broken rewrites. Never use
+    it alone as a "the edit is safe" gate. `Pattern._verify_reparse` also
+    requires each edit site to occupy exactly ONE node in the result, which
+    caught 19 of 19 with no false positive over 35 valid rewrites.
 
 ## 9. Where to start reading
 

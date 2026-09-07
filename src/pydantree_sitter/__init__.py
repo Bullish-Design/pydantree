@@ -22,15 +22,21 @@ hatch: a literal .scm whose captures map to fields by name (the query DSL is
 not public; sibling order/negation/multi-anchor joins live there).
 """
 
+from .agreement import GrammarAgreement
 from .binding import Extractor, Language
 from .errors import (
     AmbiguousCaptureError,
     BundleError,
     ExtractionError,
+    PatternBuildError,
+    PatternError,
+    PatternResolutionError,
+    PatternRewriteError,
     PydantreeSitterError,
     QueryBuildError,
     SchemaCheckError,
     ShapeError,
+    UnsupportedLanguageError,
 )
 from .loader import load_bundle
 from .markers import (
@@ -47,6 +53,21 @@ from .markers import (
     source_meta,
 )
 from .materialize import MatchFailure, Span
+
+# 022 §12: importing these names must NEVER require the `pattern` extra.
+# `pattern.py` imports `ast_grep_py` inside `Pattern.__init__`, so this line
+# is safe without ast-grep-py installed — only CONSTRUCTING a Pattern needs
+# it, and the missing extra is then a PatternError naming what to install.
+from .pattern import (
+    Edit,
+    Pattern,
+    PatternMatch,
+    ReplaceResult,
+    register_bundle_language,
+    registered_languages,
+)
+from .rules import Rule
+from .syntax import SYNTAX_CHECKS, check_json, check_python, syntax_check_for
 from .schema import (
     ChildInfo,
     NodeSchema,
@@ -72,4 +93,11 @@ __all__ = [
     "PydantreeSitterError", "SchemaCheckError", "ShapeError",
     "QueryBuildError", "ExtractionError", "AmbiguousCaptureError",
     "BundleError", "MatchFailure",
+    # structural pattern matching + rewrite (022) — the `pattern` extra
+    "Pattern", "PatternMatch", "Rule", "Edit", "ReplaceResult",
+    "GrammarAgreement", "register_bundle_language", "registered_languages",
+    # the third-parser seam: what the LANGUAGE calls valid, not tree-sitter
+    "SYNTAX_CHECKS", "syntax_check_for", "check_python", "check_json",
+    "PatternError", "PatternBuildError", "PatternResolutionError",
+    "PatternRewriteError", "UnsupportedLanguageError",
 ]

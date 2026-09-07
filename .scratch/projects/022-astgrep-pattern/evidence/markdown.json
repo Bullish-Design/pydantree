@@ -1,0 +1,61 @@
+{
+  "all_kinds": [
+    "!",
+    "#",
+    "(",
+    ")",
+    "*",
+    ",",
+    ".",
+    "/",
+    ":",
+    "[",
+    "]",
+    "atx_h1_marker",
+    "atx_heading",
+    "block_continuation",
+    "block_quote",
+    "block_quote_marker",
+    "code_fence_content",
+    "document",
+    "fenced_code_block",
+    "fenced_code_block_delimiter",
+    "info_string",
+    "inline",
+    "language",
+    "list",
+    "list_item",
+    "list_marker_minus",
+    "minus_metadata",
+    "paragraph",
+    "section",
+    "task_list_marker_checked",
+    "task_list_marker_unchecked"
+  ],
+  "block_structure_available": {
+    "section": 2,
+    "atx_heading": 1,
+    "paragraph": 4,
+    "list": 1,
+    "list_item": 2,
+    "block_quote": 1,
+    "fenced_code_block": 1,
+    "minus_metadata": 1,
+    "task_list_marker_checked": 1,
+    "task_list_marker_unchecked": 1
+  },
+  "inline_nodes_are_opaque": {
+    "inline_node_count": 5,
+    "kinds_inside_inline_are_only_punctuation": true
+  },
+  "block_level_patterns_work": {
+    "# $TITLE": 1,
+    "- $ITEM": 2
+  },
+  "obsidian_syntax_addressable": {
+    "wikilink": false,
+    "embed": false,
+    "tag": false,
+    "callout": false
+  }
+}

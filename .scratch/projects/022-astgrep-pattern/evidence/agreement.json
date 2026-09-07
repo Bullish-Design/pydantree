@@ -1,0 +1,188 @@
+{
+  "astgrep_py_version": "0.45.3",
+  "tree_sitter_python_version": "0.25.0",
+  "tree_sitter_version": "0.26.0",
+  "offset_mode": "char->byte converted",
+  "corpus": {
+    "files": 16,
+    "lines": 5131,
+    "files_with_non_ascii": 16
+  },
+  "node_set_named": {
+    "pydantree_nodes": 26085,
+    "exact_matches": 26085,
+    "rate": 1.0,
+    "only_astgrep_kinds": {},
+    "only_pydantree_kinds": {},
+    "files_with_any_mismatch": []
+  },
+  "node_set_all_incl_anonymous": {
+    "pydantree_nodes": 39190,
+    "exact_matches": 39190,
+    "rate": 1.0,
+    "only_astgrep_kinds": {},
+    "only_pydantree_kinds": {},
+    "files_with_any_mismatch": []
+  },
+  "resolution": {
+    "whole_match": {
+      "total": 3688,
+      "resolved": 3688,
+      "failure_rate": 0.0,
+      "failures_by_pattern": {}
+    },
+    "capture": {
+      "total": 9590,
+      "resolved": 9590,
+      "failure_rate": 0.0,
+      "failures_by_pattern_metavar": {}
+    },
+    "kind_disagreements": {}
+  },
+  "per_pattern": {
+    "def $NAME($$$ARGS): $$$BODY": {
+      "matches": 63,
+      "m_ok": 63,
+      "caps": 424,
+      "c_ok": 424
+    },
+    "class $NAME: $$$BODY": {
+      "matches": 29,
+      "m_ok": 29,
+      "caps": 58,
+      "c_ok": 58
+    },
+    "class $NAME($$$BASES): $$$BODY": {
+      "matches": 25,
+      "m_ok": 25,
+      "caps": 77,
+      "c_ok": 77
+    },
+    "return $VAL": {
+      "matches": 316,
+      "m_ok": 316,
+      "caps": 316,
+      "c_ok": 316
+    },
+    "raise $EXC($$$ARGS)": {
+      "matches": 56,
+      "m_ok": 56,
+      "caps": 142,
+      "c_ok": 142
+    },
+    "if $COND: $$$BODY": {
+      "matches": 333,
+      "m_ok": 333,
+      "caps": 754,
+      "c_ok": 754
+    },
+    "for $VAR in $ITER: $$$BODY": {
+      "matches": 92,
+      "m_ok": 92,
+      "caps": 277,
+      "c_ok": 277
+    },
+    "while $COND: $$$BODY": {
+      "matches": 8,
+      "m_ok": 8,
+      "caps": 16,
+      "c_ok": 16
+    },
+    "with $CTX as $VAR: $$$BODY": {
+      "matches": 1,
+      "m_ok": 1,
+      "caps": 3,
+      "c_ok": 3
+    },
+    "$OBJ.$METHOD($$$ARGS)": {
+      "matches": 549,
+      "m_ok": 549,
+      "caps": 1755,
+      "c_ok": 1755
+    },
+    "$A = $B": {
+      "matches": 594,
+      "m_ok": 594,
+      "caps": 1188,
+      "c_ok": 1188
+    },
+    "$A: $T = $B": {
+      "matches": 116,
+      "m_ok": 116,
+      "caps": 348,
+      "c_ok": 348
+    },
+    "import $MOD": {
+      "matches": 31,
+      "m_ok": 31,
+      "caps": 31,
+      "c_ok": 31
+    },
+    "from $MOD import $$$NAMES": {
+      "matches": 83,
+      "m_ok": 83,
+      "caps": 443,
+      "c_ok": 443
+    },
+    "assert $COND": {
+      "matches": 0,
+      "m_ok": 0,
+      "caps": 0,
+      "c_ok": 0
+    },
+    "try: $$$BODY except $EXC: $$$HANDLER": {
+      "matches": 0,
+      "m_ok": 0,
+      "caps": 0,
+      "c_ok": 0
+    },
+    "lambda $$$ARGS: $BODY": {
+      "matches": 3,
+      "m_ok": 3,
+      "caps": 3,
+      "c_ok": 3
+    },
+    "[$X for $Y in $Z]": {
+      "matches": 16,
+      "m_ok": 16,
+      "caps": 48,
+      "c_ok": 48
+    },
+    "{$K: $V}": {
+      "matches": 5,
+      "m_ok": 5,
+      "caps": 10,
+      "c_ok": 10
+    },
+    "$F($$$ARGS)": {
+      "matches": 1203,
+      "m_ok": 1203,
+      "caps": 3424,
+      "c_ok": 3424
+    },
+    "not $X": {
+      "matches": 65,
+      "m_ok": 65,
+      "caps": 65,
+      "c_ok": 65
+    },
+    "$A if $C else $B": {
+      "matches": 54,
+      "m_ok": 54,
+      "caps": 162,
+      "c_ok": 162
+    },
+    "yield $V": {
+      "matches": 2,
+      "m_ok": 2,
+      "caps": 2,
+      "c_ok": 2
+    },
+    "@$DEC": {
+      "matches": 44,
+      "m_ok": 44,
+      "caps": 44,
+      "c_ok": 44
+    }
+  }
+}

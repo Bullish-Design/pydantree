@@ -1,0 +1,17 @@
+{
+  "corpus_files": 17,
+  "already_ruff_format_clean": 0,
+  "ruff_refused": 0,
+  "cases_refused_for_overlap": 43,
+  "raw_round_trip": {
+    "cases": 38,
+    "identical": 30,
+    "rate": 0.7895
+  },
+  "formatted_round_trip": {
+    "cases": 38,
+    "identical": 38,
+    "rate": 1.0
+  },
+  "formatted_failures": []
+}

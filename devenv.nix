@@ -11,6 +11,14 @@
     pkgs.git
     pkgs.tree-sitter
     pkgs.gcc
+    # Project 022 (pattern matching). The CLI is the debugging tool: `ast-grep
+    # run -p '<pattern>' --debug-query` prints ast-grep's own parse of a
+    # pattern, which is how a `PatternBuildError` gets diagnosed by hand. The
+    # library the module imports is the `ast-grep-py` wheel, pinned in
+    # uv.lock via the root `dev` extra and the pydantree-sitter `pattern`
+    # extra — NOT this package. The two carry independent grammar revisions;
+    # never read one's behaviour off the other.
+    pkgs.ast-grep
   ];
 
   # https://devenv.sh/languages/
