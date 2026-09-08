@@ -11,19 +11,20 @@ bind — never prints (F-A6).
 
 from __future__ import annotations
 
-import types
+import threading
 import warnings
 import weakref
 from pathlib import Path
+from typing import Any
 
 import tree_sitter
 
 from .compiler import compile_spec
-from .errors import BundleError, ShapeError
+from .errors import BundleError, ExtractionError, ShapeError, TreeLanguageError
 from .loader import load_bundle
-from .materialize import _record_kwargs, extract_field, extract_record
+from .materialize import (MatchFailure, Span, _record_kwargs, extract_field,
+                          extract_record)
 from .schema import NodeSchema
-from .spec import OutputModel
 from .valuemap import (
     JSON_VALUE_MAP,
     ValueMap,
@@ -95,6 +96,16 @@ def _default_astgrep_name(lang: tree_sitter.Language) -> str | None:
     return _ASTGREP_NAMES.get(name.lower())
 
 
+def _language_fingerprint(lang: Any) -> tuple:
+    """Return stable public grammar data for comparing tree wrappers."""
+    if isinstance(lang, Language):
+        lang = lang._lang
+    return (lang.name, lang.abi_version, lang.semantic_version,
+            tuple(lang.node_kind_for_id(i) for i in range(lang.node_kind_count)),
+            tuple(lang.field_name_for_id(i)
+                  for i in range(1, lang.field_count + 1)))
+
+
 def _transient_language(lang: "Language", schema=None) -> "Language":
     """A copy of `lang` with an explicit schema (the sugar path)."""
     return Language(lang._lang, schema=schema if schema is not None
@@ -113,7 +124,7 @@ def _transient_language(lang: "Language", schema=None) -> "Language":
 _LANGUAGE_CACHE: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
 # WeakKeyDictionary is not thread-safe; the sugar path can race from two
 # threads (REVIEW 020 minor — the caches were unsynchronized).
-_LANGUAGE_LOCK = __import__("threading").Lock()
+_LANGUAGE_LOCK = threading.RLock()
 
 
 def _language_for(language):
@@ -190,7 +201,7 @@ class Language:
 
     __slots__ = ("_lang", "_schema", "_value_map", "_lib", "_extractors",
                  "_astgrep_name", "_patterns", "_syntax_check",
-                 "_bundle_path", "_bundle_symbol")
+                 "_bundle_path", "_bundle_symbol", "_bind_lock")
 
     def __init__(self, lang, schema=None, value_map=None, astgrep_name=None,
                  syntax_check=None):
@@ -213,6 +224,7 @@ class Language:
         self._value_map = value_map
         self._lib = None
         self._extractors: dict = {}
+        self._bind_lock = threading.RLock()
         # 022 §7 resolution order: explicit argument, then bundle metadata
         # (set by `load_bundle`), then the built-in map.
         self._astgrep_name = astgrep_name
@@ -366,11 +378,14 @@ class Language:
         """Bind `model_cls`: ALL checks run here, once; the Extractor is
         cached on SELF keyed by (model_cls, strict)."""
         key = (model_cls, strict)
-        ext = self._extractors.get(key)
-        if ext is None:
-            ext = Extractor(model_cls, self, strict=strict)
-            self._extractors[key] = ext
-        return ext
+        with self._bind_lock:
+            ext = self._extractors.get(key)
+            if ext is None:
+                ext = Extractor(model_cls, self, strict=strict)
+                self._extractors[key] = ext
+                if len(self._extractors) > 128:
+                    self._extractors.pop(next(iter(self._extractors)))
+            return ext
 
     # -- parsing ------------------------------------------------------------
 
@@ -445,7 +460,17 @@ class Extractor:
         self.strict = strict
         vm = resolve_value_map(model, language)
         self.compiled = compile_spec(model, language, value_map=vm)
-        self.warnings: tuple = tuple(getattr(model, "_binding_warnings", ()))
+        bind_warnings: list[str] = list(
+            getattr(model, "_binding_warnings", ()))
+        if language.schema is None:
+            bind_warnings.append(
+                "schema-less binding: model↔grammar and capture↔type checks "
+                "are unchecked; emitted wildcards are intentional")
+        elif language.value_map is None and not looks_like_json(language.schema):
+            bind_warnings.append(
+                "draft value-shape inference: no reviewed ValueMap was "
+                "provided; name-based draft entries are used for field checks")
+        self.warnings = tuple(bind_warnings)
         if self.warnings:
             warnings.warn(
                 f"{model.__name__} bind warnings:\n  "
@@ -468,6 +493,11 @@ class Extractor:
         return self.extract_tree(tree)
 
     def extract_tree(self, tree: tree_sitter.Tree) -> list:
+        if _language_fingerprint(tree.language) != \
+                _language_fingerprint(self.language):
+            raise TreeLanguageError(
+                f"tree belongs to language {tree.language.name!r}, but this "
+                f"extractor is bound to {self.language.name!r}")
         if self.compiled.spec.record:
             return extract_record(self.model, self.compiled, tree,
                                   strict=self.strict)

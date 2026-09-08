@@ -112,11 +112,27 @@ def compile_spec(model_cls, language, *, value_map: ValueMap) -> _Compiled:
     # Language (recursive — one compiler, no schema-less interleaving, F-A2)
     for b in spec.bindings:
         if b.nested is not None:
-            compiled.nested_extractors[b.name] = \
-                language.extractor(b.nested, strict=True)
+            if b.nested is model_cls:
+                compiled.nested_extractors[b.name] = _LazyExtractor(
+                    language, b.nested)
+            else:
+                compiled.nested_extractors[b.name] = \
+                    language.extractor(b.nested, strict=True)
 
     _bind_compile(compiled, language)
     return compiled
+
+
+class _LazyExtractor:
+    """Resolve a self-recursive nested extractor after the outer bind."""
+
+    def __init__(self, language, model):
+        self.language = language
+        self.model = model
+
+    def extract_tree_scoped(self, node, tree):
+        return self.language.extractor(self.model, strict=True) \
+            .extract_tree_scoped(node, tree)
 
 
 def _bind_compile(compiled: _Compiled, language) -> None:
@@ -560,12 +576,14 @@ def _proposed(schema) -> "ValueMap":
     """The draft (name-regex) ValueMap for `schema`, computed once per
     schema object. Declared-data fallback ONLY — kinds the committed map
     declares never reach this."""
-    key = id(schema)
     with _PROPOSED_LOCK:
+        key = id(schema)
         cached = _PROPOSED_CACHE.get(key)
         if cached is None or cached[0] is not schema:
             cached = (schema, propose_value_map(schema))
             _PROPOSED_CACHE[key] = cached
+            if len(_PROPOSED_CACHE) > 128:
+                _PROPOSED_CACHE.pop(next(iter(_PROPOSED_CACHE)))
         return cached[1]
 
 
@@ -624,57 +642,66 @@ def _compile_record(compiled: _Compiled, language, *, check: bool = True) -> Non
     annotations = {b.name: _annotation(model_cls, b) for b in bindings}
 
     suffix, _prefix = _split_suffix(spec.path)
-    record_kind = suffix[-1].kinds[0]
-    compiled.record_kind = record_kind
-
     vm = compiled.value_map
-    if schema is not None:
-        pair_kind = _find_pair_kind(schema, record_kind, model_cls,
-                                    spec.record_pair)
-        compiled.pair_kind = pair_kind
-        key_shapes = _key_shapes(schema, pair_kind)
-        if not key_shapes:
-            raise ShapeError(
-                f"record mode over {record_kind!r}: the pair kind "
-                f"{pair_kind!r} has no text-yielding key shape in the "
-                f"node schema")
-        value_kinds = schema.expand(
-            r.type for r in schema.field_types(pair_kind, "value"))
-    else:
-        # schema-less record mode = JSON_VALUE_MAP + the documented JSON
-        # kinds (stated in valuemap.py; no silent name-regex inference)
-        pair_kind = "pair"
-        compiled.pair_kind = pair_kind
-        key_shapes = [("string", "string_content")]
-        value_kinds = set(JSON_KINDS)
+    path_choices = list(_path_combinations(suffix))
+    compiled.record_kind = path_choices[0][-1]
 
-    # ---- outer query: the anchored path capturing the record node --------
-    cur = node(record_kind).capture(RECORD_CAP)
-    for s in reversed(suffix[:-1]):
-        cur = node(s.kinds[0]).child(node=cur)
-    compiled.records = Query(cur)
+    # ---- outer query: emit every concrete path alternative ---------------
+    outer_patterns = []
+    for steps in path_choices:
+        cur = node(steps[-1]).capture(RECORD_CAP)
+        for kind in reversed(steps[:-1]):
+            cur = node(kind).child(node=cur)
+        outer_patterns.append(cur)
+    compiled.records = Query(*outer_patterns)
 
     # ---- inner query: one anchored pattern per field ----------------------
     patterns = []
-    for b in bindings:
-        if b.is_meta:
-            continue
-        for vs in _value_shapes(b, schema, vm, value_kinds, pair_kind,
-                                annotations[b.name]):
-            spec_node = (node(record_kind)
-                         .child(node(pair_kind)
-                                .child(field="key", node=_key_spec(key_shapes))
-                                .child(field="value", node=vs)
-                                .where(cap("key").eq(b.key)))
-                         .capture(ANCHOR))
-            for p in _preds_for(b):
-                spec_node.where(p)
-            patterns.append(spec_node)
+    for steps in path_choices:
+        record_kind = steps[-1]
+        if schema is not None:
+            pair_kind = _find_pair_kind(schema, record_kind, model_cls,
+                                        spec.record_pair)
+            key_shapes = _key_shapes(schema, pair_kind)
+            if not key_shapes:
+                raise ShapeError(
+                    f"record mode over {record_kind!r}: the pair kind "
+                    f"{pair_kind!r} has no text-yielding key shape in the "
+                    f"node schema")
+            value_kinds = schema.expand(
+                r.type for r in schema.field_types(pair_kind, "value"))
+        else:
+            pair_kind = "pair"
+            key_shapes = [("string", "string_content")]
+            value_kinds = set(JSON_KINDS)
+        if compiled.pair_kind is None:
+            compiled.pair_kind = pair_kind
+        for b in bindings:
+            if b.is_meta:
+                continue
+            for key_shape in key_shapes:
+                for vs in _value_shapes(b, schema, vm, value_kinds, pair_kind,
+                                        annotations[b.name]):
+                    spec_node = (node(record_kind)
+                                 .child(node(pair_kind)
+                                        .child(field="key", node=_key_spec_one(key_shape))
+                                        .child(field="value", node=vs)
+                                        .where(cap("key").eq(b.key)))
+                                 .capture(ANCHOR))
+                    for p in _preds_for(b):
+                        spec_node.where(p)
+                    patterns.append(spec_node)
     compiled.fields = Query(*patterns) if patterns else None
 
     if schema is not None and check:
-        _check_record_bindings(model_cls, schema, vm, pair_kind, value_kinds,
-                               bindings)
+        for steps in path_choices:
+            record_kind = steps[-1]
+            pair_kind = _find_pair_kind(schema, record_kind, model_cls,
+                                        spec.record_pair)
+            value_kinds = schema.expand(
+                r.type for r in schema.field_types(pair_kind, "value"))
+            _check_record_bindings(model_cls, schema, vm, pair_kind,
+                                   value_kinds, bindings)
 
 
 def _find_pair_kind(schema, record_kind: str, model_cls=None,
@@ -746,8 +773,8 @@ def _leaf_shape(schema, kind: str):
     return kind
 
 
-def _key_spec(key_shapes):
-    wrapper, leaf = key_shapes[0]
+def _key_spec_one(key_shape):
+    wrapper, leaf = key_shape
     if wrapper is not None:
         return node(wrapper).child(node(leaf).capture("key"))
     return node(leaf).capture("key")

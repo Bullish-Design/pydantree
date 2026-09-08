@@ -869,3 +869,21 @@ regressions are `test_schema_bound_path_alternation_binds_and_extracts`,
 `test_field_kind_inference_is_per_anchor_alternative` in
 `tests/test_extract.py`. Measured output is recorded in
 `evidence/probe_d2_d7.txt` and `evidence/probe_d2_d7.json`.
+
+## 11. Readiness hardening resolution — 2026-09-08
+
+D5 now rejects `extract_tree()` input whose stable tree-sitter grammar
+fingerprint differs from the bound language. D8 now rejects malformed trees in
+strict mode with `ExtractionError`, `MatchFailure`, and a root span; lenient
+mode remains available through `strict=False`. The probe output is recorded in
+`evidence/readiness_contracts.txt` and `evidence/readiness_contracts.json`.
+
+D4 now binds self-recursive nested records through a lazy extractor and finite
+recursive JSON extraction is covered by a regression. D6 record compilation
+emits every concrete path and key-shape alternative. D11 bounds the two draft
+and extractor caches at 128 entries and protects binding with a reentrant lock.
+D12 follows named whitespace references before deciding whether to add the
+default whitespace extra. D9/D10 repair the Product B wildcard import surface.
+C2 warns at the bind boundary for schema-less and unreviewed field-mode value
+shape inference. The 46 Ty diagnostics and repository Ruff baseline remain
+separate known gate findings.

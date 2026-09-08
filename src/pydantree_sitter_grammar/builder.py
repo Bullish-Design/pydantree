@@ -494,7 +494,12 @@ class Grammar:
         # F-B5 (intent-based, not exact-string): an extra whose pattern
         # matches ONLY whitespace suppresses the injected `\s` default —
         # the author's whitespace intent is explicit
-        if isinstance(node, PatternNode) and _only_whitespace(node.value):
+        whitespace = isinstance(node, PatternNode) and _only_whitespace(node.value)
+        if isinstance(node, SymbolNode):
+            target = self.rules.get(node.name)
+            whitespace = isinstance(target, PatternNode) and \
+                _only_whitespace(target.value)
+        if whitespace:
             self._explicit_whitespace = True
         return self
 

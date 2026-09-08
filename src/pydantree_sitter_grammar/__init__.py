@@ -9,7 +9,7 @@ Public surface:
 
     from pydantree_sitter_grammar import (
         Grammar,                    # the builder registry
-        rule, seq, choice, repeat, repeat1, opt, field, token, tok,
+        seq, choice, repeat, repeat1, opt, field, token, tok,
         immediate_token, ref, pattern, alias, blank,
         prec, prec_left, prec_right, prec_dynamic,
         GrammarModel,               # the IR (grammar.json mirror)
@@ -124,7 +124,11 @@ from .pipeline import (
     detect_toolchain,
     grammar_hash,
     run_generate,
+    Toolchain,
+    write_bundle,
+    build_from_source_dir,
 )
+from .schema_tool import build_community_bundle, derive_schema_for_dir
 from .rules import (
     External,
     Extra,
@@ -153,7 +157,7 @@ __version__ = "0.2.0"
 
 __all__ = [
     # builder
-    "Grammar", "rule", "seq", "choice", "repeat", "repeat1", "opt", "field",
+    "Grammar", "seq", "choice", "repeat", "repeat1", "opt", "field",
     "token", "tok", "immediate_token", "ref", "pattern", "alias", "blank",
     "prec", "prec_left", "prec_right", "prec_dynamic", "grammar",
     "RuleSite", "B", "Ladder",
@@ -182,6 +186,7 @@ __all__ = [
     "compile_parser", "debug_states", "detect_toolchain", "grammar_hash",
     "default_cache_dir", "BuildResult", "PipelineError", "GenerateError",
     "CompileError", "ExternalScannerRequiredError",
+    "Toolchain", "write_bundle", "build_from_source_dir",
     # scanner library seed
     "indent_scanner_path", "heredoc_scanner_path",
     "matched_delimiter_scanner_path", "scanner_for",
@@ -191,4 +196,5 @@ __all__ = [
     "expression", "semantic_smoke", "DEFAULT_PRECEDENCE_CORPUS",
     # language
     "load_language", "parse",
+    "derive_schema_for_dir", "build_community_bundle",
 ]

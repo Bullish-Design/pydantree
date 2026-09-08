@@ -76,6 +76,10 @@ class ExtractionError(PydantreeSitterError):
         super().__init__("\n".join(lines))
 
 
+class TreeLanguageError(PydantreeSitterError):
+    """The supplied tree was parsed by a different tree-sitter language."""
+
+
 class BundleError(PydantreeSitterError):
     """A bundle directory is missing/invalid metadata, or its
     `bundle_format` is unknown. Names both versions when rejecting a format,

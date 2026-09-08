@@ -416,6 +416,14 @@ def test_whitespace_extra_default():
     g2.start("source_file")
     g2.extra(tg.pattern(r"\s"))
     assert len(g2.build().extras) == 1
+    # A named whitespace rule has the same ownership semantics.
+    g_named = tg.Grammar("t2_named")
+    g_named.rule("ws", tg.pattern(r"\s"))
+    g_named.rule("source_file", tg.repeat(tg.ref("tok")))
+    g_named.rule("tok", tg.pattern(r"\d+"))
+    g_named.start("source_file")
+    g_named.extra(tg.ref("ws"))
+    assert len(g_named.build().extras) == 1
     # whitespace=False disables
     g3 = tg.Grammar("t3", whitespace=False)
     g3.rule("tok", tg.pattern(r"\d+"))

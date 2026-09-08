@@ -1,0 +1,18 @@
+{
+  "same_language": {
+    "rows": [
+      {
+        "value": "'ok'"
+      }
+    ]
+  },
+  "foreign_language": {
+    "exception": "TreeLanguageError",
+    "message": "tree belongs to language None, but this extractor is bound to 'python'"
+  },
+  "malformed_default_strict": {
+    "exception": "ExtractionError",
+    "message": "1 match(es) failed to materialize Assignment:\n  - pattern -1 @ line 1 'x = (': malformed CST: tree contains ERROR or MISSING nodes",
+    "span": "x = ("
+  }
+}

@@ -45,7 +45,7 @@ capture↔type checks run at **bind time** — before any text is parsed.
   `capture('field')`/`capture_kind('kind')` keys get the capture↔type
   schema checks too (schema-wide — a raw query can't pin the anchor kind).
 - **Value shapes are declared data (C2):** record-mode value shapes come
-  from a `ValueMap` — never silent name-regex inference. `propose_value_map`
+  from a reviewed `ValueMap`; field-mode draft inference is warned when no map is supplied. `propose_value_map`
   is a **draft generator** whose output you inspect and commit (or ship in a
   bundle's `value_map` metadata). Schema-less record mode is the documented
   JSON family + `JSON_VALUE_MAP`, exactly.

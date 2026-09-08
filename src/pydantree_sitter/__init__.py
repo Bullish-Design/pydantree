@@ -37,6 +37,7 @@ from .errors import (
     SchemaCheckError,
     ShapeError,
     UnsupportedLanguageError,
+    TreeLanguageError,
 )
 from .loader import load_bundle
 from .markers import (
@@ -99,5 +100,5 @@ __all__ = [
     # the third-parser seam: what the LANGUAGE calls valid, not tree-sitter
     "SYNTAX_CHECKS", "syntax_check_for", "check_python", "check_json",
     "PatternError", "PatternBuildError", "PatternResolutionError",
-    "PatternRewriteError", "UnsupportedLanguageError",
+    "PatternRewriteError", "UnsupportedLanguageError", "TreeLanguageError",
 ]

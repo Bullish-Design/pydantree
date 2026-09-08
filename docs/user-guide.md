@@ -14,6 +14,14 @@ two products:
 Both are Pydantic-native. The node-schema bridge is the differentiator:
 model↔grammar and capture↔type checks run **before any text is parsed**.
 
+Extraction safety: `extract_tree()` rejects a tree parsed by another grammar.
+Strict extraction (the default) rejects a matched anchor that contains an
+`ERROR` or an undeclared `MISSING` node. An optional declared missing child is
+allowed for grammars that use it as an intentional EOF sentinel. The
+`strict=False` option skips malformed matches.
+Schema-less binding supports wildcard queries, but warns because grammar
+checks cannot run.
+
 ---
 
 ## 1. Installation

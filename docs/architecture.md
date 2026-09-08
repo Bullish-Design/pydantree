@@ -139,6 +139,12 @@ Grammar -> IR (grammar.json) -> tree-sitter generate --json -> src/parser.c
 - **Value shapes (D6)**: record-mode shapes consume ONLY (schema, ValueMap).
   `propose_value_map(schema)` is the draft generator (reviewed, committed —
   never silent inference); `JSON_VALUE_MAP` is the schema-less JSON family.
+- **Extraction boundary**: `Extractor.extract_tree()` compares a stable public
+  grammar fingerprint and rejects foreign trees. Strict extraction rejects a
+  matched anchor containing `ERROR` or an undeclared `MISSING`; an optional
+  declared missing child can represent an intentional EOF sentinel. Lenient
+  extraction skips malformed matches.
+  Schema-less binding emits a warning because schema checks are unavailable.
 - **Path alternatives**: a `PathStep` tuple is an alternative set at one
   path level, not a sequence of descents. Schema-bound validation checks every
   current alternative against the previous step's alternatives. Each current

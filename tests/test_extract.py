@@ -27,6 +27,7 @@ from pydantree_sitter import (
     OutputModel,
     SchemaCheckError,
     ShapeError,
+    TreeLanguageError,
     Unescaped,
     ValueMap,
     capture,
@@ -108,6 +109,29 @@ def test_extraction_error_per_match_detail():
     assert "2 match(es) failed" in str(e)
 
 
+def test_extract_tree_rejects_a_tree_from_another_language():
+    class Assignment(OutputModel):
+        __match__ = M("module", "expression_statement", "assignment")
+        value: str = capture("right")
+
+    lang = Language.load(tree_sitter_python.language())
+    foreign = Language.load(tree_sitter_json.language())
+    with pytest.raises(TreeLanguageError, match="belongs to language"):
+        lang.extractor(Assignment).extract_tree(foreign.parse("{}"))
+
+
+def test_strict_extraction_rejects_error_and_missing_anchors():
+    from pydantree_sitter.materialize import _malformed
+    tree = Language.load(tree_sitter_python.language()).parse("x = (")
+    assert tree.root_node.has_error
+    assert _malformed(tree.root_node)
+    # An explicitly optional missing child is the documented EOF sentinel.
+    from types import SimpleNamespace
+    missing = SimpleNamespace(type="MISSING", is_missing=True, children=[])
+    assert _malformed(missing)
+    assert not _malformed(missing, {"MISSING"})
+
+
 # ---------------------------------------------------------------------------
 # descendant matching: '...' in M()
 # ---------------------------------------------------------------------------
@@ -168,6 +192,21 @@ def test_descendant_record_mode():
                              language=lang)
     # both the top-level and the nested object are records
     assert {r.name for r in rows} == {"outer", "inner"}
+
+
+def test_self_recursive_record_binds_and_extracts_finite_nesting():
+    lang, _ = _json_lang()
+
+    class Tree(OutputModel):
+        __match__ = M("document", "object", record=True)
+        name: str | None = None
+        child: Tree | None = capture("child")
+
+    Tree.model_rebuild()
+    rows = Tree.extract('{"name": "outer", "child": {"name": "inner"}}',
+                        language=lang)
+    assert rows[0].child.name == "inner"
+    assert rows[0].child.child is None
 
 
 # ---------------------------------------------------------------------------
@@ -303,7 +342,7 @@ def test_field_mode_list_anchor_with_zero_occurrences_matches():
     lang = Language.load(tg.build_builder(g).language())
 
     rows = [r.model_dump() for r in
-            _FnParams.extract("f(a, b)\ng()\nh(x)\n", language=lang)]
+            _FnParams.extract("f(a b)\ng()\nh(x)\n", language=lang)]
     assert rows == [
         {"name": "f", "params": ["a", "b"]},
         {"name": "g", "params": []},

@@ -141,6 +141,18 @@ def _text_of(n) -> str:
     return "" if b is None else b.decode("utf-8")
 
 
+def _malformed(node, allowed_missing: set[str] = frozenset()) -> bool:
+    """Return whether this candidate contains an undeclared parse error."""
+    if node.type == "ERROR" or node.is_missing:
+        return node.type == "ERROR" or node.type not in allowed_missing
+    return any(_malformed(child, allowed_missing) for child in node.children)
+
+
+def _allowed_missing(compiled) -> set[str]:
+    return {b.key for b in compiled.bindings
+            if b.optional and b.source in ("cst_field", "child_kind")}
+
+
 def _first_anchor(caps: dict):
     return (caps.get(ANCHOR) or caps.get(RECORD_CAP) or [None])[0]
 
@@ -195,6 +207,8 @@ def build_kwargs(model_cls, bindings, caps: dict) -> dict:
             if not nodes:
                 if b.is_list:
                     kwargs[fname] = []
+                elif _is_optional(f.annotation):
+                    kwargs[fname] = None
                 elif not f.is_required():
                     kwargs[fname] = f.default
                 continue
@@ -294,6 +308,14 @@ def extract_field(model_cls, compiled, tree: tree_sitter.Tree, *,
         return results
     groups, order = group_matches(matches)
     for gid in order:
+        anchor = _first_anchor(merge_group(groups[gid], compiled.bindings))
+        if anchor is not None and _malformed(anchor, _allowed_missing(compiled)):
+            failure = _failure(None,
+                               "malformed CST: anchor contains ERROR or "
+                               "MISSING node", anchor=anchor)
+            if strict:
+                errors.append(failure)
+            continue
         caps = merge_group(groups[gid], compiled.bindings)
         if not _required_captures_present(compiled.bindings, caps):
             continue
@@ -336,6 +358,13 @@ def extract_record(model_cls, compiled, tree: tree_sitter.Tree, *,
         if not recs:
             continue
         rec = recs[0]
+        if _malformed(rec, _allowed_missing(compiled)):
+            failure = _failure(rm,
+                               "malformed CST: anchor contains ERROR or "
+                               "MISSING node", anchor=rec)
+            if strict:
+                errors.append(failure)
+            continue
         if compiled.match_path is not None and \
                 not match_ancestor_path(rec, compiled.match_path):
             continue
