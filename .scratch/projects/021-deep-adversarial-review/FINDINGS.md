@@ -850,3 +850,22 @@ the phantom root distribution's `[project]` block, or make it real.
   particular author is to hit it. If you never use two list fields, never
   reorder a model's fields, and never bind a schema with an alternation path,
   today's code is correct for you.
+
+## 10. D2/D7 resolution — 2026-09-08
+
+D2 and D7 are resolved on the `review-021-d2-d7` lane. `_check_path` now
+treats each `PathStep.kinds` tuple as one-level alternatives and checks each
+current kind against all kinds in the previous step. The check uses direct
+child reachability for ordinary paths and descendant reachability after
+`GAP`. Every declared current alternative must have at least one legal
+predecessor. The original D2 evidence remains historical; the corrected probe
+is `evidence/probe_d2_d7.txt`.
+
+Field-mode compilation now infers a capture kind after selecting each concrete
+path combination. Explicit `NodeKind(...)` alternatives keep their declared
+choices, while inferred choices no longer cross-contaminate anchor kinds. The
+regressions are `test_schema_bound_path_alternation_binds_and_extracts`,
+`test_schema_bound_path_alternation_rejects_impossible_kind`, and
+`test_field_kind_inference_is_per_anchor_alternative` in
+`tests/test_extract.py`. Measured output is recorded in
+`evidence/probe_d2_d7.txt` and `evidence/probe_d2_d7.json`.

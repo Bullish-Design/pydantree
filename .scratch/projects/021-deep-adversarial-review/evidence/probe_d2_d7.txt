@@ -1,0 +1,22 @@
+Review 021 D2/D7 probe — 2026-09-08
+Command: devenv shell -- python .scratch/projects/021-deep-adversarial-review/probes/probe_d2_d7.py
+
+D2 legal path rows: [{'value': 'one'}, {'value': 'two'}]
+D2 legal GAP path rows: [{'value': 'one'}, {'value': 'two'}]
+D2 illegal path: SchemaCheckError source_file -> word
+D2 illegal path message: BadPath (/home/andrew/Documents/Projects/pydantree/.scratch/projects/021-deep-adversarial-review/probes/probe_d2_d7.py:72): __match__ chain (PathStep(kinds=('source_file',)), PathStep(kinds=('object', 'word'))): 'word' cannot occur as a child of any previous path alternative ('source_file',) in the grammar (possible children by previous kind: {'source_file': ['array', 'object']})
+
+D7 query:
+(source_file (number_item) @__anchor__)
+
+(source_file (number_item value:(integer) @value) @__anchor__)
+
+(source_file (text_item) @__anchor__)
+
+(source_file (text_item value:(_) @value) @__anchor__)
+D7 rows: [{'value': 1}, {'value': 2}, {'value': 3}, {'value': 4}]
+
+The D2 bind accepts both legal path alternatives and the legal GAP path.
+The D2 bind rejects the impossible `word` alternative with `SchemaCheckError`.
+The D7 query constrains `number_item` to `integer` and leaves `text_item`
+wildcarded, so both anchor alternatives extract rows.

@@ -56,3 +56,12 @@ alternative is demonstrated working in FINDINGS §7.1.
 `342 passed`, exit 0, ~78 s under `devenv shell`. Coverage 79–100 % per
 module. 171 ruff findings and 36 mypy errors, none of which fail anything
 (`py.typed` ships regardless).
+
+## D2/D7 resolution — 2026-09-08
+
+Review 021 D2 and D7 were implemented together. Schema-bound path validation
+now compares alternatives at adjacent path levels, including descendant paths
+with `GAP`, and rejects an alternative with no legal predecessor. Field-mode
+capture-kind inference now runs per concrete anchor alternative. The corrected
+regressions and measured probe output are recorded in
+`evidence/probe_d2_d7.txt` and `evidence/probe_d2_d7.json`.

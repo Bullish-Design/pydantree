@@ -1,0 +1,30 @@
+{
+  "illegal_path_alternation": {
+    "exception": "SchemaCheckError",
+    "message": "BadPath (/home/andrew/Documents/Projects/pydantree/.scratch/projects/021-deep-adversarial-review/probes/probe_d2_d7.py:72): __match__ chain (PathStep(kinds=('source_file',)), PathStep(kinds=('object', 'word'))): 'word' cannot occur as a child of any previous path alternative ('source_file',) in the grammar (possible children by previous kind: {'source_file': ['array', 'object']})",
+    "schema_entry": "source_file -> word"
+  },
+  "legal_gap_path_alternation": {
+    "bound": true,
+    "rows": [
+      {"value": "one"},
+      {"value": "two"}
+    ]
+  },
+  "legal_path_alternation": {
+    "bound": true,
+    "rows": [
+      {"value": "one"},
+      {"value": "two"}
+    ]
+  },
+  "per_anchor_kind_inference": {
+    "query": "(source_file (number_item) @__anchor__)\n\n(source_file (number_item value:(integer) @value) @__anchor__)\n\n(source_file (text_item) @__anchor__)\n\n(source_file (text_item value:(_) @value) @__anchor__)",
+    "rows": [
+      {"value": 1},
+      {"value": 2},
+      {"value": 3},
+      {"value": 4}
+    ]
+  }
+}

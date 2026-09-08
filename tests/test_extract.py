@@ -28,6 +28,7 @@ from pydantree_sitter import (
     SchemaCheckError,
     ShapeError,
     Unescaped,
+    ValueMap,
     capture,
     source_meta,
 )
@@ -310,20 +311,131 @@ def test_field_mode_list_anchor_with_zero_occurrences_matches():
     ]
 
 
-def test_alternation_anchor_checks_every_kind():
-    """A4/REVIEW 020: for an alternation anchor, bind checks used only
-    anchor_kinds[0] — a field missing on the SECOND alternative escaped the
-    actionable SchemaCheckError and only failed later as a raw
-    QueryBuildError."""
-    lang, _ = _json_lang()
+def _path_alternation_grammar() -> tg.Grammar:
+    """A small grammar with two legal anchor alternatives and one leaf."""
+    g = tg.Grammar("path_alternation")
+    g.rule("word", tg.pattern(r"[a-z]+"), word=True)
+    g.rule("object", tg.seq("o", tg.field("value", tg.ref("word"))))
+    g.rule("array", tg.seq("a", tg.field("value", tg.ref("word"))))
+    g.rule("left", tg.seq(
+        "l", tg.choice(tg.ref("object"), tg.ref("array"))))
+    g.rule("right", tg.seq(
+        "r", tg.choice(tg.ref("object"), tg.ref("array"))))
+    g.rule("source_file", tg.repeat(
+        tg.choice(tg.ref("object"), tg.ref("array"),
+                  tg.ref("left"), tg.ref("right"))))
+    g.start("source_file")
+    return g
 
-    class BadPair(OutputModel):
-        __match__ = M(("object", "array"))
-        x: str = capture("pair")    # 'array' has no 'pair' field
+
+def _path_alternation_lang():
+    result = tg.build_builder(_path_alternation_grammar())
+    schema = NodeSchema.from_node_types_json(
+        result.node_schema_json, name="path_alternation")
+    return Language.load(result.language(), schema=schema), schema
+
+
+def test_schema_bound_path_alternation_binds_and_extracts():
+    """A PathStep tuple is an alternative set at one path level."""
+    lang, _ = _path_alternation_lang()
+
+    class Values(OutputModel):
+        __match__ = M("source_file", ("object", "array"))
+        value: str = capture("value")
+
+    Values.validate_with(lang)
+    rows = [r.model_dump() for r in Values.extract(
+        "o one\na two\n", language=lang)]
+    assert rows == [{"value": "one"}, {"value": "two"}]
+
+
+def test_schema_bound_gap_path_alternation_binds_and_extracts():
+    """The alternatives remain siblings when a GAP permits descendants."""
+    lang, _ = _path_alternation_lang()
+
+    class Values(OutputModel):
+        __match__ = M("source_file", ..., ("object", "array"))
+        value: str = capture("value")
+
+    Values.validate_with(lang)
+    rows = [r.model_dump() for r in Values.extract(
+        "o one\na two\n", language=lang)]
+    assert rows == [{"value": "one"}, {"value": "two"}]
+
+
+def test_schema_bound_adjacent_path_alternatives_bind_and_extract():
+    """Both adjacent path levels can contain independent alternatives."""
+    lang, _ = _path_alternation_lang()
+
+    class Values(OutputModel):
+        __match__ = M("source_file", ("left", "right"),
+                       ("object", "array"))
+        value: str = capture("value")
+
+    Values.validate_with(lang)
+    rows = [r.model_dump() for r in Values.extract(
+        "l o one\nr a two\n", language=lang)]
+    assert rows == [{"value": "one"}, {"value": "two"}]
+
+
+def test_schema_bound_path_alternation_rejects_impossible_kind():
+    """Every path alternative must be legal against some prior alternative."""
+    lang, _ = _path_alternation_lang()
+
+    class BadPath(OutputModel):
+        # ``word`` is a real kind and is a child of ``object``, but it is not
+        # a child of ``source_file``. The old implementation accepts it by
+        # incorrectly checking it after the ``object`` alternative.
+        __match__ = M("source_file", ("object", "word"))
 
     with pytest.raises(SchemaCheckError) as exc:
-        lang.extractor(BadPair)
-    assert "'array'" in str(exc.value) and "pair" in str(exc.value)
+        lang.extractor(BadPath)
+    assert exc.value.schema_entry == "source_file -> word"
+    message = str(exc.value)
+    assert "cannot occur as a child of any previous path alternative" in message
+    assert "'word'" in message
+
+
+def _anchor_kind_grammar() -> tg.Grammar:
+    """Two anchors expose one logical field through different node kinds."""
+    g = tg.Grammar("anchor_kind")
+    g.rule("integer", tg.pattern(r"[0-9]+"))
+    # This is a textual CST kind whose source text is numeric so pydantic can
+    # coerce both branches to the model's int field after matching.
+    g.rule("text", tg.pattern(r"[0-9]+"))
+    g.rule("number_item", tg.seq(
+        "n", tg.field("value", tg.ref("integer"))))
+    g.rule("text_item", tg.seq(
+        "t", tg.field("value", tg.ref("text"))))
+    g.rule("source_file", tg.repeat(
+        tg.choice(tg.ref("number_item"), tg.ref("text_item"))))
+    g.start("source_file")
+    return g
+
+
+def test_field_kind_inference_is_per_anchor_alternative():
+    """Each concrete anchor gets its own inferred field-kind constraint."""
+    result = tg.build_builder(_anchor_kind_grammar())
+    schema = NodeSchema.from_node_types_json(
+        result.node_schema_json, name="anchor_kind")
+    lang = Language.load(
+        result.language(), schema=schema,
+        value_map=ValueMap(scalars={"integer": "int"}))
+
+    class Values(OutputModel):
+        __match__ = M("source_file", ("number_item", "text_item"))
+        value: int = capture("value")
+
+    ext = lang.extractor(Values)
+    source = ext.query_source
+    assert "(number_item value:(integer) @value)" in source
+    assert "(text_item value:(_) @value)" in source
+    assert "(text_item value:(integer) @value)" not in source
+
+    rows = [r.model_dump() for r in ext.extract(
+        "n 1\nt 2\nn 3\nt 4\n")]
+    assert rows == [{"value": 1}, {"value": 2},
+                    {"value": 3}, {"value": 4}]
 
 
 def test_field_mode_str_over_string_wrapper_captures_content():

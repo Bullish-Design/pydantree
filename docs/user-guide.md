@@ -59,6 +59,12 @@ rows = Assignment.extract(source_text, language=lang)    # sugar
 
 - `__match__ = M("module", "expression_statement", "assignment")` is the
   ancestor path of node kinds: `(module (expression_statement (assignment …)))`.
+- A tuple path element is an alternative set at one path level, not a
+  sequential descent. For example, `M("source_file", ("object", "array"))`
+  matches either child. With a schema, every current alternative must be a
+  legal child of at least one previous alternative. `...` changes that
+  relation to descendant reachability. Without a schema, this validation is
+  unavailable.
 - `= capture("left")` binds the field to the CST field `left` (the attr name
   is the capture name). `= capture()` (no arg) means the attr name IS the
   field name.

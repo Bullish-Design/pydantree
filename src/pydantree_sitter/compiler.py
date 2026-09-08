@@ -255,7 +255,7 @@ def _check_path(model_cls, spec: MatchSpec, schema) -> None:
             if not t.named:
                 _raise(model_cls, f"__match__ kind {kind!r} is not a named "
                                   f"node in the grammar", entry=kind)
-    prev = None
+    prev_kinds: tuple[str, ...] | None = None
     gap = False
     for step in spec.path:
         if step is GAP:
@@ -263,21 +263,31 @@ def _check_path(model_cls, spec: MatchSpec, schema) -> None:
             continue
         if not isinstance(step, PathStep):
             continue
-        for kind in step.kinds:
-            if prev is not None:
-                possible = schema.is_possible_descendant(prev, kind) if gap \
-                    else schema.is_possible_descent(prev, kind)
+        if prev_kinds is not None:
+            relation = "descendant" if gap else "child"
+            relation_plural = "descendants" if gap else "children"
+            for kind in step.kinds:
+                possible = any(
+                    schema.is_possible_descendant(previous, kind) if gap
+                    else schema.is_possible_descent(previous, kind)
+                    for previous in prev_kinds)
                 if not possible:
-                    kind_of = "a descendant of" if gap else "a child of"
+                    possible_by_previous = {
+                        previous: sorted(schema.possible_children(previous))
+                        for previous in prev_kinds
+                    }
                     _raise(
                         model_cls,
                         f"__match__ chain {spec.path!r}: {kind!r} cannot "
-                        f"occur as {kind_of} {prev!r} in the grammar "
-                        f"(possible children of {prev!r}: "
-                        f"{sorted(schema.possible_children(prev))})",
-                        entry=f"{prev} -> {kind}")
-            prev = kind
-            gap = False
+                        f"occur as a {relation} of any previous path "
+                        f"alternative {prev_kinds!r} in the grammar "
+                        f"(possible {relation_plural} by previous kind: "
+                        f"{possible_by_previous})",
+                        entry=(f"{prev_kinds[0]} -> {kind}"
+                               if len(prev_kinds) == 1
+                               else f"{prev_kinds} -> {kind}"))
+        prev_kinds = step.kinds
+        gap = False
 
 
 # ---------------------------------------------------------------------------
@@ -324,23 +334,9 @@ def _compile_field(compiled: _Compiled, language, *, check: bool = True) -> None
     suffix, _prefix = _split_suffix(spec.path)
     anchor_kinds = suffix[-1].kinds
 
-    # per-binding emission kinds: NodeKind override (one pattern per kind —
-    # F-A3) or the schema-inferred kind, else the wildcard
-    field_kinds: dict[str, tuple] = {}
-    for b in bindings:
-        if b.is_meta:
-            continue
-        if b.kinds:
-            field_kinds[b.name] = b.kinds
-        elif schema is not None and b.source in ("cst_field", "child_kind"):
-            field_kinds[b.name] = _infer_field_kind(
-                schema, compiled.value_map, anchor_kinds, b,
-                annotations[b.name])
-        else:
-            field_kinds[b.name] = ("_",)
-
     patterns = []
     for steps in _path_combinations(suffix):
+        anchor_kind = steps[-1]
         # Keep the anchor visible even when none of the optional/list fields
         # occur. Per-capture patterns below contribute fields independently,
         # so repeated fields cannot form a cartesian product and model field
@@ -353,8 +349,20 @@ def _compile_field(compiled: _Compiled, language, *, check: bool = True) -> None
             # meaningful only for field-backed captures. The old combined
             # emitter ignored this choice for child_kind, so do not emit
             # duplicate queries for it here.
-            choices = (b.key,) if b.source == "child_kind" \
-                else field_kinds[b.name]
+            if b.source == "child_kind":
+                choices = (b.key,)
+            elif b.kinds:
+                # NodeKind alternatives are explicit and apply to every
+                # concrete anchor alternative.
+                choices = b.kinds
+            elif schema is not None and b.source in ("cst_field", "child_kind"):
+                # Infer after choosing the concrete path. A field kind that
+                # fits one anchor must not constrain every other anchor.
+                choices = _infer_field_kind(
+                    schema, compiled.value_map, anchor_kind, b,
+                    annotations[b.name])
+            else:
+                choices = ("_",)
             for k in choices:
                 cur = node(steps[-1])
                 quant = _field_quant(b, annotations[b.name])
@@ -401,16 +409,13 @@ def _wrap_anchor(steps: tuple, cur):
     return cur
 
 
-def _infer_field_kind(schema, vm: ValueMap, anchor_kinds: tuple, b: FieldBinding,
+def _infer_field_kind(schema, vm: ValueMap, anchor_kind: str, b: FieldBinding,
                       annotation) -> tuple:
     """The schema-inferred kind: the single compatible kind (the §2.2 'int
-    defaults to numeric kinds' answer), else the wildcard. With alternation
-    anchors the possible kinds are the UNION over all anchors (A4/REVIEW
-    020 — the old `anchor_kinds[0]`-only inference under-checked the second
-    alternative)."""
-    possible: set = set()
-    for anchor in anchor_kinds:
-        possible |= _possible_for(schema, anchor, b)
+    defaults to numeric kinds' answer), else the wildcard. The inference is
+    per concrete anchor alternative, so a kind that fits one anchor does not
+    constrain another anchor to the same CST kind."""
+    possible = _possible_for(schema, anchor_kind, b)
     compatible = {k for k in possible
                   if _kind_coerces(schema, vm, annotation, k)}
     if len(compatible) == 1:
