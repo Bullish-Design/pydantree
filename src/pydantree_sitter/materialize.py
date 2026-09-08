@@ -141,8 +141,10 @@ def _text_of(n) -> str:
     return "" if b is None else b.decode("utf-8")
 
 
-def _malformed(node, allowed_missing: set[str] = frozenset()) -> bool:
+def _malformed(node, allowed_missing: set[str] | None = None) -> bool:
     """Return whether this candidate contains an undeclared parse error."""
+    if allowed_missing is None:
+        allowed_missing = set()
     if node.type == "ERROR" or node.is_missing:
         return node.type == "ERROR" or node.type not in allowed_missing
     return any(_malformed(child, allowed_missing) for child in node.children)
