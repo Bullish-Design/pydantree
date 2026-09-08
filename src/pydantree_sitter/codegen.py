@@ -173,14 +173,16 @@ def generate_typed_api(schema: NodeSchema, module_name: str) -> str:
         ready = sorted(k for k, (name, rhs) in union_defs.items()
                        if name not in emitted and deps[k] <= emitted)
         if not ready:
-            # unsatisfiable: a cyclic/undefined union dependency — emit the
-            # rest as-is rather than looping forever (A10). A cycle is a
-            # supertype-graph anomaly; the emitted union still imports.
-            for k, (name, rhs) in union_defs.items():
-                if name not in emitted:
-                    order.append((k, name, rhs))
-                    emitted.add(name)
-            break
+            # Unsatisfiable: a cyclic/undefined union dependency.  Emitting
+            # the remaining aliases as-is would only move the failure to
+            # generated-module import time (and used to make this loop run
+            # forever).  Reject the malformed schema at generation time with
+            # a stable, actionable error instead.
+            unresolved = sorted(
+                name for name in union_names if name not in emitted)
+            raise ValueError(
+                "cannot generate typed API: cyclic or undefined supertype "
+                f"dependency among {unresolved}")
         for k in ready:
             name, rhs = union_defs[k]
             order.append((k, name, rhs))

@@ -934,3 +934,15 @@ historical mypy command is not runnable in the current pinned environment
 (`mypy` is not installed), so mypy-specific compatibility is not claimed;
 Ty is the documented and enforced project gate. Probe and raw results are in
 `evidence/d13_type_contract.txt` and `evidence/d13_type_contract.json`.
+
+## 15. Older-review audit resolution — 2026-09-08
+
+Project 023 re-audited the older 014, 018, 019, and 020 findings against
+current main and preserved the historical records unchanged. It found and
+closed two remaining contract gaps: cyclic generated supertypes now fail with
+an explicit `ValueError` during generation instead of producing an import-time
+`NameError`, and caller-supplied schema-tool workdirs are no longer deleted.
+Malformed-CST diagnostics now identify concrete `ERROR`/`MISSING` nodes and
+include the anchor span. The reviewed runtime `Point.row`/`Point.column` reads
+were removed. Fresh probe output and the bounded limitation matrix are in
+`.scratch/projects/023-older-review-audit/`.

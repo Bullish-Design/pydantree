@@ -3,8 +3,10 @@
 Two cooperating libraries over tree-sitter, bound by a shared seam (`pydantree_sitter`):
 
 - **Product A — `pydantree_sitter`** (light runtime): declare an `OutputModel` — *the
-  model IS the query* — and get schema-checked, typed extraction over any
-  tree-sitter grammar. No `.scm`, no query DSL, no manual coercion.
+  model IS the query* — and get typed extraction over any tree-sitter grammar.
+  Bind a node-schema or bundle for schema checks; bare grammars use intentional
+  wildcard queries and warn that grammar checks are unavailable. No `.scm`, no
+  query DSL, no manual coercion.
 - **Product B — `pydantree_sitter_grammar`** (heavy build tool): author a tree-sitter
   grammar as a composable Pydantic DSL that compiles to `grammar.json` →
   `parser.c` → a shared object → a shippable **bundle**.

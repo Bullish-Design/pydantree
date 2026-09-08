@@ -1,0 +1,70 @@
+Review 023 older-review audit evidence
+Date: 2026-09-08
+
+Probe command:
+  devenv shell -- python .scratch/projects/023-older-review-audit/probes/probe_older_reviews.py
+
+Measured probe output:
+{
+  "caller_workdir": {
+    "schema_kinds": 280,
+    "sentinel_exists": true,
+    "sentinel_text": "keep me",
+    "workdir_exists": true
+  },
+  "cross_language": {
+    "exception": "TreeLanguageError",
+    "message": "tree belongs to language None, but this extractor is bound to 'python'"
+  },
+  "malformed_cst": {
+    "error": {
+      "detail": "malformed CST: anchor contains ERROR",
+      "exception": "ExtractionError",
+      "lenient_rows": [],
+      "message": "1 match(es) failed to materialize Function:\n  - pattern 0 @ line 1 'def f(1):': malformed CST: anchor contains ERROR",
+      "span": "def f(1):"
+    },
+    "missing": {
+      "detail": "malformed CST: anchor contains MISSING(')')",
+      "exception": "ExtractionError",
+      "lenient_rows": [],
+      "message": "1 match(es) failed to materialize Function:\n  - pattern 0 @ line 1 'def f(:': malformed CST: anchor contains MISSING(')')",
+      "span": "def f(:"
+    }
+  },
+  "product_b_surface": {
+    "all_count": 99,
+    "missing_documented": [],
+    "phantom_rule": false,
+    "star_import_ok": true
+  },
+  "same_language": [
+    {
+      "value": "1"
+    }
+  ],
+  "typed_api_cycle": {
+    "exception": "ValueError",
+    "message": "cannot generate typed API: cyclic or undefined supertype dependency among ['A', 'B']"
+  }
+}
+
+Pre-fix observations recorded during this audit:
+  - A cyclic typed-API declaration generated source, then failed on import with
+    NameError: name 'B' is not defined.
+  - An explicit caller workdir and its sentinel were deleted by schema-tool
+    cleanup when keep was false.
+
+Targeted regressions added for this audit:
+  - tests/test_codegen.py::test_cyclic_supertype_dependencies_fail_during_generation
+  - tests/test_pipeline.py::test_schema_tool_preserves_caller_workdir
+  - tests/test_extract.py::test_malformed_anchor_is_rejected_with_span_and_leniently_skipped
+
+Final verification results:
+  - focused older-review regressions: 155 passed, 18 warnings; exit=0
+  - tests/test_extract.py: 32 passed, 18 warnings; exit=0
+  - tests/test_bundle.py: 17 passed, 4 warnings; exit=0
+  - Product A/B pattern suite: 152 passed, 1 skipped, 3 warnings; exit=0
+  - ty check src: All checks passed!; exit=0
+  - ruff check src tests and both changed Python probes/examples: All checks passed!; exit=0
+  - full suite: 512 passed, 1 skipped, 51 warnings; pytest_rc=0

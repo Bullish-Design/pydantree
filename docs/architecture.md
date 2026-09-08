@@ -32,8 +32,10 @@ record.
   consumer of A never resolves them (proven at the install boundary).
 - **The bridge is the differentiator**: the schema IS the CLI's
   `node-types.json` byproduct (tracked by construction, D3), and A runs
-  model↔grammar + capture↔type checks at **bind time** — `lang.extractor(Model)`
-  — before any text is parsed.
+  model↔grammar + capture↔type checks at **bind time** when a schema or bundle
+  is supplied — `lang.extractor(Model)`, before any text is parsed. A bare
+  grammar remains an intentional wildcard path and emits a warning because
+  those checks cannot run.
 
 ## 2. The two packages
 

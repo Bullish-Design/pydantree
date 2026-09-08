@@ -8,8 +8,10 @@ split is folded into two packages):
 
 - **`pydantree-sitter`** (import `pydantree_sitter`) — Product A: declare an
   `OutputModel` (**the model IS the query**: field names, types, defaults,
-  and a one-line `__match__` path) and get typed, schema-checked extraction
-  over any grammar — no `.scm`, no query DSL, no manual coercion. Light: no
+  and a one-line `__match__` path) and get typed extraction over any grammar.
+  Bind a node-schema or bundle for schema-checked extraction; a bare grammar
+  uses intentional wildcard queries and warns that grammar checks are
+  unavailable. No `.scm`, no query DSL, no manual coercion. Light: no
   toolchain.
 - **`pydantree-sitter-grammar`** (import `pydantree_sitter_grammar`) —
   Product B: author a tree-sitter grammar as a composable Pydantic DSL that
@@ -26,12 +28,15 @@ class RustFn(OutputModel):
     return_type: str | None = capture("return_type")
 
 lang = Language.from_module(tree_sitter_rust)
-rows = lang.extractor(RustFn).extract(rs_source)     # checks run here, once
+rows = lang.extractor(RustFn).extract(rs_source)     # wildcard; warns
 rows = RustFn.extract(rs_source, language=lang)      # sugar
+# Pass schema=... or use Language.load_bundle(...) to enable bind-time checks.
 ```
 
-The node-schema bridge is the differentiator: model↔grammar and
-capture↔type checks run at **bind time** — before any text is parsed.
+The node-schema bridge is the differentiator: when a node-schema or bundle is
+bound, model↔grammar and capture↔type checks run at **bind time** — before any
+text is parsed. Schema-less bindings remain available for intentional
+wildcard extraction and emit a warning instead of claiming those checks ran.
 
 ## The honesty statements (014 §8.2)
 

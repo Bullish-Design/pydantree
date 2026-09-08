@@ -30,6 +30,17 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import ClassVar
+
+from pydantree_sitter import (
+    Language,
+    M,
+    OutputModel,
+    Span,
+    capture,
+    propose_value_map,
+    source_meta,
+)
 
 HERE = Path(__file__).resolve().parent
 DIST = Path(os.environ.get("DEVENV_BUNDLE_DIR",
@@ -47,6 +58,7 @@ FILES = ("mypi-agent.nix", "pydantree.nix", "terminal-state.nix",
 def build_bundle() -> Path:
     sys.path.insert(0, str(HERE))
     from grammar import build
+
     import pydantree_sitter_grammar as tg
 
     g = build()
@@ -61,11 +73,6 @@ def build_bundle() -> Path:
 # Product A — the models (the A surface over the bundle)
 # --------------------------------------------------------------------------
 
-from pydantree_sitter import (  # noqa: E402
-    Language, M, OutputModel, Span, capture, propose_value_map, source_meta,
-)
-
-
 class Pair(OutputModel):
     """Every `key = value;` pair: the KEY is a capture (the authored token —
     the phase-9 finding that nix's attrpath is not str-capturable is gone),
@@ -77,7 +84,7 @@ class Pair(OutputModel):
     line: int = source_meta()
     span: Span = source_meta()
 
-    model_config = {"arbitrary_types_allowed": True}
+    model_config: ClassVar = {"arbitrary_types_allowed": True}
 
 
 class ListLiteral(OutputModel):
@@ -90,7 +97,7 @@ class ListLiteral(OutputModel):
     line: int = source_meta()
     span: Span = source_meta()
 
-    model_config = {"arbitrary_types_allowed": True}
+    model_config: ClassVar = {"arbitrary_types_allowed": True}
 
 
 class EnvRecord(OutputModel):
@@ -262,7 +269,7 @@ def main() -> int:
                     inventory["packages"].append(
                         {"repo": repo,
                          "name": src[c.start_byte:c.end_byte].decode(),
-                         "line": c.start_point.row + 1})
+                         "line": c.start_point[0] + 1})
                     print(f"  package   {inventory['packages'][-1]['name']} "
                           f"(line {inventory['packages'][-1]['line']})")
 

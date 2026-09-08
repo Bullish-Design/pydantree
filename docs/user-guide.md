@@ -11,8 +11,10 @@ two products:
   no community grammar exists (or you need a custom one), build it, and ship
   it as a bundle or consume it directly.
 
-Both are Pydantic-native. The node-schema bridge is the differentiator:
-model↔grammar and capture↔type checks run **before any text is parsed**.
+Both are Pydantic-native. The node-schema bridge is the differentiator: with a
+bound node-schema or bundle, model↔grammar and capture↔type checks run
+**before any text is parsed**. A bare community grammar remains an intentional
+schema-less wildcard path and warns that those checks cannot run.
 
 Extraction safety: `extract_tree()` rejects a tree parsed by another grammar.
 Strict extraction (the default) rejects a matched anchor that contains an
@@ -60,7 +62,7 @@ class Assignment(OutputModel):
     line: int = source_meta()
 
 lang = Language.from_module(tree_sitter_python)
-rows = lang.extractor(Assignment).extract(source_text)   # checks run here, once
+rows = lang.extractor(Assignment).extract(source_text)   # wildcard; warns
 rows = Assignment.extract(source_text, language=lang)    # sugar
 # [Assignment(name='x', value=42, line=3), ...]
 ```

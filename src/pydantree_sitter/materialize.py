@@ -150,11 +150,28 @@ def _text_of(n) -> str:
 
 def _malformed(node, allowed_missing: set[str] | None = None) -> bool:
     """Return whether this candidate contains an undeclared parse error."""
+    return bool(_malformed_labels(node, allowed_missing))
+
+
+def _malformed_labels(node, allowed_missing: set[str] | None = None) -> list[str]:
+    """Return the concrete malformed-node labels under ``node``.
+
+    The boolean helper remains useful to callers, while extraction failures
+    can report whether the rejected anchor contained an ERROR or a specific
+    undeclared missing token.
+    """
     if allowed_missing is None:
         allowed_missing = set()
-    if node.type == "ERROR" or node.is_missing:
-        return node.type == "ERROR" or node.type not in allowed_missing
-    return any(_malformed(child, allowed_missing) for child in node.children)
+    if node.type == "ERROR":
+        return ["ERROR"]
+    if node.is_missing:
+        if node.type in allowed_missing:
+            return []
+        return [f"MISSING({node.type!r})"]
+    labels = []
+    for child in node.children:
+        labels.extend(_malformed_labels(child, allowed_missing))
+    return labels
 
 
 def _allowed_missing(compiled) -> set[str]:
@@ -318,10 +335,13 @@ def extract_field(model_cls, compiled, tree: tree_sitter.Tree, *,
     groups, order = group_matches(matches)
     for gid in order:
         anchor = _first_anchor(merge_group(groups[gid], compiled.bindings))
-        if anchor is not None and _malformed(anchor, _allowed_missing(compiled)):
+        malformed = (_malformed_labels(anchor, _allowed_missing(compiled))
+                     if anchor is not None else [])
+        if malformed:
             failure = _failure(None,
-                               "malformed CST: anchor contains ERROR or "
-                               "MISSING node", anchor=anchor)
+                               "malformed CST: anchor contains "
+                               + ", ".join(dict.fromkeys(malformed)),
+                               anchor=anchor)
             if strict:
                 errors.append(failure)
             continue
@@ -367,10 +387,12 @@ def extract_record(model_cls, compiled, tree: tree_sitter.Tree, *,
         if not recs:
             continue
         rec = recs[0]
-        if _malformed(rec, _allowed_missing(compiled)):
+        malformed = _malformed_labels(rec, _allowed_missing(compiled))
+        if malformed:
             failure = _failure(rm,
-                               "malformed CST: anchor contains ERROR or "
-                               "MISSING node", anchor=rec)
+                               "malformed CST: anchor contains "
+                               + ", ".join(dict.fromkeys(malformed)),
+                               anchor=rec)
             if strict:
                 errors.append(failure)
             continue

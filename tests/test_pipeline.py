@@ -139,6 +139,25 @@ def test_emit_bundle_writes_abi15_config(tmp_path):
     assert '"0.1.0"' in cfg.read_text()
 
 
+def test_schema_tool_preserves_caller_workdir(tmp_path):
+    """The schema helper may write into a caller-owned workdir, but never
+    deletes that directory or unrelated files in it (older B11 contract)."""
+    from pydantree_sitter_grammar.schema_tool import derive_schema_for_dir
+
+    workdir = tmp_path / "caller-work"
+    workdir.mkdir()
+    sentinel = workdir / "sentinel.txt"
+    sentinel.write_text("keep me")
+    schema = derive_schema_for_dir(
+        Path(__file__).parent / "fixtures" / "rust",
+        workdir=workdir,
+        out=tmp_path / "node-schema.json",
+    )
+    assert schema.node_types
+    assert workdir.is_dir()
+    assert sentinel.read_text() == "keep me"
+
+
 def test_full_pipeline_generate_compile_load_parse(cache_dir):
     g = _simple_grammar()
     result = tg.build_builder(g, cache_dir=cache_dir)

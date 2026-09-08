@@ -157,7 +157,7 @@ devenv shell -- ruff check src tests
   errs = []
   def walk(n):
       if n.type == "ERROR" or n.is_missing:
-          errs.append((n.type, n.start_point.row + 1))
+          errs.append((n.type, n.start_point[0] + 1))
       for c in n.children:
           walk(c)
   walk(tree.root_node)

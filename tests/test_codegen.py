@@ -47,6 +47,22 @@ def test_generated_module_execs_over_real_rust():
     assert mod.wrap(None) is None
 
 
+def test_cyclic_supertype_dependencies_fail_during_generation():
+    """Malformed schema cycles fail before emitting an import-invalid API.
+
+    This guards the older A10 fix: a union dependency cycle must not make
+    code generation spin forever or defer a NameError to consumer import.
+    """
+    schema = NodeSchema.from_list([
+        {"type": "a", "named": True,
+         "subtypes": [{"type": "b", "named": True}]},
+        {"type": "b", "named": True,
+         "subtypes": [{"type": "a", "named": True}]},
+    ])
+    with pytest.raises(ValueError, match="cyclic or undefined"):
+        generate_typed_api(schema, "cycle_api")
+
+
 @requires_toolchain
 def test_runtime_round_trip_matches_raw_child_by_field_name(tmp_path):
     """parse real rust source, wrap() the tree, walk fields — the typed

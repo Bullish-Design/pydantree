@@ -263,7 +263,7 @@ def collect_subset(mod, lang) -> dict:
                     inventory["packages"].append(
                         {"repo": repo,
                          "name": src[c.start_byte:c.end_byte].decode(),
-                         "line": c.start_point.row + 1})
+                         "line": c.start_point[0] + 1})
 
         for r in [x.model_dump() for x in env_ext.extract_tree(tree)]:
             r["repo"] = repo

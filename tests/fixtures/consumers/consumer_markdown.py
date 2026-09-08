@@ -127,7 +127,7 @@ def _inline_nodes(lang, text: str) -> list:
 
     def walk(n):
         if n.type == "inline" and n.text.decode().strip():
-            out.append((n, n.start_point.row + 1))
+            out.append((n, n.start_point[0] + 1))
         for c in n.children:
             walk(c)
     walk(tree.root_node)

@@ -132,6 +132,31 @@ def test_strict_extraction_rejects_error_and_missing_anchors():
     assert not _malformed(missing, {"MISSING"})
 
 
+def test_malformed_anchor_is_rejected_with_span_and_leniently_skipped():
+    """D8: malformed nodes must not become apparently valid rows.
+
+    These two inputs preserve a matching function_definition anchor while
+    placing an ERROR or MISSING node inside it. Strict extraction reports the
+    anchor span; lenient extraction deliberately skips the malformed match.
+    """
+    lang = Language.load(tree_sitter_python.language())
+
+    class Function(OutputModel):
+        __match__ = M("module", "function_definition")
+        name: str = capture("name")
+
+    for source, marker in (("def f(1):\n", "ERROR"),
+                           ("def f(:\n", "MISSING")):
+        with pytest.raises(ExtractionError) as exc:
+            lang.extractor(Function).extract(source)
+        assert len(exc.value.failures) == 1
+        failure = exc.value.failures[0]
+        assert failure.span is not None
+        assert failure.span.text == source.rstrip("\n")
+        assert marker in failure.detail
+        assert lang.extractor(Function, strict=False).extract(source) == []
+
+
 # ---------------------------------------------------------------------------
 # descendant matching: '...' in M()
 # ---------------------------------------------------------------------------

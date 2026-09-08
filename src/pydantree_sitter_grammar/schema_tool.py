@@ -81,11 +81,13 @@ def derive_schema_for_dir(grammar_dir: Path | str, *,
 
     `workdir` may be given to control where the CLI runs (default: a temp
     dir). The grammar_dir is copied into the workdir so the CLI's cwd-based
-    output never pollutes the source checkout. The workdir is removed after
-    the run unless `keep=True` — pass `out=` to persist the schema.
+    output never pollutes the source checkout. Temporary workdirs are removed
+    after the run unless `keep=True`; caller-supplied workdirs are never
+    removed. Pass `out=` to persist the schema independently of the workdir.
     """
     grammar_dir = Path(grammar_dir)
 
+    owns_workdir = workdir is None
     work = Path(workdir) if workdir is not None \
         else Path(tempfile.mkdtemp(prefix="pydantree_sitter_grammar-community-"))
     work.mkdir(parents=True, exist_ok=True)
@@ -117,7 +119,7 @@ def derive_schema_for_dir(grammar_dir: Path | str, *,
     finally:
         # REVIEW 020 minor: a failed generate used to leave the workdir
         # behind (only the success path removed it).
-        if not keep:
+        if owns_workdir and not keep:
             shutil.rmtree(work, ignore_errors=True)
 
 
