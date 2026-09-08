@@ -143,7 +143,6 @@ from .rules import (
     assemble,
     module_rules,
 )
-from . import patterns
 from .scanners import (
     bash_heredoc_scanner_path,
     heredoc_scanner_path,

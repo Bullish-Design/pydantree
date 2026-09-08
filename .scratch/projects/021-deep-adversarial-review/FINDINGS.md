@@ -906,3 +906,19 @@ records through 022, the Product B package count is corrected, the typed-CST
 section describes the generated runtime module, and field-mode nested records
 are documented as a bind-time `ShapeError`. Probe output is in
 `evidence/readiness_hygiene.txt` and `evidence/readiness_hygiene.json`.
+
+## 13. D15/D17 hygiene resolution — 2026-09-08
+
+D15 is resolved for the reviewed dead-code seams. Compiler helpers no longer
+carry unused language/spec/annotation arguments, the discarded rule-class
+attribute map and replaced-rule local are gone, and the corpus failure message
+no longer accepts an unused renderer-style argument. The reviewed unused
+imports were removed without changing the public `__all__` surfaces. The
+focused regression suites pass; the repository's unrelated Ruff baseline
+remains outside this cleanup.
+
+D17 is resolved by documenting the actual contract: Product A and Product B
+use separate canonical naming helpers, and acronym casing is intentionally
+lossy (`HTTPServer` -> `http_server` -> `HttpServer`). The test pins both
+canonical mappings and the corrected documentation. Probe output is in
+`evidence/d15_d17_hygiene.txt` and `evidence/d15_d17_hygiene.json`.

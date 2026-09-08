@@ -39,7 +39,6 @@ cycle points, where the referenced class is not in scope yet.
 from __future__ import annotations
 
 import inspect
-import linecache
 import os
 import sys
 import types
@@ -84,7 +83,8 @@ def _snake(name: str) -> str:
     """CamelCase -> snake_case, acronym-aware (F-B4): the standard
     two-regex approach — `HTTPServer` -> `http_server`, `JSONValue` ->
     `json_value`, `IOPort` -> `io_port`. A leading underscore (hidden-rule
-    convention) survives. Shared with the codegen class-name helper."""
+    convention) survives. The result is a canonical rule name; acronym
+    casing is intentionally not reversible."""
     import re as _re
     prefix = ""
     if name.startswith("_"):          # hidden-rule convention survives
@@ -301,14 +301,12 @@ def _stamp(cls: type, body: B, attr: str | None = None) -> None:
             n._site = site   # pydantic private attr
 
 
-def _from_annotations(cls: type) -> tuple[B, dict[int, str]]:
+def _from_annotations(cls: type) -> B:
     """The annotation form: ordered children -> one seq (or a bare member).
 
-    Returns the body plus a node-id -> attribute-name map (attribute-line
-    source-site attribution).
+    Attribute-line source-site attribution is stamped directly on each node.
     """
     members: list[B | str] = []
-    attr_nodes: dict[int, str] = {}
     for attr, ann in cls.__annotations__.items():
         if attr.startswith("__"):
             continue
@@ -326,15 +324,13 @@ def _from_annotations(cls: type) -> tuple[B, dict[int, str]]:
         else:
             member = _child(cls, t, attr=attr)
         _stamp(cls, member, attr=attr)
-        for n in _iter_body_nodes(as_node(member)):
-            attr_nodes[id(n)] = attr
         members.append(member)
     if not members:
         raise ValueError(
             f"{cls.__name__}: no children — annotate at least one attribute, "
             f"or give the rule __body__ / __pattern__ / __external__")
     body = members[0] if len(members) == 1 else tg_seq(*members)
-    return body, attr_nodes
+    return body
 
 
 def R(cls: type) -> B:
@@ -404,7 +400,6 @@ def assemble(name: str, *, start: type,
             g.external(tg_tok(ext))
         # body: __body__ (own ns) -> __pattern__ (own ns) -> __external__ ->
         # annotations
-        attr_nodes: dict[int, str] = {}
         body = cls.__dict__.get("__body__")
         if body is None:
             pat = cls.__dict__.get("__pattern__")
@@ -421,7 +416,7 @@ def assemble(name: str, *, start: type,
             elif ext is not None:
                 body = tg_tok(ext)
             else:
-                body, attr_nodes = _from_annotations(cls)
+                body = _from_annotations(cls)
         if not isinstance(body, B):
             body = B(as_node(body))
         # token-wrap (the guard prevents double-wrapping an already-token body

@@ -8,9 +8,10 @@ fiction — the old .pyi generator is deleted): a thin `TypedNode` wrapper aroun
 from the children summary, supertypes as unions over their subtypes,
 `KIND_MAP` (node kind -> class), and `wrap(node)`.
 
-Class names come from kinds via the acronym-aware snake/camel helper
-(shared with the B-side rule naming, F-B4): `function_item` ->
-`FunctionItem`, `_type` -> `Type`.
+Class names are the canonical camel-case rendering of kinds (F-B4):
+`function_item` -> `FunctionItem`, `_type` -> `Type`. Product A and Product B
+keep separate helpers because the conversion from acronym-bearing class names
+is intentionally lossy (`HTTPServer` becomes the canonical `http_server`).
 """
 
 from __future__ import annotations
@@ -58,8 +59,6 @@ def generate_typed_api(schema: NodeSchema, module_name: str) -> str:
     supertype_kinds = {t.type for t in schema.node_types if t.subtypes}
     named = sorted((t for t in schema.node_types if t.named),
                    key=lambda t: t.type)
-    by_kind = {t.type: t for t in schema.node_types}
-
     L: list[str] = []
     L.append(f'"""{module_name} — typed CST accessors generated from the '
              f'node-schema (pydantree_sitter.codegen)."""')
@@ -125,7 +124,7 @@ def generate_typed_api(schema: NodeSchema, module_name: str) -> str:
             else:
                 ret = _union(types, optional=True)
             attr = _attr_name(fname)
-            field_lines.append(f"    @property")
+            field_lines.append("    @property")
             field_lines.append(f"    def {attr}(self) -> {ret}:")
             if fi.multiple:
                 field_lines.append("        out = []")

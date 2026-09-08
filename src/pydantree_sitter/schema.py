@@ -29,7 +29,6 @@ run's node-types.json, copied byte-for-byte.
 from __future__ import annotations
 
 import json
-from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -267,5 +266,4 @@ def derive_from_node_types(node_types_json: Any) -> list[NodeTypeInfo]:
     if isinstance(node_types_json, dict) and "node_types" in node_types_json:
         node_types_json = node_types_json["node_types"]
     return [NodeTypeInfo.model_validate(t) for t in node_types_json]
-
 

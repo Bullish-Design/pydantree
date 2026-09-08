@@ -23,7 +23,6 @@ compiled grammar.so + node-schema.json + metadata + loader, the same
 
 from __future__ import annotations
 
-import json
 import shutil
 import subprocess
 import sys

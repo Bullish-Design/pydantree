@@ -74,7 +74,6 @@ from .schema import (
     NodeSchema,
     NodeTypeInfo,
     NodeTypeRef,
-    derive_from_node_types,
 )
 from .spec import OutputModel
 from .valuemap import JSON_VALUE_MAP, ValueMap, propose_value_map

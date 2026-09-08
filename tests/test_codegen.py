@@ -151,11 +151,20 @@ def wrap_roundtrip(n: tree_sitter.Node) -> ra.TypedNode | None:
 
 
 def test_acronym_aware_class_names():
-    """F-B4-style naming: kinds -> camel class names (shared helper)."""
+    """F-B4-style naming: kinds -> canonical camel class names."""
     from pydantree_sitter.codegen import class_name
     assert class_name("function_item") == "FunctionItem"
     assert class_name("_type") == "Type"
     assert class_name("http_server") == "HttpServer"
+
+
+def test_product_naming_helpers_use_canonical_acronym_rules():
+    from pydantree_sitter.codegen import class_name
+    from pydantree_sitter_grammar.rules import _snake
+
+    assert _snake("HTTPServer") == "http_server"
+    assert class_name("http_server") == "HttpServer"
+    assert "shared" not in _snake.__doc__.lower()
 
 
 @requires_toolchain

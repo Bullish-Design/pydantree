@@ -20,7 +20,7 @@ from dataclasses import dataclass, field as dc_field
 from typing import Any, Optional, get_args, get_origin
 
 from .emit import Query, cap, node
-from .errors import QueryBuildError, SchemaCheckError, ShapeError
+from .errors import SchemaCheckError, ShapeError
 from .markers import ANCHOR, GAP, RECORD_CAP, AnyOf, Eq, Matches
 from .spec import FieldBinding, MatchSpec, PathStep, unwrap_optional
 from .valuemap import (
@@ -104,9 +104,9 @@ def compile_spec(model_cls, language, *, value_map: ValueMap) -> _Compiled:
         _check_path(model_cls, spec, schema)
 
     if spec.record:
-        _compile_record(compiled, language)
+        _compile_record(compiled)
     else:
-        _compile_field(compiled, language)
+        _compile_field(compiled)
 
     # nested record models: compile each sub-extractor against the SAME
     # Language (recursive — one compiler, no schema-less interleaving, F-A2)
@@ -165,9 +165,9 @@ def emitted_source(model_cls, schema=None, *, check: bool = False) -> str:
     if spec.raw_query is not None:
         return spec.raw_query
     if spec.record:
-        _compile_record(compiled, None, check=check)
+        _compile_record(compiled, check=check)
     else:
-        _compile_field(compiled, None, check=check)
+        _compile_field(compiled, check=check)
     return compiled.query_source
 
 
@@ -191,13 +191,12 @@ def _compile_raw(model_cls, spec: MatchSpec, language, value_map: ValueMap):
     # check is: the field/kind exists on SOME kind and the type coerces
     # for at least one possible kind)
     if language.schema is not None:
-        _check_raw_bindings(model_cls, spec, language.schema, value_map,
+        _check_raw_bindings(model_cls, language.schema, value_map,
                             spec.bindings)
     return compiled
 
 
-def _check_raw_bindings(model_cls, spec: MatchSpec, schema, vm: ValueMap,
-                        bindings) -> None:
+def _check_raw_bindings(model_cls, schema, vm: ValueMap, bindings) -> None:
     """A3: capture↔type checks for raw-query captures. We know a capture's
     CST field only when the key is explicit (`capture('left')` /
     `capture_kind('kind')`); without an anchored path the check is
@@ -205,7 +204,6 @@ def _check_raw_bindings(model_cls, spec: MatchSpec, schema, vm: ValueMap,
     type must coerce for at least one of that field's possible kinds.
     Unmarked captures (key == field name — the capture name, not a CST
     field) stay capture-name-only checked."""
-    annotations = {b.name: _annotation(model_cls, b) for b in bindings}
     for b in bindings:
         if b.is_meta or not b.explicit_key:
             continue            # unmarked: the key is the capture name, not
@@ -310,7 +308,7 @@ def _check_path(model_cls, spec: MatchSpec, schema) -> None:
 # field mode
 # ---------------------------------------------------------------------------
 
-def _field_quant(b: FieldBinding, annotation) -> str:
+def _field_quant(annotation) -> str:
     """The emitted quantifier for a field-mode capture: `?` for LIST fields
     (zero-or-more), "" otherwise (exactly one).
 
@@ -339,7 +337,7 @@ def _capture_spec(k: str, b: FieldBinding, vm):
     return node(k).capture(b.name)
 
 
-def _compile_field(compiled: _Compiled, language, *, check: bool = True) -> None:
+def _compile_field(compiled: _Compiled, *, check: bool = True) -> None:
 
     spec = compiled.spec
     schema = compiled.schema
@@ -381,7 +379,7 @@ def _compile_field(compiled: _Compiled, language, *, check: bool = True) -> None
                 choices = ("_",)
             for k in choices:
                 cur = node(steps[-1])
-                quant = _field_quant(b, annotations[b.name])
+                quant = _field_quant(annotations[b.name])
                 if b.source == "child_kind":
                     cur.child(node=node(b.key).capture(b.name), quant=quant)
                 else:
@@ -394,9 +392,8 @@ def _compile_field(compiled: _Compiled, language, *, check: bool = True) -> None
 
     compiled.query = Query(*patterns)
     if schema is not None and check:
-        _check_field_bindings(compiled.model, spec, schema,
-                              compiled.value_map, anchor_kinds,
-                              bindings, annotations)
+        _check_field_bindings(compiled.model, schema, compiled.value_map,
+                              anchor_kinds, bindings)
 
 
 def _split_suffix(path: tuple) -> tuple[tuple, tuple]:
@@ -448,8 +445,8 @@ def _possible_for(schema, anchor_kind: str, b: FieldBinding) -> set:
     return set()
 
 
-def _check_field_bindings(model_cls, spec, schema, vm: ValueMap, anchor_kinds,
-                          bindings, annotations) -> None:
+def _check_field_bindings(model_cls, schema, vm: ValueMap, anchor_kinds,
+                          bindings) -> None:
     """Job 3/4 for field mode. With alternation anchors EVERY anchor kind is
     checked (one emitted pattern per kind — A4/REVIEW 020: the old
     anchor_kinds[0]-only check let an invalid second alternative escape the
@@ -633,7 +630,7 @@ def _annotation(model_cls, b: FieldBinding):
 # record mode
 # ---------------------------------------------------------------------------
 
-def _compile_record(compiled: _Compiled, language, *, check: bool = True) -> None:
+def _compile_record(compiled: _Compiled, *, check: bool = True) -> None:
 
     spec = compiled.spec
     schema = compiled.schema
@@ -660,8 +657,7 @@ def _compile_record(compiled: _Compiled, language, *, check: bool = True) -> Non
     for steps in path_choices:
         record_kind = steps[-1]
         if schema is not None:
-            pair_kind = _find_pair_kind(schema, record_kind, model_cls,
-                                        spec.record_pair)
+            pair_kind = _find_pair_kind(schema, record_kind, spec.record_pair)
             key_shapes = _key_shapes(schema, pair_kind)
             if not key_shapes:
                 raise ShapeError(
@@ -696,15 +692,14 @@ def _compile_record(compiled: _Compiled, language, *, check: bool = True) -> Non
     if schema is not None and check:
         for steps in path_choices:
             record_kind = steps[-1]
-            pair_kind = _find_pair_kind(schema, record_kind, model_cls,
-                                        spec.record_pair)
+            pair_kind = _find_pair_kind(schema, record_kind, spec.record_pair)
             value_kinds = schema.expand(
                 r.type for r in schema.field_types(pair_kind, "value"))
             _check_record_bindings(model_cls, schema, vm, pair_kind,
                                    value_kinds, bindings)
 
 
-def _find_pair_kind(schema, record_kind: str, model_cls=None,
+def _find_pair_kind(schema, record_kind: str,
                     record_pair: str | None = None) -> str:
     """The record's pair kind: a child of `record_kind` with both 'key' and
     'value' fields. Deterministic-and-explicit (REVIEW 018 §4.3): with
@@ -790,7 +785,7 @@ def _value_shapes(b: FieldBinding, schema, vm: ValueMap, value_kinds: set,
     if b.kinds:
         return [node(k).capture(b.key) for k in b.kinds]
     if b.unescape:
-        return _unescape_shapes(b, schema, vm, value_kinds, pair_kind)
+        return _unescape_shapes(b, vm, value_kinds, pair_kind)
     origin = get_origin(annotation)
     if origin is list:
         return _list_shapes(b, schema, vm, value_kinds, pair_kind, annotation)
@@ -849,7 +844,7 @@ def _list_shapes(b, schema, vm, value_kinds, pair_kind, annotation):
     return shapes
 
 
-def _unescape_shapes(b, schema, vm, value_kinds, pair_kind):
+def _unescape_shapes(b, vm, value_kinds, pair_kind):
     shapes = []
     for w in wrapper_kinds_for(vm):
         if w in value_kinds:

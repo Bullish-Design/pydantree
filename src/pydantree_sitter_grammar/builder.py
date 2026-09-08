@@ -37,6 +37,7 @@ from .ir import (
     BlankNode,
     ChoiceNode,
     FieldNode,
+    GrammarModel,
     ImmediateTokenNode,
     PatternNode,
     PrecDynamicNode,
@@ -52,9 +53,6 @@ from .ir import (
     StrNode,
     SymbolNode,
     TokenNode,
-)
-from .ir import (
-    GrammarModel,
 )
 
 # ---------------------------------------------------------------------------
@@ -451,7 +449,6 @@ class Grammar:
             self._supertypes.remove(orig)
         if self._word in (orig, name):
             self._word = None
-        old = self.rules[name]
         node = as_node(body)
         # D8: sites live on the nodes themselves — nothing to drain, and the
         # old body's nodes are garbage-collected with their sites

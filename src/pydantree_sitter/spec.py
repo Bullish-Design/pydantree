@@ -19,9 +19,8 @@ from __future__ import annotations
 
 import sys
 import types
-from dataclasses import dataclass, field as dc_field
+from dataclasses import dataclass
 from typing import (
-    Annotated,
     ForwardRef,
     Literal,
     Optional,
@@ -30,14 +29,12 @@ from typing import (
     get_origin,
 )
 
-import pydantic
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 from pydantic.fields import PydanticUndefined
 from pydantic._internal._model_construction import ModelMetaclass
 
 from .errors import ShapeError
 from .markers import (
-    ANCHOR,
     GAP,
     M,
     _MISSING,
@@ -449,7 +446,7 @@ class OutputModel(BaseModel, metaclass=DerivingMeta):
             return emitted_source(cls, schema=schema)   # check=False (A4):
             # the diagnostic never raises the SchemaCheckError you called
             # it to inspect
-        from .binding import Language, _language_for, _transient_language
+        from .binding import _language_for, _transient_language
         lang = _language_for(language)
         if schema is not None and lang.schema is None:
             lang = _transient_language(lang, schema=schema)
@@ -465,7 +462,7 @@ class OutputModel(BaseModel, metaclass=DerivingMeta):
 def _sugar_extractor(model_cls, language, schema, *, strict: bool):
     """The sugar path: normalize `language` (Language, module, capsule, or
     None) + an optional explicit `schema=` into a Language and bind."""
-    from .binding import Language, _language_for, _transient_language
+    from .binding import _language_for, _transient_language
     lang = _language_for(language)
     if lang is None:
         if schema is not None:

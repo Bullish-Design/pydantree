@@ -11,27 +11,29 @@ full corpus; render normalization; snapshotting.
 
 from __future__ import annotations
 
-import shutil
-import sys
 from pathlib import Path
 
 import pytest
 
 import pydantree_sitter_grammar as tg
-from pydantree_sitter_grammar.corpus import Corpus, corpus_case, render, render_compact
+from pydantree_sitter_grammar.corpus import (
+    Corpus,
+    CorpusFailure,
+    corpus_case,
+    render_compact,
+)
 from pydantree_sitter_grammar.expressions import (
     DEFAULT_PRECEDENCE_CORPUS,
     semantic_smoke,
 )
-from pydantree_sitter_grammar.ir import ChoiceNode, StrNode, SymbolNode
+from pydantree_sitter_grammar.ir import ChoiceNode, SymbolNode
 
 CONSUMERS = Path(__file__).resolve().parent / "fixtures" / "consumers"
 
 pytestmark = pytest.mark.toolchain
 
-from qfilter_corpus import (  # noqa: E402
+from qfilter_corpus import (
     EXPR_CASES,
-    STMT_CASES,
     expression_corpus,
     statement_corpus,
 )
@@ -111,6 +113,12 @@ def test_corpus_cases_can_be_plain_tuples_and_render_norm():
     assert render_compact is not None  # exported surface
 
 
+def test_failure_message_does_not_require_renderer_style():
+    failure = CorpusFailure(corpus_case("x;", "expected", name="demo"), "got")
+    assert "expected" in failure.message()
+    assert "got" in failure.message()
+
+
 # ---------------------------------------------------------------------------
 # the planted regressions — every one GENERATES CLEAN and parses wrongly
 # ---------------------------------------------------------------------------
@@ -125,7 +133,7 @@ def test_planted_ladder_reorder_is_caught():
     res = tg.build_builder(g)          # generates clean — no conflict raised
     r = expression_corpus().run(build_result=res)
     assert not r.ok()
-    msgs = [f.message(r.style) for f in r.failures]
+    msgs = [f.message() for f in r.failures]
     assert any("'-a ^ b;'" in m for m in msgs), msgs
     # the smoke seed catches this one too (the `-a ^ b` case is in the seed)
     assert any("'-a ^ b;'" in f for f in semantic_smoke(g))
@@ -142,7 +150,7 @@ def test_planted_associativity_flip_needs_the_full_corpus():
     # the full corpus catches it, citing the + chain case
     r = expression_corpus().run(build_result=res)
     assert not r.ok()
-    msgs = [f.message(r.style) for f in r.failures]
+    msgs = [f.message() for f in r.failures]
     assert any("'1 + 2 + 3;'" in m for m in msgs), msgs
 
 
@@ -156,7 +164,7 @@ def test_planted_postfix_below_unary_is_caught():
     res = tg.build_builder(g)          # clean generate
     r = expression_corpus().run(build_result=res)
     assert not r.ok()
-    msgs = [f.message(r.style) for f in r.failures]
+    msgs = [f.message() for f in r.failures]
     assert any("'-f(x);'" in m for m in msgs), msgs
     assert any("'-a.b;'" in m for m in msgs), msgs
     assert any("'-f(x) + 1;'" in m for m in msgs), msgs
@@ -176,7 +184,7 @@ def test_planted_statement_level_regression_is_caught():
     res = tg.build_builder(g)          # clean generate (the original shipped)
     r = statement_corpus().run(build_result=res)
     assert not r.ok()
-    msgs = [f.message(r.style) for f in r.failures]
+    msgs = [f.message() for f in r.failures]
     assert any("if (a) { b = 1; } else { b = 2; }" in m for m in msgs), msgs
     assert any("if (a) if (b) { c; } else { d; }" in m for m in msgs), msgs
 
@@ -312,7 +320,7 @@ def test_cond_primary_resolves_bare_cond():
     from pydantree_sitter_grammar.language import load_language
     import tree_sitter
     lang = load_language(res.so_path, "condlang")
-    ok, residual = 0, 0
+    ok = 0
     for src in (b"if (x) y;", b"if (f(x)) y;", b"if x + 1 + 2 y;",
                 b"if x (y);"):
         tree = tree_sitter.Parser(lang).parse(src)

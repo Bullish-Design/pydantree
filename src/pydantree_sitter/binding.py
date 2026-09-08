@@ -20,10 +20,9 @@ from typing import Any
 import tree_sitter
 
 from .compiler import compile_spec
-from .errors import BundleError, ExtractionError, ShapeError, TreeLanguageError
+from .errors import BundleError, ShapeError, TreeLanguageError
 from .loader import load_bundle
-from .materialize import (MatchFailure, Span, _record_kwargs, extract_field,
-                          extract_record)
+from .materialize import _record_kwargs, extract_field, extract_record
 from .schema import NodeSchema
 from .valuemap import (
     JSON_VALUE_MAP,

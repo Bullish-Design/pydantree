@@ -35,9 +35,9 @@ from __future__ import annotations
 
 import difflib
 import inspect
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable
 
 from .builder import Grammar
 
@@ -163,7 +163,7 @@ class CorpusFailure:
     got: str | None            # the rendered CST (None = no parseable node)
     detail: str = ""
 
-    def message(self, style: str) -> str:
+    def message(self) -> str:
         where = self.case.line or self.case.name or f"case #{self.case.source!r}"
         if self.got is None:
             return f"case {self.case.source!r} ({where}): {self.detail}"
@@ -193,7 +193,7 @@ class CorpusResult:
         if not self.failures:
             return "\n".join(lines)
         for f in self.failures:
-            lines.append("  - " + f.message(self.style))
+            lines.append("  - " + f.message())
             if diff and f.got is not None:
                 d = difflib.unified_diff(
                     [f.case.expected + "\n"], [f.got + "\n"],

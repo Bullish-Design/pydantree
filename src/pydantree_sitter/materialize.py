@@ -16,8 +16,8 @@ wrong (F-A2). Nested models in FIELD mode are rejected at class creation
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field as dc_field
-from typing import Any, Optional, get_args, get_origin
+from dataclasses import dataclass
+from typing import Any, Optional
 
 import tree_sitter
 from pydantic import ValidationError
