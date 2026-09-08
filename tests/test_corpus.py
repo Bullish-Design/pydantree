@@ -11,8 +11,6 @@ full corpus; render normalization; snapshotting.
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
 import pydantree_sitter_grammar as tg
@@ -27,8 +25,6 @@ from pydantree_sitter_grammar.expressions import (
     semantic_smoke,
 )
 from pydantree_sitter_grammar.ir import ChoiceNode, SymbolNode
-
-CONSUMERS = Path(__file__).resolve().parent / "fixtures" / "consumers"
 
 pytestmark = pytest.mark.toolchain
 

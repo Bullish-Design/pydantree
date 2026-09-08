@@ -19,7 +19,7 @@ Toolchain facts (Phase 0, not re-derived):
 - Unused rules are silently pruned by the CLI — run the analyzer first.
 - A compiled .so exports `tree_sitter_<grammar_name>`; load it via a PyCapsule
   named "tree_sitter.Language" (int pointer is deprecated in 0.26) — see
-  pydantree_sitter_grammar.language.
+  the Product B loader.
 """
 
 from __future__ import annotations
@@ -229,17 +229,17 @@ class BuildResult:
 
     def package(self, dir: Path | str, *,
                 include_loader: bool = True,
-                typed_api: bool = False) -> Path:
+                meta_var_char: str = "$") -> Path:
         """Package the build into a shippable bundle directory — delegates
         to the ONE bundle writer `write_bundle` (D10)."""
         return write_bundle(self, dir, include_loader=include_loader,
-                            typed_api=typed_api)
+                            meta_var_char=meta_var_char)
 
 
 def write_bundle(result: BuildResult, dir: Path | str, *,
                  include_loader: bool = True,
-                 typed_api: bool = False,
-                 metadata: dict | None = None) -> Path:
+                 metadata: dict | None = None,
+                 meta_var_char: str = "$") -> Path:
     """THE ONE bundle writer (D10): package a BuildResult into a shippable
     bundle directory (Phase 5 — the artifact seam in production):
 
@@ -247,9 +247,9 @@ def write_bundle(result: BuildResult, dir: Path | str, *,
         node-schema.json  the derived node-schema (bridge artifact)
         tree-sitter.json  bundle metadata (name = the export symbol)
         loader.py         a thin shim over pydantree_sitter.loader.load_bundle
-        typed_api.py      REAL typed CST accessors (014 §5/D7, typed_api=True)
+        nodes.py          generated schema-backed typed node classes
 
-    Consumed B-free — pydantree_sitter.Language.load_bundle(dir) — or by
+    Consumed B-free — pydantree_sitter.Grammar.load_bundle(dir) — or by
     anyone with pydantree_sitter + tree_sitter (loader.py delegates to the
     shared loading contract, CONCEPT §8). Returns the bundle dir.
     """
@@ -261,16 +261,17 @@ def write_bundle(result: BuildResult, dir: Path | str, *,
     if result.node_schema_json is not None and result.node_schema_json.exists():
         _shutil.copyfile(result.node_schema_json, bundle / "node-schema.json")
         schema_rel = "node-schema.json"
-    if typed_api and result.node_schema_json is not None \
-            and result.node_schema_json.exists():
-        from pydantree_sitter.codegen import write_typed_api
+        from pydantree_sitter.generate import generate_module
+        from pydantree_sitter.grammar import _fingerprint
         from pydantree_sitter.schema import NodeSchema
         schema = NodeSchema.from_node_types_json(result.node_schema_json)
-        write_typed_api(schema, bundle / "typed_api.py",
-                        module_name=f"typed_api_{result.so_path.stem}")
-    meta = metadata if metadata is not None else {
+        language = result.language(result.so_path.stem)
+        (bundle / "nodes.py").write_text(
+            generate_module(schema, fingerprint=_fingerprint(language)))
+    meta = dict(metadata) if metadata is not None else {
         "bundle_format": 2,          # D12: versioned artifact contract
         "name": result.so_path.stem,
+        "language_symbol": f"tree_sitter_{result.so_path.stem}",
         "artifact": "grammar.so",
         "schema": schema_rel,
         "abi": _python_abi(),   # the SAME value the cache key used (B16 — was
@@ -278,6 +279,9 @@ def write_bundle(result: BuildResult, dir: Path | str, *,
                                  # ABI 15 for a 14 artifact)
         "toolchain": detect_toolchain().tree_sitter_version,
     }
+    # ast-grep's metavariable sigil is grammar-specific. Keep it in the
+    # bundle so Grammar.register_astgrep() does not need a caller-side guess.
+    meta.setdefault("meta_var_char", meta_var_char)
     (bundle / "tree-sitter.json").write_text(json.dumps(meta, indent=2))
     if include_loader:
         (bundle / "loader.py").write_text(BUNDLE_LOADER_SOURCE)

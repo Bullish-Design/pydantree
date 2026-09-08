@@ -1,61 +1,22 @@
 #!/usr/bin/env python3
-"""wheel-extract — Product A over a COMMUNITY WHEEL, no toolchain.
-
-The toolchain-free example (REVIEW 020 §3 recommendation): a community
-grammar wheel (tree-sitter-python — no CLI, no gcc, no bundle build) drives
-the whole Product A surface, and EVERY step lands in the COMMITTED per-step
-transcript oracle (`transcript.txt`), so a reader sees exactly what is being
-done at each step and a test proves the example still produces that exact
-output.
-
-Run it (any env with pydantree_sitter + tree-sitter-python installed):
-
-    python examples/wheel-extract/extract.py             # run + self-check
-    python examples/wheel-extract/extract.py --update    # regenerate the oracle
-"""
+"""Walk a vendored typed node universe over the tree-sitter-python wheel."""
 
 from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
+import tree_sitter
 import tree_sitter_python
 
-from pydantree_sitter import Language, M, OutputModel, capture, source_meta
+from pydantree_sitter import Grammar
 
 HERE = Path(__file__).resolve().parent
 CORPUS = HERE / "corpus.py"
 GROUND_TRUTH = HERE / "ground_truth.json"
 TRANSCRIPT = HERE / "transcript.txt"
-
-
-# ---------------------------------------------------------------------------
-# the models (the A surface — the model IS the query)
-# ---------------------------------------------------------------------------
-
-class Function(OutputModel):
-    """Every `def`: the name, the optional return type, and the line."""
-
-    __match__ = M("module", "function_definition")
-    name: str = capture("name")
-    return_type: str | None = capture("return_type")
-    line: int = source_meta()
-
-
-class Assignment(OutputModel):
-    """Every `target = value`: the left side, the right side, and the line."""
-
-    __match__ = M("module", "expression_statement", "assignment")
-    target: str = capture("left")
-    value: str = capture("right")
-    line: int = source_meta()
-
-
-# ---------------------------------------------------------------------------
-# transcript machinery (every step lands in the committed oracle)
-# ---------------------------------------------------------------------------
+SCHEMA = HERE / "vendor" / "python-node-types.json"
 
 _lines: list[str] = []
 
@@ -65,71 +26,72 @@ def say(line: str = "") -> None:
     print(line)
 
 
-# ---------------------------------------------------------------------------
-# the per-step run
-# ---------------------------------------------------------------------------
-
 def render(node, depth: int = 0, parent=None, idx: int = 0) -> None:
-    """A compact CST render: kinds with their field names, leaf texts
-    truncated — deterministic, so it can live in the transcript oracle."""
     field = parent.field_name_for_child(idx) if parent is not None else None
     prefix = "  " * depth
     label = f"{field}=" if field else ""
     if node.child_count == 0:
-        text = node.text.decode()
+        text = (node.text or b"").decode()
         shown = text if len(text) <= 24 else text[:21] + "..."
         say(f"{prefix}{label}{node.type} {shown!r}")
-    else:
-        say(f"{prefix}{label}{node.type}")
-        for i, c in enumerate(node.children):
-            render(c, depth + 1, node, i)
+        return
+    say(f"{prefix}{label}{node.type}")
+    for index, child in enumerate(node.children):
+        render(child, depth + 1, node, index)
+
+
+def _grammar() -> Grammar:
+    language = tree_sitter.Language(tree_sitter_python.language())
+    return Grammar.load(language, SCHEMA, schema_name="python")
 
 
 def run(update: bool) -> int:
-    lang = Language.from_module(tree_sitter_python)
-
-    # step 1 — bind: what the models declare (the derived .scm, no build)
-    say("=== step 1: bind the models over the tree_sitter_python wheel ===")
-    say(f"language: {lang.name!r} — a community wheel (no CLI, no gcc, no "
-        "bundle build)")
-    say("")
-    say("Function.compiled_source()  # the query each class IS:")
-    say(Function.compiled_source(language=lang))
-    say("")
-    say("Assignment.compiled_source():")
-    say(Assignment.compiled_source(language=lang))
-    say("")
-
-    # step 2 — parse: the corpus and its CST
+    grammar = _grammar()
+    nodes = grammar.nodes
     source = CORPUS.read_text()
+
+    say("=== step 1: load the vendored schema and typed node universe ===")
+    say(f"schema: {SCHEMA.name!r} — no CLI and no gcc")
+    say(f"generated kinds: {len(nodes.KIND_MAP)}")
+    say("")
+
     say("=== step 2: parse the corpus (CST, fields shown) ===")
-    tree = lang.parse(source)
+    tree = grammar.parse(source)
     render(tree.root_node)
     say("")
 
-    # step 3 — extract: the typed rows
-    say("=== step 3: extract typed rows ===")
-    funcs = [r.model_dump() for r in Function.extract(source, language=lang)]
-    assigns = [r.model_dump() for r in Assignment.extract(source, language=lang)]
-    for r in funcs:
-        say(f"Function {r['name']!r} -> {r['return_type']!r} at line {r['line']}")
-    for r in assigns:
-        say(f"Assignment {r['target']!r} = {r['value']!r} at line {r['line']}")
+    say("=== step 3: find typed nodes ===")
+    functions = tree.find(nodes.FunctionDefinition)
+    assignments = tree.find(nodes.Assignment)
+    function_rows = [{
+        "name": row.name.__value__(),
+        "return_type": row.return_type.__value__()
+        if row.return_type is not None else None,
+        "line": row.span.line,
+    } for row in functions]
+    assignment_rows = [{
+        "target": row.left.__value__(),
+        "value": row.right.__value__() if row.right is not None else None,
+        "line": row.span.line,
+    } for row in assignments]
+    for row in function_rows:
+        say(f"Function {row['name']!r} -> {row['return_type']!r} "
+            f"at line {row['line']}")
+    for row in assignment_rows:
+        say(f"Assignment {row['target']!r} = {row['value']!r} "
+            f"at line {row['line']}")
     say("")
 
-    # step 4 — self-check against the hand-written ground truth
     say("=== step 4: self-check against ground_truth.json ===")
     truth = json.loads(GROUND_TRUTH.read_text())
-    ok = funcs == truth["functions"] and assigns == truth["assignments"]
-    say(f"functions: {len(funcs)} rows, assignments: {len(assigns)} rows")
+    ok = function_rows == truth["functions"] and \
+        assignment_rows == truth["assignments"]
+    say(f"functions: {len(function_rows)} rows, "
+        f"assignments: {len(assignment_rows)} rows")
     say("all rows match the hand-written ground truth ✓" if ok
         else "mismatch ✗ (see above)")
     say("")
 
-    # step 5 — the committed per-step transcript oracle. The status line is
-    # NOT part of _lines: the committed oracle ends with the (fixed) success
-    # line, so a green run's stdout equals transcript.txt byte-for-byte — a
-    # self-referential status ("DRIFTED") could never be a stable oracle.
     say("=== step 5: the committed per-step transcript oracle ===")
     transcript = "\n".join(_lines) + "\n"
     saved = TRANSCRIPT.read_text() if TRANSCRIPT.exists() else None
@@ -141,17 +103,14 @@ def run(update: bool) -> int:
     if saved == expected:
         print("transcript.txt matches this run byte-for-byte ✓")
         return 0 if ok else 1
-    print("transcript.txt DRIFTED from this run — regenerate with --update "
-          "after eyeballing, then commit")
+    print("transcript.txt DRIFTED — regenerate with --update after eyeballing")
     return 1
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--update", action="store_true",
-                    help="rewrite transcript.txt from this run")
-    args = ap.parse_args(argv)
-    return run(update=args.update)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--update", action="store_true")
+    return run(parser.parse_args(argv).update)
 
 
 if __name__ == "__main__":

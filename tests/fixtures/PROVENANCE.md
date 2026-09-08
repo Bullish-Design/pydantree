@@ -10,7 +10,7 @@ pinned to 0.25.3 in this repository** (`devenv.lock`); the drift guard is
 
 | file | source | notes |
 |---|---|---|
-| `json_grammar.py` | authored in-project (006-query-bridge) | the JSON grammar used by A's record-mode tests; the A-side model surface |
+| `json_grammar.py` | authored in-project (006-query-bridge) | the JSON grammar used by typed-schema tests |
 | `cfg_grammar.py` | authored in-project (006-query-bridge) | the config grammar (directive/section) used by the schema-check tests |
 | `qfilter.py` | authored in-project (005-grammar-glr) | the GLR expression grammar for the corpus harness |
 | `qfilter_corpus.py` | authored in-project (007-query-distribution) | the corpus cases for qfilter |
@@ -104,20 +104,9 @@ the real CLI with `--json`, and compares the stderr report byte-for-byte.
 
 ## bfree/ — the B-free subprocess machinery (promoted from 007-query-distribution)
 
-`bfree.py` + `consumer_env/` run consumer scripts in a separate interpreter
-where the heavy package is genuinely unimportable — the install-boundary
-tests. The consumers themselves live in `consumers/`.
-
-## consumers/ — the B-free consumer scripts (promoted from .scratch)
-
-| file | source | task |
-|---|---|---|
-| `consumer.py` | 007-query-distribution | the cfg-bundle B-free round-trip |
-| `consumer_community.py` | 007-query-distribution | the wheel + derived-schema B-free consumer |
-| `consumer_rust.py` | 008-consumer-seam | rust bundle B-free extraction |
-| `consumer_markdown.py` | 008-consumer-seam | markdown bundle B-free extraction |
-| `consumer_bash.py` | 010-bash-user | bash bundle/wheel B-free extraction |
-| `consumer_nix.py` | 011-nix-example | nix bundle/wheel B-free fleet extraction |
+`bfree.py` + `consumer_env/` remain available for install-boundary probes. The
+current typed consumer is generated inline by `tests/test_packaging.py`, so no
+legacy consumer scripts are promoted into the fixture tree.
 
 ## evidence/ — recorded real-CLI artifacts (promoted from 004-grammar)
 

@@ -1,0 +1,21 @@
+# gitman refusal record — 2026-09-09
+
+Every mutating gitman verb is refused while the repo is OFF-CANONICAL.
+The refusal names one recovery: 'gitman reconcile', which heals the
+024-typed-node-universe lane. That lane belongs to another session, so
+this session did not run it.
+
+$ gitman split --paths <session dir> --into task-cursor-walk-benchmark-20260909-2890613b -m <msg>
+refusing: repo is off-canonical (lane(s) 024-typed-node-universe have a divergent change-id (one change → multiple commits) — run `gitman reconcile`. 1 bookmark(s) out of sync with git: 024-typed-node-universe — git ref(s) lag jj: 024-typed-node-universe — run `gitman reconcile`.) — run `gitman reconcile`.
+
+$ gitman start task-cursor-walk-benchmark-20260909-2890613b
+refusing: repo is off-canonical (lane(s) 024-typed-node-universe have a divergent change-id (one change → multiple commits) — run `gitman reconcile`. 1 bookmark(s) out of sync with git: 024-typed-node-universe — git ref(s) lag jj: 024-typed-node-universe — run `gitman reconcile`.) — run `gitman reconcile`.
+
+$ gitman save -m <msg>
+refusing: repo is off-canonical (lane(s) 024-typed-node-universe have a divergent change-id (one change → multiple commits) — run `gitman reconcile`. 1 bookmark(s) out of sync with git: 024-typed-node-universe — git ref(s) lag jj: 024-typed-node-universe — run `gitman reconcile`.) — run `gitman reconcile`.
+
+$ gitman status
+Gitman status — DESYNCHRONIZED
+Reason: lane(s) 024-typed-node-universe have a divergent change-id (one change → multiple commits) — run `gitman reconcile`. 1 bookmark(s) out of sync with git: 024-typed-node-universe — git ref(s) lag jj: 024-typed-node-universe — run `gitman reconcile`.
+Recover: `gitman reconcile`  — reconcile jj and colocated git; no commits are discarded.
+Exit: 1

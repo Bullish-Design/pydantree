@@ -6,9 +6,9 @@
 package = false
 
 [project]
-# The envelope-only metadata (P1: version agrees with both dists, 0.2.0).
+# The envelope-only metadata (P1: version agrees with both dists, 0.3.0).
 name = "pydantree"
-version = "0.2.0"
+version = "0.3.0"
 description = "Treesitter, but with more Pydantic. (Workspace envelope — the products are pydantree-sitter and pydantree-sitter-grammar under src/.)"
 requires-python = ">=3.11"
 
@@ -51,3 +51,10 @@ members = ["src/pydantree_sitter", "src/pydantree_sitter_grammar"]
 # pydantree-sitter>=0.1) resolves to the workspace member, not PyPI
 pydantree-sitter = { workspace = true }
 pydantree-sitter-grammar = { workspace = true }
+
+[tool.ruff.lint.per-file-ignores]
+# These modules import optional fixtures after their pytest skip guards. Keep
+# that deliberate import order local to the three fixture-loading modules.
+"tests/test_corpus.py" = ["E402"]
+"tests/test_scanners.py" = ["E402"]
+"tests/fixtures/bfree/consumer_env/sitecustomize.py" = ["E402"]

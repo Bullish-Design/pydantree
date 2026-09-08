@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pydantree-sitter-grammar"
-version = "0.2.0"
+version = "0.3.0"
 description = "Product B — author tree-sitter grammars in Pydantic. Heavy build tool: pydantree-sitter + the tree-sitter CLI + a C toolchain; produces the artifacts A consumes."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -27,7 +27,7 @@ classifiers = [
 dependencies = [
   "pydantree-sitter>=0.1",
   "pydantic>=2.11",
-  "tree-sitter>=0.26",  # the 0.26 floor
+  "tree-sitter>=0.26,<0.27",  # ABI data used by conformance verification
 ]
 
 [project.urls]

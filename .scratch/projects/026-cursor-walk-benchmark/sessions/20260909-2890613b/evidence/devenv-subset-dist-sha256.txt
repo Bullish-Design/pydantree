@@ -1,0 +1,5 @@
+9569b968acdb806078f797b060bf48c08c0270acd6d20aa55ed48fb2aac41812  examples/devenv-subset/dist/grammar.so
+0ad412bbb6ad370e0e563d6867625460efdcccab75289a6c38056987a72089d0  examples/devenv-subset/dist/loader.py
+f52ae2396fd53792d2d2ffc000de1863ec065c3a21624d18a38ac98ddecf233d  examples/devenv-subset/dist/node-schema.json
+dbefe9ebd8b7ea3c4fc9124948fd8d110fb05d318b321a1a26f5cf37f4970f8c  examples/devenv-subset/dist/nodes.py
+a74df9df5268544ac8672f2e4b58e3ea5e90944253fe63dce6e3c00f1eac322c  examples/devenv-subset/dist/tree-sitter.json

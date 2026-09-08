@@ -1,15 +1,14 @@
 # pydantree documentation
 
-Two cooperating libraries over tree-sitter, bound by a shared seam (`pydantree_sitter`):
+Two cooperating libraries over tree-sitter, bound by a shared typed-node seam
+(`pydantree_sitter`):
 
-- **Product A — `pydantree_sitter`** (light runtime): declare an `OutputModel` — *the
-  model IS the query* — and get typed extraction over any tree-sitter grammar.
-  Bind a node-schema or bundle for schema checks; bare grammars use intentional
-  wildcard queries and warn that grammar checks are unavailable. No `.scm`, no
-  query DSL, no manual coercion.
+- **Product A — `pydantree_sitter`** (light runtime): generate a schema-backed
+  `Node` universe, narrow node subclasses with Pydantic annotations, and find
+  typed rows through `Grammar.parse(...).find(...)`.
 - **Product B — `pydantree_sitter_grammar`** (heavy build tool): author a tree-sitter
-  grammar as a composable Pydantic DSL that compiles to `grammar.json` →
-  `parser.c` → a shared object → a shippable **bundle**.
+  grammar with the same `NodeMeta` annotation grammar; `Rule.to_ir()` compiles
+  it to `grammar.json` → `parser.c` → a shippable **bundle**.
 
 The authoritative concept lives in
 `../.scratch/projects/002-pydantic-treesitter/CONCEPT.md` (read it first for the full
@@ -30,9 +29,10 @@ design argument). This directory is the working reference.
 ## For users (using the library in your own project)
 
 - [user-guide.md](user-guide.md) — install, Product A extraction
-  (`OutputModel`, captures, schemas, bundles, typed-CST codegen), Product B authoring
-  (the DSL, checks, the conflict loop, the corpus harness, packaging,
-  community grammars, scanners).
+  (generated nodes, annotations, codecs, schemas, bundles), Product B authoring
+  (shared rules, checks, the conflict loop, scanners).
+- [filter-semantics.md](filter-semantics.md) — the selector and the matching
+  contract shared by the walk and query paths.
 
 ## The phase record
 
@@ -62,6 +62,7 @@ Each phase's verdict + evidence is a `FINDINGS.md` under `../.scratch/projects/0
 | 020 | final code review | final code review |
 | 021 | deep adversarial review | concept, architecture, and codebase review |
 | 022 | ast-grep pattern | grammar-agreement pattern module |
+| 024 | typed node universe | schema-backed `Node`, shared `NodeMeta`, codecs, and `Grammar` |
 
 ## Coding-agent skills
 

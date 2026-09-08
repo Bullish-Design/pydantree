@@ -43,7 +43,14 @@ import os
 import sys
 import types
 from collections.abc import Sequence
-from typing import Any, ClassVar, Literal, Union, get_args, get_origin
+from typing import Any, ClassVar, Literal, cast, get_args, get_origin
+
+from pydantree_sitter.nodes import (
+    Node,
+    _children_for,
+    _resolve_forward,
+    _snake,
+)
 
 from .builder import (
     B,
@@ -95,88 +102,51 @@ __all__ = [
     "assemble",
 ]
 
-# this module's own file — body nodes built here (annotation compilation,
-# token/pattern wrapping) get their sites repointed at the class/attribute
-# lines during assemble(); `__body__` combinator sites land in the author's
-# module and are left alone.
 _RULES_FILE = os.path.abspath(__file__)
 
+def _rule_meta_hook(cls: type) -> None:
+    """Add Product B's provenance and registration metadata to a Node."""
+    if cls.__dict__.get("__abstract__", False):
+        return
+    from .builder import RuleSite, caller_site
 
-# ---------------------------------------------------------------------------
-# the metaclass + the kinds
-# ---------------------------------------------------------------------------
-
-def _snake(name: str) -> str:
-    """CamelCase -> snake_case, acronym-aware (F-B4): the standard
-    two-regex approach — `HTTPServer` -> `http_server`, `JSONValue` ->
-    `json_value`, `IOPort` -> `io_port`. A leading underscore (hidden-rule
-    convention) survives. The result is a canonical rule name; acronym
-    casing is intentionally not reversible."""
-    import re as _re
-    prefix = ""
-    if name.startswith("_"):          # hidden-rule convention survives
-        prefix = "_"
-        name = name[1:]
-    s1 = _re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", name)
-    s2 = _re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1)
-    return prefix + s2.lower()
-
-
-def _rule_site(depth: int = 3) -> RuleSite:
-    """The class-definition site (file/lineno/source) for conflict
-    remapping. Walks up from the metaclass `__new__` frame to the module
-    frame executing the `class` statement (measured: `__new__` is 2 frames
-    up from caller_site, the class statement one more). Delegates to the
-    ONE caller_site helper (D8 — a frame refactor fails the helper's
-    tests, not silently mis-attributes)."""
-    from .builder import caller_site
-    return caller_site(skip=depth)
-
-
-def _attr_sites(cls: type[Rule]) -> dict[str, RuleSite]:
-    """file/lineno/source for each annotated attribute — the class body's
-    `attr: Type` lines — so conflict remapping can point at `Pair.value`
-    (class + attribute), not a raw combinator line. Found by scanning the
-    class's own source lines for the `attr:` prefix."""
+    rule_cls = cast(Any, cls)
+    rule_cls.__rule_name__ = (cls.__dict__.get("__rule_name__") or
+                               _snake(cls.__name__))
+    rule_cls.__site__ = caller_site(skip=3)
     sites: dict[str, RuleSite] = {}
     try:
-        src_lines, start = inspect.getsourcelines(cls)
+        source, start = inspect.getsourcelines(cls)
     except (OSError, TypeError):
-        return sites
-    for attr in cls.__annotations__:
+        source, start = (), 0
+    annotations = getattr(cls, "__annotations__", {})
+    for attr in annotations:
         if attr.startswith("__"):
             continue
-        for i, line in enumerate(src_lines):
+        for offset, line in enumerate(source):
             stripped = line.lstrip()
             if stripped.startswith(f"{attr}:"):
                 sites[attr] = RuleSite(
-                    cls.__site__.file, start + i, stripped.rstrip("\n"))
+                    rule_cls.__site__.file, start + offset,
+                    stripped.rstrip("\n"))
                 break
-    return sites
+    rule_cls.__attr_sites__ = sites
 
 
-class _RuleMeta(type):
-    """Registers rule classes: derives `__rule_name__` from the class name
-    (overridable with `__rule_name__`) and records the definition site.
-    `__abstract__ = True` in a class's OWN namespace skips it — the kind
-    bases (Pattern, Token, External, Extra, ...) are never registered."""
-
-    def __new__(mcs, name, bases, ns):
-        cls: Any = super().__new__(mcs, name, bases, ns)
-        if not ns.get("__abstract__"):      # OWN ns: kind bases skip
-            rn = ns.get("__rule_name__") or _snake(name)
-            cls.__rule_name__ = rn
-            cls.__site__ = _rule_site()
-            cls.__attr_sites__ = _attr_sites(cls)
-        return cls
-
-
-class Rule(metaclass=_RuleMeta):
+class Rule(Node):
     """The base rule class; annotation-bodied rules (the common case)."""
+    __kind__ = "node"
+    __schema__ = None
+    __node_meta_hook__: ClassVar[Any] = staticmethod(_rule_meta_hook)
     __rule_name__: ClassVar[str]
     __site__: ClassVar[RuleSite]
     __attr_sites__: ClassVar[dict[str, RuleSite]]
     __abstract__ = True
+
+    @classmethod
+    def to_ir(cls):
+        """Compile the shared ``Child`` declaration to builder IR."""
+        return _from_children(cls)
 
 
 # ---- body kinds (they set disjoint flags; read INHERITED via getattr) ------
@@ -252,65 +222,35 @@ def _resolved_name(cls: type[Rule]) -> str:
 _UNSET = object()
 
 
-def _resolve(cls: type, ann) -> object:
-    """Resolve an annotation against the defining module's globals. With
-    `from __future__ import annotations` the annotation is a string, eval'd
-    lazily (the pydantic `model_rebuild` pattern) — so a rule may reference
-    classes defined later in the module. The annotation is the author's own
-    module code; eval() runs with exactly that module's namespace."""
-    if isinstance(ann, str):
-        return eval(ann, vars(sys.modules[cls.__module__]))
-    return ann
-
-
-def _wrap(x: B | str, attr: str | None) -> B:
-    """Field-wrap unless unnamed (`content` is the reserved label for an
-    UNNAMED child — the IR's own slot name)."""
+def _wrap(body: B | str, attr: str | None) -> B:
     if attr is not None and attr != "content":
-        return tg_field(attr, x)
-    return x if isinstance(x, B) else B(as_node(x))
+        return tg_field(attr, body)
+    return body if isinstance(body, B) else B(as_node(body))
 
 
-def _child(cls: type, t, attr: str | None = None) -> B | str:
-    """One annotation -> one body node. Rows (each probe-verified):
-
-        key: NamePath              -> field("key", ref("name_path"))
-        eq: Literal["="] = "="     -> the string "=" (anonymous token)
-        element: list[Value]       -> repeat(field("element", ref("value")))
-                                     (the field goes INSIDE the repeat)
-        content: list[X]           -> repeat(ref(...))  (no field)
-        value: String | Number     -> field("value", choice(ref, ref))
-        maybe: Number | None       -> field("maybe", opt(ref))
-    """
-    origin = get_origin(t)
-    if isinstance(t, type) and issubclass(t, Rule):
-        return _wrap(tg_ref(_resolved_name(t)), attr)
+def _target_body(cls: type[Rule], target: Any,
+                 namespace: dict[str, Any] | None = None) -> B | str:
+    """Render a resolved ``Child.target`` without reparsing annotations."""
+    target = _resolve_forward(target, cls, namespace)
+    origin = get_origin(target)
+    if isinstance(target, type) and issubclass(target, Rule):
+        return tg_ref(_resolved_name(target))
     if origin is Literal:
-        values = get_args(t)
-        if len(values) == 1:
-            return str(values[0])
-        # F-B2/B11: Literal["+", "-"] -> choice of anonymous tokens —
-        # FIELD-wrapped so `op: Literal["+", "-"]` keeps the
-        # "attribute name is the CST field" promise (was: an anonymous,
-        # un-wrapped choice)
-        return _wrap(tg_choice(*[str(v) for v in values]), attr)
-    if origin in (list,):
-        inner = _child(cls, get_args(t)[0])
-        if attr is not None and attr != "content":
-            inner = tg_field(attr, inner)
-        return tg_repeat(inner)
-    if origin in (types.UnionType, Union):
-        args = get_args(t)
-        non_none = [a for a in args if a is not type(None)]
-        if not non_none:
-            raise TypeError(f"{cls.__name__}: cannot compile annotation {t!r}")
-        inner = _child(cls, non_none[0])
-        if len(non_none) > 1:
-            inner = tg_choice(inner, *(_child(cls, a) for a in non_none[1:]))
-        if type(None) in args:
-            inner = tg_opt(inner)
-        return _wrap(inner, attr)
-    raise TypeError(f"{cls.__name__}: cannot compile annotation {t!r}")
+        values = get_args(target)
+        return str(values[0]) if len(values) == 1 else tg_choice(
+            *[str(value) for value in values])
+    if origin is types.UnionType:
+        args = tuple(item for item in get_args(target)
+                     if item is not type(None))
+        if len(args) == 1:
+            return _target_body(cls, args[0], namespace)
+        return tg_choice(*[_target_body(cls, item, namespace)
+                           for item in args])
+    if isinstance(target, tuple) and target and all(
+            isinstance(item, type) and issubclass(item, Rule)
+            for item in target):
+        return tg_choice(*[tg_ref(_resolved_name(item)) for item in target])
+    raise TypeError(f"{cls.__name__}: cannot compile annotation {target!r}")
 
 
 def _stamp(cls: type[Rule], body: B | str,
@@ -332,29 +272,41 @@ def _stamp(cls: type[Rule], body: B | str,
             n._site = site   # pydantic private attr
 
 
-def _from_annotations(cls: type[Rule]) -> B | str:
-    """The annotation form: ordered children -> one seq (or a bare member).
-
-    Attribute-line source-site attribution is stamped directly on each node.
-    """
+def _from_children(cls: type[Rule],
+                   namespace: dict[str, Any] | None = None) -> B | str:
+    """Render the shared node declaration into the builder IR."""
     members: list[B | str] = []
-    for attr, ann in cls.__annotations__.items():
-        if attr.startswith("__"):
-            continue
-        t = _resolve(cls, ann)
-        if get_origin(t) is Literal:
-            values = get_args(t)
-            default = cls.__dict__.get(attr, _UNSET)
+    if namespace is None:
+        module = sys.modules.get(cls.__module__)
+        namespace = vars(module) if module is not None else None
+    for child in _children_for(cls, namespace):
+        target = _resolve_forward(child.target, cls, namespace)
+        if get_origin(target) is Literal:
+            values = get_args(target)
+            default = cls.__dict__.get(child.name, _UNSET)
+            if default is _UNSET:
+                field = getattr(cls, "model_fields", {}).get(child.name)
+                if field is not None and not field.is_required():
+                    default = field.default
             if default is not _UNSET and default not in values:
                 raise ValueError(
-                    f"{cls.__name__}.{attr}: Literal[{values!r}] default "
+                    f"{cls.__name__}.{child.name}: Literal[{values!r}] default "
                     f"{default!r} does not match any value — anonymous "
                     f"tokens must default to one of their Literal values, "
                     f"or have no default")
-            member = _child(cls, t, attr=attr)   # F-B2: multi -> choice
+        body = _target_body(cls, target, namespace)
+        if child.repeated:
+            body = _wrap(body, child.name if child.name != "content" else None)
+            body = tg_repeat(body)
+        elif child.optional:
+            body = tg_opt(body)
+            body = _wrap(body, child.name)
+        elif get_origin(target) is Literal and len(get_args(target)) == 1:
+            pass
         else:
-            member = _child(cls, t, attr=attr)
-        _stamp(cls, member, attr=attr)
+            body = _wrap(body, child.name)
+        member = body
+        _stamp(cls, member, attr=child.name)
         members.append(member)
     if not members:
         raise ValueError(
@@ -419,6 +371,9 @@ def assemble(name: str, *, start: type[Rule],
             f"rules=[...] explicitly or define Rule subclasses at module "
             f"level")
 
+    module = sys.modules.get(start.__module__)
+    namespace = dict(vars(module)) if module is not None else {}
+    namespace.update({cls.__name__: cls for cls in rules})
     g = Grammar(name)
     for cls in rules:
         rn = _resolved_name(cls)
@@ -447,7 +402,7 @@ def assemble(name: str, *, start: type[Rule],
             elif ext is not None:
                 body = tg_tok(ext)
             else:
-                body = _from_annotations(cls)
+                body = _from_children(cls, namespace)
         if not isinstance(body, B):
             body = B(as_node(body))
         # token-wrap (the guard prevents double-wrapping an already-token body
@@ -467,7 +422,7 @@ def assemble(name: str, *, start: type[Rule],
                word=getattr(cls, "__word__", False))
         # source sites (D8): the rule points at its CLASS definition; every
         # annotation-emitted node was already stamped at creation
-        # (_from_annotations); `__body__` combinator sites are stamped by the
+        # (_from_children); `__body__` combinator sites are stamped by the
         # combinators themselves (the author's module lines)
         g.sites[rn] = cls.__site__
         if getattr(cls, "__extra__", False):

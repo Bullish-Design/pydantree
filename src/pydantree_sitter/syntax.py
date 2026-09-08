@@ -21,8 +21,8 @@ hand. It is a plain callable:
 
     Callable[[str], None]        # returns on valid source, RAISES otherwise
 
-`Language.load(..., syntax_check=...)` sets one explicitly. Otherwise the
-Language resolves one from `SYNTAX_CHECKS` by ast-grep language name. A
+The grammar consumer can set one explicitly. Otherwise the runtime resolves
+one from `SYNTAX_CHECKS` by ast-grep language name. A
 language with no entry gets None, and `pattern.py` falls back to a
 structural proxy — see `Pattern.replace_all`.
 

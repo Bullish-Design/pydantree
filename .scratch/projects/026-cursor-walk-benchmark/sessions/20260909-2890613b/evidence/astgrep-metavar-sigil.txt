@@ -1,0 +1,36 @@
+# ast-grep metavariable sigil vs a pydantree-built Nix grammar — 2026-09-09
+
+Language registered from the bundle:
+  register_bundle_language("pdtnix", <cache>/nix-bundle/grammar.so,
+                           "tree_sitter_nix", extensions=["nix"])
+
+Source:
+  { pkgs, ... }:
+  {
+    packages = [ pkgs.git ];
+    env.FOO = "bar";
+  }
+
+## Default sigil "$" — SILENT FAILURE
+
+  '{ $K = $V; }'   -> 0 match(es)
+  '[ $$$ITEMS ]'   -> 0 match(es)
+  '$K = $V;'       -> RuntimeError: Multiple AST nodes are detected
+  '$A.$B'          -> RuntimeError: Multiple AST nodes are detected
+
+"$" does not lex as an identifier in Nix; it begins "${" interpolation.
+The two patterns that do parse return nothing and raise nothing.
+
+## meta_var_char="_" — WORKS
+
+  '{ _K = _V; }'   -> 1   captures: K='packages'  V='[ pkgs.git ]'
+  '_A._B'          -> 1   captures: A='pkgs'      B='git'
+  '[ ___ITEMS ]'   -> 1
+
+"_" lexes as a Nix identifier start, so the metavariable parses.
+
+## Conclusion
+
+ast-grep drives a pydantree-built grammar completely, metavariables included.
+The sigil is a per-grammar property. It belongs in the bundle metadata, not in
+the caller's head, because a wrong sigil fails silently.

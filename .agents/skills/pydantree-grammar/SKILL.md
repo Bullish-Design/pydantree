@@ -26,7 +26,7 @@ g.start("source_file")
 issues = list(tg.run_checks(g))     # author-time static analysis (Python,
 assert not tg.errors(g), issues     # before the Rust step)
 result = tg.build_builder(g)        # generate + gcc, content-addressed cache
-lang, _lib = result.language()
+lang = result.language()            # the loader keeps the native library alive
 ```
 
 ## DSL cheat sheet
@@ -89,7 +89,7 @@ assert result.ok(), result.report()
 ## Shipping + community grammars
 
 ```python
-bundle = result.package("dist/cfg-bundle")     # 4-file bundle for A
+bundle = result.package("dist/cfg-bundle")     # schema-backed typed bundle for A
 
 from pydantree_sitter_grammar.schema_tool import build_community_bundle, derive_schema_for_dir
 build_community_bundle("tree-sitter-rust-checkout", "dist/rust-bundle", name="rust")

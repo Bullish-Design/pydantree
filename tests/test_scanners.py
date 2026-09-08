@@ -10,7 +10,6 @@ comment-only lines inside a block, EOF dedents.
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
 import pytest
 
@@ -111,8 +110,6 @@ def test_indent_handling_is_lenient_at_invalid_states(tmp_path):
 # ---------------------------------------------------------------------------
 # Phase 6 — the scanner library seeds (heredoc + matched delimiter)
 # ---------------------------------------------------------------------------
-
-CONSUMERS = Path(__file__).resolve().parent / "fixtures" / "consumers"
 
 import dmini
 import hmini

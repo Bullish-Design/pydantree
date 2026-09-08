@@ -1,0 +1,519 @@
+{
+ "languages": {
+  "python": {
+   "kinds": 10,
+   "cases": 30,
+   "agree": 27,
+   "query_build_fallback": [
+    "Node"
+   ],
+   "tiers": {
+    "small": {
+     "file": "/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/span.py",
+     "sha256": "b63b17dbeeb6e022af93119c77d0b6982e69ea7d3b7a479cf168f37225d37348",
+     "bytes": 1609,
+     "nodes": 341,
+     "kinds_with_matches": 8,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    },
+    "medium": {
+     "file": "/home/andrew/Documents/Projects/pydantree/src/pydantree_sitter/nodes.py",
+     "sha256": "04c77ac8635c1555b56c40e3f2e8deccf4d2a500e029d949cfaefbf2874cc136",
+     "bytes": 26200,
+     "nodes": 7190,
+     "kinds_with_matches": 9,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    },
+    "large": {
+     "file": "/home/andrew/Documents/Projects/pydantree/.venv/lib/python3.13/site-packages/mypy/checker.py",
+     "sha256": "b9c8c346918f688d897f43068399edc85e3b885f4e9dc293ef185786469f1281",
+     "bytes": 453424,
+     "nodes": 78826,
+     "kinds_with_matches": 9,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    }
+   }
+  },
+  "bash": {
+   "kinds": 60,
+   "cases": 180,
+   "agree": 174,
+   "query_build_fallback": [
+    "ForStatement",
+    "FunctionDefinition",
+    "Node",
+    "PostfixExpression",
+    "Subscript",
+    "TernaryExpression"
+   ],
+   "tiers": {
+    "small": {
+     "file": "/home/andrew/Documents/Projects/pydantree/examples/bash-extract/sample.sh",
+     "sha256": "e25fd260651601bdc13f0d15971f2253e6338c3e26b76cb1bb24da495d60f8d3",
+     "bytes": 1251,
+     "nodes": 171,
+     "kinds_with_matches": 22,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    },
+    "medium": {
+     "file": "/nix/store/4g5azly9lc7v75k1iazydm4rnbir0255-source/scripts/install-multi-user.sh",
+     "sha256": "4160f1edaa632313fcc43050c5fffca910ec96534caf96d069282d4156b64485",
+     "bytes": 33212,
+     "nodes": 5636,
+     "kinds_with_matches": 49,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    },
+    "large": {
+     "file": "/home/andrew/Documents/Projects/pydantree/.devenv/shell-d5f9709ac96d0de3.sh",
+     "sha256": "2eac23fbebd47d48c807119a7acf0069e2bede572d7ebe01169dd08b009030cb",
+     "bytes": 102942,
+     "nodes": 17623,
+     "kinds_with_matches": 45,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    }
+   }
+  },
+  "nix": {
+   "kinds": 42,
+   "cases": 126,
+   "agree": 125,
+   "query_build_fallback": [
+    "ApplyExpression",
+    "AssertExpression",
+    "HasAttrExpression",
+    "IfExpression",
+    "InheritFrom",
+    "Node",
+    "SelectExpression",
+    "UnaryExpression",
+    "WithExpression"
+   ],
+   "tiers": {
+    "small": {
+     "file": "/home/andrew/Documents/Projects/pydantree/devenv.nix",
+     "sha256": "a56f2951884a5eb5a95f0a908f454dae77b82072fc8718afee5a7169a5e8db7e",
+     "bytes": 6931,
+     "nodes": 516,
+     "kinds_with_matches": 18,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    },
+    "medium": {
+     "file": "/home/andrew/Documents/Projects/pydantree/tests/fixtures/nix/fleet/flora.nix",
+     "sha256": "475692cbf7093ec627a0702cf54d793153e7e1537fab805a3588ccd3ad994e16",
+     "bytes": 25915,
+     "nodes": 1077,
+     "kinds_with_matches": 26,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    },
+    "large": {
+     "file": "/nix/store/77dbgds155bbz3vd3qywq1sii07i5ljs-source/pkgs/top-level/aliases.nix",
+     "sha256": "7e5c7fed52ddd8d239ef759d9028b8640b897dda6c885b1c578eef2c5ab43296",
+     "bytes": 256322,
+     "nodes": 29207,
+     "kinds_with_matches": 28,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    }
+   }
+  },
+  "rust": {
+   "kinds": 164,
+   "cases": 492,
+   "agree": 486,
+   "query_build_fallback": [
+    "CallExpression",
+    "ClosureExpression",
+    "EnumItem",
+    "FieldExpression",
+    "ForExpression",
+    "FunctionItem",
+    "GenericPattern",
+    "HigherRankedTraitBound",
+    "MatchExpression",
+    "Node",
+    "QualifiedType",
+    "StructExpression",
+    "TraitItem",
+    "TypeCastExpression",
+    "UnionItem",
+    "UseAsClause",
+    "WherePredicate",
+    "WhileExpression"
+   ],
+   "tiers": {
+    "small": {
+     "file": "/nix/store/qywrfqfkjzvkwfv1whndvkl7sy2wrxrf-rust-lib-src/core/src/mem/type_info.rs",
+     "sha256": "da05d21c34586a5b81b79475ec96f9ce8dcb60088457a7775e4dc87b48a432d8",
+     "bytes": 4070,
+     "nodes": 1066,
+     "kinds_with_matches": 48,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    },
+    "medium": {
+     "file": "/nix/store/qywrfqfkjzvkwfv1whndvkl7sy2wrxrf-rust-lib-src/coretests/tests/num/mod.rs",
+     "sha256": "a6320c2088c73808c923f0d953b5ad111c189d96463fd0757c6218d1fa9a586a",
+     "bytes": 29081,
+     "nodes": 6798,
+     "kinds_with_matches": 78,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    },
+    "large": {
+     "file": "/nix/store/qywrfqfkjzvkwfv1whndvkl7sy2wrxrf-rust-lib-src/alloc/src/sync.rs",
+     "sha256": "ce15d00d92133cf1f55cd1905d7fe6b4e23e62090dabff6c68fae2d7fe78fe8f",
+     "bytes": 175646,
+     "nodes": 38311,
+     "kinds_with_matches": 113,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    }
+   }
+  },
+  "markdown": {
+   "kinds": 52,
+   "cases": 156,
+   "agree": 156,
+   "query_build_fallback": [
+    "Node"
+   ],
+   "tiers": {
+    "small": {
+     "file": "/home/andrew/Documents/Projects/pydantree/docs/typed-node-universe.md",
+     "sha256": "60dce84e1891c159b3953a9de3d2025c3feace1544330df528e1689fa10b5acd",
+     "bytes": 1289,
+     "nodes": 164,
+     "kinds_with_matches": 12,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    },
+    "medium": {
+     "file": "/home/andrew/Documents/Projects/pydantree/docs/development.md",
+     "sha256": "a1ef8a17e2cfa0ec7090b38a99417cbb8505568bac7387ffd0ff8deff2d7437a",
+     "bytes": 10204,
+     "nodes": 1433,
+     "kinds_with_matches": 18,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    },
+    "large": {
+     "file": "/home/andrew/Documents/Projects/pydantree/.scratch/projects/024-typed-node-universe/REFACTOR_GUIDE.md",
+     "sha256": "9421a249d26242214bae73f6ea51adbcb3799b03b4bef41e0c7eaef826e570b7",
+     "bytes": 61616,
+     "nodes": 10229,
+     "kinds_with_matches": 25,
+     "anchor_mismatch": 0,
+     "row_mismatch": 0
+    }
+   }
+  }
+ },
+ "disagreements": [
+  {
+   "language": "python",
+   "tier": "small",
+   "kind": "Assignment",
+   "axis": "query_vs_recwalk",
+   "query": 3,
+   "recwalk": 12,
+   "query_fell_back": false,
+   "only_in_recwalk": [
+    [
+     437,
+     453
+    ],
+    [
+     462,
+     482
+    ],
+    [
+     491,
+     515
+    ]
+   ],
+   "only_in_query": [],
+   "order_only": false
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "kind": "Assignment",
+   "axis": "query_vs_recwalk",
+   "query": 133,
+   "recwalk": 152,
+   "query_fell_back": false,
+   "only_in_recwalk": [
+    [
+     1191,
+     1213
+    ],
+    [
+     1361,
+     1379
+    ],
+    [
+     1625,
+     1652
+    ]
+   ],
+   "only_in_query": [],
+   "order_only": false
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "kind": "Assignment",
+   "axis": "query_vs_recwalk",
+   "query": 1176,
+   "recwalk": 1499,
+   "query_fell_back": false,
+   "only_in_recwalk": [
+    [
+     11639,
+     11660
+    ],
+    [
+     11669,
+     11706
+    ],
+    [
+     11715,
+     11746
+    ]
+   ],
+   "only_in_query": [],
+   "order_only": false
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "kind": "BinaryExpression",
+   "axis": "query_vs_recwalk",
+   "query": 27,
+   "recwalk": 29,
+   "query_fell_back": false,
+   "only_in_recwalk": [
+    [
+     2980,
+     2993
+    ],
+    [
+     14885,
+     14930
+    ]
+   ],
+   "only_in_query": [],
+   "order_only": false
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "kind": "Command",
+   "axis": "query_vs_recwalk",
+   "query": 323,
+   "recwalk": 323,
+   "query_fell_back": false,
+   "only_in_recwalk": [],
+   "only_in_query": [],
+   "order_only": true
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "kind": "UnaryExpression",
+   "axis": "query_vs_recwalk",
+   "query": 4,
+   "recwalk": 28,
+   "query_fell_back": false,
+   "only_in_recwalk": [
+    [
+     2732,
+     2736
+    ],
+    [
+     2744,
+     2771
+    ],
+    [
+     3980,
+     4000
+    ]
+   ],
+   "only_in_query": [],
+   "order_only": false
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "kind": "BinaryExpression",
+   "axis": "query_vs_recwalk",
+   "query": 143,
+   "recwalk": 155,
+   "query_fell_back": false,
+   "only_in_recwalk": [
+    [
+     40158,
+     40195
+    ],
+    [
+     42689,
+     42715
+    ],
+    [
+     46624,
+     46632
+    ]
+   ],
+   "only_in_query": [],
+   "order_only": false
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "kind": "UnaryExpression",
+   "axis": "query_vs_recwalk",
+   "query": 19,
+   "recwalk": 163,
+   "query_fell_back": false,
+   "only_in_recwalk": [
+    [
+     5,
+     14
+    ],
+    [
+     22,
+     38
+    ],
+    [
+     40155,
+     40195
+    ]
+   ],
+   "only_in_query": [],
+   "order_only": false
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "kind": "VariableAssignment",
+   "axis": "query_vs_recwalk",
+   "query": 406,
+   "recwalk": 417,
+   "query_fell_back": false,
+   "only_in_recwalk": [
+    [
+     43713,
+     43717
+    ],
+    [
+     46095,
+     46099
+    ],
+    [
+     47551,
+     47555
+    ]
+   ],
+   "only_in_query": [],
+   "order_only": false
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "kind": "BinaryExpression",
+   "axis": "query_vs_recwalk",
+   "query": 4,
+   "recwalk": 4,
+   "query_fell_back": false,
+   "only_in_recwalk": [],
+   "only_in_query": [],
+   "order_only": true
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "kind": "ScopedIdentifier",
+   "axis": "query_vs_recwalk",
+   "query": 5,
+   "recwalk": 5,
+   "query_fell_back": false,
+   "only_in_recwalk": [],
+   "only_in_query": [],
+   "order_only": true
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "kind": "ScopedIdentifier",
+   "axis": "query_vs_recwalk",
+   "query": 47,
+   "recwalk": 47,
+   "query_fell_back": false,
+   "only_in_recwalk": [],
+   "only_in_query": [],
+   "order_only": true
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "kind": "BinaryExpression",
+   "axis": "query_vs_recwalk",
+   "query": 53,
+   "recwalk": 53,
+   "query_fell_back": false,
+   "only_in_recwalk": [],
+   "only_in_query": [],
+   "order_only": true
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "kind": "LetDeclaration",
+   "axis": "query_vs_recwalk",
+   "query": 127,
+   "recwalk": 128,
+   "query_fell_back": false,
+   "only_in_recwalk": [
+    [
+     144094,
+     144150
+    ]
+   ],
+   "only_in_query": [],
+   "order_only": false
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "kind": "ScopedIdentifier",
+   "axis": "query_vs_recwalk",
+   "query": 381,
+   "recwalk": 381,
+   "query_fell_back": false,
+   "only_in_recwalk": [],
+   "only_in_query": [],
+   "order_only": true
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "kind": "ScopedTypeIdentifier",
+   "axis": "query_vs_recwalk",
+   "query": 79,
+   "recwalk": 79,
+   "query_fell_back": false,
+   "only_in_recwalk": [],
+   "only_in_query": [],
+   "order_only": true
+  }
+ ],
+ "errors": []
+}

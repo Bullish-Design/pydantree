@@ -1,0 +1,14 @@
+[
+  {
+    "encoded": "\"alice\"",
+    "decoded": "alice"
+  },
+  {
+    "encoded": "\"a\\nb\\t\\\"c\\\\d\\u0041\"",
+    "decoded": "a\nb\t\"c\\dA"
+  },
+  {
+    "encoded": "\"a\nb\"",
+    "decoded": "a\nb"
+  }
+]

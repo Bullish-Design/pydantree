@@ -1,380 +1,135 @@
-# pydantree-sitter — architecture & codebase map
+# Architecture
 
-This is the working reference for developers new to the codebase. For the
-full design argument (why two libraries, the build order, the risks) read
-`../.scratch/projects/002-pydantic-treesitter/CONCEPT.md` first (its dated
-addendum records the 014 decisions D1–D14). Each phase's findings
-(`../.scratch/projects/00X-*/FINDINGS.md`) add the "what changed and why"
-record.
+The project has two products and one shared declaration seam. Product B authors
+a grammar and emits a parser bundle. Product A consumes that bundle or a
+vendored schema with generated, schema-backed `Node` classes.
 
----
-
-## 1. The idea in one screen
-
-```
- Product B (author)                          Product A (consume)
- pydantree_sitter_grammar (HEAVY)            pydantree_sitter (LIGHT)
-   Rule classes / Grammar DSL -> grammar.json   OutputModel class
-   -> tree-sitter generate -> parser.c           |  __match__ = M(...)
-   -> gcc -> grammar.so                         \|/
-   -> node-schema.json (the CLI byproduct)  typed rows, checks at bind
-        |                                        /|\
-        +------->  the BUNDLE (4 files) <--------+  Language.load_bundle(dir)
-                          |
-                     pydantree_sitter (LIGHT, the one package):
-                     the node-schema format + the artifact-loading contract
+```text
+Product B: Rule classes / Grammar DSL -> grammar.json -> tree-sitter -> grammar.so
+                                                    \-> node-types.json
+                                                    \-> node-schema.json
+                                                             |
+                                                             v
+                         grammar.so + node-schema.json + metadata + loader.py
+                                                             |
+Product A: Grammar.load_bundle() -> Grammar -> Tree -> typed Node instances
 ```
 
-- **The model IS the query** (A): the `.scm` is derived from the model and
-  never seen. Field names/types/defaults + a one-line `__match__` ancestor
-  path declare both the pattern and the output type.
-- **B is heavy on purpose**: the Rust CLI + C compiler are B's problem; a
-  consumer of A never resolves them (proven at the install boundary).
-- **The bridge is the differentiator**: the schema IS the CLI's
-  `node-types.json` byproduct (tracked by construction, D3), and A runs
-  model↔grammar + capture↔type checks at **bind time** when a schema or bundle
-  is supplied — `lang.extractor(Model)`, before any text is parsed. A bare
-  grammar remains an intentional wildcard path and emits a warning because
-  those checks cannot run.
+The schema is the CLI byproduct. It is not inferred from a consumer model and
+it is not optional. This gives generated classes a closed universe of kinds,
+fields, children, optionality, and repetition. `NodeMeta` validates narrowed
+classes against that universe when the class is created.
 
-## 2. The two packages
+## Packages
 
-All under `src/`, each with its own `pyproject.toml` (the "pyproject per
-package" layout — see §4 of development.md). Import packages
-`pydantree_sitter` / `pydantree_sitter_grammar`; PyPI names
-`pydantree-sitter` / `pydantree-sitter-grammar` (collision-proof, D1).
+`pydantree_sitter` is the light runtime: `Node`, `NodeMeta`, `Span`,
+`NodeSchema`, generation, bundle loading, typed traversal, codecs, and the
+isolated raw-query escape hatch. It never imports Product B.
 
-| package | weight | contents | depends on |
-|---|---|---|---|
-| `pydantree_sitter` | light | `schema.py` (NodeSchema — the byproduct format), `loader.py` (the loading contract + bundle_format), `markers.py` (inert markers), `spec.py` (MatchSpec + OutputModel), `binding.py` (Language/Extractor), `compiler.py` (the ONE compiler), `emit.py` (internal .scm emitter), `match.py` (the ONE ancestor matcher), `materialize.py` (one kwargs builder), `valuemap.py` (ValueMap + propose_value_map), `codegen.py` (real typed CST accessors), `errors.py` (the taxonomy) | pydantic, tree-sitter |
-| `pydantree_sitter_grammar` | heavy | `ir.py` (GrammarModel — the grammar.json mirror), `builder.py` (the DSL), `rules.py` (the rule-class surface + assemble/module_rules), `checks.py` (static analysis), `conflicts.py` (GLR conflict remapping), `expressions.py` (precedence ladders), `corpus.py` (the corpus harness), `pipeline.py` (generate → gcc → bundle; write_bundle; build_from_source_dir), `scanners/` (the scanner library) | pydantree-sitter, pydantic, tree-sitter, **plus the CLI + gcc at build time** |
+`pydantree_sitter_grammar` is the heavy authoring/build package: the grammar
+DSL, rule classes, static checks, conflict reports, corpus harness, scanners,
+and the generate/compile/package pipeline. It depends on the light package so
+the direction of the dependency remains one-way.
 
-The root `pyproject.toml` is the uv-workspace + dev-tooling envelope only
-(the legacy island and the root distribution were deleted in the 014
-refactor Phase 1).
+## Bundle contract
 
-## 3. The seams (what the project has proven)
-
-1. **The install boundary** (GO): a fresh venv with only the light wheel
-   runs the full checked extraction; `import pydantree_sitter_grammar` fails
-   (the seam does not leak). The heavy wheel carries the scanner package
-   data and depends on the light package (A never imports B).
-2. **The artifact boundary** (GO): the **bundle** is one artifact + one
-   loading contract —
-
-   ```
-   bundle/
-     grammar.so          the compiled parser (export tree_sitter_<name>)
-     node-schema.json    the CLI byproduct (D3)
-     tree-sitter.json    metadata: {bundle_format, name, artifact, schema,
-                          abi, toolchain, value_map?}
-     loader.py           a thin shim -> pydantree_sitter.loader.load_bundle
-   ```
-
-   `Language.load_bundle(dir)` is the one-line consumer (keeps the .so lib
-   alive, F-A10). `bundle_format` versions the contract (D12): absent = 1
-   (accepted); unknown >2 = `BundleError` naming both versions.
-
-   Bundles are generated build outputs, not committed compatibility fixtures.
-   The suite rebuilds them from source with the current supported toolchain;
-   only saved extraction JSON is a durable oracle. Acceptance of an older
-   bundle format is current loader behavior, not a backward-compatibility
-   guarantee for previously generated binaries or metadata.
-3. **The grammar-ownership boundary** (GO, D3): the schema IS the CLI's
-   `node-types.json` byproduct — a B-built bundle's `node-schema.json` is the
-   generate run's `node-types.json` copied byte-for-byte, and the community
-   path (`build_from_source_dir`) derives from the same CLI byproduct. The
-   `node_types.rs` hand-port is deleted: the schema has exactly one source.
-
-### 3.1 The wasm seam (assessed — no-go)
-
-A bundle's metadata may name a `.wasm` artifact. `pydantree_sitter.loader`
-dispatches on the extension and raises `WasmRuntimeUnavailableError`
-unconditionally: the probe bridge moved out of the shipped seam
-(`.scratch/projects/009-phase7/wasm_bridge.py`), and a wasm load means
-forking the binding (py-tree-sitter 0.26 has no wasm store), not pinning a
-package. Per-platform native wheels carry the portability story. See
-`../.scratch/projects/002-pydantic-treesitter/CONCEPT.md` Appendix A and
-`../.scratch/projects/009-phase7/FINDINGS.md`.
-
-## 4. The pipeline (B's build)
-
-```
-Grammar -> IR (grammar.json) -> tree-sitter generate --json -> src/parser.c
-   (+ scanner.c) -> gcc -O2 -fPIC -shared -> name.so
+```text
+bundle/
+  grammar.so
+  node-schema.json
+  nodes.py
+  tree-sitter.json
+  loader.py
 ```
 
-- `pipeline.build(model, scanner=..., check=True)` — content-addressed cache
-  keyed on `sha256(grammar.json) + scanner.c digest + toolchain version`;
-  on a hit it skips generate+gcc entirely. `check=True` (default, D10) runs
-  the static analyzer first. `build_builder` wraps it for the DSL and remaps
-  generator conflicts from the SAME run's `--json` stderr to the author's
-  per-production DSL sites (`GrammarConflictError`). `build_loop` is the
-  fix-one-rerun loop.
-- `build_from_source_dir(src_dir)` — a community grammar source dir through
-  the same pipeline (check=False — community grammars aren't ours to
-  analyze; never touches the author's checkout). `write_bundle(result, dir)`
-  is the ONE bundle writer.
-- **ABI facts**: the CLI needs a `tree-sitter.json` with
-  `{"metadata": {"version": "0.1.0"}}` to emit ABI 15 (else ABI 14 — still
-  loads; bindings 0.26 accept ABI 13–15). The bundle's `abi` metadata reads
-  `tree_sitter.LANGUAGE_VERSION` when available (env as override only).
-- **Errors**: `GenerateError` / `CompileError` carry the raw subprocess
-  output; `ExternalScannerRequiredError` fires BEFORE gcc's link failure when
-  a grammar declares externals but no scanner was supplied.
+`tree-sitter.json` names the exported grammar symbol, artifact, schema, ABI,
+toolchain, and bundle format. The shared loader keeps the native library alive
+and accepts format 1 as well as the current format 2. `Grammar.load_bundle()`
+loads the schema and builds the same in-memory namespace as `build_namespace()`.
 
-## 5. The schema bridge (the differentiator)
+The community path uses the grammar source directory's own `node-types.json`
+byproduct. The light wheel does not need the CLI or a compiler; a consumer
+vendors the schema when a community wheel omits it. We do not publish a generic
+schema data wheel because schemas are coupled to one grammar source and version.
+Applications keep the schema beside their generated nodes and may keep a small
+provenance file beside it. `load_schema` reports missing and malformed data;
+`Grammar.load` verifies the schema vocabulary against the loaded language at
+bind time. Alien kinds and fields fail. Missing kinds use a 25 percent ratio
+threshold because a grammar can omit valid ABI kinds. Schema supertypes are
+exempt from the existence check. The check uses `Language.supertypes`, not
+`Language.node_kind_is_supertype()`, because the per-ID predicate is unreliable
+on tree-sitter 0.26. `schema_name` remains an optional extra name check.
 
-- **One source** (D3): the schema IS the CLI's `node-types.json` byproduct.
-  A B-built bundle's `node-schema.json` is the generate run's
-  `node-types.json` copied byte-for-byte (a by-construction contract, pinned
-  in `tests/test_pipeline.py`); the community path runs the CLI over a
-  grammar source dir (accepts the standard `src/grammar.json` community
-  layout). `NodeSchema.from_node_types_json` / `derive_from_node_types` are
-  the only parse path.
-- **The bind (D5)**: `lang.extractor(Model)` runs all checks once —
-  model↔grammar path/capture checks, capture↔type checks (ValueMap-backed
-  kind ladder), and value-shape resolution — and compiles the query against
-  THAT language. The compiled state lives on the Language instance, keyed by
-  (model, strict): no class-level caches, no global registry (F-A1's silent
-  cross-language cache is impossible by construction).
-- **Value shapes (D6)**: record-mode shapes consume ONLY (schema, ValueMap).
-  `propose_value_map(schema)` is the draft generator (reviewed, committed —
-  never silent inference); `JSON_VALUE_MAP` is the schema-less JSON family.
-- **Extraction boundary**: `Extractor.extract_tree()` compares a stable public
-  grammar fingerprint and rejects foreign trees. Strict extraction rejects a
-  matched anchor containing `ERROR` or an undeclared `MISSING`; an optional
-  declared missing child can represent an intentional EOF sentinel. Lenient
-  extraction skips malformed matches.
-  Schema-less binding emits a warning because schema checks are unavailable.
-- **Path alternatives**: a `PathStep` tuple is an alternative set at one
-  path level, not a sequence of descents. Schema-bound validation checks every
-  current alternative against the previous step's alternatives. Each current
-  alternative must have at least one legal direct-child relation, or one legal
-  descendant relation after `GAP`; an impossible alternative raises
-  `SchemaCheckError`. Schema-less languages cannot run this check.
-- **Field-mode capture emission (Review 021 D1/D3)**: the compiler emits one
-  anchor-only pattern plus one anchored pattern per non-meta capture (and per
-  kind alternative). Captures are therefore merged independently by anchor.
-  This D1/D3 foundation prevents repeated list fields from forming a
-  cartesian product and prevents model declaration order from imposing a
-  sibling order on the CST query. For schema-bound field captures, kind
-  inference runs per concrete anchor alternative. One anchor's inferred kind
-  cannot constrain another anchor's pattern. Required scalar presence is
-  checked during materialization; optional and list fields can be supplied by
-  the anchor-only match when absent. List nodes are deduplicated by CST
-  identity while preserving source order.
+## Product A runtime
 
-## 6. The external-scanner mechanism (summary — full contract in
-[scanner-library.md](scanner-library.md))
+`Grammar` owns a `tree_sitter.Language`, a required `NodeSchema`, and a typed
+namespace. `Grammar.parse()` returns a `Tree` carrying that grammar. `Tree.find`
+walks one parsed tree, checks the requested anchor's normalized `__under__`
+path, and calls the class resolver. A resolver materializes nested nodes,
+lists, optional children, literal tokens, scalar text, and unambiguous
+`dict[str, V]` projections. The tree bounds recursion; there is no second
+binding or extraction compiler.
 
-- A grammar declares externals and the build takes `scanner=<path to
-  scanner.c>`; the cache key content-addresses the scanner.c.
-- Library table: `scanner_for(name)` → the canonical scanner path. Five
-  seeds: `indent_scanner.c` (pymini), `heredoc_scanner.c` (hmini),
-  `matched_delimiter_scanner.c` (dmini), `py_indent_scanner.c` (pyindent),
-  `bash_heredoc_scanner.c` (bashmini).
-- Two gotchas (proven facts, design for them): the lexer calls the scanner
-  **mid-whitespace** (skip it first), and **multiple externals can be valid
-  in one parser state** (the source disambiguates).
+`Span` is attached to every node. The default `Node.__value__` returns source
+text; codec mixins such as `JsonString` override it for decoded scalar values.
+Predicates that cannot be represented by the type system remain local
+`Annotated` metadata, while `raw.Query` is the escape hatch for sibling order,
+negation, and multi-anchor joins.
 
-## 7. Module map (where the code lives)
+The public root surface is intentionally small:
+`Node`, `Grammar`, `Span`, generation, bundle loading, `NodeSchema`, and the
+five public error classes. The module-level surface is tested exactly so the
+old extraction vocabulary cannot regrow through a convenience import.
 
+## Product B direction
+
+Product B rule classes use the same `NodeMeta`/`Child` annotation grammar as
+generated Product A classes. `Rule.to_ir()` is the forward direction; the
+generated module is the reverse direction. `tests/test_direction_roundtrip.py`
+compares their child shapes, and the bundle tests exercise the artifact seam.
+
+The authoring/build pipeline is:
+
+```text
+Grammar -> IR -> grammar.json -> tree-sitter generate -> parser.c
+       -> optional external scanner -> gcc -> grammar.so -> bundle
 ```
+
+The pipeline cache is content-addressed by grammar, scanner, grammar name, and
+toolchain. Static grammar checks run before generation; conflict diagnostics
+retain the raw CLI evidence and map it back to DSL sites.
+
+## Structural patterns
+
+`pydantree_sitter.pattern` is an independent ast-grep integration for finding
+and rewriting structural text. It is not part of typed traversal. It resolves
+ast-grep ranges against the exact node and byte range in pydantree's parse,
+then returns edit data without writing files. The deferred decision to remove
+that extra is tracked in the refactor guide; the typed core does not depend on
+it.
+
+## Development map
+
+```text
 src/pydantree_sitter/
-  markers.py         the inert markers (M, capture/capture_kind/source_meta/
-                     derived, Matches/Eq/AnyOf/NodeKind/Unescaped, RawQuery)
-  spec.py            MatchSpec + derive_spec + OutputModel/DerivingMeta
-  schema.py          NodeSchema, NodeTypeInfo, derive_from_node_types
-                     (the schema IS the CLI byproduct)
-  loader.py          load_grammar_so, load_bundle (bundle_format), the wasm
-                     dispatch + error
-  valuemap.py        ValueMap + JSON_VALUE_MAP + propose_value_map
-  compiler.py        the ONE compiler: MatchSpec + Language -> _Compiled
-                     (checks, shape inference, query emission plan)
-  emit.py            the internal .scm emitter (not public, D11)
-  match.py           the ONE ancestor-path matcher + anchor merge
-  materialize.py     the ONE kwargs builder, Span, unescape, MatchFailure
-  binding.py         Language + Extractor (the explicit bind, D5)
-  codegen.py         generate_typed_api (REAL typed CST accessors, D7)
-  errors.py          the error taxonomy (§1.3)
-  rules.py           Rule — the validated ast-grep rule model (022 §6)
-  syntax.py          SyntaxCheck — what the LANGUAGE calls valid, which is
-                     not what tree-sitter calls valid (durable fact 12)
-  agreement.py       the two-parser boundary: char->byte offsets,
-                     GrammarAgreement, the recorded evidence (022 §4)
-  pattern.py         Pattern/PatternMatch/Edit/ReplaceResult — structural
-                     search + rewrite over ast-grep (022). NOT match.py.
+  nodes.py       NodeMeta, Child, Node, annotation grammar, resolver
+  grammar.py     Grammar and Tree
+  find.py        typed anchor traversal
+  generate.py    schema -> source / in-memory namespace
+  schema.py      node-types schema model
+  span.py        immutable source spans
+  codecs.py      scalar value codecs
+  raw.py         literal query escape hatch
+  loader.py      native bundle loading
+  match.py       ancestor-path matcher
+  errors.py      typed error taxonomy
 src/pydantree_sitter_grammar/
-  ir.py              the IR models (GrammarModel mirror of grammar.json)
-                     with the _site private attr (D8)
-  builder.py         the author DSL (Grammar, rule/seq/choice/repeat/...,
-                     Ladder, prec*, caller_site/site_of)
-  rules.py           the RULE-CLASS surface (Rule/Pattern/Token/External +
-                     mixins, annotation compilation, assemble/module_rules)
-  patterns.py        the regex-string helpers for __pattern__
-  checks.py          author-time static analysis (run_checks/errors/warnings)
-  conflicts.py       generator conflict output -> per-production DSL sites
-  expressions.py     expression() + semantic_smoke + DEFAULT_PRECEDENCE_CORPUS
-  corpus.py          Corpus/corpus_case + renderers + snapshots
-  pipeline.py        build/build_builder/build_loop, write_bundle,
-                     build_from_source_dir, caching, errors
-  language.py        load_language / parse (the thin load wrapper)
-  scanners/          the scanner library (five .c seeds + the table)
+  ir.py builder.py rules.py checks.py conflicts.py expressions.py
+  corpus.py pipeline.py schema_tool.py scanners/
 tests/
-  conftest.py        src-first resolution + the toolchain marker + hermetic
-                     cache isolation
-  test_*.py          per-surface suites; tests/fixtures/ holds the promoted
-                     mini-grammars + consumers + evidence (PROVENANCE.md)
-.scratch/projects/00X-*/      per-phase explorations: FINDINGS.md + evidence/ + probes
+  test_nodes.py test_generate.py test_grammar_nodes.py test_bundle.py
+  test_codecs.py test_raw.py test_direction_roundtrip.py
 ```
 
-## 7a. Structural pattern matching (project 022, the `pattern` extra)
-
-`pydantree_sitter.pattern` answers the two questions the extraction surface
-does not: *where is this shape*, and *change this shape to that*. It wraps
-`ast-grep-py`; it reimplements nothing.
-
-```python
-pat = Pattern("def $NAME($$$ARGS): $$$BODY", language=lang)
-for m in pat.find_all(src):
-    m.span, m.node, m.captures["NAME"], m.captures["ARGS"]
-result = pat.replace_all(src, "def $NAME($$$ARGS) -> None: $$$BODY")
-result.count, result.edits, result.new_source
-```
-
-The division of labour is the whole design: **ast-grep finds, pydantree
-resolves and types**. Two grammar revisions parse the same source — ast-grep's
-vendored one and the wheel pydantree loads — so every byte range ast-grep
-reports is looked up in pydantree's own tree and must match a node EXACTLY, by
-range and by kind. No exact node raises `PatternResolutionError`. There is no
-fallback to the nearest node, because a plausible neighbour makes an
-extraction succeed with a wrong row.
-
-**A pydantree-built grammar is the best-supported case, not the unsupported
-one.** `Language.load_bundle(...).register_astgrep()` hands the bundle's
-`grammar.so` to ast-grep via `register_dynamic_language`. Both engines then
-load the SAME artifact, so there are not two grammars to disagree — the
-agreement record is `verified` with `same_artifact=True` by construction.
-Registration is process-global (ast-grep's design); rebinding a name to a
-different artifact raises.
-
-`Rule` is the point of the module for its consumer (`codeman`, project 024).
-An untrusted model sends a validated Pydantic structure — kinds checked
-against the bound node-schema by name, bounded in depth, width and string
-length — rather than a free pattern string, which is closer to an argument
-vector.
-
-Rewrites are data: `replace_all` returns `Edit` records and the new text, and
-writes no file. Verification runs in three tiers, weakest first:
-
-1. tree-sitter — no NEW parse error. Always. Universal but weak.
-2. **the language's own parser** (`syntax.py`) — the tier that works.
-   tree-sitter's recovery accepts source CPython rejects (durable fact 12).
-3. each edit site is one node — a structural proxy. Cheap and universal, but
-   it over-refuses, so it is the AUTO default only where tier 2 is absent.
-
-The options exist so the tool stays usable at its edges:
-`on_overlap="refuse"|"outermost"|"innermost"`, `reindent=` for multi-line
-templates, `single_node=` to force or forbid tier 3, and `validate=False` for
-a dry run that returns the edits WITH the diagnosis instead of refusing.
-
-`match.py` and `pattern.py` are different things and never import each other.
-In `match.py` a *capture* is an `OutputModel` field binding; in `pattern.py` a
-*metavariable* is a `$NAME`. `PatternMatch.captures` holds metavariables, and
-that is the one place the two vocabularies touch.
-
-Full findings, including the offset conversion and the three places the
-concept did not survive contact: `.scratch/projects/022-astgrep-pattern/`.
-
-`Pattern.find_all_in(node, source)` searches the original document and keeps
-matches whose absolute byte ranges fit inside `node`. It does not reparse a
-fragment. This preserves parent context for relational rules and avoids UTF-8
-offset rebasing.
-
-`Pattern.find_all_rebased(fragment, base_byte=...)` serves a different
-boundary. It parses a source fragment with the Pattern's own language, then
-adds the fragment's absolute UTF-8 byte base to the match and capture spans.
-The returned `PatternMatch.node` remains a node from the fragment parse. A
-caller must use this method when the fragment node came from another parser,
-such as ast-grep Markdown's `inline` node. The caller converts the Markdown
-character start with `char_to_byte_table` before passing it as `base_byte`.
-
-The Markdown pipeline is therefore two-stage: ast-grep's built-in Markdown
-grammar locates block nodes and opaque `inline` child spans, then the bundled
-`obsidian_inline` grammar parses each span through
-`find_all_rebased`. The Markdown parser exposes `inline` as a direct child of
-`paragraph`; list-item and block-quote ownership remains in its ancestor path.
-
-## 8. Durable facts (verified, do not re-derive)
-
-1. tree-sitter CLI **0.25.3**, bindings **0.26.0** (LANGUAGE_VERSION=15,
-   MIN_COMPATIBLE=13), gcc **14.2.1**, pydantic **2.13.4**, Python 3.13.
-2. The bundle is one artifact + one loading contract (`pydantree_sitter.loader`
-   + `Language.load_bundle`); `bundle_format` 2 is the current, 1 is
-   accepted.
-3. The `.so` loads via a PyCapsule named `"tree-sitter.Language"`; the
-   export symbol is `tree_sitter_<name>` (recorded in the bundle metadata).
-4. The indentation scanner's canonical cadence: mark_end before the loop,
-   the newline SKIPPED (zero-width NEWLINE), comment-lines count as
-   newlines, EOF flushes DEDENTs, blocks are `INDENT statements DEDENT`.
-5. Two scanner gotchas: mid-whitespace scans; multiple externals valid in
-   one parser state.
-6. Dev flow: no pip, uv only; the devenv manages the venv with `uv sync`
-   (uv workspace in `pyproject.toml`, `--no-install-workspace`) and a
-   `_pydantree_src.pth` resolves both packages straight from `src/` — edits
-   are live immediately; `tests/conftest.py` resolves `src/` first as
-   belt-and-suspenders. `uv lock` after dependency changes.
-7. The schema tracks the INSTALLED CLI's byproduct by construction (the
-   community tool uses the installed CLI's own node-types.json) — a newer
-   CLI can't silently drift from the schema.
-8. Wasm: real artifact + runtime + parse exist (Phase-7 evidence); the
-   verdict is no-go for A's dependency budget — the loader seam raises the
-   clear error.
-9. ast-grep and `tree_sitter_python` agree EXACTLY over
-   `src/pydantree_sitter/` — every node, anonymous included, and every
-   pattern capture (022 Phase 0). Measured at `ast-grep-py` 0.45.3,
-   `tree-sitter-python` 0.25.0, `tree-sitter` 0.26.0;
-   `tests/test_pattern_agreement.py` re-measures it and fails the suite on a
-   bump that breaks it.
-10. `ast_grep_py` reports CHARACTER offsets (`Pos.index`), never byte
-    offsets. Convert at the boundary with `agreement.char_to_byte_table`.
-    Skipping it drops node agreement from 100 % to 0.54 % on this corpus.
-11. `ast_grep_py.SgNode.replace()` does NOT expand metavariables (verified on
-    0.42.0 and 0.45.3), unlike the `ast-grep` CLI. `pattern.py` expands
-    templates itself, and matches the CLI's output byte-for-byte.
-12. **tree-sitter's `has_error` is weaker than the language's own parser.**
-    `def f(a): x = 1\n    return x` carries NO ERROR node — tree-sitter
-    recovers by reparenting `return x` to module level, out of the function —
-    while CPython raises `SyntaxError: unexpected indent`. Over this
-    package's source, `has_error` missed 19 of 19 broken rewrites. Never use
-    it alone as a "the edit is safe" gate. `Pattern._verify_reparse` also
-    requires each edit site to occupy exactly ONE node in the result, which
-    caught 19 of 19 with no false positive over 35 valid rewrites.
-13. Scoped pattern searches filter whole-document ast-grep results by the
-    supplied pydantree node's absolute byte range. Fragment parsing would
-    lose parent context and would require offset rebasing.
-14. The `tree-sitter-yaml` wheel resolves YAML parsing but does not publish a
-    node-types schema. Structural YAML pattern matching works; typed
-    record-mode extraction requires a reviewed schema artifact or bundle.
-15. `ast-grep-py` accepts dynamic-language registrations only in its first
-    process call. Later calls can return without registering the new name.
-    `pattern.py` refuses a second distinct registration and names the
-    subprocess or combined-registration requirement.
-16. `Pattern.find_all_in` is for nodes from the Pattern language's own
-    pydantree parse. Cross-parser fragments use `find_all_rebased`, which adds
-    an explicit absolute UTF-8 byte base to match and capture spans.
-17. ast-grep Markdown emits `inline` as an opaque direct child of
-    `paragraph`. A `list_item` or `block_quote` appears in the ancestor path.
-    Task markers are direct children of `list_item`; ast-grep reports all
-    these ranges as character offsets.
-
-## 9. Where to start reading
-
-1. `../.scratch/projects/002-pydantic-treesitter/CONCEPT.md` — the whole idea
-   (the dated addendum records the 014 decisions).
-2. `src/pydantree_sitter/__init__.py` — Product A's public surface in one view.
-3. `src/pydantree_sitter_grammar/__init__.py` — Product B's public surface.
-4. `src/pydantree_sitter/loader.py` + `src/pydantree_sitter/schema.py` — the seam.
-5. `tests/test_oracles.py` + `tests/oracles/` — the observable-behavior
-   contract across the refactor.
+All commands run inside `devenv shell`. The gates are `pytest -q`,
+`ruff check src tests examples`, and `ty check src`.

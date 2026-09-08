@@ -1,0 +1,12 @@
+[
+  {
+    "name": "add",
+    "return_type": "u32",
+    "line": 1
+  },
+  {
+    "name": "empty",
+    "return_type": null,
+    "line": 5
+  }
+]

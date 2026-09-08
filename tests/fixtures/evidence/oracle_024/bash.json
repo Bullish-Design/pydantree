@@ -1,0 +1,127 @@
+{
+  "real_script.sh": [
+    {
+      "name": "IOS_MIN_OS_VERSION",
+      "value": "16.4",
+      "line": 10
+    },
+    {
+      "name": "MACOS_MIN_OS_VERSION",
+      "value": "13.3",
+      "line": 11
+    },
+    {
+      "name": "VISIONOS_MIN_OS_VERSION",
+      "value": "1.0",
+      "line": 12
+    },
+    {
+      "name": "TVOS_MIN_OS_VERSION",
+      "value": "16.4",
+      "line": 13
+    },
+    {
+      "name": "BUILD_SHARED_LIBS",
+      "value": "OFF",
+      "line": 15
+    },
+    {
+      "name": "LLAMA_BUILD_APP",
+      "value": "OFF",
+      "line": 16
+    },
+    {
+      "name": "LLAMA_BUILD_COMMON",
+      "value": "OFF",
+      "line": 17
+    },
+    {
+      "name": "LLAMA_BUILD_EXAMPLES",
+      "value": "OFF",
+      "line": 18
+    },
+    {
+      "name": "LLAMA_BUILD_TOOLS",
+      "value": "OFF",
+      "line": 19
+    },
+    {
+      "name": "LLAMA_BUILD_TESTS",
+      "value": "OFF",
+      "line": 20
+    },
+    {
+      "name": "LLAMA_BUILD_SERVER",
+      "value": "OFF",
+      "line": 21
+    },
+    {
+      "name": "LLAMA_BUILD_MTMD",
+      "value": "ON",
+      "line": 22
+    },
+    {
+      "name": "GGML_METAL",
+      "value": "ON",
+      "line": 23
+    },
+    {
+      "name": "GGML_METAL_EMBED_LIBRARY",
+      "value": "ON",
+      "line": 24
+    },
+    {
+      "name": "GGML_BLAS_DEFAULT",
+      "value": "ON",
+      "line": 25
+    },
+    {
+      "name": "GGML_METAL_USE_BF16",
+      "value": "ON",
+      "line": 26
+    },
+    {
+      "name": "XCODE_VERSION",
+      "value": "$(xcrun xcodebuild -version 2>/dev/null | head -n1 | awk '{ print $2 }')",
+      "line": 39
+    },
+    {
+      "name": "MAJOR_VERSION",
+      "value": "$(echo $XCODE_VERSION | cut -d. -f1)",
+      "line": 40
+    },
+    {
+      "name": "MINOR_VERSION",
+      "value": "$(echo $XCODE_VERSION | cut -d. -f2)",
+      "line": 41
+    }
+  ],
+  "sample.sh": [
+    {
+      "name": "PREFIX",
+      "value": "\"/usr/local\"",
+      "line": 13
+    },
+    {
+      "name": "DEBUG",
+      "value": "0",
+      "line": 14
+    },
+    {
+      "name": "LOG_LEVEL",
+      "value": "\"info\"",
+      "line": 15
+    },
+    {
+      "name": "INSTALLER_NAME",
+      "value": "\"pydantree-demo\"",
+      "line": 29
+    },
+    {
+      "name": "LOCAL_INSTALL",
+      "value": "yes",
+      "line": 51
+    }
+  ],
+  "unclosed.sh": []
+}

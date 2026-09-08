@@ -33,7 +33,9 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field, PrivateAttr
+from pydantic import BaseModel, Field, PrivateAttr, ValidationError
+
+from .errors import SchemaDataError, SchemaMissingError
 
 # --------------------------------------------------------------------------
 # models — mirror node-types.json's per-type shape
@@ -133,7 +135,7 @@ class NodeSchema(BaseModel):
 
     @classmethod
     def from_node_types_json(cls, path: str | Path, *, name: str | None = None) -> NodeSchema:
-        data = json.loads(Path(path).read_text())
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
         if isinstance(data, dict) and "node_types" in data:  # our serialized form
             return cls.model_validate(data)
         return cls.from_list(data, name=name)
@@ -150,7 +152,7 @@ class NodeSchema(BaseModel):
 
     def write(self, path: str | Path) -> Path:
         path = Path(path)
-        path.write_text(self.to_json())
+        path.write_text(self.to_json(), encoding="utf-8")
         return path
 
     # -- lookups ------------------------------------------------------------
@@ -253,6 +255,55 @@ class NodeSchema(BaseModel):
         return f"NodeSchema({len(self.node_types)} node types, name={self.name!r})"
 
 
+def load_schema(value: NodeSchema | str | Path | list[Any] | tuple[Any, ...], *,
+                name: str | None = None) -> NodeSchema:
+    """Load application-owned schema data with a stable error taxonomy.
+
+    A community wheel does not provide this data. The application must ship
+    the exact ``node-types.json`` beside its code and pass its path here, or
+    pass a validated :class:`NodeSchema`. This helper never invokes Product B
+    or the tree-sitter CLI.
+    """
+    if isinstance(value, NodeSchema):
+        if not value.node_types:
+            raise SchemaDataError("schema data contains zero node types")
+        return value
+    if isinstance(value, (str, Path)):
+        path = Path(value)
+        if not path.is_file():
+            raise SchemaMissingError(
+                f"schema distribution data is missing: {path} "
+                "(vendor node-types.json with the grammar application)")
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            raise SchemaDataError(
+                f"schema distribution data is unreadable or malformed: {path}") from exc
+        try:
+            if isinstance(data, dict) and "node_types" in data:
+                schema = NodeSchema.model_validate(data)
+                if not schema.node_types:
+                    raise SchemaDataError(
+                        "schema data contains zero node types")
+                return schema
+            if not data:
+                raise SchemaDataError("schema data contains zero node types")
+            return NodeSchema.from_list(data, name=name)
+        except (TypeError, ValueError, ValidationError) as exc:
+            raise SchemaDataError(
+                f"schema distribution data is invalid: {path}") from exc
+    if isinstance(value, (list, tuple)):
+        try:
+            if not value:
+                raise SchemaDataError("schema data contains zero node types")
+            return NodeSchema.from_list(value, name=name)
+        except (TypeError, ValueError, ValidationError) as exc:
+            raise SchemaDataError("schema data is invalid") from exc
+    raise SchemaDataError(
+        f"schema must be a NodeSchema, node-types.json path, or list; "
+        f"got {type(value).__name__}")
+
+
 # --------------------------------------------------------------------------
 # derivation path 2 — the community path (sample the CLI byproduct)
 # --------------------------------------------------------------------------
@@ -263,8 +314,8 @@ def derive_from_node_types(node_types_json: Any) -> list[NodeTypeInfo]:
     canonical node-schema list. Aliases/inline are already flattened away;
     supertypes arrive as `subtypes` entries."""
     if isinstance(node_types_json, (str, Path)):
-        node_types_json = json.loads(Path(node_types_json).read_text())
+        node_types_json = json.loads(
+            Path(node_types_json).read_text(encoding="utf-8"))
     if isinstance(node_types_json, dict) and "node_types" in node_types_json:
         node_types_json = node_types_json["node_types"]
     return [NodeTypeInfo.model_validate(t) for t in node_types_json]
-

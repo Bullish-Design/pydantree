@@ -1,0 +1,5 @@
+✨ devenv 2.2.2 is newer than devenv input (1.6.1) in devenv.lock. Run 'devenv update' to sync.
+hello from devenv
+git version 2.49.0
+.                                                                        [100%]
+1 passed in 0.04s

@@ -7,7 +7,12 @@
 
 ## What this project is
 
-_One paragraph: what it does, who uses it, what it is not._
+pydantree provides a light, schema-backed typed-node runtime for tree-sitter
+and a separate heavy grammar-authoring/build package. Product A consumes
+vendored schemas or generated bundles; Product B authors grammars and emits
+those bundles. It is not a general-purpose parser generator beyond the
+tree-sitter boundary or a compatibility layer for the deleted legacy
+extractor API.
 
 ## Working here
 
@@ -16,13 +21,24 @@ devenv shell                     # enter the pinned environment
 repoman-sync                     # verify toolchain + install agent skills
 ```
 
-_Add the build / test / lint commands, and the gate that must be green before a
-PR._
+All commands run inside `devenv shell`:
+
+```bash
+devenv shell -- python -m pytest -q
+devenv shell -- ruff check src tests examples
+devenv shell -- ty check src
+```
+
+The full suite, warnings-as-errors suite, Ruff, ty, documentation snippets,
+and maintained examples must be green before a PR.
 
 ## Where things live
 
-_The two or three directories a newcomer actually needs. Deeper detail belongs in
-`docs/`, not here._
+`src/pydantree_sitter/` contains the typed runtime (`nodes.py`, `grammar.py`,
+`find.py`, `generate.py`, `schema.py`, `raw.py`, and `loader.py`).
+`src/pydantree_sitter_grammar/` contains Product B's rule DSL, checks, pipeline,
+and scanners. `tests/` contains schema fixtures, bundle tests, and the full
+toolchain gates; deeper architecture and workflow detail lives in `docs/`.
 
 ## The standing configuration
 

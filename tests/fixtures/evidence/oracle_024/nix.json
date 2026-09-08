@@ -1,0 +1,10 @@
+[
+  {
+    "value": "[ ./modules/pi-agent.nix ]",
+    "line": 3
+  },
+  {
+    "value": "[\n    pkgs.secretspec\n  ]",
+    "line": 5
+  }
+]

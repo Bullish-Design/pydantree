@@ -1,0 +1,164 @@
+{
+  "root_and_nested": {
+    "equal": true,
+    "rows": [
+      {
+        "content": [
+          {
+            "content": [
+              {}
+            ]
+          },
+          {
+            "name": {},
+            "return_type": {}
+          },
+          {
+            "content": [
+              {
+                "left": {},
+                "right": {}
+              }
+            ]
+          },
+          {
+            "content": [
+              {
+                "left": {},
+                "right": {}
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "walk_rows": [
+      {
+        "content": [
+          {
+            "content": [
+              {}
+            ]
+          },
+          {
+            "name": {},
+            "return_type": {}
+          },
+          {
+            "content": [
+              {
+                "left": {},
+                "right": {}
+              }
+            ]
+          },
+          {
+            "content": [
+              {
+                "left": {},
+                "right": {}
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "query_source": "(module) @__anchor"
+  },
+  "repeated_field_capture": {
+    "equal": true,
+    "rows": [
+      {
+        "left": "answer",
+        "right": "42"
+      },
+      {
+        "left": "flags",
+        "right": "{\"verbose\": True}"
+      }
+    ],
+    "walk_rows": [
+      {
+        "left": "answer",
+        "right": "42"
+      },
+      {
+        "left": "flags",
+        "right": "{\"verbose\": True}"
+      }
+    ],
+    "query_source": "(assignment\n  left: (identifier) @left) @__anchor"
+  },
+  "optional_missing_node": {
+    "equal": true,
+    "rows": [
+      {
+        "name": "greet",
+        "return_type": "str"
+      }
+    ],
+    "walk_rows": [
+      {
+        "name": "greet",
+        "return_type": "str"
+      }
+    ],
+    "query_source": "(function_definition\n  name: (identifier) @name) @__anchor"
+  },
+  "ancestor_context": {
+    "equal": true,
+    "rows": [
+      {}
+    ],
+    "walk_rows": [
+      {}
+    ],
+    "query_source": "(identifier) @__anchor"
+  },
+  "broad_match": {
+    "equal": true,
+    "rows": [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    "walk_rows": [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    "query_source": "(identifier) @__anchor"
+  },
+  "raw_query": {
+    "rows": [
+      {
+        "name": "answer",
+        "value": "42"
+      },
+      {
+        "name": "flags",
+        "value": "{\"verbose\": True}"
+      }
+    ],
+    "query_source": "(module (expression_statement (assignment left: (identifier) @name right: (_) @value)))",
+    "coverage": "current raw-query escape hatch"
+  },
+  "named_and_predicate_constraint": [
+    {
+      "key": "\"alice\"",
+      "value": "1"
+    }
+  ],
+  "query_failures": {
+    "malformed_query": "QueryBuildError",
+    "incompatible_query": "SchemaCheckError"
+  }
+}

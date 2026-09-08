@@ -18,8 +18,8 @@ The module is pure Pydantic. It imports no engine, and `ast_grep_py` need not
 be installed to build or validate a rule.
 
 Vocabulary (022 §5). A `metavariable` is a `$NAME` inside a pattern string.
-It is NOT a `capture`, which in this repository means an `OutputModel` field
-binding. The two words never swap.
+It belongs only to the structural-pattern layer and is separate from typed
+node fields.
 """
 
 from __future__ import annotations
@@ -49,13 +49,23 @@ MAX_RULE_DEPTH = 8          # nesting levels; 8 is generous for real rules
 MAX_RULE_NODES = 64         # total Rule objects in one tree
 MAX_PATTERN_LENGTH = 4096   # characters in one `pattern` or `regex` string
 
-# ast-grep's metavariable spelling: `$NAME` binds one node, `$$$NAME` binds a
-# sequence. Only UPPER_SNAKE names capture. `$_NAME` is non-capturing and
-# `$$` is not a metavariable at all, so neither appears in `metavariables()`.
+# ast-grep's default metavariable spelling: `$NAME` binds one node,
+# `$$$NAME` binds a sequence. The grammar may configure another one-character
+# sigil, so compile this expression at the boundary that knows the grammar.
 _METAVAR = re.compile(r"\$(\$\$)?([A-Z_][A-Z0-9_]*)")
 
 
-def metavariables_of(pattern: str) -> frozenset[str]:
+def _metavar_pattern(meta_var_char: str = "$") -> re.Pattern:
+    if not isinstance(meta_var_char, str) or len(meta_var_char) != 1:
+        raise ValueError(
+            f"meta_var_char must be one character, got {meta_var_char!r}")
+    escaped = re.escape(meta_var_char)
+    return re.compile(
+        rf"{escaped}({escaped}{{2}})?([A-Z_][A-Z0-9_]*)")
+
+
+def metavariables_of(pattern: str, meta_var_char: str = "$") \
+        -> frozenset[str]:
     """The capturing metavariable names in one pattern string.
 
     Names come back WITHOUT their `$` sigils, and a `$$$ARGS` multi-match
@@ -68,7 +78,7 @@ def metavariables_of(pattern: str) -> frozenset[str]:
     error rather than a match.
     """
     return frozenset(
-        name for _multi, name in _METAVAR.findall(pattern)
+        name for _multi, name in _metavar_pattern(meta_var_char).findall(pattern)
         if not name.startswith("_")
     )
 
@@ -261,7 +271,7 @@ class Rule(BaseModel):
             out |= child.kinds_used()
         return frozenset(out)
 
-    def metavariables(self) -> frozenset[str]:
+    def metavariables(self, meta_var_char: str = "$") -> frozenset[str]:
         """Every capturing metavariable bound anywhere in this rule tree.
 
         `codeman` uses this to verify that a replacement template names only
@@ -275,9 +285,9 @@ class Rule(BaseModel):
         """
         out: set[str] = set()
         if self.pattern is not None:
-            out |= metavariables_of(self.pattern)
+            out |= metavariables_of(self.pattern, meta_var_char)
         for child in self._children():
-            out |= child.metavariables()
+            out |= child.metavariables(meta_var_char)
         return frozenset(out)
 
     # -- emission -----------------------------------------------------------

@@ -1,0 +1,392 @@
+{
+ "environment": {},
+ "parse": [
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "nodes": 341,
+   "n": 30,
+   "min_ms": 0.2774,
+   "median_ms": 0.2868,
+   "mean_ms": 0.3315,
+   "p90_ms": 0.4377,
+   "max_ms": 0.4451,
+   "stdev_ms": 0.0688
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "nodes": 8646,
+   "n": 15,
+   "min_ms": 4.1412,
+   "median_ms": 5.4381,
+   "mean_ms": 5.9976,
+   "p90_ms": 7.4439,
+   "max_ms": 13.1925,
+   "stdev_ms": 2.2728
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "nodes": 78826,
+   "n": 7,
+   "min_ms": 48.6183,
+   "median_ms": 51.6652,
+   "mean_ms": 53.4534,
+   "p90_ms": 60.8944,
+   "max_ms": 60.8944,
+   "stdev_ms": 4.3796
+  }
+ ],
+ "anchors": [
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 1,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1099,
+    "median_ms": 0.1153,
+    "mean_ms": 0.1243,
+    "p90_ms": 0.1468,
+    "max_ms": 0.2359,
+    "stdev_ms": 0.0302
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1257,
+    "median_ms": 0.1388,
+    "mean_ms": 0.1805,
+    "p90_ms": 0.2652,
+    "max_ms": 0.2721,
+    "stdev_ms": 0.0598
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 9,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.4153,
+    "median_ms": 1.544,
+    "mean_ms": 2.0869,
+    "p90_ms": 3.481,
+    "max_ms": 4.1016,
+    "stdev_ms": 0.9155
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.6451,
+    "median_ms": 1.7028,
+    "mean_ms": 1.9202,
+    "p90_ms": 2.5249,
+    "max_ms": 2.9753,
+    "stdev_ms": 0.4117
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 14,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 15.3133,
+    "median_ms": 20.5434,
+    "mean_ms": 21.3647,
+    "p90_ms": 26.4662,
+    "max_ms": 26.4662,
+    "stdev_ms": 4.359
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 14.4697,
+    "median_ms": 15.9776,
+    "mean_ms": 20.3813,
+    "p90_ms": 34.491,
+    "max_ms": 34.491,
+    "stdev_ms": 8.2
+   }
+  }
+ ],
+ "rows": [
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 1,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.38,
+    "median_ms": 0.4107,
+    "mean_ms": 0.4851,
+    "p90_ms": 0.7452,
+    "max_ms": 0.7739,
+    "stdev_ms": 0.1357
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 15.9003,
+    "median_ms": 17.7706,
+    "mean_ms": 19.3257,
+    "p90_ms": 24.5358,
+    "max_ms": 27.9184,
+    "stdev_ms": 3.4988
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.2808,
+    "median_ms": 0.2944,
+    "mean_ms": 0.3393,
+    "p90_ms": 0.5062,
+    "max_ms": 0.6032,
+    "stdev_ms": 0.088
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 9,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 3.0359,
+    "median_ms": 3.1675,
+    "mean_ms": 3.7465,
+    "p90_ms": 5.6864,
+    "max_ms": 7.5241,
+    "stdev_ms": 1.2512
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 135.2906,
+    "median_ms": 154.3396,
+    "mean_ms": 158.6604,
+    "p90_ms": 184.0995,
+    "max_ms": 192.4044,
+    "stdev_ms": 19.8061
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 2.4228,
+    "median_ms": 2.6382,
+    "mean_ms": 3.5147,
+    "p90_ms": 6.4245,
+    "max_ms": 7.7847,
+    "stdev_ms": 1.6452
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 14,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 20.4474,
+    "median_ms": 24.6929,
+    "mean_ms": 24.8602,
+    "p90_ms": 31.8352,
+    "max_ms": 31.8352,
+    "stdev_ms": 4.2449
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 3889.7297,
+    "median_ms": 3941.5303,
+    "mean_ms": 3993.7869,
+    "p90_ms": 4354.5936,
+    "max_ms": 4354.5936,
+    "stdev_ms": 164.174
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 16.0111,
+    "median_ms": 16.2456,
+    "mean_ms": 16.3571,
+    "p90_ms": 16.8429,
+    "max_ms": 16.8429,
+    "stdev_ms": 0.3476
+   }
+  }
+ ],
+ "repeat_scaling": [
+  {
+   "language": "python",
+   "tier": "medium",
+   "classes": 1,
+   "rounds": 1,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 1.4903,
+    "median_ms": 1.5246,
+    "mean_ms": 1.7687,
+    "p90_ms": 2.396,
+    "max_ms": 2.396,
+    "stdev_ms": 0.3935
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 1.698,
+    "median_ms": 1.7829,
+    "mean_ms": 2.2215,
+    "p90_ms": 3.2608,
+    "max_ms": 3.2608,
+    "stdev_ms": 0.6848
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "classes": 1,
+   "rounds": 10,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 12.745,
+    "median_ms": 12.9466,
+    "mean_ms": 13.281,
+    "p90_ms": 14.6173,
+    "max_ms": 14.6173,
+    "stdev_ms": 0.7805
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 15.214,
+    "median_ms": 18.8313,
+    "mean_ms": 19.0399,
+    "p90_ms": 24.3057,
+    "max_ms": 24.3057,
+    "stdev_ms": 3.3153
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "classes": 1,
+   "rounds": 50,
+   "recwalk": {
+    "n": 3,
+    "min_ms": 64.6078,
+    "median_ms": 85.7869,
+    "mean_ms": 84.3372,
+    "p90_ms": 102.6171,
+    "max_ms": 102.6171,
+    "stdev_ms": 19.046
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 78.5717,
+    "median_ms": 83.7644,
+    "mean_ms": 86.5568,
+    "p90_ms": 97.3342,
+    "max_ms": 97.3342,
+    "stdev_ms": 9.6879
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "classes": 1,
+   "rounds": 1,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 12.982,
+    "median_ms": 13.0882,
+    "mean_ms": 13.115,
+    "p90_ms": 13.336,
+    "max_ms": 13.336,
+    "stdev_ms": 0.1448
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 14.5921,
+    "median_ms": 15.1786,
+    "mean_ms": 16.2095,
+    "p90_ms": 21.4197,
+    "max_ms": 21.4197,
+    "stdev_ms": 2.9286
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "classes": 1,
+   "rounds": 10,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 128.744,
+    "median_ms": 130.6723,
+    "mean_ms": 130.3599,
+    "p90_ms": 132.0849,
+    "max_ms": 132.0849,
+    "stdev_ms": 1.4277
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 142.5814,
+    "median_ms": 145.5838,
+    "mean_ms": 146.23,
+    "p90_ms": 151.9484,
+    "max_ms": 151.9484,
+    "stdev_ms": 3.7606
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "classes": 1,
+   "rounds": 50,
+   "recwalk": {
+    "n": 3,
+    "min_ms": 671.6085,
+    "median_ms": 680.4387,
+    "mean_ms": 678.5644,
+    "p90_ms": 683.6458,
+    "max_ms": 683.6458,
+    "stdev_ms": 6.2337
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 759.5299,
+    "median_ms": 778.747,
+    "mean_ms": 776.9995,
+    "p90_ms": 792.7216,
+    "max_ms": 792.7216,
+    "stdev_ms": 16.6647
+   }
+  }
+ ],
+ "memory": [
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 9,
+   "recwalk_peak_kib": 4.0,
+   "cursor_peak_kib": 3.5,
+   "find_in_lazy_peak_kib": 32.6,
+   "fully_materialized_peak_kib": 1774.1,
+   "cursor_rows_peak_kib": 29.5
+  }
+ ]
+}

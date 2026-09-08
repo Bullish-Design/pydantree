@@ -49,7 +49,7 @@ devenv shell -- python -m pytest tests/test_wasm.py -q
   pydantic 2.13.4. The CLI needs a `tree-sitter.json` with
   `{"metadata": {"version": "0.1.0"}}` for ABI 15.
 - The bundle = grammar.so + node-schema.json + tree-sitter.json + loader.py;
-  `Language.load_bundle(dir)` is the one-line consumer.
+  `Grammar.load_bundle(dir)` is the one-line typed consumer.
 - The pipeline cache (`~/.cache/pydantree_sitter_grammar`, or `PYDANTREE_SITTER_CACHE`) content-
   addresses grammar.json + scanner.c + toolchain. A stale cache is a classic
   "my fix doesn't work" gotcha — use a fresh `cache_dir=` when iterating.

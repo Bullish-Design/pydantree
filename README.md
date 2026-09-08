@@ -1,92 +1,53 @@
 # pydantree-sitter
 
-Treesitter, but more Pydantic.
+Typed tree-sitter nodes with Pydantic validation.
 
-Two cooperating distributions over tree-sitter (the 014 refactor: the
-collision-proof `pydantree-sitter` names; the old tscore/tsquery/tsgrammar
-split is folded into two packages):
+The schema is the type system. Vendor the grammar's `node-types.json`, generate
+the node universe once, then narrow generated classes with ordinary annotations:
 
-- **`pydantree-sitter`** (import `pydantree_sitter`) — Product A: declare an
-  `OutputModel` (**the model IS the query**: field names, types, defaults,
-  and a one-line `__match__` path) and get typed extraction over any grammar.
-  Bind a node-schema or bundle for schema-checked extraction; a bare grammar
-  uses intentional wildcard queries and warns that grammar checks are
-  unavailable. No `.scm`, no query DSL, no manual coercion. Light: no
-  toolchain.
-- **`pydantree-sitter-grammar`** (import `pydantree_sitter_grammar`) —
-  Product B: author a tree-sitter grammar as a composable Pydantic DSL that
-  compiles to `grammar.json` → parser → a shippable bundle. Heavy: needs the
-  tree-sitter CLI + gcc at build time.
-
-```python
-from pydantree_sitter import Language, M, NodeKind, OutputModel, capture
-import tree_sitter_rust
-
-class RustFn(OutputModel):
-    __match__ = M("source_file", "function_item")
-    name: str = capture("name")
-    return_type: str | None = capture("return_type")
-
-lang = Language.from_module(tree_sitter_rust)
-rows = lang.extractor(RustFn).extract(rs_source)     # wildcard; warns
-rows = RustFn.extract(rs_source, language=lang)      # sugar
-# Pass schema=... or use Language.load_bundle(...) to enable bind-time checks.
+```console
+python -m pydantree_sitter.generate \
+  --schema vendor/python-node-types.json \
+  --language tree_sitter_python \
+  --out mylang/python.py
 ```
 
-The node-schema bridge is the differentiator: when a node-schema or bundle is
-bound, model↔grammar and capture↔type checks run at **bind time** — before any
-text is parsed. Schema-less bindings remain available for intentional
-wildcard extraction and emit a warning instead of claiming those checks ran.
+```python
+import mylang.python as py
 
-## The honesty statements (014 §8.2)
 
-- **A's expressiveness ceiling (C1):** `M()` expresses an *anchored ancestor
-  path* (with `...` gaps and per-step alternation), direct-child captures,
-  and predicates (`Matches`/`Eq`/`AnyOf`). Sibling order, negation, and
-  multi-anchor joins are **out of scope** — `__raw_query__ = RawQuery('...')`
-  is the escape hatch: a literal `.scm` whose captures map to fields by
-  name. The hatch keeps SOME of the differentiator (REVIEW 018 §4.1b):
-  capture names are checked for existence, and explicit
-  `capture('field')`/`capture_kind('kind')` keys get the capture↔type
-  schema checks too (schema-wide — a raw query can't pin the anchor kind).
-- **Value shapes are declared data (C2):** record-mode value shapes come
-  from a reviewed `ValueMap`; field-mode draft inference is warned when no map is supplied. `propose_value_map`
-  is a **draft generator** whose output you inspect and commit (or ship in a
-  bundle's `value_map` metadata). Schema-less record mode is the documented
-  JSON family + `JSON_VALUE_MAP`, exactly.
+class Function(py.FunctionDefinition):
+    name: str
+    return_type: str | None
+
+
+for function in py.grammar.parse(source).find(Function):
+    print(function.name, function.return_type, function.span.line)
+```
+
+`Grammar.load(language, schema)` builds the same namespace in memory. A schema
+is required: it supplies the checked node universe and lets generated modules
+detect language drift. `list[Child]` means repeated children, nested node
+subclasses resolve recursively, and `dict[str, V]` is the unambiguous
+key/value projection. Ancestor context uses `__under__`.
+
+Value decoding belongs on `Node.__value__`. Use
+`pydantree_sitter.codecs.JsonString` for JSON strings or provide codec mixins
+with `--codecs`. `--suggest-codecs` prints reviewable stubs and writes nothing.
+
+Product B, `pydantree-sitter-grammar`, authors the same node declarations
+forward into a tree-sitter grammar. Its `Rule` classes share Product A's
+annotation grammar and metaclass.
 
 ## Documentation
 
-- **Users** (build your own project on top): [docs/user-guide.md](docs/user-guide.md)
-- **Developers** (work on this codebase):
-  [docs/architecture.md](docs/architecture.md),
-  [docs/development.md](docs/development.md)
-- **The scanner library** (the C escape hatch): [docs/scanner-library.md](docs/scanner-library.md)
-- **Coding agents**: `.agents/skills/` ships Agent-Skills-standard skills
-  (`pydantree-dev`, `pydantree-grammar`, `pydantree-extraction`,
-  `pydantree-scanners`) that load automatically into pi and other harnesses.
-- The authoritative concept: `.scratch/projects/002-pydantic-treesitter/CONCEPT.md`.
-  Per-phase verdicts: `.scratch/projects/00X-*/FINDINGS.md` (see docs/README.md).
-- **Examples** (run them to see each step live):
-  - `examples/wheel-extract/` — Product A over a community WHEEL, **no
-    toolchain**, with a committed per-step transcript oracle
-    (`transcript.txt`, byte-verified by `tests/test_wheel_example.py`).
-  - `examples/bash-extract/`, `examples/devenv-extract/` — A over real
-    grammar sources (need the CLI+gcc at build time).
-  - `examples/devenv-subset/` — B authors a grammar + scanner, builds a
-    bundle, A consumes it (the whole pipeline in one example).
+- [Typed node universe](docs/typed-node-universe.md)
+- [Filter semantics](docs/filter-semantics.md)
+- [Architecture](docs/architecture.md)
+- [Development](docs/development.md)
+- [Scanner library](docs/scanner-library.md)
+- [Agent skills](.agents/skills/)
 
-## Quick facts
-
-- Install A (consumption, light): `uv pip install pydantree-sitter`
-  (+ community grammar wheels).
-- Install B (authoring, heavy): `uv pip install pydantree-sitter-grammar`
-  (depends on the light package).
-- The schema IS the CLI's `node-types.json` byproduct, tracked by
-  construction (the hand-port of node_types.rs is deleted).
-- A never imports B: `import pydantree_sitter_grammar` fails in a light
-  install by design.
-- Dev environment: `devenv shell`; `uv sync` manages the venv (uv workspace,
-  no pip); the venv resolves `src/` via a `_pydantree_src.pth`, so edits are
-  live immediately (no stale-copy reinstall). Run `python -m pytest -q` for
-  the current suite result; the fast loop is `-m "not slow"` (~24s).
+The light package does not require the grammar-authoring toolchain. The
+development environment is `devenv shell`; run `pytest -q -m 'not slow'` for the
+fast gate, `ruff check src tests`, and `ty check src`.

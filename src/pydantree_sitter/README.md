@@ -1,26 +1,17 @@
 # pydantree_sitter
 
-Product A — model-only typed extraction over tree-sitter grammars. Light
-runtime: pydantree_sitter + the C runtime binding; no Rust CLI, no compiler
-(CONCEPT §8).
+The light package consumes a vendored tree-sitter schema as a typed node
+universe. Generate a module or build one in memory, then parse and traverse:
 
 ```python
-from pydantree_sitter import M, NodeKind, OutputModel, capture, source_meta
-import tree_sitter_python
+from pydantree_sitter import Grammar
+from pydantree_sitter.schema import NodeSchema
 
-class Assignment(OutputModel):
-    __match__ = M("module", "expression_statement", "assignment")
-    name: str = capture("left")
-    value: Annotated[int, NodeKind("integer")] = capture("right")
-    line: int = source_meta()
-
-rows = Assignment.extract(text, language=tree_sitter_python)
+schema = NodeSchema.from_node_types_json("vendor/node-types.json")
+grammar = Grammar.load(language, schema)
+rows = grammar.parse(source).find(grammar.nodes.FunctionDefinition)
 ```
 
-The `OutputModel` class IS the query. With a bound node-schema
-(`Language.load_bundle(dir)` or `Language.load(lang, schema=...)`),
-`validate_with` runs the model↔grammar and capture↔type checks before any
-text is parsed.
-
-See [docs/user-guide.md](../../docs/user-guide.md) §2 (users) and
-[docs/architecture.md](../../docs/architecture.md) (the bridge).
+Every schema-backed node has a `Span`; scalar decoding is supplied by the
+node's `__value__` codec. `Grammar.load_bundle()` consumes the five-file
+artifact emitted by Product B without importing the heavy package.

@@ -1,9 +1,9 @@
 """pydantree_sitter.loader — the shared artifact-loading contract (CONCEPT §8, Phase 5).
 
 The ONE place a compiled grammar ``.so`` becomes a ``tree_sitter.Language``.
-Both Product B (``pydantree_sitter_grammar.language``) and Product A (``pydantree_sitter.Language``)
-load through here, and a packaged bundle's ``loader.py`` delegates here — so a
-consumer who never imports pydantree_sitter_grammar gets the identical loading path.
+Product B's build result and Product A's `Grammar` load through here, and a
+packaged `loader.py` delegates here — so a consumer who never imports the
+heavy package gets the identical loading path.
 
 Loading uses the PyCapsule path (Phase-0 verified): the .so exports
 ``tree_sitter_<name>()``; we wrap the returned pointer in a PyCapsule named
@@ -71,8 +71,8 @@ def load_grammar_so(so_path: Path | str, grammar_name: str | None = None):
     name = grammar_name or so_path.stem
     fd, snapshot = tempfile.mkstemp(prefix=f"pydantree-{name}-", suffix=".so")
     try:
-        with os.fdopen(fd, "wb") as fh:
-            shutil.copyfileobj(so_path.open("rb"), fh)
+        with os.fdopen(fd, "wb") as fh, so_path.open("rb") as source:
+            shutil.copyfileobj(source, fh)
         lib = ctypes.CDLL(snapshot)
     except Exception:
         try:

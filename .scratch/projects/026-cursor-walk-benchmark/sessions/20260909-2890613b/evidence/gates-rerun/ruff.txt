@@ -1,0 +1,77 @@
+E402 Module level import not at top of file
+  --> tests/fixtures/bfree/consumer_env/sitecustomize.py:44:1
+   |
+43 | # keep a record for the experiment's evidence
+44 | import site
+   | ^^^^^^^^^^^
+45 |
+46 | try:
+   |
+
+E402 Module level import not at top of file
+  --> tests/test_corpus.py:31:1
+   |
+29 |   pytestmark = pytest.mark.toolchain
+30 |
+31 | / from qfilter_corpus import (
+32 | |     EXPR_CASES,
+33 | |     expression_corpus,
+34 | |     statement_corpus,
+35 | | )
+   | |_^
+36 |
+37 |   GOOD_LADDER = ("or", "and", "not", "compare", "add", "mul", "unary", "pow",
+   |
+
+E741 Ambiguous variable name: `l`
+  --> tests/test_packaging.py:65:47
+   |
+63 |         meta = z.read(next(n for n in z.namelist()
+64 |                            if n.endswith("METADATA"))).decode()
+65 |     return [l.split("Requires-Dist: ")[1] for l in meta.splitlines()
+   |                                               ^
+66 |             if l.startswith("Requires-Dist:") and "extra" not in l]
+   |
+
+E402 Module level import not at top of file
+  --> tests/test_scanners.py:22:1
+   |
+22 | import pymini
+   | ^^^^^^^^^^^^^
+   |
+
+E402 Module level import not at top of file
+   --> tests/test_scanners.py:114:1
+    |
+112 | # ---------------------------------------------------------------------------
+113 |
+114 | import dmini
+    | ^^^^^^^^^^^^
+115 | import hmini
+    |
+
+E402 Module level import not at top of file
+   --> tests/test_scanners.py:115:1
+    |
+114 | import dmini
+115 | import hmini
+    | ^^^^^^^^^^^^
+    |
+
+E402 Module level import not at top of file
+   --> tests/test_scanners.py:196:1
+    |
+196 | import bashmini
+    | ^^^^^^^^^^^^^^^
+197 | import pyindent
+    |
+
+E402 Module level import not at top of file
+   --> tests/test_scanners.py:197:1
+    |
+196 | import bashmini
+197 | import pyindent
+    | ^^^^^^^^^^^^^^^
+    |
+
+Found 8 errors.

@@ -124,7 +124,8 @@ def derive_schema_for_dir(grammar_dir: Path | str, *,
 
 
 def build_community_bundle(grammar_dir: Path | str, out: Path | str, *,
-                           name: str | None = None) -> Path:
+                           name: str | None = None,
+                           meta_var_char: str = "$") -> Path:
     """Phase 6 (Run 2): a REAL community grammar source -> a shippable
     bundle, the same 4-file layout B's own pipeline produces (D10: this
     delegates to the pipeline's `build_from_source_dir` + the ONE bundle
@@ -137,11 +138,11 @@ def build_community_bundle(grammar_dir: Path | str, out: Path | str, *,
         tree-sitter.json  bundle metadata (name = the .so export symbol)
         loader.py         the B-free shim over pydantree_sitter.loader
 
-    Consumed B-free with `Language.load_bundle(dir)`. Returns the bundle dir.
+    Consumed B-free with `Grammar.load_bundle(dir)`. Returns the bundle dir.
     """
     from .pipeline import build_from_source_dir, write_bundle
     result = build_from_source_dir(grammar_dir, name=name)
-    return write_bundle(result, out)
+    return write_bundle(result, out, meta_var_char=meta_var_char)
 
 
 def main(argv: list[str] | None = None) -> int:

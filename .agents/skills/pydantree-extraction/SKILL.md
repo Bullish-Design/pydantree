@@ -1,99 +1,73 @@
 ---
 name: pydantree-extraction
-description: Extract typed data from text with pydantree_sitter (Product A) — OutputModel declarations, captures (field/kind/record/optional/list/descendant), predicates and markers, schema binding and validate_with, bundles, community grammars, stubs, and the error surface. Use when consuming a grammar with pydantree in your own project.
+description: Consume schema-backed typed node universes with pydantree_sitter. Use for generated nodes, Pydantic narrowing, codecs, ancestor context, projections, Grammar, bundles, and the remaining raw-query escape hatch.
 ---
 
-# pydantree — typed extraction (pydantree_sitter, Product A)
+# pydantree extraction
 
-Declare an `OutputModel` — **the model IS the query** — and get
-schema-checked, typed rows over any tree-sitter grammar. Full reference:
-`../../docs/user-guide.md` §2.
+The 0.3 API has one syntax noun: `Node`. Vendor the grammar's
+`node-types.json`, generate a module, and narrow its classes:
 
-## The model
-
-```python
-from typing import Annotated
-from pydantree_sitter import M, Matches, NodeKind, OutputModel, capture, source_meta
-import tree_sitter_python
-
-class Assignment(OutputModel):
-    __match__ = M("module", "expression_statement", "assignment")
-    name: Annotated[str, Matches(r"^[A-Z][A-Z_]*$")] = capture("left")
-    value: Annotated[int, NodeKind("integer")] = capture("right")
-    line: int = source_meta()
-
-rows = Assignment.extract(source_text, language=tree_sitter_python)
+```console
+python -m pydantree_sitter.generate \
+  --schema vendor/node-types.json \
+  --language tree_sitter_python \
+  --out mylang/python.py
 ```
 
-## The capture surface
-
-| pattern | meaning |
-|---|---|
-| `= capture("f")` | bind to CST field `f` (no-arg: attr name IS the field) |
-| `= capture_kind("code_span")` | bind to a CHILD BY NODE KIND (positional-children grammars like markdown) |
-| `= source_meta()` | anchor line (`int`) or byte span (`Span`) |
-| `list[T] = capture("f")` | field-mode LIST (repeated field on the anchor, merged) |
-| `str \| None = capture("f")` | OPTIONAL capture — matches without the field materialize None |
-| `Annotated[..., NodeKind(...)]` | constrain the node kind (tuple = alternation) |
-| `Annotated[str, Unescaped()]` | decode string-literal escapes |
-| nested `OutputModel` field | materialize a nested node with the inner model |
-| `M("module", ..., "call")` | descendant `"..."` matches any depth |
-
-## Record mode (key/value documents)
-
 ```python
-class ServerSection(OutputModel):
-    __match__ = M("source_file", "section", record=True)
-    host: str
-    port: int
-    debug: bool = False
-    line: int = source_meta()
+import mylang.python as py
+
+
+class Assignment(py.Assignment):
+    left: str
+    right: py.Expression
+
+
+rows = py.grammar.parse(source).find(Assignment)
 ```
 
-The record node is the anchor; attr names (or `capture("key")`) are the
-record keys; the value shapes are DERIVED from the grammar's schema; a
-predicate field that doesn't match filters the whole record.
+Use `Grammar.load(language, schema)` for an in-memory namespace or
+`Grammar.load_bundle(directory)` for a generated bundle. A schema is required;
+it is the checked type universe. Generated modules carry a language fingerprint
+and reject drift with `SchemaDriftError`.
 
-## Schemas: check BEFORE parsing
+## Declarations
 
-```python
-from pydantree_sitter import Language
-lang = Language.load_bundle("dist/cfg-bundle")   # one call, checks bound
-ext = lang.extractor(ServerSection)              # ALL checks run here, once
-rows = ext.extract(text)
+- `x: SomeNode` resolves the CST field `x` to a nested node.
+- `x: list[SomeNode]` resolves repeated children.
+- `x: SomeNode | None` resolves an optional child.
+- `content: ...` addresses unnamed children.
+- `dict[str, V]` is sugar for one unambiguous key/value pair child.
+- `__under__ = (py.Module, ..., py.FunctionDefinition)` adds rare ancestor
+  context; the class's base kind remains the anchor.
+- Pydantic validates narrowed scalar annotations after resolution.
 
-# bare community wheel + explicit schema:
-lang = Language.load(tree_sitter_rust.language(), schema="node-schema.json")
+Value decoding belongs on the node class. Override `__value__`, use
+`pydantree_sitter.codecs.JsonString`, or pass a codec override module to the
+generator with `--codecs`. `--suggest-codecs` prints stubs only; it writes no
+metadata and is not part of the package root API.
+
+`__raw_query__` remains the isolated escape hatch for sibling order, negation,
+and multi-anchor joins. Keep it local and prefer typed fields for ordinary
+extraction.
+
+## Product B
+
+`pydantree_sitter_grammar.Rule` subclasses share the same annotation grammar and
+`NodeMeta`. `Rule.to_ir()` is the forward direction; generated `Node` classes
+are the reverse direction. The round-trip test is
+`tests/test_direction_roundtrip.py`.
+
+## Evidence and gates
+
+Run commands inside `devenv shell`. The fast gate is:
+
+```console
+pytest -q -m 'not slow'
+ruff check src tests
+ty check src
 ```
 
-The compiled state lives on the Language INSTANCE keyed by (model, strict)
-— no class-level caches, no global registry (D5); a model bound against a
-second language re-checks. Record mode over a non-JSON grammar needs a
-ValueMap (`propose_value_map` draft or a bundle `value_map` entry);
-schema-less record mode is the documented JSON family + `JSON_VALUE_MAP`.
-
-## Other A surface
-
-- `lang.parse(src)` / `lang.reparse(old_tree, new)` — parse + incremental.
-- `OutputModel.extract_tree(tree, ...)` — parse once, extract many models.
-- `OutputModel.compiled_source(...)` — the derived .scm (diagnostics).
-- Typed CST codegen (D7): `generate_typed_api(lang.schema, "mylang_api")` —
-  REAL runtime classes (the `.pyi` fiction is deleted).
-
-## Errors
-
-`ExtractionError` (one `MatchFailure` per failed match: pattern, span,
-snippet, pydantic errors), `SchemaCheckError` / `ShapeError` /
-`QueryBuildError` (at bind, before parsing), `AmbiguousCaptureError`,
-`BundleError`, and `WasmRuntimeUnavailableError` for a `.wasm` bundle (the
-seam raises unconditionally — see ../../docs/architecture.md §3.1).
-
-## Facts that matter
-
-- Community grammars ship no schema — derive one from the grammar source
-  with `pydantree_sitter_grammar.pipeline.build_from_source_dir` (B-side) or
-  bind none (schema-less path).
-- `tree-sitter>=0.26` is the floor (0.26-only APIs are used).
-- The light install (`pydantree-sitter`) never
-  imports pydantree_sitter_grammar — `import pydantree_sitter_grammar` fails there by design.
-- Run in your own project with `uv pip install pydantree-sitter`.
+Keep the schema mandatory, and do not recreate the deleted legacy extraction
+surface.

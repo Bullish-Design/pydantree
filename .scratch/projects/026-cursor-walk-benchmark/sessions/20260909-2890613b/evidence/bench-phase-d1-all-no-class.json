@@ -1,0 +1,5044 @@
+{
+ "environment": {},
+ "parse": [
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "nodes": 341,
+   "n": 30,
+   "min_ms": 0.2758,
+   "median_ms": 0.2835,
+   "mean_ms": 0.2906,
+   "p90_ms": 0.2989,
+   "max_ms": 0.4358,
+   "stdev_ms": 0.0281
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "nodes": 8646,
+   "n": 15,
+   "min_ms": 4.1177,
+   "median_ms": 4.2014,
+   "mean_ms": 4.9942,
+   "p90_ms": 5.2372,
+   "max_ms": 13.6101,
+   "stdev_ms": 2.4046
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "nodes": 78826,
+   "n": 7,
+   "min_ms": 45.4986,
+   "median_ms": 47.8396,
+   "mean_ms": 49.3407,
+   "p90_ms": 54.5401,
+   "max_ms": 54.5401,
+   "stdev_ms": 3.2546
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "nodes": 171,
+   "n": 30,
+   "min_ms": 0.1634,
+   "median_ms": 0.1771,
+   "mean_ms": 0.2189,
+   "p90_ms": 0.2514,
+   "max_ms": 1.0646,
+   "stdev_ms": 0.1623
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "nodes": 5636,
+   "n": 15,
+   "min_ms": 2.8709,
+   "median_ms": 2.9797,
+   "mean_ms": 3.134,
+   "p90_ms": 3.6223,
+   "max_ms": 3.6672,
+   "stdev_ms": 0.2992
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "nodes": 17623,
+   "n": 7,
+   "min_ms": 15.9831,
+   "median_ms": 21.605,
+   "mean_ms": 21.1152,
+   "p90_ms": 24.8504,
+   "max_ms": 24.8504,
+   "stdev_ms": 3.4707
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "nodes": 516,
+   "n": 30,
+   "min_ms": 0.439,
+   "median_ms": 0.5083,
+   "mean_ms": 0.6129,
+   "p90_ms": 0.5976,
+   "max_ms": 3.5519,
+   "stdev_ms": 0.5568
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "nodes": 1077,
+   "n": 15,
+   "min_ms": 0.6598,
+   "median_ms": 0.6889,
+   "mean_ms": 0.8599,
+   "p90_ms": 1.4352,
+   "max_ms": 1.5922,
+   "stdev_ms": 0.3025
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "nodes": 29207,
+   "n": 7,
+   "min_ms": 11.5014,
+   "median_ms": 11.5552,
+   "mean_ms": 11.5855,
+   "p90_ms": 11.75,
+   "max_ms": 11.75,
+   "stdev_ms": 0.0876
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "nodes": 1066,
+   "n": 30,
+   "min_ms": 0.4899,
+   "median_ms": 0.5404,
+   "mean_ms": 0.7738,
+   "p90_ms": 0.9085,
+   "max_ms": 4.1418,
+   "stdev_ms": 0.6548
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "nodes": 6798,
+   "n": 15,
+   "min_ms": 3.8011,
+   "median_ms": 4.5623,
+   "mean_ms": 4.6439,
+   "p90_ms": 5.5578,
+   "max_ms": 6.4428,
+   "stdev_ms": 0.7205
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "nodes": 38311,
+   "n": 7,
+   "min_ms": 13.9294,
+   "median_ms": 14.1523,
+   "mean_ms": 14.1977,
+   "p90_ms": 14.6867,
+   "max_ms": 14.6867,
+   "stdev_ms": 0.2423
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "nodes": 164,
+   "n": 30,
+   "min_ms": 0.3275,
+   "median_ms": 0.3496,
+   "mean_ms": 0.3579,
+   "p90_ms": 0.3973,
+   "max_ms": 0.4972,
+   "stdev_ms": 0.0317
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "nodes": 1433,
+   "n": 15,
+   "min_ms": 2.2519,
+   "median_ms": 2.397,
+   "mean_ms": 2.5942,
+   "p90_ms": 3.3114,
+   "max_ms": 3.4341,
+   "stdev_ms": 0.3916
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "nodes": 10229,
+   "n": 7,
+   "min_ms": 14.3537,
+   "median_ms": 14.4863,
+   "mean_ms": 14.5911,
+   "p90_ms": 15.0083,
+   "max_ms": 15.0083,
+   "stdev_ms": 0.2536
+  }
+ ],
+ "anchors": [
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 81,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1191,
+    "median_ms": 0.123,
+    "mean_ms": 0.1331,
+    "p90_ms": 0.139,
+    "max_ms": 0.2588,
+    "stdev_ms": 0.0313
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1424,
+    "median_ms": 0.1481,
+    "mean_ms": 0.162,
+    "p90_ms": 0.278,
+    "max_ms": 0.299,
+    "stdev_ms": 0.0437
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 3,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1089,
+    "median_ms": 0.1131,
+    "mean_ms": 0.1263,
+    "p90_ms": 0.1993,
+    "max_ms": 0.2247,
+    "stdev_ms": 0.0324
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1259,
+    "median_ms": 0.1299,
+    "mean_ms": 0.1428,
+    "p90_ms": 0.2339,
+    "max_ms": 0.2557,
+    "stdev_ms": 0.0358
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 12,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1101,
+    "median_ms": 0.1139,
+    "mean_ms": 0.1219,
+    "p90_ms": 0.1256,
+    "max_ms": 0.2291,
+    "stdev_ms": 0.0247
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1308,
+    "median_ms": 0.1354,
+    "mean_ms": 0.1544,
+    "p90_ms": 0.2626,
+    "max_ms": 0.2743,
+    "stdev_ms": 0.0446
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "string",
+   "class": "String",
+   "matches": 14,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1097,
+    "median_ms": 0.114,
+    "mean_ms": 0.136,
+    "p90_ms": 0.2296,
+    "max_ms": 0.2327,
+    "stdev_ms": 0.0437
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1276,
+    "median_ms": 0.1341,
+    "mean_ms": 0.1572,
+    "p90_ms": 0.2649,
+    "max_ms": 0.2706,
+    "stdev_ms": 0.0458
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 2022,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.6352,
+    "median_ms": 1.7557,
+    "mean_ms": 2.1289,
+    "p90_ms": 3.15,
+    "max_ms": 4.9684,
+    "stdev_ms": 0.8862
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.8837,
+    "median_ms": 2.7168,
+    "mean_ms": 2.938,
+    "p90_ms": 5.117,
+    "max_ms": 5.1173,
+    "stdev_ms": 1.1554
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 45,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.427,
+    "median_ms": 1.4847,
+    "mean_ms": 1.6647,
+    "p90_ms": 2.0174,
+    "max_ms": 3.2547,
+    "stdev_ms": 0.4697
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.6554,
+    "median_ms": 1.7076,
+    "mean_ms": 1.9441,
+    "p90_ms": 2.4023,
+    "max_ms": 4.5882,
+    "stdev_ms": 0.7543
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 186,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.4744,
+    "median_ms": 1.5355,
+    "mean_ms": 1.5381,
+    "p90_ms": 1.6256,
+    "max_ms": 1.6515,
+    "stdev_ms": 0.0488
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.675,
+    "median_ms": 1.7311,
+    "mean_ms": 1.8134,
+    "p90_ms": 1.9295,
+    "max_ms": 2.8813,
+    "stdev_ms": 0.3016
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "string",
+   "class": "String",
+   "matches": 106,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.5033,
+    "median_ms": 1.5335,
+    "mean_ms": 1.9666,
+    "p90_ms": 2.8395,
+    "max_ms": 4.1116,
+    "stdev_ms": 0.7532
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.6839,
+    "median_ms": 1.7147,
+    "mean_ms": 2.0021,
+    "p90_ms": 2.9374,
+    "max_ms": 3.5423,
+    "stdev_ms": 0.5901
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 19161,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 14.2878,
+    "median_ms": 14.5254,
+    "mean_ms": 14.8564,
+    "p90_ms": 15.9004,
+    "max_ms": 15.9004,
+    "stdev_ms": 0.5779
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 16.7961,
+    "median_ms": 17.0961,
+    "mean_ms": 17.8431,
+    "p90_ms": 19.5463,
+    "max_ms": 19.5463,
+    "stdev_ms": 1.1518
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 352,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 12.8957,
+    "median_ms": 13.7131,
+    "mean_ms": 14.1149,
+    "p90_ms": 16.6964,
+    "max_ms": 16.6964,
+    "stdev_ms": 1.3074
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 14.6813,
+    "median_ms": 15.602,
+    "mean_ms": 15.7181,
+    "p90_ms": 17.2052,
+    "max_ms": 17.2052,
+    "stdev_ms": 0.9209
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 1499,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 13.4483,
+    "median_ms": 13.6733,
+    "mean_ms": 13.7181,
+    "p90_ms": 14.2572,
+    "max_ms": 14.2572,
+    "stdev_ms": 0.2622
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 14.9804,
+    "median_ms": 15.4643,
+    "mean_ms": 17.4837,
+    "p90_ms": 28.8614,
+    "max_ms": 28.8614,
+    "stdev_ms": 5.0519
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "string",
+   "class": "String",
+   "matches": 618,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 13.1056,
+    "median_ms": 13.9377,
+    "mean_ms": 15.1796,
+    "p90_ms": 23.4109,
+    "max_ms": 23.4109,
+    "stdev_ms": 3.6935
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 14.6023,
+    "median_ms": 15.4874,
+    "mean_ms": 15.5056,
+    "p90_ms": 16.3148,
+    "max_ms": 16.3148,
+    "stdev_ms": 0.5397
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "command",
+   "class": "Command",
+   "matches": 10,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0817,
+    "median_ms": 0.0847,
+    "mean_ms": 0.0889,
+    "p90_ms": 0.0918,
+    "max_ms": 0.1535,
+    "stdev_ms": 0.0141
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.093,
+    "median_ms": 0.0963,
+    "mean_ms": 0.109,
+    "p90_ms": 0.1618,
+    "max_ms": 0.1713,
+    "stdev_ms": 0.0242
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 6,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0811,
+    "median_ms": 0.0837,
+    "mean_ms": 0.0845,
+    "p90_ms": 0.0885,
+    "max_ms": 0.0933,
+    "stdev_ms": 0.0025
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.0897,
+    "median_ms": 0.0964,
+    "mean_ms": 0.0968,
+    "p90_ms": 0.1009,
+    "max_ms": 0.1128,
+    "stdev_ms": 0.0041
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 0,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0835,
+    "median_ms": 0.0874,
+    "mean_ms": 0.0939,
+    "p90_ms": 0.1346,
+    "max_ms": 0.1428,
+    "stdev_ms": 0.0167
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.0949,
+    "median_ms": 0.0991,
+    "mean_ms": 0.1117,
+    "p90_ms": 0.1574,
+    "max_ms": 0.2374,
+    "stdev_ms": 0.0308
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 3,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.084,
+    "median_ms": 0.0886,
+    "mean_ms": 0.0974,
+    "p90_ms": 0.1491,
+    "max_ms": 0.1513,
+    "stdev_ms": 0.021
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.0942,
+    "median_ms": 0.0991,
+    "mean_ms": 0.1028,
+    "p90_ms": 0.1078,
+    "max_ms": 0.1651,
+    "stdev_ms": 0.0127
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "command",
+   "class": "Command",
+   "matches": 323,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.993,
+    "median_ms": 1.0263,
+    "mean_ms": 1.2202,
+    "p90_ms": 1.8861,
+    "max_ms": 2.3128,
+    "stdev_ms": 0.3938
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.1001,
+    "median_ms": 1.1298,
+    "mean_ms": 1.2349,
+    "p90_ms": 1.5344,
+    "max_ms": 1.9834,
+    "stdev_ms": 0.2398
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 65,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.0267,
+    "median_ms": 1.0431,
+    "mean_ms": 1.1373,
+    "p90_ms": 1.2379,
+    "max_ms": 2.224,
+    "stdev_ms": 0.305
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.1264,
+    "median_ms": 1.1516,
+    "mean_ms": 1.4803,
+    "p90_ms": 2.2905,
+    "max_ms": 4.2642,
+    "stdev_ms": 0.8385
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 29,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.9945,
+    "median_ms": 1.0326,
+    "mean_ms": 1.0868,
+    "p90_ms": 1.0807,
+    "max_ms": 1.8537,
+    "stdev_ms": 0.2139
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.118,
+    "median_ms": 1.1507,
+    "mean_ms": 1.1666,
+    "p90_ms": 1.233,
+    "max_ms": 1.2586,
+    "stdev_ms": 0.0418
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 54,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.0135,
+    "median_ms": 1.0565,
+    "mean_ms": 1.2248,
+    "p90_ms": 1.888,
+    "max_ms": 2.3532,
+    "stdev_ms": 0.3928
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.5448,
+    "median_ms": 2.713,
+    "mean_ms": 3.2896,
+    "p90_ms": 5.8528,
+    "max_ms": 6.567,
+    "stdev_ms": 1.48
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "command",
+   "class": "Command",
+   "matches": 590,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.6351,
+    "median_ms": 6.5894,
+    "mean_ms": 6.766,
+    "p90_ms": 8.4977,
+    "max_ms": 8.4977,
+    "stdev_ms": 1.19
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 6.5178,
+    "median_ms": 6.7268,
+    "mean_ms": 6.8775,
+    "p90_ms": 7.4408,
+    "max_ms": 7.4408,
+    "stdev_ms": 0.3614
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 417,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 2.9129,
+    "median_ms": 3.027,
+    "mean_ms": 5.3961,
+    "p90_ms": 13.977,
+    "max_ms": 13.977,
+    "stdev_ms": 4.3622
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 6.3991,
+    "median_ms": 7.4844,
+    "mean_ms": 8.7156,
+    "p90_ms": 16.474,
+    "max_ms": 16.474,
+    "stdev_ms": 3.4759
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 155,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.8951,
+    "median_ms": 12.642,
+    "mean_ms": 12.7427,
+    "p90_ms": 21.4878,
+    "max_ms": 21.4878,
+    "stdev_ms": 5.6336
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 6.2415,
+    "median_ms": 11.791,
+    "mean_ms": 10.4643,
+    "p90_ms": 13.3636,
+    "max_ms": 13.3636,
+    "stdev_ms": 3.0052
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 102,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 6.0987,
+    "median_ms": 6.3125,
+    "mean_ms": 6.5107,
+    "p90_ms": 7.3894,
+    "max_ms": 7.3894,
+    "stdev_ms": 0.446
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 6.6929,
+    "median_ms": 7.7523,
+    "mean_ms": 7.9575,
+    "p90_ms": 11.3087,
+    "max_ms": 11.3087,
+    "stdev_ms": 1.6102
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 33,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.2299,
+    "median_ms": 0.2724,
+    "mean_ms": 0.3772,
+    "p90_ms": 0.3307,
+    "max_ms": 3.3073,
+    "stdev_ms": 0.5539
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.2658,
+    "median_ms": 0.2941,
+    "mean_ms": 0.317,
+    "p90_ms": 0.4174,
+    "max_ms": 0.4586,
+    "stdev_ms": 0.0538
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 0,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.244,
+    "median_ms": 0.2819,
+    "mean_ms": 0.3061,
+    "p90_ms": 0.392,
+    "max_ms": 0.5224,
+    "stdev_ms": 0.059
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1625,
+    "median_ms": 0.2732,
+    "mean_ms": 0.2874,
+    "p90_ms": 0.4247,
+    "max_ms": 0.8332,
+    "stdev_ms": 0.1297
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 9,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1433,
+    "median_ms": 0.1526,
+    "mean_ms": 0.1894,
+    "p90_ms": 0.309,
+    "max_ms": 0.3219,
+    "stdev_ms": 0.0659
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1624,
+    "median_ms": 0.1675,
+    "mean_ms": 0.1972,
+    "p90_ms": 0.3531,
+    "max_ms": 0.365,
+    "stdev_ms": 0.0649
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 0,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1439,
+    "median_ms": 0.155,
+    "mean_ms": 0.1866,
+    "p90_ms": 0.3084,
+    "max_ms": 0.3118,
+    "stdev_ms": 0.0597
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1559,
+    "median_ms": 0.1666,
+    "mean_ms": 0.1894,
+    "p90_ms": 0.3337,
+    "max_ms": 0.352,
+    "stdev_ms": 0.0593
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 55,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.2562,
+    "median_ms": 0.2723,
+    "mean_ms": 0.3826,
+    "p90_ms": 0.6237,
+    "max_ms": 0.7594,
+    "stdev_ms": 0.1767
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.273,
+    "median_ms": 0.3064,
+    "mean_ms": 0.3639,
+    "p90_ms": 0.614,
+    "max_ms": 0.6972,
+    "stdev_ms": 0.141
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 11,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.2593,
+    "median_ms": 0.2646,
+    "mean_ms": 0.2676,
+    "p90_ms": 0.2835,
+    "max_ms": 0.2879,
+    "stdev_ms": 0.0081
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.2716,
+    "median_ms": 0.2777,
+    "mean_ms": 0.3669,
+    "p90_ms": 0.6889,
+    "max_ms": 0.814,
+    "stdev_ms": 0.1872
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 23,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.2505,
+    "median_ms": 0.2698,
+    "mean_ms": 0.3653,
+    "p90_ms": 0.6147,
+    "max_ms": 0.6191,
+    "stdev_ms": 0.1508
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.2736,
+    "median_ms": 0.2834,
+    "mean_ms": 0.3755,
+    "p90_ms": 0.6789,
+    "max_ms": 0.6889,
+    "stdev_ms": 0.1653
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 0,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.2663,
+    "median_ms": 0.2782,
+    "mean_ms": 0.352,
+    "p90_ms": 0.6187,
+    "max_ms": 0.6201,
+    "stdev_ms": 0.1382
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.2633,
+    "median_ms": 0.2798,
+    "mean_ms": 0.4225,
+    "p90_ms": 0.673,
+    "max_ms": 0.7539,
+    "stdev_ms": 0.192
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 2225,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.3137,
+    "median_ms": 5.4262,
+    "mean_ms": 7.2389,
+    "p90_ms": 18.0943,
+    "max_ms": 18.0943,
+    "stdev_ms": 4.7877
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 5.2373,
+    "median_ms": 5.4858,
+    "mean_ms": 5.7072,
+    "p90_ms": 6.9202,
+    "max_ms": 6.9202,
+    "stdev_ms": 0.5875
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 2014,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.3518,
+    "median_ms": 5.4752,
+    "mean_ms": 5.5595,
+    "p90_ms": 5.9381,
+    "max_ms": 5.9381,
+    "stdev_ms": 0.2264
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 5.17,
+    "median_ms": 5.3337,
+    "mean_ms": 5.288,
+    "p90_ms": 5.4098,
+    "max_ms": 5.4098,
+    "stdev_ms": 0.1078
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 90,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.1138,
+    "median_ms": 5.2472,
+    "mean_ms": 5.7323,
+    "p90_ms": 8.1332,
+    "max_ms": 8.1332,
+    "stdev_ms": 1.0829
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 5.0954,
+    "median_ms": 5.1897,
+    "mean_ms": 5.9905,
+    "p90_ms": 9.812,
+    "max_ms": 9.812,
+    "stdev_ms": 1.7204
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 10,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.315,
+    "median_ms": 5.3704,
+    "mean_ms": 5.9549,
+    "p90_ms": 8.9782,
+    "max_ms": 8.9782,
+    "stdev_ms": 1.3522
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 5.1192,
+    "median_ms": 6.1833,
+    "mean_ms": 6.2264,
+    "p90_ms": 8.5254,
+    "max_ms": 8.5254,
+    "stdev_ms": 1.1324
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 99,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.2417,
+    "median_ms": 0.2544,
+    "mean_ms": 0.3002,
+    "p90_ms": 0.5062,
+    "max_ms": 0.5191,
+    "stdev_ms": 0.096
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.3006,
+    "median_ms": 0.3098,
+    "mean_ms": 0.3504,
+    "p90_ms": 0.4779,
+    "max_ms": 0.7529,
+    "stdev_ms": 0.114
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 5,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.2352,
+    "median_ms": 0.2555,
+    "mean_ms": 0.3132,
+    "p90_ms": 0.4983,
+    "max_ms": 0.5111,
+    "stdev_ms": 0.0995
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.2925,
+    "median_ms": 0.3106,
+    "mean_ms": 0.4517,
+    "p90_ms": 0.6888,
+    "max_ms": 0.701,
+    "stdev_ms": 0.1783
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 2,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.2315,
+    "median_ms": 0.2374,
+    "mean_ms": 0.25,
+    "p90_ms": 0.2626,
+    "max_ms": 0.5057,
+    "stdev_ms": 0.0496
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.2967,
+    "median_ms": 0.3046,
+    "mean_ms": 0.3322,
+    "p90_ms": 0.4229,
+    "max_ms": 0.7197,
+    "stdev_ms": 0.0893
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 0,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.227,
+    "median_ms": 0.2367,
+    "mean_ms": 0.2971,
+    "p90_ms": 0.248,
+    "max_ms": 2.0473,
+    "stdev_ms": 0.3306
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.2718,
+    "median_ms": 0.2877,
+    "mean_ms": 0.319,
+    "p90_ms": 0.4139,
+    "max_ms": 0.69,
+    "stdev_ms": 0.1039
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 3,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.2266,
+    "median_ms": 0.2374,
+    "mean_ms": 0.319,
+    "p90_ms": 0.4355,
+    "max_ms": 2.15,
+    "stdev_ms": 0.3504
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.2849,
+    "median_ms": 0.292,
+    "mean_ms": 0.3465,
+    "p90_ms": 0.6786,
+    "max_ms": 0.7068,
+    "stdev_ms": 0.1372
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 1081,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.1347,
+    "median_ms": 1.1925,
+    "mean_ms": 1.4279,
+    "p90_ms": 2.2197,
+    "max_ms": 2.9864,
+    "stdev_ms": 0.5393
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.6626,
+    "median_ms": 1.7702,
+    "mean_ms": 2.0456,
+    "p90_ms": 2.966,
+    "max_ms": 3.5828,
+    "stdev_ms": 0.5779
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 47,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.0963,
+    "median_ms": 1.1346,
+    "mean_ms": 1.1765,
+    "p90_ms": 1.3244,
+    "max_ms": 1.5354,
+    "stdev_ms": 0.1147
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.5259,
+    "median_ms": 1.5754,
+    "mean_ms": 2.1154,
+    "p90_ms": 3.3102,
+    "max_ms": 3.6153,
+    "stdev_ms": 0.782
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 16,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.1052,
+    "median_ms": 1.1679,
+    "mean_ms": 1.3699,
+    "p90_ms": 2.0836,
+    "max_ms": 2.5537,
+    "stdev_ms": 0.4154
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.5149,
+    "median_ms": 1.5626,
+    "mean_ms": 1.7033,
+    "p90_ms": 1.8404,
+    "max_ms": 3.3189,
+    "stdev_ms": 0.455
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 21,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.0938,
+    "median_ms": 1.1123,
+    "mean_ms": 1.2667,
+    "p90_ms": 2.0876,
+    "max_ms": 2.1353,
+    "stdev_ms": 0.3541
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.5281,
+    "median_ms": 1.7006,
+    "mean_ms": 2.0154,
+    "p90_ms": 3.4751,
+    "max_ms": 3.851,
+    "stdev_ms": 0.7442
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 95,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.1255,
+    "median_ms": 1.3051,
+    "mean_ms": 1.6163,
+    "p90_ms": 2.7688,
+    "max_ms": 2.9074,
+    "stdev_ms": 0.5905
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.5647,
+    "median_ms": 1.5933,
+    "mean_ms": 1.8201,
+    "p90_ms": 2.0899,
+    "max_ms": 4.5264,
+    "stdev_ms": 0.7598
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 2885,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 6.1117,
+    "median_ms": 6.2227,
+    "mean_ms": 6.8372,
+    "p90_ms": 8.5792,
+    "max_ms": 8.5792,
+    "stdev_ms": 0.9561
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 7.2384,
+    "median_ms": 7.8614,
+    "mean_ms": 7.9394,
+    "p90_ms": 9.0678,
+    "max_ms": 9.0678,
+    "stdev_ms": 0.5921
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 381,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.908,
+    "median_ms": 6.2334,
+    "mean_ms": 6.3042,
+    "p90_ms": 6.9675,
+    "max_ms": 6.9675,
+    "stdev_ms": 0.3629
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 6.7772,
+    "median_ms": 6.8661,
+    "mean_ms": 7.0188,
+    "p90_ms": 7.3351,
+    "max_ms": 7.3351,
+    "stdev_ms": 0.2513
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 182,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.8383,
+    "median_ms": 6.0231,
+    "mean_ms": 6.9607,
+    "p90_ms": 9.9865,
+    "max_ms": 9.9865,
+    "stdev_ms": 1.7678
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 7.0025,
+    "median_ms": 7.4944,
+    "mean_ms": 8.7466,
+    "p90_ms": 15.2803,
+    "max_ms": 15.2803,
+    "stdev_ms": 3.0082
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 128,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 6.0326,
+    "median_ms": 6.1737,
+    "mean_ms": 6.2999,
+    "p90_ms": 7.1519,
+    "max_ms": 7.1519,
+    "stdev_ms": 0.3912
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 7.0878,
+    "median_ms": 7.2452,
+    "mean_ms": 7.6779,
+    "p90_ms": 9.2947,
+    "max_ms": 9.2947,
+    "stdev_ms": 0.8258
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 566,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.9142,
+    "median_ms": 7.4454,
+    "mean_ms": 8.5235,
+    "p90_ms": 15.9199,
+    "max_ms": 15.9199,
+    "stdev_ms": 3.5329
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 6.9029,
+    "median_ms": 7.0795,
+    "mean_ms": 7.8725,
+    "p90_ms": 10.4025,
+    "max_ms": 10.4025,
+    "stdev_ms": 1.391
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 1,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0648,
+    "median_ms": 0.0683,
+    "mean_ms": 0.0704,
+    "p90_ms": 0.0761,
+    "max_ms": 0.0946,
+    "stdev_ms": 0.006
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1106,
+    "median_ms": 0.1139,
+    "mean_ms": 0.124,
+    "p90_ms": 0.172,
+    "max_ms": 0.1746,
+    "stdev_ms": 0.0218
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 0,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0635,
+    "median_ms": 0.0676,
+    "mean_ms": 0.0707,
+    "p90_ms": 0.0857,
+    "max_ms": 0.0892,
+    "stdev_ms": 0.0078
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1069,
+    "median_ms": 0.1165,
+    "mean_ms": 0.1341,
+    "p90_ms": 0.1792,
+    "max_ms": 0.184,
+    "stdev_ms": 0.0296
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 2,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0644,
+    "median_ms": 0.067,
+    "mean_ms": 0.0697,
+    "p90_ms": 0.085,
+    "max_ms": 0.0922,
+    "stdev_ms": 0.0075
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1088,
+    "median_ms": 0.1163,
+    "mean_ms": 0.1267,
+    "p90_ms": 0.1664,
+    "max_ms": 0.183,
+    "stdev_ms": 0.0219
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "section",
+   "class": "Section",
+   "matches": 1,
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0645,
+    "median_ms": 0.0907,
+    "mean_ms": 0.0874,
+    "p90_ms": 0.1059,
+    "max_ms": 0.1145,
+    "stdev_ms": 0.0142
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1071,
+    "median_ms": 0.1121,
+    "mean_ms": 0.1194,
+    "p90_ms": 0.1707,
+    "max_ms": 0.1732,
+    "stdev_ms": 0.0194
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 8,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.1908,
+    "median_ms": 0.1979,
+    "mean_ms": 0.2307,
+    "p90_ms": 0.3436,
+    "max_ms": 0.3545,
+    "stdev_ms": 0.0612
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.4369,
+    "median_ms": 0.4557,
+    "mean_ms": 0.5202,
+    "p90_ms": 0.8038,
+    "max_ms": 0.9403,
+    "stdev_ms": 0.1525
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 29,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.1937,
+    "median_ms": 0.2039,
+    "mean_ms": 0.2258,
+    "p90_ms": 0.3486,
+    "max_ms": 0.3545,
+    "stdev_ms": 0.0556
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.4486,
+    "median_ms": 0.4793,
+    "mean_ms": 0.5671,
+    "p90_ms": 0.9011,
+    "max_ms": 0.9862,
+    "stdev_ms": 0.1812
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 5,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.1928,
+    "median_ms": 0.216,
+    "mean_ms": 0.2572,
+    "p90_ms": 0.356,
+    "max_ms": 0.3573,
+    "stdev_ms": 0.0708
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.4438,
+    "median_ms": 0.4637,
+    "mean_ms": 0.4753,
+    "p90_ms": 0.5318,
+    "max_ms": 0.5346,
+    "stdev_ms": 0.0308
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "section",
+   "class": "Section",
+   "matches": 8,
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.192,
+    "median_ms": 0.1992,
+    "mean_ms": 0.2353,
+    "p90_ms": 0.3455,
+    "max_ms": 0.352,
+    "stdev_ms": 0.0651
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.4433,
+    "median_ms": 0.4602,
+    "mean_ms": 0.5587,
+    "p90_ms": 0.9658,
+    "max_ms": 0.967,
+    "stdev_ms": 0.1865
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 63,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 0.9151,
+    "median_ms": 0.953,
+    "mean_ms": 0.9494,
+    "p90_ms": 0.9791,
+    "max_ms": 0.9791,
+    "stdev_ms": 0.0251
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 2.5377,
+    "median_ms": 2.6385,
+    "mean_ms": 2.8154,
+    "p90_ms": 4.0106,
+    "max_ms": 4.0106,
+    "stdev_ms": 0.5293
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 122,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 0.9271,
+    "median_ms": 0.9719,
+    "mean_ms": 1.063,
+    "p90_ms": 1.6131,
+    "max_ms": 1.6131,
+    "stdev_ms": 0.2456
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 2.6112,
+    "median_ms": 2.728,
+    "mean_ms": 2.747,
+    "p90_ms": 2.9675,
+    "max_ms": 2.9675,
+    "stdev_ms": 0.134
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 13,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 0.9397,
+    "median_ms": 0.9491,
+    "mean_ms": 0.9632,
+    "p90_ms": 1.0548,
+    "max_ms": 1.0548,
+    "stdev_ms": 0.0406
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 2.5946,
+    "median_ms": 2.6552,
+    "mean_ms": 2.7534,
+    "p90_ms": 3.3142,
+    "max_ms": 3.3142,
+    "stdev_ms": 0.2543
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "section",
+   "class": "Section",
+   "matches": 63,
+   "recwalk": {
+    "n": 7,
+    "min_ms": 0.9447,
+    "median_ms": 0.9599,
+    "mean_ms": 0.9909,
+    "p90_ms": 1.1121,
+    "max_ms": 1.1121,
+    "stdev_ms": 0.0679
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 2.6079,
+    "median_ms": 2.7283,
+    "mean_ms": 2.9987,
+    "p90_ms": 4.3154,
+    "max_ms": 4.3154,
+    "stdev_ms": 0.613
+   }
+  }
+ ],
+ "rows": [
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 81,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 1.1794,
+    "median_ms": 1.2403,
+    "mean_ms": 1.4155,
+    "p90_ms": 2.3875,
+    "max_ms": 2.684,
+    "stdev_ms": 0.4096
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 1.3564,
+    "median_ms": 1.3905,
+    "mean_ms": 1.506,
+    "p90_ms": 2.0829,
+    "max_ms": 2.7579,
+    "stdev_ms": 0.3069
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 1.1172,
+    "median_ms": 1.177,
+    "mean_ms": 1.3653,
+    "p90_ms": 1.987,
+    "max_ms": 2.8863,
+    "stdev_ms": 0.4611
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 3,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.649,
+    "median_ms": 0.6761,
+    "mean_ms": 0.808,
+    "p90_ms": 1.3763,
+    "max_ms": 1.412,
+    "stdev_ms": 0.256
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 12.2288,
+    "median_ms": 13.1626,
+    "mean_ms": 13.4491,
+    "p90_ms": 14.8849,
+    "max_ms": 16.4802,
+    "stdev_ms": 0.9848
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.5075,
+    "median_ms": 0.5383,
+    "mean_ms": 0.6347,
+    "p90_ms": 1.0714,
+    "max_ms": 1.0825,
+    "stdev_ms": 0.1934
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 12,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 1.9123,
+    "median_ms": 1.9657,
+    "mean_ms": 2.3934,
+    "p90_ms": 2.2595,
+    "max_ms": 11.7184,
+    "stdev_ms": 1.8031
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 7.442,
+    "median_ms": 8.267,
+    "mean_ms": 8.3072,
+    "p90_ms": 9.4214,
+    "max_ms": 9.5554,
+    "stdev_ms": 0.6634
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 1.6442,
+    "median_ms": 1.7366,
+    "mean_ms": 1.8413,
+    "p90_ms": 2.1392,
+    "max_ms": 2.9791,
+    "stdev_ms": 0.2923
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "string",
+   "class": "String",
+   "matches": 14,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 1.6824,
+    "median_ms": 1.7858,
+    "mean_ms": 2.0169,
+    "p90_ms": 2.9577,
+    "max_ms": 3.8403,
+    "stdev_ms": 0.5768
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 3.9303,
+    "median_ms": 4.1373,
+    "mean_ms": 4.5208,
+    "p90_ms": 6.0506,
+    "max_ms": 9.8721,
+    "stdev_ms": 1.1674
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 1.6008,
+    "median_ms": 1.6837,
+    "mean_ms": 1.9076,
+    "p90_ms": 2.474,
+    "max_ms": 3.0179,
+    "stdev_ms": 0.3973
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 2022,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 27.3178,
+    "median_ms": 32.0293,
+    "mean_ms": 33.3358,
+    "p90_ms": 40.4402,
+    "max_ms": 42.1136,
+    "stdev_ms": 4.3676
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 32.2367,
+    "median_ms": 38.4601,
+    "mean_ms": 38.5865,
+    "p90_ms": 44.1996,
+    "max_ms": 46.0105,
+    "stdev_ms": 3.7479
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 26.0566,
+    "median_ms": 29.6739,
+    "mean_ms": 32.5928,
+    "p90_ms": 42.49,
+    "max_ms": 45.3379,
+    "stdev_ms": 6.4375
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 45,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 6.8641,
+    "median_ms": 7.6383,
+    "mean_ms": 7.7378,
+    "p90_ms": 8.438,
+    "max_ms": 9.5226,
+    "stdev_ms": 0.7107
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 488.4553,
+    "median_ms": 509.918,
+    "mean_ms": 522.9643,
+    "p90_ms": 568.3427,
+    "max_ms": 571.5793,
+    "stdev_ms": 29.3021
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 6.0113,
+    "median_ms": 6.1826,
+    "mean_ms": 6.5271,
+    "p90_ms": 7.5759,
+    "max_ms": 8.8399,
+    "stdev_ms": 0.7699
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 186,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 25.8984,
+    "median_ms": 28.1558,
+    "mean_ms": 30.3363,
+    "p90_ms": 36.909,
+    "max_ms": 41.7833,
+    "stdev_ms": 4.6679
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 160.7636,
+    "median_ms": 172.0765,
+    "mean_ms": 175.7462,
+    "p90_ms": 194.5554,
+    "max_ms": 205.9268,
+    "stdev_ms": 14.0184
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 23.8096,
+    "median_ms": 24.8891,
+    "mean_ms": 26.2333,
+    "p90_ms": 27.3421,
+    "max_ms": 41.9971,
+    "stdev_ms": 4.4828
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "string",
+   "class": "String",
+   "matches": 106,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 13.019,
+    "median_ms": 14.2107,
+    "mean_ms": 15.2109,
+    "p90_ms": 18.7369,
+    "max_ms": 21.4104,
+    "stdev_ms": 2.5514
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 29.9318,
+    "median_ms": 30.6559,
+    "mean_ms": 31.7137,
+    "p90_ms": 32.9446,
+    "max_ms": 40.5853,
+    "stdev_ms": 2.6394
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 12.2127,
+    "median_ms": 12.4511,
+    "mean_ms": 13.4788,
+    "p90_ms": 15.5097,
+    "max_ms": 21.9349,
+    "stdev_ms": 2.491
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 19161,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 280.0503,
+    "median_ms": 294.4906,
+    "mean_ms": 293.8431,
+    "p90_ms": 306.543,
+    "max_ms": 306.543,
+    "stdev_ms": 9.7013
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 338.6629,
+    "median_ms": 357.7435,
+    "mean_ms": 361.6215,
+    "p90_ms": 407.246,
+    "max_ms": 407.246,
+    "stdev_ms": 22.9771
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 264.8907,
+    "median_ms": 282.7203,
+    "mean_ms": 288.5239,
+    "p90_ms": 327.3354,
+    "max_ms": 327.3354,
+    "stdev_ms": 22.8428
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 352,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 57.8695,
+    "median_ms": 61.4146,
+    "mean_ms": 62.9599,
+    "p90_ms": 74.6686,
+    "max_ms": 74.6686,
+    "stdev_ms": 5.4027
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 4432.8588,
+    "median_ms": 4960.9096,
+    "mean_ms": 4868.0892,
+    "p90_ms": 5305.6372,
+    "max_ms": 5305.6372,
+    "stdev_ms": 306.9953
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 51.0754,
+    "median_ms": 51.9588,
+    "mean_ms": 56.9449,
+    "p90_ms": 72.5575,
+    "max_ms": 72.5575,
+    "stdev_ms": 8.8586
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 1499,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 205.4003,
+    "median_ms": 215.4054,
+    "mean_ms": 219.5959,
+    "p90_ms": 247.0125,
+    "max_ms": 247.0125,
+    "stdev_ms": 13.9412
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 1069.3397,
+    "median_ms": 1092.2729,
+    "mean_ms": 1093.6223,
+    "p90_ms": 1125.5491,
+    "max_ms": 1125.5491,
+    "stdev_ms": 23.0386
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 188.4015,
+    "median_ms": 193.9014,
+    "mean_ms": 194.7954,
+    "p90_ms": 202.3275,
+    "max_ms": 202.3275,
+    "stdev_ms": 5.4993
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "string",
+   "class": "String",
+   "matches": 618,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 81.1897,
+    "median_ms": 84.22,
+    "mean_ms": 84.6845,
+    "p90_ms": 90.3812,
+    "max_ms": 90.3812,
+    "stdev_ms": 3.08
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 138.3978,
+    "median_ms": 141.0447,
+    "mean_ms": 143.5274,
+    "p90_ms": 159.6355,
+    "max_ms": 159.6355,
+    "stdev_ms": 7.2484
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 74.4449,
+    "median_ms": 75.6341,
+    "mean_ms": 79.1042,
+    "p90_ms": 91.6054,
+    "max_ms": 91.6054,
+    "stdev_ms": 7.0128
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "command",
+   "class": "Command",
+   "matches": 10,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 1.5513,
+    "median_ms": 1.6055,
+    "mean_ms": 1.7739,
+    "p90_ms": 2.4505,
+    "max_ms": 2.9827,
+    "stdev_ms": 0.3589
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 3.2614,
+    "median_ms": 3.3907,
+    "mean_ms": 3.813,
+    "p90_ms": 5.3481,
+    "max_ms": 5.8447,
+    "stdev_ms": 0.7609
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 1.3592,
+    "median_ms": 1.3896,
+    "mean_ms": 1.4896,
+    "p90_ms": 1.9583,
+    "max_ms": 2.9017,
+    "stdev_ms": 0.3286
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 6,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.8867,
+    "median_ms": 0.909,
+    "mean_ms": 0.9585,
+    "p90_ms": 0.9547,
+    "max_ms": 2.0062,
+    "stdev_ms": 0.2116
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 1.6496,
+    "median_ms": 1.7066,
+    "mean_ms": 1.7631,
+    "p90_ms": 2.0069,
+    "max_ms": 2.5683,
+    "stdev_ms": 0.1889
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.7486,
+    "median_ms": 0.7765,
+    "mean_ms": 0.8761,
+    "p90_ms": 1.4017,
+    "max_ms": 1.6456,
+    "stdev_ms": 0.2513
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 0,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.3596,
+    "median_ms": 0.3746,
+    "mean_ms": 0.4888,
+    "p90_ms": 0.8019,
+    "max_ms": 1.0515,
+    "stdev_ms": 0.1909
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 0.3704,
+    "median_ms": 0.3815,
+    "mean_ms": 0.4167,
+    "p90_ms": 0.5298,
+    "max_ms": 0.8104,
+    "stdev_ms": 0.1109
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.1068,
+    "median_ms": 0.1139,
+    "mean_ms": 0.122,
+    "p90_ms": 0.1672,
+    "max_ms": 0.1853,
+    "stdev_ms": 0.0216
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 3,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.4957,
+    "median_ms": 0.9815,
+    "mean_ms": 0.9904,
+    "p90_ms": 1.0507,
+    "max_ms": 4.9592,
+    "stdev_ms": 0.777
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 2.7649,
+    "median_ms": 2.9035,
+    "mean_ms": 3.3654,
+    "p90_ms": 5.3813,
+    "max_ms": 6.5929,
+    "stdev_ms": 1.0144
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.3971,
+    "median_ms": 0.4098,
+    "mean_ms": 0.4225,
+    "p90_ms": 0.4483,
+    "max_ms": 0.7101,
+    "stdev_ms": 0.0561
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "command",
+   "class": "Command",
+   "matches": 323,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 49.3363,
+    "median_ms": 50.0964,
+    "mean_ms": 51.7201,
+    "p90_ms": 55.706,
+    "max_ms": 63.9016,
+    "stdev_ms": 3.7465
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 55.3788,
+    "median_ms": 58.5531,
+    "mean_ms": 67.8881,
+    "p90_ms": 97.0143,
+    "max_ms": 109.0762,
+    "stdev_ms": 17.5269
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 48.5314,
+    "median_ms": 51.5542,
+    "mean_ms": 51.8679,
+    "p90_ms": 55.5431,
+    "max_ms": 56.1136,
+    "stdev_ms": 2.4378
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 65,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 7.5674,
+    "median_ms": 7.7095,
+    "mean_ms": 8.5431,
+    "p90_ms": 10.1889,
+    "max_ms": 16.0156,
+    "stdev_ms": 2.198
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 12.3076,
+    "median_ms": 12.8989,
+    "mean_ms": 13.362,
+    "p90_ms": 15.0765,
+    "max_ms": 16.1845,
+    "stdev_ms": 1.1641
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 6.8177,
+    "median_ms": 6.957,
+    "mean_ms": 7.5762,
+    "p90_ms": 7.8535,
+    "max_ms": 14.5208,
+    "stdev_ms": 1.9449
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 29,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 7.4111,
+    "median_ms": 7.5666,
+    "mean_ms": 7.7125,
+    "p90_ms": 8.2373,
+    "max_ms": 8.4433,
+    "stdev_ms": 0.3397
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 7.3843,
+    "median_ms": 7.7823,
+    "mean_ms": 8.4124,
+    "p90_ms": 10.618,
+    "max_ms": 12.0045,
+    "stdev_ms": 1.3756
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 6.669,
+    "median_ms": 7.12,
+    "mean_ms": 8.112,
+    "p90_ms": 11.7516,
+    "max_ms": 14.8683,
+    "stdev_ms": 2.3165
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 54,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 11.1247,
+    "median_ms": 14.7988,
+    "mean_ms": 16.3465,
+    "p90_ms": 24.4829,
+    "max_ms": 24.7215,
+    "stdev_ms": 4.6967
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 12.2954,
+    "median_ms": 13.7001,
+    "mean_ms": 17.2888,
+    "p90_ms": 30.4112,
+    "max_ms": 34.9572,
+    "stdev_ms": 7.2458
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 9.6247,
+    "median_ms": 17.3599,
+    "mean_ms": 17.0905,
+    "p90_ms": 21.8264,
+    "max_ms": 22.3048,
+    "stdev_ms": 4.2417
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "command",
+   "class": "Command",
+   "matches": 590,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 221.5191,
+    "median_ms": 246.6074,
+    "mean_ms": 250.3627,
+    "p90_ms": 304.1148,
+    "max_ms": 304.1148,
+    "stdev_ms": 26.5918
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 264.1716,
+    "median_ms": 284.3482,
+    "mean_ms": 305.4912,
+    "p90_ms": 387.5256,
+    "max_ms": 387.5256,
+    "stdev_ms": 47.802
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 118.1816,
+    "median_ms": 224.0741,
+    "mean_ms": 219.8727,
+    "p90_ms": 271.5383,
+    "max_ms": 271.5383,
+    "stdev_ms": 48.9469
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 417,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 87.2493,
+    "median_ms": 92.4855,
+    "mean_ms": 120.8593,
+    "p90_ms": 206.3469,
+    "max_ms": 206.3469,
+    "stdev_ms": 50.1295
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 171.6234,
+    "median_ms": 211.6179,
+    "mean_ms": 214.4425,
+    "p90_ms": 283.1648,
+    "max_ms": 283.1648,
+    "stdev_ms": 43.3622
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 84.6867,
+    "median_ms": 119.4996,
+    "mean_ms": 121.9264,
+    "p90_ms": 180.1373,
+    "max_ms": 180.1373,
+    "stdev_ms": 37.5654
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 155,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 72.1058,
+    "median_ms": 120.7226,
+    "mean_ms": 119.4867,
+    "p90_ms": 167.862,
+    "max_ms": 167.862,
+    "stdev_ms": 39.9428
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 80.6934,
+    "median_ms": 94.9917,
+    "mean_ms": 94.6177,
+    "p90_ms": 107.2845,
+    "max_ms": 107.2845,
+    "stdev_ms": 11.0091
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 75.208,
+    "median_ms": 92.9253,
+    "mean_ms": 91.3476,
+    "p90_ms": 115.1703,
+    "max_ms": 115.1703,
+    "stdev_ms": 14.4594
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 102,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 23.5547,
+    "median_ms": 25.5115,
+    "mean_ms": 30.2445,
+    "p90_ms": 53.7343,
+    "max_ms": 53.7343,
+    "stdev_ms": 10.8284
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 29.9422,
+    "median_ms": 31.3343,
+    "mean_ms": 39.5973,
+    "p90_ms": 72.761,
+    "max_ms": 72.761,
+    "stdev_ms": 15.5844
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 19.9021,
+    "median_ms": 20.1907,
+    "mean_ms": 20.8441,
+    "p90_ms": 24.7651,
+    "max_ms": 24.7651,
+    "stdev_ms": 1.7502
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 33,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 6.6236,
+    "median_ms": 8.7364,
+    "mean_ms": 11.3593,
+    "p90_ms": 18.4466,
+    "max_ms": 24.1415,
+    "stdev_ms": 4.7023
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 67.3683,
+    "median_ms": 78.6639,
+    "mean_ms": 83.2696,
+    "p90_ms": 116.2207,
+    "max_ms": 123.771,
+    "stdev_ms": 15.581
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 6.7679,
+    "median_ms": 7.8064,
+    "mean_ms": 8.1021,
+    "p90_ms": 8.8735,
+    "max_ms": 17.6975,
+    "stdev_ms": 1.8804
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 0,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.3495,
+    "median_ms": 0.361,
+    "mean_ms": 0.4086,
+    "p90_ms": 0.6163,
+    "max_ms": 0.8218,
+    "stdev_ms": 0.1282
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 0.3566,
+    "median_ms": 0.3683,
+    "mean_ms": 0.4042,
+    "p90_ms": 0.5016,
+    "max_ms": 0.8024,
+    "stdev_ms": 0.0983
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.1784,
+    "median_ms": 0.1847,
+    "mean_ms": 0.1982,
+    "p90_ms": 0.2335,
+    "max_ms": 0.397,
+    "stdev_ms": 0.046
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 9,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 1.424,
+    "median_ms": 1.481,
+    "mean_ms": 1.9564,
+    "p90_ms": 3.2513,
+    "max_ms": 3.9476,
+    "stdev_ms": 0.7864
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 2.9271,
+    "median_ms": 2.9997,
+    "mean_ms": 4.0141,
+    "p90_ms": 6.897,
+    "max_ms": 11.8336,
+    "stdev_ms": 1.9733
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 1.2188,
+    "median_ms": 1.2433,
+    "mean_ms": 1.7911,
+    "p90_ms": 2.7525,
+    "max_ms": 7.8548,
+    "stdev_ms": 1.2629
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 0,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.4661,
+    "median_ms": 0.4849,
+    "mean_ms": 0.5631,
+    "p90_ms": 1.1125,
+    "max_ms": 1.1505,
+    "stdev_ms": 0.2026
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 0.4666,
+    "median_ms": 0.4911,
+    "mean_ms": 0.6384,
+    "p90_ms": 1.1459,
+    "max_ms": 1.1616,
+    "stdev_ms": 0.2549
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.1701,
+    "median_ms": 0.179,
+    "mean_ms": 0.2106,
+    "p90_ms": 0.3662,
+    "max_ms": 0.4067,
+    "stdev_ms": 0.0706
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 55,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 6.074,
+    "median_ms": 6.3042,
+    "mean_ms": 7.071,
+    "p90_ms": 8.8886,
+    "max_ms": 10.8017,
+    "stdev_ms": 1.44
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 71.389,
+    "median_ms": 87.335,
+    "mean_ms": 90.3293,
+    "p90_ms": 114.6271,
+    "max_ms": 114.7088,
+    "stdev_ms": 15.0573
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 5.6739,
+    "median_ms": 6.2867,
+    "mean_ms": 6.5939,
+    "p90_ms": 8.2497,
+    "max_ms": 9.5089,
+    "stdev_ms": 1.1069
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 11,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 1.758,
+    "median_ms": 1.8404,
+    "mean_ms": 2.2336,
+    "p90_ms": 3.0144,
+    "max_ms": 4.9681,
+    "stdev_ms": 0.8659
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 15.059,
+    "median_ms": 16.1522,
+    "mean_ms": 17.4088,
+    "p90_ms": 21.4025,
+    "max_ms": 21.6112,
+    "stdev_ms": 2.3663
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 1.5322,
+    "median_ms": 1.5578,
+    "mean_ms": 2.0042,
+    "p90_ms": 3.4587,
+    "max_ms": 3.6323,
+    "stdev_ms": 0.7611
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 23,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 2.9909,
+    "median_ms": 3.1438,
+    "mean_ms": 4.2245,
+    "p90_ms": 7.7678,
+    "max_ms": 8.4062,
+    "stdev_ms": 1.8981
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 8.9501,
+    "median_ms": 10.893,
+    "mean_ms": 11.8759,
+    "p90_ms": 17.067,
+    "max_ms": 22.7609,
+    "stdev_ms": 3.6986
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 2.6482,
+    "median_ms": 2.7602,
+    "mean_ms": 3.3681,
+    "p90_ms": 4.5466,
+    "max_ms": 5.5951,
+    "stdev_ms": 0.9333
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 0,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 0.634,
+    "median_ms": 0.6522,
+    "mean_ms": 0.7944,
+    "p90_ms": 1.353,
+    "max_ms": 1.6225,
+    "stdev_ms": 0.3145
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 0.631,
+    "median_ms": 0.643,
+    "mean_ms": 0.7115,
+    "p90_ms": 0.7419,
+    "max_ms": 1.5251,
+    "stdev_ms": 0.2271
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 0.2789,
+    "median_ms": 0.2917,
+    "mean_ms": 0.2919,
+    "p90_ms": 0.3048,
+    "max_ms": 0.3074,
+    "stdev_ms": 0.0103
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 2225,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 172.5706,
+    "median_ms": 181.6903,
+    "mean_ms": 180.5126,
+    "p90_ms": 185.4037,
+    "max_ms": 185.4037,
+    "stdev_ms": 4.0002
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 1112.8146,
+    "median_ms": 1206.2007,
+    "mean_ms": 1203.18,
+    "p90_ms": 1286.086,
+    "max_ms": 1286.086,
+    "stdev_ms": 67.0574
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 160.7502,
+    "median_ms": 164.2561,
+    "mean_ms": 164.8109,
+    "p90_ms": 170.2567,
+    "max_ms": 170.2567,
+    "stdev_ms": 3.1569
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 2014,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 284.741,
+    "median_ms": 295.0815,
+    "mean_ms": 305.3668,
+    "p90_ms": 335.3682,
+    "max_ms": 335.3682,
+    "stdev_ms": 20.5335
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 1877.9888,
+    "median_ms": 1933.2297,
+    "mean_ms": 1937.9108,
+    "p90_ms": 2013.3571,
+    "max_ms": 2013.3571,
+    "stdev_ms": 45.5286
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 289.3115,
+    "median_ms": 312.6618,
+    "mean_ms": 316.282,
+    "p90_ms": 364.8632,
+    "max_ms": 364.8632,
+    "stdev_ms": 25.3137
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 90,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 17.9958,
+    "median_ms": 20.3786,
+    "mean_ms": 22.3085,
+    "p90_ms": 34.8648,
+    "max_ms": 34.8648,
+    "stdev_ms": 5.7638
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 34.001,
+    "median_ms": 34.4989,
+    "mean_ms": 35.1419,
+    "p90_ms": 37.5728,
+    "max_ms": 37.5728,
+    "stdev_ms": 1.2412
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 14.2023,
+    "median_ms": 17.1136,
+    "mean_ms": 16.6093,
+    "p90_ms": 19.8322,
+    "max_ms": 19.8322,
+    "stdev_ms": 2.2311
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 10,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 9.7526,
+    "median_ms": 11.9785,
+    "mean_ms": 12.7996,
+    "p90_ms": 18.4578,
+    "max_ms": 18.4578,
+    "stdev_ms": 2.8378
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 35.1935,
+    "median_ms": 36.4922,
+    "mean_ms": 38.2933,
+    "p90_ms": 44.3167,
+    "max_ms": 44.3167,
+    "stdev_ms": 3.6245
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 6.7123,
+    "median_ms": 6.9898,
+    "mean_ms": 7.3721,
+    "p90_ms": 9.0858,
+    "max_ms": 9.0858,
+    "stdev_ms": 0.828
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 99,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 1.6134,
+    "median_ms": 1.6502,
+    "mean_ms": 1.9269,
+    "p90_ms": 3.7976,
+    "max_ms": 4.3117,
+    "stdev_ms": 0.7155
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 1.84,
+    "median_ms": 1.8752,
+    "mean_ms": 2.2519,
+    "p90_ms": 3.832,
+    "max_ms": 6.6,
+    "stdev_ms": 0.9761
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 1.5061,
+    "median_ms": 1.5612,
+    "mean_ms": 1.6973,
+    "p90_ms": 2.2718,
+    "max_ms": 3.0647,
+    "stdev_ms": 0.3692
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 5,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.8615,
+    "median_ms": 0.8905,
+    "mean_ms": 1.1787,
+    "p90_ms": 1.3623,
+    "max_ms": 7.3512,
+    "stdev_ms": 1.181
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 1.2726,
+    "median_ms": 1.2897,
+    "mean_ms": 1.3423,
+    "p90_ms": 1.4299,
+    "max_ms": 1.971,
+    "stdev_ms": 0.1677
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.7523,
+    "median_ms": 0.7665,
+    "mean_ms": 0.8135,
+    "p90_ms": 0.952,
+    "max_ms": 1.4244,
+    "stdev_ms": 0.1462
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 2,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 1.0488,
+    "median_ms": 1.0959,
+    "mean_ms": 1.1355,
+    "p90_ms": 1.1495,
+    "max_ms": 1.9635,
+    "stdev_ms": 0.1744
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 4.5928,
+    "median_ms": 4.7614,
+    "mean_ms": 4.999,
+    "p90_ms": 5.733,
+    "max_ms": 6.6641,
+    "stdev_ms": 0.5398
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.8408,
+    "median_ms": 0.8618,
+    "mean_ms": 0.875,
+    "p90_ms": 0.9686,
+    "max_ms": 0.9784,
+    "stdev_ms": 0.0411
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 0,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.6883,
+    "median_ms": 0.7091,
+    "mean_ms": 0.81,
+    "p90_ms": 1.239,
+    "max_ms": 1.6257,
+    "stdev_ms": 0.2237
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 0.6873,
+    "median_ms": 0.7177,
+    "mean_ms": 0.7817,
+    "p90_ms": 0.9719,
+    "max_ms": 1.6258,
+    "stdev_ms": 0.1916
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.2925,
+    "median_ms": 0.3071,
+    "mean_ms": 0.3711,
+    "p90_ms": 0.7106,
+    "max_ms": 0.7501,
+    "stdev_ms": 0.1405
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 3,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.997,
+    "median_ms": 1.0488,
+    "mean_ms": 1.3703,
+    "p90_ms": 2.1474,
+    "max_ms": 5.0093,
+    "stdev_ms": 0.7766
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 2.6183,
+    "median_ms": 2.7375,
+    "mean_ms": 3.0,
+    "p90_ms": 3.7644,
+    "max_ms": 4.4247,
+    "stdev_ms": 0.4854
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.79,
+    "median_ms": 0.8047,
+    "mean_ms": 0.8995,
+    "p90_ms": 1.3191,
+    "max_ms": 1.6676,
+    "stdev_ms": 0.2236
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 1081,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 15.3738,
+    "median_ms": 16.1225,
+    "mean_ms": 17.0574,
+    "p90_ms": 19.0237,
+    "max_ms": 23.0772,
+    "stdev_ms": 1.9994
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 17.6528,
+    "median_ms": 18.2289,
+    "mean_ms": 19.1408,
+    "p90_ms": 22.5487,
+    "max_ms": 24.0664,
+    "stdev_ms": 1.9363
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 14.8716,
+    "median_ms": 17.1494,
+    "mean_ms": 18.5295,
+    "p90_ms": 22.8486,
+    "max_ms": 31.5588,
+    "stdev_ms": 4.1557
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 47,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 5.084,
+    "median_ms": 5.8264,
+    "mean_ms": 6.2601,
+    "p90_ms": 8.6398,
+    "max_ms": 8.7698,
+    "stdev_ms": 1.302
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 7.3157,
+    "median_ms": 8.2015,
+    "mean_ms": 9.252,
+    "p90_ms": 11.8047,
+    "max_ms": 16.9434,
+    "stdev_ms": 2.5202
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 4.7425,
+    "median_ms": 4.9029,
+    "mean_ms": 5.0745,
+    "p90_ms": 5.5577,
+    "max_ms": 5.8911,
+    "stdev_ms": 0.3433
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 16,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 4.0015,
+    "median_ms": 4.0765,
+    "mean_ms": 4.5889,
+    "p90_ms": 6.6117,
+    "max_ms": 7.3724,
+    "stdev_ms": 1.0216
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 151.7037,
+    "median_ms": 163.2174,
+    "mean_ms": 165.0161,
+    "p90_ms": 175.5164,
+    "max_ms": 178.0205,
+    "stdev_ms": 7.4317
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 3.7141,
+    "median_ms": 3.9192,
+    "mean_ms": 4.1535,
+    "p90_ms": 4.9632,
+    "max_ms": 5.3966,
+    "stdev_ms": 0.5515
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 21,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 5.8559,
+    "median_ms": 6.0856,
+    "mean_ms": 6.8796,
+    "p90_ms": 9.4685,
+    "max_ms": 10.77,
+    "stdev_ms": 1.5014
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 21.5069,
+    "median_ms": 23.3279,
+    "mean_ms": 24.132,
+    "p90_ms": 29.4982,
+    "max_ms": 29.7011,
+    "stdev_ms": 2.663
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 5.4749,
+    "median_ms": 5.5514,
+    "mean_ms": 5.7285,
+    "p90_ms": 6.1513,
+    "max_ms": 7.2366,
+    "stdev_ms": 0.4487
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 95,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 14.1895,
+    "median_ms": 16.5691,
+    "mean_ms": 17.6952,
+    "p90_ms": 21.686,
+    "max_ms": 30.8401,
+    "stdev_ms": 4.3995
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 84.0449,
+    "median_ms": 86.2077,
+    "mean_ms": 87.114,
+    "p90_ms": 92.4296,
+    "max_ms": 96.2111,
+    "stdev_ms": 3.4603
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 13.3752,
+    "median_ms": 17.132,
+    "mean_ms": 20.5389,
+    "p90_ms": 32.6866,
+    "max_ms": 33.3555,
+    "stdev_ms": 7.8241
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 2885,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 45.2936,
+    "median_ms": 48.5002,
+    "mean_ms": 50.046,
+    "p90_ms": 61.5026,
+    "max_ms": 61.5026,
+    "stdev_ms": 5.3172
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 51.9394,
+    "median_ms": 52.937,
+    "mean_ms": 56.5986,
+    "p90_ms": 68.6517,
+    "max_ms": 68.6517,
+    "stdev_ms": 6.8963
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 41.8278,
+    "median_ms": 42.8777,
+    "mean_ms": 42.7128,
+    "p90_ms": 43.6378,
+    "max_ms": 43.6378,
+    "stdev_ms": 0.7179
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 381,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 36.5676,
+    "median_ms": 37.1738,
+    "mean_ms": 39.0886,
+    "p90_ms": 50.6625,
+    "max_ms": 50.6625,
+    "stdev_ms": 5.1151
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 61.5148,
+    "median_ms": 63.8741,
+    "mean_ms": 64.4281,
+    "p90_ms": 68.2741,
+    "max_ms": 68.2741,
+    "stdev_ms": 2.3932
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 33.2171,
+    "median_ms": 35.4169,
+    "mean_ms": 36.9484,
+    "p90_ms": 43.2545,
+    "max_ms": 43.2545,
+    "stdev_ms": 4.1057
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 182,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 39.2204,
+    "median_ms": 40.1658,
+    "mean_ms": 44.6541,
+    "p90_ms": 60.1917,
+    "max_ms": 60.1917,
+    "stdev_ms": 7.6129
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 658.7942,
+    "median_ms": 673.736,
+    "mean_ms": 704.3237,
+    "p90_ms": 801.144,
+    "max_ms": 801.144,
+    "stdev_ms": 52.6223
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 35.0697,
+    "median_ms": 36.3093,
+    "mean_ms": 37.139,
+    "p90_ms": 40.5498,
+    "max_ms": 40.5498,
+    "stdev_ms": 2.361
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 128,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 34.2074,
+    "median_ms": 38.7664,
+    "mean_ms": 41.3475,
+    "p90_ms": 54.1464,
+    "max_ms": 54.1464,
+    "stdev_ms": 6.5604
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 191.5717,
+    "median_ms": 201.0574,
+    "mean_ms": 204.1715,
+    "p90_ms": 227.5155,
+    "max_ms": 227.5155,
+    "stdev_ms": 12.6363
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 29.6569,
+    "median_ms": 31.2741,
+    "mean_ms": 32.4033,
+    "p90_ms": 36.2504,
+    "max_ms": 36.2504,
+    "stdev_ms": 2.5391
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 566,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 90.4418,
+    "median_ms": 94.9068,
+    "mean_ms": 96.6836,
+    "p90_ms": 104.469,
+    "max_ms": 104.469,
+    "stdev_ms": 5.0139
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 610.6367,
+    "median_ms": 626.8606,
+    "mean_ms": 647.6438,
+    "p90_ms": 723.0187,
+    "max_ms": 723.0187,
+    "stdev_ms": 40.2197
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 84.7704,
+    "median_ms": 113.0357,
+    "mean_ms": 103.9178,
+    "p90_ms": 119.1669,
+    "max_ms": 119.1669,
+    "stdev_ms": 16.0319
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 1,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.318,
+    "median_ms": 0.3366,
+    "mean_ms": 0.4039,
+    "p90_ms": 0.5412,
+    "max_ms": 0.5694,
+    "stdev_ms": 0.0957
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 0.3821,
+    "median_ms": 0.3975,
+    "mean_ms": 0.4651,
+    "p90_ms": 0.6562,
+    "max_ms": 0.8492,
+    "stdev_ms": 0.1273
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.2785,
+    "median_ms": 0.2865,
+    "mean_ms": 0.3055,
+    "p90_ms": 0.3954,
+    "max_ms": 0.44,
+    "stdev_ms": 0.0447
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 0,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.1831,
+    "median_ms": 0.1908,
+    "mean_ms": 0.2253,
+    "p90_ms": 0.3449,
+    "max_ms": 0.3538,
+    "stdev_ms": 0.0654
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 0.1877,
+    "median_ms": 0.194,
+    "mean_ms": 0.2132,
+    "p90_ms": 0.3336,
+    "max_ms": 0.3457,
+    "stdev_ms": 0.0494
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.1235,
+    "median_ms": 0.13,
+    "mean_ms": 0.1378,
+    "p90_ms": 0.1688,
+    "max_ms": 0.2243,
+    "stdev_ms": 0.022
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 2,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.4592,
+    "median_ms": 0.5155,
+    "mean_ms": 0.6262,
+    "p90_ms": 0.913,
+    "max_ms": 0.9443,
+    "stdev_ms": 0.1797
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 1.2267,
+    "median_ms": 1.6554,
+    "mean_ms": 1.9552,
+    "p90_ms": 2.8625,
+    "max_ms": 3.5495,
+    "stdev_ms": 0.6972
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.4814,
+    "median_ms": 0.506,
+    "mean_ms": 0.6674,
+    "p90_ms": 0.9896,
+    "max_ms": 1.0642,
+    "stdev_ms": 0.2233
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "section",
+   "class": "Section",
+   "matches": 1,
+   "find_in_lazy": {
+    "n": 30,
+    "min_ms": 0.4588,
+    "median_ms": 0.4734,
+    "mean_ms": 0.5558,
+    "p90_ms": 0.7765,
+    "max_ms": 1.9296,
+    "stdev_ms": 0.2756
+   },
+   "fully_materialized": {
+    "n": 30,
+    "min_ms": 1.8828,
+    "median_ms": 1.9486,
+    "mean_ms": 2.052,
+    "p90_ms": 2.5293,
+    "max_ms": 2.8456,
+    "stdev_ms": 0.245
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.4421,
+    "median_ms": 0.4556,
+    "mean_ms": 0.5742,
+    "p90_ms": 0.8849,
+    "max_ms": 1.1406,
+    "stdev_ms": 0.2038
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 8,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 1.0017,
+    "median_ms": 1.2519,
+    "mean_ms": 1.336,
+    "p90_ms": 1.8126,
+    "max_ms": 2.0148,
+    "stdev_ms": 0.3339
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 1.3907,
+    "median_ms": 1.4335,
+    "mean_ms": 1.6662,
+    "p90_ms": 2.2184,
+    "max_ms": 2.57,
+    "stdev_ms": 0.3722
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 1.1489,
+    "median_ms": 1.1806,
+    "mean_ms": 1.2222,
+    "p90_ms": 1.1993,
+    "max_ms": 1.8975,
+    "stdev_ms": 0.1875
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 29,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 4.3885,
+    "median_ms": 4.5192,
+    "mean_ms": 4.9904,
+    "p90_ms": 5.0529,
+    "max_ms": 11.0657,
+    "stdev_ms": 1.6905
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 12.9344,
+    "median_ms": 13.3458,
+    "mean_ms": 13.8637,
+    "p90_ms": 15.1318,
+    "max_ms": 17.3053,
+    "stdev_ms": 1.1341
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 4.4883,
+    "median_ms": 4.6367,
+    "mean_ms": 5.015,
+    "p90_ms": 6.2972,
+    "max_ms": 7.8181,
+    "stdev_ms": 0.9047
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 5,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 1.0533,
+    "median_ms": 1.1185,
+    "mean_ms": 1.7697,
+    "p90_ms": 2.3274,
+    "max_ms": 9.1276,
+    "stdev_ms": 2.0629
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 2.6704,
+    "median_ms": 2.7717,
+    "mean_ms": 3.0318,
+    "p90_ms": 3.9633,
+    "max_ms": 4.0761,
+    "stdev_ms": 0.5063
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 1.2251,
+    "median_ms": 1.2592,
+    "mean_ms": 1.449,
+    "p90_ms": 1.9969,
+    "max_ms": 2.6995,
+    "stdev_ms": 0.4265
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "section",
+   "class": "Section",
+   "matches": 8,
+   "find_in_lazy": {
+    "n": 15,
+    "min_ms": 1.5584,
+    "median_ms": 1.6077,
+    "mean_ms": 1.7207,
+    "p90_ms": 2.1364,
+    "max_ms": 2.5099,
+    "stdev_ms": 0.267
+   },
+   "fully_materialized": {
+    "n": 15,
+    "min_ms": 33.8722,
+    "median_ms": 36.4708,
+    "mean_ms": 36.4797,
+    "p90_ms": 38.9342,
+    "max_ms": 39.9188,
+    "stdev_ms": 1.8767
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 1.685,
+    "median_ms": 1.7231,
+    "mean_ms": 1.728,
+    "p90_ms": 1.7744,
+    "max_ms": 1.8155,
+    "stdev_ms": 0.0371
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 63,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 5.9868,
+    "median_ms": 6.0842,
+    "mean_ms": 6.1188,
+    "p90_ms": 6.341,
+    "max_ms": 6.341,
+    "stdev_ms": 0.1318
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 9.1435,
+    "median_ms": 9.6895,
+    "mean_ms": 9.6339,
+    "p90_ms": 10.2835,
+    "max_ms": 10.2835,
+    "stdev_ms": 0.4784
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 7.3257,
+    "median_ms": 7.4702,
+    "mean_ms": 7.6606,
+    "p90_ms": 8.4088,
+    "max_ms": 8.4088,
+    "stdev_ms": 0.3956
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 122,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 17.476,
+    "median_ms": 17.7935,
+    "mean_ms": 19.1466,
+    "p90_ms": 25.5784,
+    "max_ms": 25.5784,
+    "stdev_ms": 2.9579
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 41.2475,
+    "median_ms": 42.0293,
+    "mean_ms": 43.8357,
+    "p90_ms": 50.3051,
+    "max_ms": 50.3051,
+    "stdev_ms": 3.247
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 18.6017,
+    "median_ms": 18.7497,
+    "mean_ms": 19.0061,
+    "p90_ms": 20.7177,
+    "max_ms": 20.7177,
+    "stdev_ms": 0.7573
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 13,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 2.9729,
+    "median_ms": 3.0681,
+    "mean_ms": 3.2112,
+    "p90_ms": 3.6806,
+    "max_ms": 3.6806,
+    "stdev_ms": 0.308
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 8.3903,
+    "median_ms": 8.6192,
+    "mean_ms": 9.3202,
+    "p90_ms": 12.0773,
+    "max_ms": 12.0773,
+    "stdev_ms": 1.3687
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 4.4196,
+    "median_ms": 4.5054,
+    "mean_ms": 4.6163,
+    "p90_ms": 5.234,
+    "max_ms": 5.234,
+    "stdev_ms": 0.2908
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "section",
+   "class": "Section",
+   "matches": 63,
+   "find_in_lazy": {
+    "n": 7,
+    "min_ms": 14.6647,
+    "median_ms": 14.8036,
+    "mean_ms": 15.5685,
+    "p90_ms": 17.596,
+    "max_ms": 17.596,
+    "stdev_ms": 1.2411
+   },
+   "fully_materialized": {
+    "n": 7,
+    "min_ms": 272.0212,
+    "median_ms": 275.9018,
+    "mean_ms": 277.03,
+    "p90_ms": 281.3615,
+    "max_ms": 281.3615,
+    "stdev_ms": 3.4059
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 15.8864,
+    "median_ms": 16.1046,
+    "mean_ms": 16.2065,
+    "p90_ms": 17.0781,
+    "max_ms": 17.0781,
+    "stdev_ms": 0.3977
+   }
+  }
+ ],
+ "repeat_scaling": [
+  {
+   "language": "python",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 1,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 5.4085,
+    "median_ms": 5.8223,
+    "mean_ms": 6.0648,
+    "p90_ms": 7.1956,
+    "max_ms": 7.1956,
+    "stdev_ms": 0.7542
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 6.3763,
+    "median_ms": 6.4364,
+    "mean_ms": 7.6728,
+    "p90_ms": 12.5341,
+    "max_ms": 12.5341,
+    "stdev_ms": 2.7195
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 10,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 51.2595,
+    "median_ms": 53.9454,
+    "mean_ms": 54.2704,
+    "p90_ms": 57.4568,
+    "max_ms": 57.4568,
+    "stdev_ms": 2.2443
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 63.2703,
+    "median_ms": 64.9571,
+    "mean_ms": 67.298,
+    "p90_ms": 77.3682,
+    "max_ms": 77.3682,
+    "stdev_ms": 5.739
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 50,
+   "recwalk": {
+    "n": 3,
+    "min_ms": 267.065,
+    "median_ms": 279.0977,
+    "mean_ms": 283.3842,
+    "p90_ms": 303.99,
+    "max_ms": 303.99,
+    "stdev_ms": 18.832
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 329.2631,
+    "median_ms": 334.0022,
+    "mean_ms": 342.128,
+    "p90_ms": 363.1186,
+    "max_ms": 363.1186,
+    "stdev_ms": 18.3322
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 1,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 54.8751,
+    "median_ms": 56.7096,
+    "mean_ms": 56.9138,
+    "p90_ms": 58.8474,
+    "max_ms": 58.8474,
+    "stdev_ms": 1.436
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 61.3853,
+    "median_ms": 64.7446,
+    "mean_ms": 64.5133,
+    "p90_ms": 68.6799,
+    "max_ms": 68.6799,
+    "stdev_ms": 2.8321
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 10,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 546.1411,
+    "median_ms": 549.8355,
+    "mean_ms": 551.6901,
+    "p90_ms": 559.4152,
+    "max_ms": 559.4152,
+    "stdev_ms": 5.3325
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 640.8209,
+    "median_ms": 641.7944,
+    "mean_ms": 650.6377,
+    "p90_ms": 674.4271,
+    "max_ms": 674.4271,
+    "stdev_ms": 14.4596
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 50,
+   "recwalk": {
+    "n": 3,
+    "min_ms": 2884.6288,
+    "median_ms": 2930.6772,
+    "mean_ms": 2941.7864,
+    "p90_ms": 3010.053,
+    "max_ms": 3010.053,
+    "stdev_ms": 63.4458
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 3249.0622,
+    "median_ms": 3315.167,
+    "mean_ms": 3297.1932,
+    "p90_ms": 3327.3503,
+    "max_ms": 3327.3503,
+    "stdev_ms": 42.1254
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 1,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 9.1104,
+    "median_ms": 9.794,
+    "mean_ms": 10.1937,
+    "p90_ms": 11.6141,
+    "max_ms": 11.6141,
+    "stdev_ms": 1.0096
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 13.2464,
+    "median_ms": 18.485,
+    "mean_ms": 18.4437,
+    "p90_ms": 23.5826,
+    "max_ms": 23.5826,
+    "stdev_ms": 3.7086
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 10,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 82.0218,
+    "median_ms": 150.0957,
+    "mean_ms": 144.6816,
+    "p90_ms": 205.9864,
+    "max_ms": 205.9864,
+    "stdev_ms": 45.6939
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 100.2399,
+    "median_ms": 140.7359,
+    "mean_ms": 141.9595,
+    "p90_ms": 181.5869,
+    "max_ms": 181.5869,
+    "stdev_ms": 30.7648
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 50,
+   "recwalk": {
+    "n": 3,
+    "min_ms": 622.7385,
+    "median_ms": 627.7075,
+    "mean_ms": 737.0328,
+    "p90_ms": 960.6526,
+    "max_ms": 960.6526,
+    "stdev_ms": 193.6763
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 433.2215,
+    "median_ms": 598.7383,
+    "mean_ms": 639.1266,
+    "p90_ms": 885.4202,
+    "max_ms": 885.4202,
+    "stdev_ms": 228.7888
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 1,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 23.7647,
+    "median_ms": 35.8788,
+    "mean_ms": 33.501,
+    "p90_ms": 47.3564,
+    "max_ms": 47.3564,
+    "stdev_ms": 9.9431
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 25.3932,
+    "median_ms": 47.7915,
+    "mean_ms": 43.5339,
+    "p90_ms": 54.8813,
+    "max_ms": 54.8813,
+    "stdev_ms": 12.1474
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 10,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 284.9796,
+    "median_ms": 326.0011,
+    "mean_ms": 343.1884,
+    "p90_ms": 467.269,
+    "max_ms": 467.269,
+    "stdev_ms": 72.7181
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 301.1639,
+    "median_ms": 367.267,
+    "mean_ms": 389.334,
+    "p90_ms": 476.7235,
+    "max_ms": 476.7235,
+    "stdev_ms": 71.1869
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 50,
+   "recwalk": {
+    "n": 3,
+    "min_ms": 1391.0029,
+    "median_ms": 1856.7978,
+    "mean_ms": 1884.2936,
+    "p90_ms": 2405.08,
+    "max_ms": 2405.08,
+    "stdev_ms": 507.5974
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 1487.8846,
+    "median_ms": 2126.5319,
+    "mean_ms": 1979.1835,
+    "p90_ms": 2323.134,
+    "max_ms": 2323.134,
+    "stdev_ms": 436.6853
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 1,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 0.759,
+    "median_ms": 0.7883,
+    "mean_ms": 0.808,
+    "p90_ms": 0.869,
+    "max_ms": 0.869,
+    "stdev_ms": 0.0535
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 0.8363,
+    "median_ms": 0.8529,
+    "mean_ms": 0.8504,
+    "p90_ms": 0.8582,
+    "max_ms": 0.8582,
+    "stdev_ms": 0.0085
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 10,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 6.5364,
+    "median_ms": 6.5949,
+    "mean_ms": 6.6367,
+    "p90_ms": 6.8374,
+    "max_ms": 6.8374,
+    "stdev_ms": 0.1166
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 7.3294,
+    "median_ms": 7.7124,
+    "mean_ms": 7.6441,
+    "p90_ms": 7.874,
+    "max_ms": 7.874,
+    "stdev_ms": 0.2497
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 50,
+   "recwalk": {
+    "n": 3,
+    "min_ms": 32.4355,
+    "median_ms": 32.7992,
+    "mean_ms": 32.7437,
+    "p90_ms": 32.9964,
+    "max_ms": 32.9964,
+    "stdev_ms": 0.2845
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 35.9031,
+    "median_ms": 36.4158,
+    "mean_ms": 36.2592,
+    "p90_ms": 36.4588,
+    "max_ms": 36.4588,
+    "stdev_ms": 0.3092
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 1,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 19.4205,
+    "median_ms": 20.926,
+    "mean_ms": 21.3826,
+    "p90_ms": 23.7615,
+    "max_ms": 23.7615,
+    "stdev_ms": 1.7605
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 19.6578,
+    "median_ms": 22.341,
+    "mean_ms": 22.8289,
+    "p90_ms": 29.985,
+    "max_ms": 29.985,
+    "stdev_ms": 4.2077
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 10,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 195.7212,
+    "median_ms": 199.3421,
+    "mean_ms": 200.7432,
+    "p90_ms": 208.3003,
+    "max_ms": 208.3003,
+    "stdev_ms": 5.1303
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 200.6592,
+    "median_ms": 216.0678,
+    "mean_ms": 218.9635,
+    "p90_ms": 248.3346,
+    "max_ms": 248.3346,
+    "stdev_ms": 17.6713
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 50,
+   "recwalk": {
+    "n": 3,
+    "min_ms": 1010.5657,
+    "median_ms": 1014.2131,
+    "mean_ms": 1015.5485,
+    "p90_ms": 1021.8668,
+    "max_ms": 1021.8668,
+    "stdev_ms": 5.7677
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 1125.7369,
+    "median_ms": 1127.4684,
+    "mean_ms": 1148.386,
+    "p90_ms": 1191.9528,
+    "max_ms": 1191.9528,
+    "stdev_ms": 37.7399
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "classes": 5,
+   "rounds": 1,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 4.487,
+    "median_ms": 4.4988,
+    "mean_ms": 4.6198,
+    "p90_ms": 5.0793,
+    "max_ms": 5.0793,
+    "stdev_ms": 0.2577
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 6.9974,
+    "median_ms": 7.6263,
+    "mean_ms": 7.6334,
+    "p90_ms": 8.8,
+    "max_ms": 8.8,
+    "stdev_ms": 0.7259
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "classes": 5,
+   "rounds": 10,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 40.8691,
+    "median_ms": 45.4893,
+    "mean_ms": 48.335,
+    "p90_ms": 63.0306,
+    "max_ms": 63.0306,
+    "stdev_ms": 8.7552
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 66.5744,
+    "median_ms": 67.0906,
+    "mean_ms": 69.0056,
+    "p90_ms": 77.034,
+    "max_ms": 77.034,
+    "stdev_ms": 4.4988
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "classes": 5,
+   "rounds": 50,
+   "recwalk": {
+    "n": 3,
+    "min_ms": 210.9009,
+    "median_ms": 214.5483,
+    "mean_ms": 214.4632,
+    "p90_ms": 217.9405,
+    "max_ms": 217.9405,
+    "stdev_ms": 3.5206
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 336.8418,
+    "median_ms": 340.1912,
+    "mean_ms": 343.6634,
+    "p90_ms": 353.9572,
+    "max_ms": 353.9572,
+    "stdev_ms": 9.0707
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "classes": 5,
+   "rounds": 1,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 27.578,
+    "median_ms": 32.0804,
+    "mean_ms": 33.3533,
+    "p90_ms": 44.841,
+    "max_ms": 44.841,
+    "stdev_ms": 6.7584
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 34.918,
+    "median_ms": 37.0496,
+    "mean_ms": 37.4,
+    "p90_ms": 40.9648,
+    "max_ms": 40.9648,
+    "stdev_ms": 2.5004
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "classes": 5,
+   "rounds": 10,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 318.0196,
+    "median_ms": 375.6244,
+    "mean_ms": 380.67,
+    "p90_ms": 448.1689,
+    "max_ms": 448.1689,
+    "stdev_ms": 48.4557
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 351.7575,
+    "median_ms": 387.6647,
+    "mean_ms": 396.214,
+    "p90_ms": 432.8069,
+    "max_ms": 432.8069,
+    "stdev_ms": 32.5285
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "classes": 5,
+   "rounds": 50,
+   "recwalk": {
+    "n": 3,
+    "min_ms": 1835.7259,
+    "median_ms": 1882.6454,
+    "mean_ms": 1924.2907,
+    "p90_ms": 2054.5007,
+    "max_ms": 2054.5007,
+    "stdev_ms": 115.1796
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 1757.695,
+    "median_ms": 1845.6757,
+    "mean_ms": 1902.664,
+    "p90_ms": 2104.6213,
+    "max_ms": 2104.6213,
+    "stdev_ms": 180.3475
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 1,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 0.4221,
+    "median_ms": 0.4236,
+    "mean_ms": 0.4256,
+    "p90_ms": 0.4358,
+    "max_ms": 0.4358,
+    "stdev_ms": 0.0058
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 1.3586,
+    "median_ms": 1.3672,
+    "mean_ms": 1.3695,
+    "p90_ms": 1.3903,
+    "max_ms": 1.3903,
+    "stdev_ms": 0.0129
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 10,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 3.1637,
+    "median_ms": 3.2283,
+    "mean_ms": 3.4592,
+    "p90_ms": 4.4605,
+    "max_ms": 4.4605,
+    "stdev_ms": 0.5606
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 11.5674,
+    "median_ms": 11.8889,
+    "mean_ms": 13.9503,
+    "p90_ms": 17.2855,
+    "max_ms": 17.2855,
+    "stdev_ms": 2.9976
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 50,
+   "recwalk": {
+    "n": 3,
+    "min_ms": 16.2458,
+    "median_ms": 17.9299,
+    "mean_ms": 19.5673,
+    "p90_ms": 24.5262,
+    "max_ms": 24.5262,
+    "stdev_ms": 4.3763
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 61.0185,
+    "median_ms": 67.3481,
+    "mean_ms": 68.4862,
+    "p90_ms": 77.092,
+    "max_ms": 77.092,
+    "stdev_ms": 8.0969
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 1,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 2.6286,
+    "median_ms": 2.6715,
+    "mean_ms": 2.7347,
+    "p90_ms": 3.0233,
+    "max_ms": 3.0233,
+    "stdev_ms": 0.1627
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 9.2557,
+    "median_ms": 9.401,
+    "mean_ms": 10.0875,
+    "p90_ms": 11.4719,
+    "max_ms": 11.4719,
+    "stdev_ms": 1.0305
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 10,
+   "recwalk": {
+    "n": 5,
+    "min_ms": 21.208,
+    "median_ms": 23.044,
+    "mean_ms": 24.2083,
+    "p90_ms": 31.5399,
+    "max_ms": 31.5399,
+    "stdev_ms": 4.2047
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 86.228,
+    "median_ms": 87.9064,
+    "mean_ms": 88.254,
+    "p90_ms": 90.9073,
+    "max_ms": 90.9073,
+    "stdev_ms": 1.8478
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 50,
+   "recwalk": {
+    "n": 3,
+    "min_ms": 112.3684,
+    "median_ms": 113.6296,
+    "mean_ms": 114.3563,
+    "p90_ms": 117.0708,
+    "max_ms": 117.0708,
+    "stdev_ms": 2.434
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 416.9908,
+    "median_ms": 418.9889,
+    "mean_ms": 420.0289,
+    "p90_ms": 424.1069,
+    "max_ms": 424.1069,
+    "stdev_ms": 3.6703
+   }
+  }
+ ],
+ "memory": [
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 2022,
+   "recwalk_peak_kib": 21.0,
+   "cursor_peak_kib": 146.9,
+   "find_in_lazy_peak_kib": 1680.1,
+   "fully_materialized_peak_kib": 1680.1,
+   "cursor_rows_peak_kib": 1821.4
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 45,
+   "recwalk_peak_kib": 4.3,
+   "cursor_peak_kib": 6.0,
+   "find_in_lazy_peak_kib": 145.2,
+   "fully_materialized_peak_kib": 6407.2,
+   "cursor_rows_peak_kib": 144.0
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 186,
+   "recwalk_peak_kib": 5.5,
+   "cursor_peak_kib": 16.0,
+   "find_in_lazy_peak_kib": 294.6,
+   "fully_materialized_peak_kib": 2130.5,
+   "cursor_rows_peak_kib": 301.4
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 31402,
+   "kind": "string",
+   "class": "String",
+   "matches": 106,
+   "recwalk_peak_kib": 4.8,
+   "cursor_peak_kib": 10.3,
+   "find_in_lazy_peak_kib": 149.6,
+   "fully_materialized_peak_kib": 559.4,
+   "cursor_rows_peak_kib": 182.1
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "command",
+   "class": "Command",
+   "matches": 323,
+   "recwalk_peak_kib": 6.2,
+   "cursor_peak_kib": 25.7,
+   "find_in_lazy_peak_kib": 505.0,
+   "fully_materialized_peak_kib": 596.1,
+   "cursor_rows_peak_kib": 593.7
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 65,
+   "recwalk_peak_kib": 4.5,
+   "cursor_peak_kib": 7.5,
+   "find_in_lazy_peak_kib": 104.3,
+   "fully_materialized_peak_kib": 185.4,
+   "cursor_rows_peak_kib": 102.9
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 29,
+   "recwalk_peak_kib": 4.2,
+   "cursor_peak_kib": 4.9,
+   "find_in_lazy_peak_kib": 119.3,
+   "fully_materialized_peak_kib": 119.3,
+   "cursor_rows_peak_kib": 50.4
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 54,
+   "recwalk_peak_kib": 4.4,
+   "cursor_peak_kib": 6.7,
+   "find_in_lazy_peak_kib": 113.3,
+   "fully_materialized_peak_kib": 120.8,
+   "cursor_rows_peak_kib": 113.4
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 55,
+   "recwalk_peak_kib": 4.6,
+   "cursor_peak_kib": 6.7,
+   "find_in_lazy_peak_kib": 157.1,
+   "fully_materialized_peak_kib": 1574.6,
+   "cursor_rows_peak_kib": 154.7
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 11,
+   "recwalk_peak_kib": 4.5,
+   "cursor_peak_kib": 3.6,
+   "find_in_lazy_peak_kib": 27.3,
+   "fully_materialized_peak_kib": 263.8,
+   "cursor_rows_peak_kib": 21.1
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 23,
+   "recwalk_peak_kib": 4.5,
+   "cursor_peak_kib": 4.4,
+   "find_in_lazy_peak_kib": 41.4,
+   "fully_materialized_peak_kib": 170.9,
+   "cursor_rows_peak_kib": 37.0
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 0,
+   "recwalk_peak_kib": 4.3,
+   "cursor_peak_kib": 2.8,
+   "find_in_lazy_peak_kib": 16.6,
+   "fully_materialized_peak_kib": 16.6,
+   "cursor_rows_peak_kib": 3.2
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 1081,
+   "recwalk_peak_kib": 13.3,
+   "cursor_peak_kib": 81.0,
+   "find_in_lazy_peak_kib": 900.6,
+   "fully_materialized_peak_kib": 900.6,
+   "cursor_rows_peak_kib": 972.6
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 47,
+   "recwalk_peak_kib": 5.8,
+   "cursor_peak_kib": 8.1,
+   "find_in_lazy_peak_kib": 74.7,
+   "fully_materialized_peak_kib": 139.0,
+   "cursor_rows_peak_kib": 72.4
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 16,
+   "recwalk_peak_kib": 5.6,
+   "cursor_peak_kib": 5.9,
+   "find_in_lazy_peak_kib": 58.7,
+   "fully_materialized_peak_kib": 1675.7,
+   "cursor_rows_peak_kib": 59.6
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 21,
+   "recwalk_peak_kib": 5.6,
+   "cursor_peak_kib": 6.3,
+   "find_in_lazy_peak_kib": 64.0,
+   "fully_materialized_peak_kib": 262.1,
+   "cursor_rows_peak_kib": 60.5
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 95,
+   "recwalk_peak_kib": 6.0,
+   "cursor_peak_kib": 11.6,
+   "find_in_lazy_peak_kib": 146.5,
+   "fully_materialized_peak_kib": 973.0,
+   "cursor_rows_peak_kib": 146.3
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 8,
+   "recwalk_peak_kib": 2.2,
+   "cursor_peak_kib": 3.4,
+   "find_in_lazy_peak_kib": 17.2,
+   "fully_materialized_peak_kib": 28.8,
+   "cursor_rows_peak_kib": 16.3
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 29,
+   "recwalk_peak_kib": 2.3,
+   "cursor_peak_kib": 4.9,
+   "find_in_lazy_peak_kib": 59.6,
+   "fully_materialized_peak_kib": 287.5,
+   "cursor_rows_peak_kib": 62.3
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 5,
+   "recwalk_peak_kib": 2.2,
+   "cursor_peak_kib": 3.2,
+   "find_in_lazy_peak_kib": 15.6,
+   "fully_materialized_peak_kib": 60.0,
+   "cursor_rows_peak_kib": 16.1
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "section",
+   "class": "Section",
+   "matches": 8,
+   "recwalk_peak_kib": 2.2,
+   "cursor_peak_kib": 3.4,
+   "find_in_lazy_peak_kib": 58.3,
+   "fully_materialized_peak_kib": 802.2,
+   "cursor_rows_peak_kib": 57.7
+  }
+ ]
+}

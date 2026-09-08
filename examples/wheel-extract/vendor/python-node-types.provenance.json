@@ -1,0 +1,14 @@
+{
+  "schema_file": "python-node-types.json",
+  "grammar": "python",
+  "source_repository": "https://github.com/tree-sitter/tree-sitter-python",
+  "source_package": "tree-sitter-python==0.25.0",
+  "source_commit": "293fdc02038ee2bf0e2e206711b69c90ac0d413f",
+  "acquired": "2026-09-09",
+  "license": "MIT",
+  "tree_sitter_runtime": ">=0.26,<0.27",
+  "language_abi": 15,
+  "schema_sha256": "a2456847bea3adff5b2222b2f7b03a870159470d8908622204e6eb29ee2fe45e",
+  "grammar_semantic_version": [0, 25, 0],
+  "policy": "Refresh deliberately when the grammar wheel or tree-sitter runtime changes."
+}

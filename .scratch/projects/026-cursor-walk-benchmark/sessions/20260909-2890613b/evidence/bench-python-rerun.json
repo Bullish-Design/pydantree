@@ -1,0 +1,1537 @@
+{
+ "environment": {},
+ "parse": [
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "nodes": 341,
+   "n": 30,
+   "min_ms": 0.2855,
+   "median_ms": 0.3782,
+   "mean_ms": 0.3685,
+   "p90_ms": 0.4468,
+   "max_ms": 0.456,
+   "stdev_ms": 0.0707
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "nodes": 7190,
+   "n": 15,
+   "min_ms": 3.7981,
+   "median_ms": 4.9979,
+   "mean_ms": 5.1269,
+   "p90_ms": 6.3334,
+   "max_ms": 7.7138,
+   "stdev_ms": 1.0784
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "nodes": 78826,
+   "n": 7,
+   "min_ms": 62.6178,
+   "median_ms": 67.5106,
+   "mean_ms": 68.7514,
+   "p90_ms": 80.7096,
+   "max_ms": 80.7096,
+   "stdev_ms": 5.8418
+  }
+ ],
+ "anchors": [
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 81,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 1.3456,
+    "median_ms": 1.7148,
+    "mean_ms": 1.7224,
+    "p90_ms": 2.0892,
+    "max_ms": 2.3421,
+    "stdev_ms": 0.2505
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.2204,
+    "median_ms": 0.2394,
+    "mean_ms": 0.2678,
+    "p90_ms": 0.383,
+    "max_ms": 0.3942,
+    "stdev_ms": 0.0575
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1218,
+    "median_ms": 0.2329,
+    "mean_ms": 0.2349,
+    "p90_ms": 0.269,
+    "max_ms": 1.1813,
+    "stdev_ms": 0.1879
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1479,
+    "median_ms": 0.2373,
+    "mean_ms": 0.2393,
+    "p90_ms": 0.3098,
+    "max_ms": 0.3132,
+    "stdev_ms": 0.0532
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 3,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "query_cold": {
+    "n": 30,
+    "min_ms": 1.7514,
+    "median_ms": 2.0978,
+    "mean_ms": 2.1919,
+    "p90_ms": 2.6924,
+    "max_ms": 2.7018,
+    "stdev_ms": 0.2972
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1261,
+    "median_ms": 0.2192,
+    "mean_ms": 0.2076,
+    "p90_ms": 0.2518,
+    "max_ms": 0.3166,
+    "stdev_ms": 0.0442
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1654,
+    "median_ms": 0.2556,
+    "mean_ms": 0.239,
+    "p90_ms": 0.2686,
+    "max_ms": 0.2777,
+    "stdev_ms": 0.0329
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 12,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 1.8043,
+    "median_ms": 2.1262,
+    "mean_ms": 2.3253,
+    "p90_ms": 3.0827,
+    "max_ms": 5.3128,
+    "stdev_ms": 0.6735
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.1701,
+    "median_ms": 0.2141,
+    "mean_ms": 0.22,
+    "p90_ms": 0.2551,
+    "max_ms": 0.2883,
+    "stdev_ms": 0.0275
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1118,
+    "median_ms": 0.1276,
+    "mean_ms": 0.1507,
+    "p90_ms": 0.2351,
+    "max_ms": 0.2474,
+    "stdev_ms": 0.0446
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1312,
+    "median_ms": 0.1394,
+    "mean_ms": 0.1672,
+    "p90_ms": 0.2616,
+    "max_ms": 0.2748,
+    "stdev_ms": 0.0516
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "string",
+   "class": "String",
+   "matches": 14,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 1.2812,
+    "median_ms": 1.3922,
+    "mean_ms": 1.5015,
+    "p90_ms": 2.0074,
+    "max_ms": 2.1415,
+    "stdev_ms": 0.2503
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.1584,
+    "median_ms": 0.2031,
+    "mean_ms": 0.2092,
+    "p90_ms": 0.2457,
+    "max_ms": 0.2636,
+    "stdev_ms": 0.0238
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1271,
+    "median_ms": 0.2124,
+    "mean_ms": 0.2108,
+    "p90_ms": 0.2524,
+    "max_ms": 0.2637,
+    "stdev_ms": 0.0331
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1428,
+    "median_ms": 0.2542,
+    "mean_ms": 0.2416,
+    "p90_ms": 0.2826,
+    "max_ms": 0.2881,
+    "stdev_ms": 0.0393
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "call",
+   "class": "Call",
+   "matches": 2,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "query_cold": {
+    "n": 30,
+    "min_ms": 2.1296,
+    "median_ms": 2.6238,
+    "mean_ms": 2.5964,
+    "p90_ms": 3.0081,
+    "max_ms": 3.3938,
+    "stdev_ms": 0.3157
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.115,
+    "median_ms": 0.1504,
+    "mean_ms": 0.1672,
+    "p90_ms": 0.2273,
+    "max_ms": 0.2488,
+    "stdev_ms": 0.0468
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1302,
+    "median_ms": 0.1832,
+    "mean_ms": 0.1938,
+    "p90_ms": 0.2661,
+    "max_ms": 0.2761,
+    "stdev_ms": 0.0591
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 1,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "query_cold": {
+    "n": 30,
+    "min_ms": 1.4573,
+    "median_ms": 1.5267,
+    "mean_ms": 1.6411,
+    "p90_ms": 2.1745,
+    "max_ms": 2.3407,
+    "stdev_ms": 0.2495
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1147,
+    "median_ms": 0.1716,
+    "mean_ms": 0.1796,
+    "p90_ms": 0.2395,
+    "max_ms": 0.2457,
+    "stdev_ms": 0.0451
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1286,
+    "median_ms": 0.14,
+    "mean_ms": 0.1764,
+    "p90_ms": 0.2609,
+    "max_ms": 0.2654,
+    "stdev_ms": 0.0551
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 1670,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 4.3246,
+    "median_ms": 6.0506,
+    "mean_ms": 6.0596,
+    "p90_ms": 7.3895,
+    "max_ms": 7.8444,
+    "stdev_ms": 1.0399
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 3.0776,
+    "median_ms": 6.2291,
+    "mean_ms": 5.07,
+    "p90_ms": 6.6157,
+    "max_ms": 6.8524,
+    "stdev_ms": 1.5757
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.3778,
+    "median_ms": 1.8279,
+    "mean_ms": 2.1199,
+    "p90_ms": 3.1286,
+    "max_ms": 3.9083,
+    "stdev_ms": 0.7906
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.6024,
+    "median_ms": 2.5791,
+    "mean_ms": 2.7263,
+    "p90_ms": 3.9789,
+    "max_ms": 4.1582,
+    "stdev_ms": 0.924
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 35,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "query_cold": {
+    "n": 15,
+    "min_ms": 2.7373,
+    "median_ms": 3.918,
+    "mean_ms": 3.9621,
+    "p90_ms": 5.122,
+    "max_ms": 5.8497,
+    "stdev_ms": 1.0038
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.2454,
+    "median_ms": 2.7112,
+    "mean_ms": 2.6115,
+    "p90_ms": 3.4536,
+    "max_ms": 3.9265,
+    "stdev_ms": 0.9249
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.4371,
+    "median_ms": 1.7181,
+    "mean_ms": 2.2475,
+    "p90_ms": 3.9386,
+    "max_ms": 4.0465,
+    "stdev_ms": 0.9794
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 152,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 3.0043,
+    "median_ms": 3.6334,
+    "mean_ms": 3.9218,
+    "p90_ms": 5.5939,
+    "max_ms": 5.7357,
+    "stdev_ms": 0.8839
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 1.493,
+    "median_ms": 1.9755,
+    "mean_ms": 2.0782,
+    "p90_ms": 2.7121,
+    "max_ms": 2.7887,
+    "stdev_ms": 0.4136
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.3103,
+    "median_ms": 1.4411,
+    "mean_ms": 1.8062,
+    "p90_ms": 3.1254,
+    "max_ms": 3.4458,
+    "stdev_ms": 0.7076
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.4763,
+    "median_ms": 2.1374,
+    "mean_ms": 2.1067,
+    "p90_ms": 2.6613,
+    "max_ms": 2.6878,
+    "stdev_ms": 0.484
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "string",
+   "class": "String",
+   "matches": 97,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 4.279,
+    "median_ms": 4.5654,
+    "mean_ms": 4.69,
+    "p90_ms": 5.4939,
+    "max_ms": 5.8896,
+    "stdev_ms": 0.4684
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 2.0428,
+    "median_ms": 2.5064,
+    "mean_ms": 2.8585,
+    "p90_ms": 2.7371,
+    "max_ms": 8.6889,
+    "stdev_ms": 1.6248
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.8975,
+    "median_ms": 2.3167,
+    "mean_ms": 2.4018,
+    "p90_ms": 2.9659,
+    "max_ms": 3.5784,
+    "stdev_ms": 0.441
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.8049,
+    "median_ms": 2.5596,
+    "mean_ms": 2.5277,
+    "p90_ms": 2.8849,
+    "max_ms": 2.8926,
+    "stdev_ms": 0.304
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "call",
+   "class": "Call",
+   "matches": 261,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "query_cold": {
+    "n": 15,
+    "min_ms": 3.4263,
+    "median_ms": 4.1609,
+    "mean_ms": 4.4837,
+    "p90_ms": 6.5485,
+    "max_ms": 6.7222,
+    "stdev_ms": 1.1483
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.2692,
+    "median_ms": 2.1698,
+    "mean_ms": 2.1094,
+    "p90_ms": 2.97,
+    "max_ms": 3.5365,
+    "stdev_ms": 0.7827
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.465,
+    "median_ms": 1.76,
+    "mean_ms": 2.0645,
+    "p90_ms": 3.7933,
+    "max_ms": 3.886,
+    "stdev_ms": 0.8213
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 8,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "query_cold": {
+    "n": 15,
+    "min_ms": 2.7,
+    "median_ms": 3.3022,
+    "mean_ms": 3.4784,
+    "p90_ms": 4.6565,
+    "max_ms": 4.7591,
+    "stdev_ms": 0.7466
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.2603,
+    "median_ms": 2.0127,
+    "mean_ms": 2.1862,
+    "p90_ms": 3.2572,
+    "max_ms": 3.4165,
+    "stdev_ms": 0.7522
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.4285,
+    "median_ms": 2.5496,
+    "mean_ms": 2.104,
+    "p90_ms": 2.6684,
+    "max_ms": 2.9795,
+    "stdev_ms": 0.6112
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 19161,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 74.9178,
+    "median_ms": 85.2012,
+    "mean_ms": 83.0645,
+    "p90_ms": 88.3257,
+    "max_ms": 88.3257,
+    "stdev_ms": 5.4592
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 63.4122,
+    "median_ms": 82.7625,
+    "mean_ms": 82.1777,
+    "p90_ms": 96.7565,
+    "max_ms": 96.7565,
+    "stdev_ms": 11.9677
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 16.9903,
+    "median_ms": 28.014,
+    "mean_ms": 29.0542,
+    "p90_ms": 42.7406,
+    "max_ms": 42.7406,
+    "stdev_ms": 8.5997
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 21.6541,
+    "median_ms": 26.8895,
+    "mean_ms": 28.3593,
+    "p90_ms": 38.7769,
+    "max_ms": 38.7769,
+    "stdev_ms": 5.2248
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 352,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "query_cold": {
+    "n": 7,
+    "min_ms": 21.0227,
+    "median_ms": 24.3804,
+    "mean_ms": 26.0636,
+    "p90_ms": 35.0326,
+    "max_ms": 35.0326,
+    "stdev_ms": 5.112
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 21.2491,
+    "median_ms": 22.9335,
+    "mean_ms": 23.7309,
+    "p90_ms": 26.2402,
+    "max_ms": 26.2402,
+    "stdev_ms": 1.9622
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 16.0725,
+    "median_ms": 25.1752,
+    "mean_ms": 24.0237,
+    "p90_ms": 30.1324,
+    "max_ms": 30.1324,
+    "stdev_ms": 4.7641
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 1499,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 17.0332,
+    "median_ms": 19.3925,
+    "mean_ms": 19.3119,
+    "p90_ms": 20.8935,
+    "max_ms": 20.8935,
+    "stdev_ms": 1.3901
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 15.6359,
+    "median_ms": 16.4422,
+    "mean_ms": 17.3739,
+    "p90_ms": 20.5542,
+    "max_ms": 20.5542,
+    "stdev_ms": 1.8015
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 15.515,
+    "median_ms": 21.0663,
+    "mean_ms": 20.6946,
+    "p90_ms": 23.7721,
+    "max_ms": 23.7721,
+    "stdev_ms": 2.8137
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 15.235,
+    "median_ms": 18.2658,
+    "mean_ms": 18.6695,
+    "p90_ms": 25.6789,
+    "max_ms": 25.6789,
+    "stdev_ms": 3.3555
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "string",
+   "class": "String",
+   "matches": 618,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 14.7173,
+    "median_ms": 17.5841,
+    "mean_ms": 17.138,
+    "p90_ms": 19.4001,
+    "max_ms": 19.4001,
+    "stdev_ms": 1.7674
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 13.7058,
+    "median_ms": 14.4662,
+    "mean_ms": 14.5884,
+    "p90_ms": 15.4178,
+    "max_ms": 15.4178,
+    "stdev_ms": 0.6146
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 14.5221,
+    "median_ms": 16.403,
+    "mean_ms": 18.2052,
+    "p90_ms": 25.5081,
+    "max_ms": 25.5081,
+    "stdev_ms": 3.8181
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 17.1954,
+    "median_ms": 21.4993,
+    "mean_ms": 21.7688,
+    "p90_ms": 26.9002,
+    "max_ms": 26.9002,
+    "stdev_ms": 3.1194
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "call",
+   "class": "Call",
+   "matches": 3034,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "query_cold": {
+    "n": 7,
+    "min_ms": 17.4523,
+    "median_ms": 20.7817,
+    "mean_ms": 21.8473,
+    "p90_ms": 31.9815,
+    "max_ms": 31.9815,
+    "stdev_ms": 4.7758
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 16.2467,
+    "median_ms": 22.7939,
+    "mean_ms": 22.8145,
+    "p90_ms": 33.0842,
+    "max_ms": 33.0842,
+    "stdev_ms": 6.0737
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 18.3864,
+    "median_ms": 24.1934,
+    "mean_ms": 24.6508,
+    "p90_ms": 31.3032,
+    "max_ms": 31.3032,
+    "stdev_ms": 4.9218
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 14,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "query_cold": {
+    "n": 7,
+    "min_ms": 20.195,
+    "median_ms": 24.0539,
+    "mean_ms": 23.8803,
+    "p90_ms": 27.6417,
+    "max_ms": 27.6417,
+    "stdev_ms": 2.6511
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 16.3209,
+    "median_ms": 20.0225,
+    "mean_ms": 21.2846,
+    "p90_ms": 26.7116,
+    "max_ms": 26.7116,
+    "stdev_ms": 3.4598
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 17.6033,
+    "median_ms": 21.5467,
+    "mean_ms": 20.5034,
+    "p90_ms": 24.553,
+    "max_ms": 24.553,
+    "stdev_ms": 2.6186
+   }
+  }
+ ],
+ "rows": [
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 81,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 2.1555,
+    "median_ms": 2.9345,
+    "mean_ms": 2.8955,
+    "p90_ms": 3.3289,
+    "max_ms": 3.5256,
+    "stdev_ms": 0.3144
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.6836,
+    "median_ms": 1.542,
+    "mean_ms": 1.444,
+    "p90_ms": 1.718,
+    "max_ms": 1.8045,
+    "stdev_ms": 0.277
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 3,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 9.1586,
+    "median_ms": 12.7045,
+    "mean_ms": 12.6308,
+    "p90_ms": 14.4672,
+    "max_ms": 14.975,
+    "stdev_ms": 1.4131
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 6.5339,
+    "median_ms": 11.3521,
+    "mean_ms": 11.6335,
+    "p90_ms": 14.476,
+    "max_ms": 19.0169,
+    "stdev_ms": 2.0672
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 12,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 4.7335,
+    "median_ms": 6.328,
+    "mean_ms": 6.7626,
+    "p90_ms": 9.3299,
+    "max_ms": 9.9885,
+    "stdev_ms": 1.6818
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 3.2192,
+    "median_ms": 5.577,
+    "mean_ms": 5.9309,
+    "p90_ms": 7.3697,
+    "max_ms": 14.1952,
+    "stdev_ms": 2.033
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "string",
+   "class": "String",
+   "matches": 14,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 2.8461,
+    "median_ms": 3.8791,
+    "mean_ms": 3.8353,
+    "p90_ms": 5.0477,
+    "max_ms": 5.2984,
+    "stdev_ms": 0.789
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 1.6778,
+    "median_ms": 1.9843,
+    "mean_ms": 2.3002,
+    "p90_ms": 3.4313,
+    "max_ms": 3.643,
+    "stdev_ms": 0.6849
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "call",
+   "class": "Call",
+   "matches": 2,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 3.2386,
+    "median_ms": 3.7886,
+    "mean_ms": 4.0483,
+    "p90_ms": 5.3044,
+    "max_ms": 5.5047,
+    "stdev_ms": 0.7271
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 1.2321,
+    "median_ms": 1.9346,
+    "mean_ms": 1.98,
+    "p90_ms": 2.8401,
+    "max_ms": 3.0176,
+    "stdev_ms": 0.6552
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 1,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 7.9978,
+    "median_ms": 9.6755,
+    "mean_ms": 10.3754,
+    "p90_ms": 14.8287,
+    "max_ms": 16.9738,
+    "stdev_ms": 2.5328
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 7.0928,
+    "median_ms": 12.8188,
+    "mean_ms": 11.9241,
+    "p90_ms": 14.9228,
+    "max_ms": 20.2933,
+    "stdev_ms": 2.9773
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 1670,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 17.1203,
+    "median_ms": 25.3513,
+    "mean_ms": 24.6199,
+    "p90_ms": 29.7797,
+    "max_ms": 30.8,
+    "stdev_ms": 4.12
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 16.8163,
+    "median_ms": 21.9051,
+    "mean_ms": 22.335,
+    "p90_ms": 26.4829,
+    "max_ms": 33.1688,
+    "stdev_ms": 4.2648
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 35,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 250.6657,
+    "median_ms": 331.3883,
+    "mean_ms": 332.2765,
+    "p90_ms": 380.1141,
+    "max_ms": 395.5341,
+    "stdev_ms": 45.9081
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 195.7676,
+    "median_ms": 228.29,
+    "mean_ms": 232.5997,
+    "p90_ms": 265.5499,
+    "max_ms": 289.8228,
+    "stdev_ms": 28.8503
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 152,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 69.62,
+    "median_ms": 134.0351,
+    "mean_ms": 117.2661,
+    "p90_ms": 143.3258,
+    "max_ms": 155.7832,
+    "stdev_ms": 26.4459
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 94.8075,
+    "median_ms": 108.2879,
+    "mean_ms": 114.1949,
+    "p90_ms": 140.0537,
+    "max_ms": 143.6135,
+    "stdev_ms": 15.7206
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "string",
+   "class": "String",
+   "matches": 97,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 23.0693,
+    "median_ms": 25.1573,
+    "mean_ms": 27.0033,
+    "p90_ms": 30.0923,
+    "max_ms": 51.2547,
+    "stdev_ms": 6.9246
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 13.1583,
+    "median_ms": 19.4066,
+    "mean_ms": 20.0837,
+    "p90_ms": 26.1458,
+    "max_ms": 26.8532,
+    "stdev_ms": 4.2115
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "call",
+   "class": "Call",
+   "matches": 261,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 87.4315,
+    "median_ms": 106.2567,
+    "mean_ms": 108.8743,
+    "p90_ms": 125.646,
+    "max_ms": 157.0485,
+    "stdev_ms": 17.5548
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 83.9114,
+    "median_ms": 100.743,
+    "mean_ms": 100.5391,
+    "p90_ms": 107.9342,
+    "max_ms": 119.6108,
+    "stdev_ms": 8.9557
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 8,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 36.4761,
+    "median_ms": 50.4033,
+    "mean_ms": 49.2453,
+    "p90_ms": 58.7905,
+    "max_ms": 72.5816,
+    "stdev_ms": 9.4683
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 35.2724,
+    "median_ms": 41.7249,
+    "mean_ms": 45.4365,
+    "p90_ms": 62.2286,
+    "max_ms": 67.0573,
+    "stdev_ms": 9.6032
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 19161,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 259.728,
+    "median_ms": 294.8934,
+    "mean_ms": 301.7772,
+    "p90_ms": 399.5055,
+    "max_ms": 399.5055,
+    "stdev_ms": 51.3896
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 186.3838,
+    "median_ms": 229.6433,
+    "mean_ms": 220.3435,
+    "p90_ms": 236.4573,
+    "max_ms": 236.4573,
+    "stdev_ms": 18.4788
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 352,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 2826.1006,
+    "median_ms": 3158.3914,
+    "mean_ms": 3317.032,
+    "p90_ms": 4294.2556,
+    "max_ms": 4294.2556,
+    "stdev_ms": 538.302
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 2692.5917,
+    "median_ms": 3155.8122,
+    "mean_ms": 3166.9874,
+    "p90_ms": 3694.8379,
+    "max_ms": 3694.8379,
+    "stdev_ms": 359.8057
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 1499,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 600.5468,
+    "median_ms": 756.4748,
+    "mean_ms": 739.9681,
+    "p90_ms": 847.3801,
+    "max_ms": 847.3801,
+    "stdev_ms": 81.1303
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 633.8128,
+    "median_ms": 877.127,
+    "mean_ms": 852.0421,
+    "p90_ms": 1045.8604,
+    "max_ms": 1045.8604,
+    "stdev_ms": 152.2399
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "string",
+   "class": "String",
+   "matches": 618,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 69.8818,
+    "median_ms": 79.2988,
+    "mean_ms": 78.269,
+    "p90_ms": 91.5391,
+    "max_ms": 91.5391,
+    "stdev_ms": 7.796
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 90.1109,
+    "median_ms": 94.4976,
+    "mean_ms": 93.9948,
+    "p90_ms": 100.1194,
+    "max_ms": 100.1194,
+    "stdev_ms": 3.3721
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "call",
+   "class": "Call",
+   "matches": 3034,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 1076.0257,
+    "median_ms": 1135.6456,
+    "mean_ms": 1125.5778,
+    "p90_ms": 1191.6981,
+    "max_ms": 1191.6981,
+    "stdev_ms": 45.9492
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 1074.4519,
+    "median_ms": 1154.3465,
+    "mean_ms": 1157.1261,
+    "p90_ms": 1238.0645,
+    "max_ms": 1238.0645,
+    "stdev_ms": 62.2935
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 14,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 2461.0575,
+    "median_ms": 2486.0863,
+    "mean_ms": 2511.0563,
+    "p90_ms": 2670.3915,
+    "max_ms": 2670.3915,
+    "stdev_ms": 75.4356
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 2055.6195,
+    "median_ms": 2185.2924,
+    "mean_ms": 2193.0951,
+    "p90_ms": 2377.8253,
+    "max_ms": 2377.8253,
+    "stdev_ms": 111.4268
+   }
+  }
+ ],
+ "repeat_scaling": [
+  {
+   "language": "python",
+   "tier": "medium",
+   "classes": 6,
+   "rounds": 1,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 19.1863,
+    "median_ms": 19.3439,
+    "mean_ms": 19.6903,
+    "p90_ms": 21.2734,
+    "max_ms": 21.2734,
+    "stdev_ms": 0.8912
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 12.2493,
+    "median_ms": 15.8137,
+    "mean_ms": 14.862,
+    "p90_ms": 16.8294,
+    "max_ms": 16.8294,
+    "stdev_ms": 2.1804
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "classes": 6,
+   "rounds": 10,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 210.5194,
+    "median_ms": 221.3458,
+    "mean_ms": 229.8285,
+    "p90_ms": 260.0785,
+    "max_ms": 260.0785,
+    "stdev_ms": 20.897
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 110.0419,
+    "median_ms": 116.9214,
+    "mean_ms": 123.6323,
+    "p90_ms": 148.0375,
+    "max_ms": 148.0375,
+    "stdev_ms": 15.2337
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "classes": 6,
+   "rounds": 50,
+   "query_cold": {
+    "n": 3,
+    "min_ms": 1147.274,
+    "median_ms": 1198.5992,
+    "mean_ms": 1198.6157,
+    "p90_ms": 1249.9739,
+    "max_ms": 1249.9739,
+    "stdev_ms": 51.3499
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 572.2759,
+    "median_ms": 632.7751,
+    "mean_ms": 623.6003,
+    "p90_ms": 665.7499,
+    "max_ms": 665.7499,
+    "stdev_ms": 47.4076
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "classes": 6,
+   "rounds": 1,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 147.7215,
+    "median_ms": 155.884,
+    "mean_ms": 158.5988,
+    "p90_ms": 173.6572,
+    "max_ms": 173.6572,
+    "stdev_ms": 10.6405
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 106.7506,
+    "median_ms": 139.2924,
+    "mean_ms": 140.4338,
+    "p90_ms": 166.9535,
+    "max_ms": 166.9535,
+    "stdev_ms": 22.4913
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "classes": 6,
+   "rounds": 10,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 1689.3701,
+    "median_ms": 1904.3349,
+    "mean_ms": 1876.3615,
+    "p90_ms": 1990.0234,
+    "max_ms": 1990.0234,
+    "stdev_ms": 127.395
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 1145.7596,
+    "median_ms": 1283.1328,
+    "mean_ms": 1235.5245,
+    "p90_ms": 1306.3395,
+    "max_ms": 1306.3395,
+    "stdev_ms": 79.1931
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "classes": 6,
+   "rounds": 50,
+   "query_cold": {
+    "n": 3,
+    "min_ms": 9556.6089,
+    "median_ms": 9782.378,
+    "mean_ms": 9802.099,
+    "p90_ms": 10067.31,
+    "max_ms": 10067.31,
+    "stdev_ms": 255.9211
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 6595.9591,
+    "median_ms": 6671.1461,
+    "mean_ms": 6944.3322,
+    "p90_ms": 7565.8915,
+    "max_ms": 7565.8915,
+    "stdev_ms": 539.5973
+   }
+  }
+ ],
+ "memory": [
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 1670,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 1415.0,
+   "recwalk_peak_kib": 17.4,
+   "cursor_peak_kib": 121.1,
+   "find_in_shipped_peak_kib": 2376.8,
+   "cursor_rows_peak_kib": 1393.2
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 35,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "query_cold_peak_kib": 1421.5,
+   "recwalk_peak_kib": 4.2,
+   "cursor_peak_kib": 5.3,
+   "find_in_shipped_peak_kib": 4746.9,
+   "cursor_rows_peak_kib": 4746.6
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 152,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 1430.7,
+   "recwalk_peak_kib": 4.9,
+   "cursor_peak_kib": 13.6,
+   "find_in_shipped_peak_kib": 1705.9,
+   "cursor_rows_peak_kib": 1589.0
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "string",
+   "class": "String",
+   "matches": 97,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 1415.1,
+   "recwalk_peak_kib": 4.6,
+   "cursor_peak_kib": 9.7,
+   "find_in_shipped_peak_kib": 1415.1,
+   "cursor_rows_peak_kib": 497.2
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "call",
+   "class": "Call",
+   "matches": 261,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "query_cold_peak_kib": 1460.3,
+   "recwalk_peak_kib": 5.8,
+   "cursor_peak_kib": 21.2,
+   "find_in_shipped_peak_kib": 2088.1,
+   "cursor_rows_peak_kib": 2102.6
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "class_definition",
+   "class": "ClassDefinition",
+   "matches": 8,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "query_cold_peak_kib": 1420.1,
+   "recwalk_peak_kib": 4.0,
+   "cursor_peak_kib": 3.4,
+   "find_in_shipped_peak_kib": 1420.2,
+   "cursor_rows_peak_kib": 866.1
+  }
+ ]
+}

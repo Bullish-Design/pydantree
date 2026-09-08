@@ -1,0 +1,4 @@
+Gitman status — OFF-CANONICAL
+Reason: lane(s) 024-typed-node-universe have a divergent change-id (one change → multiple commits) — run `gitman reconcile`.
+Recover: `gitman reconcile`  — adopt it into a lane, or abandon it.
+Exit: 1

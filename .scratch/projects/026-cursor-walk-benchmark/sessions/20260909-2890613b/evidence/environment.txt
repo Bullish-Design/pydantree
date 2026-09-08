@@ -1,0 +1,12 @@
+date: 2026-09-09T11:04:16-04:00
+host-kernel: Linux 6.18.38 x86_64
+cpu: Intel(R) Xeon(R) W-2125 CPU @ 4.00GHz
+cores: 8
+mem: MemTotal: 131577788 kB
+python: Python 3.13.5 (main, Jun 11 2025, 15:36:57) [GCC 13.3.0]
+tree-sitter-cli: tree-sitter 0.25.3
+gcc: gcc (GCC) 14.2.1 20250322
+tree_sitter-bindings: 0.26.0
+pydantic: 2.11.1
+pydantree_sitter: 0.3.0
+devenv: devenv 2.2.2+b8030c5 (x86_64-linux)

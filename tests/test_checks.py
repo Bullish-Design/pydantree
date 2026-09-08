@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import pytest
+
 import pydantree_sitter_grammar as tg
+from pydantree_sitter_grammar.checks import _nullable, _view
 
 
 def _g(name="t"):
@@ -175,3 +178,48 @@ def test_issues_carry_dsl_sites():
     assert unused.site is not None
     assert unused.site.file.endswith("test_checks.py")
     assert "orphan" in linecache.getline(unused.site.file, unused.site.lineno)
+
+
+@pytest.mark.parametrize("body_factory, expected", [
+    (lambda: tg.field("p", tg.opt(tg.ref("x"))), True),
+    (lambda: tg.prec(1, tg.opt(tg.ref("x"))), True),
+    (lambda: tg.alias("t", True, tg.opt(tg.ref("x"))), True),
+    (lambda: tg.repeat1(tg.opt(tg.ref("x"))), True),
+    (lambda: tg.repeat1(tg.ref("x")), False),
+    (lambda: tg.seq(tg.ref("x"), tg.ref("x")), False),
+])
+def test_nullable_truth_table(body_factory, expected):
+    g = _g()
+    view = _view(g)
+    body = body_factory()
+    node = body.node if hasattr(body, "node") else body
+    assert _nullable(node, view, set()) is expected
+
+
+def test_nullable_non_start_rule_catches_wrapped():
+    g = _g()
+    g.rule("x", tg.pattern("a"))
+    g.rule("params", tg.field("p", tg.opt(tg.ref("x"))))
+    g.rule("loop", tg.repeat1(tg.opt(tg.ref("x"))))
+    g.rule("source_file", tg.seq(tg.ref("params"), tg.ref("loop")))
+    g.start("source_file")
+    from pydantree_sitter_grammar.checks import check_nullable_non_start_rule
+
+    flagged = {i.rule for i in check_nullable_non_start_rule(g)}
+    assert {"params", "loop"} <= flagged
+
+
+def test_nullable_non_start_rule_is_advisory_not_an_error():
+    """Nullable non-start rules are legal tree-sitter list idioms."""
+    g = _g()
+    g.rule("x", tg.pattern("a"))
+    g.rule("items", tg.repeat(tg.ref("x")))
+    g.rule("source_file", tg.ref("items"))
+    g.start("source_file")
+    from pydantree_sitter_grammar.checks import check_nullable_non_start_rule
+
+    issues = check_nullable_non_start_rule(g)
+    assert issues and all(i.warning for i in issues)
+    assert not tg.errors(g)
+    assert all(i.severity == "warning" for i in tg.run_checks(g)
+               if "nullable" in i.message)

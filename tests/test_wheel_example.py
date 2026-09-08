@@ -49,15 +49,15 @@ def test_wheel_example_runs_and_matches_the_transcript_oracle():
 def test_wheel_example_transcript_is_a_real_per_step_narrative():
     """The oracle is a per-step narrative, not just final data."""
     transcript = TRANSCRIPT.read_text()
-    for header in ("step 1: bind", "step 2: parse", "step 3: extract",
+    for header in ("step 1: load", "step 2: parse", "step 3: find",
                    "step 4: self-check", "step 5: the committed"):
         assert header in transcript, header
-    # step 1 shows the derived queries (no build anywhere)
-    assert "Function.compiled_source()" in transcript
-    assert "@__anchor__" in transcript
+    # step 1 shows the vendored schema and generated node universe.
+    assert "python-node-types.json" in transcript
+    assert "generated kinds:" in transcript
     # step 2 shows the CST with field names
     assert "return_type=type" in transcript
-    # step 3 shows the typed rows with source lines
+    # step 3 shows the typed rows with source lines.
     assert "Function 'greet' -> 'str' at line 8" in transcript
     assert "Assignment 'answer' = '42' at line 11" in transcript
     # step 4 embeds the ground-truth self-check

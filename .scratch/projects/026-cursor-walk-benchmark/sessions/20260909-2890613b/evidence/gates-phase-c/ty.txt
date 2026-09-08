@@ -1,0 +1,15 @@
+Running tasks     devenv:enterShell
+
+Running           devenv:python:uv
+Succeeded         devenv:python:uv (111.94ms)
+Running           devenv:enterShell
+Running           pydantree:ensure-uv-sync
+Succeeded         devenv:enterShell (18.73ms)
+Succeeded         pydantree:ensure-uv-sync (331.27ms)
+Running           pydantree:venv-src-pth
+Succeeded         pydantree:venv-src-pth (14.68ms)
+4 Succeeded
+✨ devenv 2.2.2 is newer than devenv input (1.6.1) in devenv.lock. Run 'devenv update' to sync.
+hello from devenv
+git version 2.49.0
+All checks passed!

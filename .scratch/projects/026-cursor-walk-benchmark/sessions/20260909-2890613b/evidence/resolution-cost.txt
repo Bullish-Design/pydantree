@@ -1,0 +1,16 @@
+Resolution cost vs anchor cost — large tier, 2026-09-09
+bare = same kind, no declared fields (anchors + trivial model)
+typed = the generated class (anchors + full nested resolution)
+
+--- python large (453424 B) ---
+  function_definition  n=  352 fields=5  typed=   2463.9ms  bare=  19.37ms  resolution= 99.2%  per-match=   7.00ms  ok
+  class_definition     n=   14 fields=4  typed=   2118.9ms  bare=  13.92ms  resolution= 99.3%  per-match= 151.35ms  ok
+  call                 n= 3034 fields=2  typed=   1067.1ms  bare=  52.91ms  resolution= 95.0%  per-match=   0.35ms  ok
+  assignment           n= 1499 fields=3  typed=    565.7ms  bare=  27.58ms  resolution= 95.1%  per-match=   0.38ms  ok
+--- rust large (175646 B) ---
+  function_item        n=  182 fields=6  typed=    498.4ms  bare=   9.39ms  resolution= 98.1%  per-match=   2.74ms  ExtractionError
+  impl_item            n=  119 fields=5  typed=    694.7ms  bare=   8.97ms  resolution= 98.7%  per-match=   5.84ms  ExtractionError
+  let_declaration      n=  128 fields=5  typed=    141.3ms  bare=  11.33ms  resolution= 92.0%  per-match=   1.10ms  ok
+--- nix large (256322 B) ---
+  binding              n= 2225 fields=2  typed=    664.8ms  bare=  27.59ms  resolution= 95.9%  per-match=   0.30ms  ok
+  apply_expression     n= 2014 fields=2  typed=    891.6ms  bare=  24.70ms  resolution= 97.2%  per-match=   0.44ms  ok

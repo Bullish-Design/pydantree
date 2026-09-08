@@ -325,5 +325,5 @@
       "line": 211
     }
   ],
-  "note": "hand truth written from nix semantics before the models; raw node text is the capture contract (env values keep their quotes; multiline bodies keep their '' delimiters); the record rows are the record-mode extraction over the authored pair shape (this phase's finding: the upstream grammar's attrset fails it)."
+  "note": "historical hand truth from the authored configuration corpus; raw node text keeps the source spelling."
 }

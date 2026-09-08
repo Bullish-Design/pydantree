@@ -1,14 +1,14 @@
 """pydantree_sitter.pattern — structural search and rewrite (022 §3).
 
-    lang = Language.from_module(tree_sitter_python)
-    pat = Pattern("def $NAME($$$ARGS): $$$BODY", language=lang)
+    language = registered bundle language
+    pat = Pattern("def $NAME($$$ARGS): $$$BODY", language=language)
 
     for m in pat.find_all(source):
         m.span                  # Span
         m.node                  # tree_sitter.Node, in pydantree's own tree
         m.captures["NAME"]      # Span
         m.captures["ARGS"]      # tuple[Span, ...] for a $$$ metavariable
-        m.extract(FunctionDef)  # list[OutputModel], scoped to this match
+        m.extract(Function)  # typed nodes scoped to this match
 
 The division of labour (§17.1):
 
@@ -18,11 +18,10 @@ The module is text in, data out. It reads no file and writes none. A rewrite
 returns `Edit` records and the new text; the caller decides what to do with
 them.
 
-`match.py` is a different thing entirely — it holds the `M()` ancestor-path
-matcher over tree-sitter queries. The two modules never import each other. In
-this module a `metavariable` is a `$NAME`; a `capture` in the rest of the
-repository is an `OutputModel` field binding. `PatternMatch.captures` holds
-metavariables, and that is the one place the two vocabularies touch.
+`match.py` is a different thing entirely — it holds the ancestor-path matcher
+used by typed nodes. The two modules never import each other. In this module a
+`metavariable` is a `$NAME`; `PatternMatch.captures` holds metavariables and
+typed nodes are resolved only by the scoped tree finder.
 
 Every offset here is a BYTE offset over UTF-8. ast-grep's own offsets are
 CHARACTER offsets and are converted at the boundary — see
@@ -53,11 +52,12 @@ from .errors import (
     PydantreeSitterError,
     UnsupportedLanguageError,
 )
-from .materialize import Span
-from .rules import Rule, metavariables_of
+from .rules import Rule, _metavar_pattern, metavariables_of
+from .span import Span
 
 __all__ = ["Edit", "Pattern", "PatternMatch", "ReplaceResult",
-           "register_bundle_language", "registered_languages"]
+           "register_bundle_language", "register_bundle_languages",
+           "registered_languages"]
 
 
 # ---------------------------------------------------------------------------
@@ -82,10 +82,83 @@ __all__ = ["Edit", "Pattern", "PatternMatch", "ReplaceResult",
 # second call with a DIFFERENT artifact is an error rather than a silent
 # rebind of every Pattern already built on that name.
 _REGISTERED: dict[str, tuple[str, str]] = {}
+_REGISTERED_CONFIG: dict[str, dict[str, object]] = {}
 
 
 def registered_languages() -> dict[str, tuple[str, str]]:
     """The dynamic languages this process registered: name -> (path, symbol)."""
+    return dict(_REGISTERED)
+
+
+def register_bundle_languages(languages: dict[str, dict]) \
+        -> dict[str, tuple[str, str]]:
+    """Register several bundle languages in ast-grep's one setup call.
+
+    Each value contains the ast-grep dynamic-language configuration keys
+    ``library_path`` and ``language_symbol``. It may also contain
+    ``extensions``, ``meta_var_char``, and ``expando_char``. ast-grep accepts
+    dynamic languages only during its first registration call, so callers that
+    need several bundles must pass them together here.
+    """
+    if not isinstance(languages, dict) or not languages:
+        raise PatternBuildError(
+            "register_bundle_languages needs a non-empty name-to-config mapping")
+
+    configs: dict[str, dict[str, object]] = {}
+    pending: dict[str, tuple[str, str, dict[str, object]]] = {}
+    for name, spec in languages.items():
+        if not isinstance(name, str) or not name:
+            raise PatternBuildError(
+                f"ast-grep language names must be non-empty strings, got {name!r}")
+        if not isinstance(spec, dict):
+            raise PatternBuildError(
+                f"ast-grep configuration for {name!r} must be a mapping")
+        try:
+            library_path = str(spec["library_path"])
+            symbol = str(spec["language_symbol"])
+        except KeyError as error:
+            raise PatternBuildError(
+                f"ast-grep configuration for {name!r} needs {error.args[0]!r}") \
+                from error
+        config: dict[str, object] = {
+            "library_path": library_path,
+            "language_symbol": symbol,
+            "extensions": list(spec.get("extensions") or [name]),
+        }
+        for key in ("meta_var_char", "expando_char"):
+            value = spec.get(key)
+            if value is not None:
+                config[key] = value
+        previous = _REGISTERED.get(name)
+        if previous is not None:
+            if previous != (library_path, symbol) or \
+                    _REGISTERED_CONFIG.get(name) != config:
+                raise PatternBuildError(
+                    f"ast-grep language {name!r} is already registered in this "
+                    f"process from {previous[0]!r} (symbol {previous[1]!r}); "
+                    f"re-registering it from {library_path!r} would silently "
+                    f"rebind every Pattern already built on it. Registration "
+                    f"is process-global — pick another name.")
+            continue
+        pending[name] = (library_path, symbol, config)
+        configs[name] = config
+
+    if not pending:
+        return dict(_REGISTERED)
+    if _REGISTERED:
+        raise PatternBuildError(
+            f"ast-grep-py accepts dynamic languages only in its first "
+            f"registration call; {', '.join(sorted(pending))!r} cannot be "
+            f"added after {', '.join(sorted(_REGISTERED))!r}. Register all "
+            f"dynamic languages together in one process, or use a subprocess.")
+
+    engine = _load_engine()
+    with _engine_errors(
+            f"ast-grep refused dynamic languages {', '.join(sorted(configs))!r}"):
+        engine.register_dynamic_language(configs)
+    for name, (library_path, symbol, config) in pending.items():
+        _REGISTERED[name] = (library_path, symbol)
+        _REGISTERED_CONFIG[name] = config
     return dict(_REGISTERED)
 
 
@@ -95,7 +168,7 @@ def register_bundle_language(name: str, library_path, symbol: str, *,
                              expando_char: str | None = None) -> str:
     """Make a tree-sitter shared library available to ast-grep as `name`.
 
-    `Language.register_astgrep()` is the ergonomic entry point; this is the
+    `Grammar.register_astgrep()` is the ergonomic entry point; this is the
     primitive, for a `.so` that did not come from a bundle.
 
     `extensions` is REQUIRED by the engine even though `ast_grep_py`'s own
@@ -112,45 +185,22 @@ def register_bundle_language(name: str, library_path, symbol: str, *,
 
     Idempotent for an identical re-registration; raises on a conflicting one.
     """
-    library_path = str(library_path)
-    previous = _REGISTERED.get(name)
-    if previous == (library_path, symbol):
-        return name
-    if previous is not None:
-        raise PatternBuildError(
-            f"ast-grep language {name!r} is already registered in this "
-            f"process from {previous[0]!r} (symbol {previous[1]!r}); "
-            f"re-registering it from {library_path!r} would silently rebind "
-            f"every Pattern already built on it. Registration is "
-            f"process-global — pick another name.")
-    if _REGISTERED:
-        raise PatternBuildError(
-            f"ast-grep-py accepts dynamic languages only in its first "
-            f"registration call; {name!r} cannot be added after "
-            f"{', '.join(sorted(_REGISTERED))!r}. Register all dynamic "
-            f"languages together in one process, or use a subprocess.")
-
-    engine = _load_engine()
-    config = {"library_path": library_path, "language_symbol": symbol,
-              "extensions": list(extensions) if extensions else [name]}
-    if meta_var_char is not None:
-        config["meta_var_char"] = meta_var_char
-    if expando_char is not None:
-        config["expando_char"] = expando_char
-    with _engine_errors(f"ast-grep refused the dynamic language {name!r}"):
-        engine.register_dynamic_language({name: config})
-    _REGISTERED[name] = (library_path, symbol)
+    register_bundle_languages({name: {
+        "library_path": library_path,
+        "language_symbol": symbol,
+        "extensions": extensions,
+        "meta_var_char": meta_var_char,
+        "expando_char": expando_char,
+    }})
     return name
 
 # `$NAME` and `$$$NAME`, with the arity kept this time — the rewrite half
-# needs to know which metavariables expand to a sequence.
-_METAVAR = re.compile(r"\$(\$\$)?([A-Z_][A-Z0-9_]*)")
-
-
-def _metavar_arity(pattern: str) -> dict[str, bool]:
+# needs to know which metavariables expand to a sequence. The sigil comes from
+# the bound grammar metadata.
+def _metavar_arity(pattern: str, meta_var_char: str = "$") -> dict[str, bool]:
     """name -> is_multi, for the capturing metavariables of one pattern."""
     out: dict[str, bool] = {}
-    for multi, name in _METAVAR.findall(pattern):
+    for multi, name in _metavar_pattern(meta_var_char).findall(pattern):
         if name.startswith("_"):
             continue                       # `$_X` is ast-grep's non-capturing form
         out[name] = out.get(name, False) or bool(multi)
@@ -356,29 +406,12 @@ class PatternMatch:
         return self._agreement
 
     def extract(self, model_cls, *, strict: bool = True) -> list:
-        """Materialize `model_cls` with THIS match as the record (§10).
-
-        The bridge between the two halves: ast-grep located the shape,
-        pydantree types it. The node IS the record — the model's outer
-        anchored path is not re-verified for it.
-
-        The model must be a RECORD-mode model (`M(..., record=True)`), which
-        is the only shape `Extractor.extract_tree_scoped` accepts. Note what
-        that means in practice: pydantree's record mode is defined over
-        key/value PAIR grammars (JSON, and authored pair shapes), so a
-        Python `function_definition` is not a record and cannot be extracted
-        this way. Use `.node` and `.captures` for grammars without a pair
-        shape.
-        """
-        extractor = self._language.extractor(model_cls, strict=strict)
-        if not extractor.compiled.spec.record:
+        """Resolve this match through the typed parse's scoped finder."""
+        tree = self._parse.tree
+        if not hasattr(tree, "find_in"):
             raise PatternError(
-                f"{model_cls.__name__} is a FIELD-mode model; "
-                f"PatternMatch.extract needs a record-mode model "
-                f"(M(..., record=True)). A field-mode model carries an "
-                f"anchored path over the whole tree, which is the opposite "
-                f"of scoping extraction to one match.")
-        return extractor.extract_tree_scoped(self.node, self._parse.tree)
+                "PatternMatch.extract requires a typed Grammar.parse() tree")
+        return tree.find_in(self.node, model_cls)
 
     @property
     def record(self) -> dict:
@@ -439,7 +472,7 @@ class Pattern:
         pat = Pattern(Rule(pattern="$O.$M($$$A)", inside=Rule(kind="class_definition")),
                       language=lang)
 
-    `Pattern` mirrors `Extractor`: **ALL checks run once, at construction** —
+    `Pattern` performs **ALL checks once, at construction** —
     the extra is installed, the language has an ast-grep grammar, every
     `kind` exists in the bound node-schema, and ast-grep itself accepts the
     rule. A built `Pattern` either works or it raised.
@@ -455,6 +488,7 @@ class Pattern:
         "_engine",
         "_kwargs",
         "_language",
+        "_meta_var_char",
         "_rule",
         "_source",
         "warnings",
@@ -463,6 +497,8 @@ class Pattern:
     def __init__(self, pattern, *, language, astgrep_name: str | None = None):
         self._engine = _load_engine()
         self._language = language
+        metadata = getattr(language, "metadata", {})
+        self._meta_var_char = metadata.get("meta_var_char", "$") or "$"
 
         name = astgrep_name or getattr(language, "astgrep_name", None)
         if name is None:
@@ -486,7 +522,8 @@ class Pattern:
             self._rule.check_kinds(schema)
 
         self._kwargs = self._rule.to_astgrep()
-        self._arity = _metavar_arity(self._rule.pattern or "")
+        self._arity = _metavar_arity(
+            self._rule.pattern or "", self._meta_var_char)
 
         # A bundle registered into ast-grep is the SAME artifact on both
         # sides, so agreement is by construction, not by measurement.
@@ -530,7 +567,7 @@ class Pattern:
 
     def metavariables(self) -> frozenset[str]:
         """The metavariables this pattern binds."""
-        return self._rule.metavariables()
+        return self._rule.metavariables(self._meta_var_char)
 
     # -- search -------------------------------------------------------------
 
@@ -683,13 +720,16 @@ class Pattern:
                 f"on_overlap={on_overlap!r} is not one of 'refuse', "
                 f"'outermost', 'innermost'.")
 
-        unknown = sorted(metavariables_of(template) - self.metavariables())
+        unknown = sorted(
+            metavariables_of(template, self._meta_var_char)
+            - self.metavariables())
         if unknown:
             raise PatternRewriteError(
                 f"template names metavariable(s) "
-                f"{', '.join('$' + n for n in unknown)} that the pattern does "
+                f"{', '.join(self._meta_var_char + n for n in unknown)} "
+                f"that the pattern does "
                 f"not bind. The pattern binds: "
-                f"{', '.join('$' + n for n in sorted(self.metavariables())) or '(none)'}.")
+                f"{', '.join(self._meta_var_char + n for n in sorted(self.metavariables())) or '(none)'}.")
 
         parse = _Parse(self._language, source)
         matches = tuple(self._matches(source, parse))
@@ -700,7 +740,9 @@ class Pattern:
 
         edits = tuple(
             Edit(start_byte=m.span.start_byte, end_byte=m.span.end_byte,
-                 new_text=_expand(template, m, parse, reindent=reindent))
+                 new_text=_expand(
+                     template, m, parse, reindent=reindent,
+                     meta_var_char=self._meta_var_char))
             for m in kept)
 
         if on_overlap == "refuse":
@@ -851,7 +893,7 @@ def _has_error(root: tree_sitter.Node) -> bool:
 
 
 def _expand(template: str, match: PatternMatch, parse: _Parse, *,
-            reindent: bool = False) -> str:
+            reindent: bool = False, meta_var_char: str = "$") -> str:
     """Substitute the match's metavariables into `template`.
 
     A `$$$NAME` sequence expands to the ORIGINAL source text spanning its
@@ -876,7 +918,7 @@ def _expand(template: str, match: PatternMatch, parse: _Parse, *,
             return parse.text[_char_of(parse, value[0].start_byte):
                               _char_of(parse, value[-1].end_byte)]
         return value.text
-    text = _METAVAR.sub(sub, template)
+    text = _metavar_pattern(meta_var_char).sub(sub, template)
     if reindent and "\n" in text:
         text = _reindent(text, _indent_of(parse, match.span.start_byte))
     return text

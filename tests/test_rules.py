@@ -18,6 +18,7 @@ import json
 import sys
 import types
 from pathlib import Path
+from typing import Literal
 
 import pytest
 
@@ -33,6 +34,7 @@ from pydantree_sitter_grammar.ir import (
     SymbolNode,
     TokenNode,
 )
+from pydantree_sitter_grammar.rules import Rule, _snake, assemble, module_rules
 
 TESTS = Path(__file__).resolve().parent
 REPO = TESTS.parent
@@ -415,3 +417,145 @@ def test_caller_site_attributes_to_the_known_fixture_line():
     nsite = site_of(seq_node.node)
     assert nsite is not None and nsite.file.endswith("test_rules.py")
     assert "return site, seq" in nsite.source
+
+
+# ---------------------------------------------------------------------------
+# 014 Phase 6.4: the B-side bug-fix sweep
+# ---------------------------------------------------------------------------
+
+def test_rule_alias_param_is_deleted():
+    g = tg.Grammar("f_b1")
+    with pytest.raises(TypeError):
+        g.rule("x", tg.pattern(r"[a-z]+"), alias="pretty")
+
+
+def test_alias_combinator_is_the_way():
+    g = tg.Grammar("f_b1b")
+    g.rule("x", tg.alias("pretty", True, tg.token(tg.pattern("[a-z]+"))))
+    g.rule("source_file", tg.repeat(tg.ref("x")))
+    g.start("source_file")
+    m = g.build()
+    assert "x" in m.rules and "pretty" not in m.rules
+
+
+def test_multi_literal_emits_choice_of_anonymous_tokens():
+    class Op(Rule):
+        op: Literal["+", "-"]
+    class Start(Rule):
+        child: Op
+
+    g = assemble("f_b2", start=Start, rules=[Op, Start])
+    body = g.rules["op"]
+    assert body.type == "FIELD" and body.name == "op"
+    inner = body.content
+    assert inner.type == "CHOICE"
+    assert sorted(m.value for m in inner.members) == ["+", "-"]
+
+
+def test_multi_literal_default_must_be_one_of_the_values():
+    class Bad(Rule):
+        op: Literal["+", "-"] = "*"
+
+    with pytest.raises(ValueError):
+        assemble("f_b2b", start=Bad, rules=[Bad])
+
+
+def test_snake_is_acronym_aware():
+    assert _snake("HTTPServer") == "http_server"
+    assert _snake("JSONValue") == "json_value"
+    assert _snake("IOPort") == "io_port"
+    assert _snake("NamePath") == "name_path"
+    assert _snake("_Hidden") == "_hidden"
+
+
+def test_noncanonical_whitespace_extra_suppresses_default():
+    g = tg.Grammar("f_b5")
+    g.rule("tok", tg.pattern(r"\d+"))
+    g.rule("source_file", tg.repeat(tg.ref("tok")))
+    g.start("source_file")
+    g.extra(tg.pattern(r"[ \t]+"))
+    m = g.build()
+    assert [e.value for e in m.extras] == [r"[ \t]+"]
+
+
+def test_non_whitespace_extra_keeps_the_default():
+    g = tg.Grammar("f_b5b")
+    g.rule("tok", tg.pattern(r"\d+"))
+    g.rule("source_file", tg.repeat(tg.ref("tok")))
+    g.start("source_file")
+    g.extra(tg.pattern(r"//[^\n]*"))
+    m = g.build()
+    assert [e.value for e in m.extras] == [r"\s", r"//[^\n]*"]
+
+
+def test_tab_newline_class_extra_suppresses_default():
+    g = tg.Grammar("f_b5c")
+    g.rule("tok", tg.pattern(r"\d+"))
+    g.rule("source_file", tg.repeat(tg.ref("tok")))
+    g.start("source_file")
+    g.extra(tg.pattern(r"[ \t\n]+"))
+    m = g.build()
+    assert [e.value for e in m.extras] == [r"[ \t\n]+"]
+
+
+def test_replace_rule_honors_hidden():
+    g = tg.Grammar("f_b6")
+    g.rule("x", tg.pattern(r"[a-z]+"))
+    g.rule("source_file", tg.repeat(tg.ref("x")))
+    g.start("source_file")
+    g.replace_rule("x", tg.pattern(r"[0-9]+"), hidden=True)
+    assert "_x" in g.rules and "x" not in g.rules
+
+
+def test_replace_rule_clears_stale_flag_entries():
+    g = tg.Grammar("f_b6b")
+    g.rule("tok", tg.pattern(r"[a-z]+"), word=True)
+    g.rule("helper", tg.pattern(r"[0-9]+"), inline=True, supertype=True)
+    g.rule("source_file", tg.repeat(tg.ref("helper")))
+    g.start("source_file")
+    g.replace_rule("helper", tg.pattern(r"[0-9]+"))
+    ir = g.build()
+    assert "helper" not in ir.inline
+    assert "helper" not in ir.supertypes
+    g.replace_rule("tok", tg.pattern(r"[a-z]+"))
+    assert g.build().word is None
+    g.replace_rule("helper", tg.pattern(r"[0-9]+"), inline=True,
+                   supertype=True)
+    ir2 = g.build()
+    assert "helper" in ir2.inline and "helper" in ir2.supertypes
+
+
+def test_module_rules_excludes_imported_classes():
+    import types as _types
+
+    other = _types.ModuleType("_other_module")
+    exec("""
+from pydantree_sitter_grammar.rules import Rule
+from typing import Literal
+class Foreign(Rule):
+    x: Literal['f'] = 'f'
+""", other.__dict__)  # noqa: S102
+    sys.modules["_other_module"] = other
+    mod = _types.ModuleType("_host_module")
+    mod.Foreign = other.Foreign
+    exec("""
+from pydantree_sitter_grammar.rules import Rule
+from typing import Literal
+class Own(Rule):
+    x: Literal['o'] = 'o'
+""", mod.__dict__)  # noqa: S102
+    sys.modules["_host_module"] = mod
+    found = module_rules(mod)
+    names = {c.__name__ for c in found}
+    assert "Own" in names
+    assert "Foreign" not in names
+
+
+def test_function_local_rule_classes_work():
+    class Inner(Rule):
+        x: Literal["i"] = "i"
+    class InnerStart(Rule):
+        child: Inner
+
+    g = assemble("f_local", start=InnerStart, rules=[Inner, InnerStart])
+    assert "inner" in g.rules and "inner_start" in g.rules

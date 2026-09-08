@@ -1,7 +1,7 @@
 """Packaging tests: the two-distribution split (014 refactor, D1/D2).
 
 `pydantree-sitter` is LIGHT (no pydantree_sitter_grammar, no scanner data,
-tree-sitter>=0.26); `pydantree-sitter-grammar` is HEAVY and carries the
+tree-sitter>=0.26,<0.27); `pydantree-sitter-grammar` is HEAVY and carries the
 external-scanner package data and depends on the light package. These tests
 build the wheels (uv build, fast) and assert the split contents +
 dependencies; the full fresh-venv end-to-end installs only the light wheel
@@ -25,6 +25,7 @@ SRC = ROOT / "src"
 # the two distributions (imports: pydantree_sitter / pydantree_sitter_grammar)
 DIST = {"light": "pydantree-sitter",
         "heavy": "pydantree-sitter-grammar"}
+TREE_SITTER_SPEC = "tree-sitter<0.27,>=0.26"
 
 
 def _uv_available() -> bool:
@@ -61,8 +62,8 @@ def _wheel_requires(whl: Path) -> list[str]:
     with zipfile.ZipFile(whl) as z:
         meta = z.read(next(n for n in z.namelist()
                            if n.endswith("METADATA"))).decode()
-    return [l.split("Requires-Dist: ")[1] for l in meta.splitlines()
-            if l.startswith("Requires-Dist:") and "extra" not in l]
+    return [line.split("Requires-Dist: ")[1] for line in meta.splitlines()
+            if line.startswith("Requires-Dist:") and "extra" not in line]
 
 
 def _assert_no_build_metadata_leak(whl: Path, pkg: str) -> None:
@@ -92,7 +93,7 @@ def _assert_wheel_matches_source_py(whl: Path, pkg: str) -> None:
 def test_light_wheel_carries_no_b_and_no_scanner(tmp_path):
     """The light install: pydantree_sitter only, no pydantree_sitter_grammar
     package, no scanner package data; dependencies are pydantic +
-    tree-sitter>=0.26 only (no edge to the heavy package). The packaging
+    tree-sitter>=0.26,<0.27 only (no edge to the heavy package). The packaging
     floor (P-5/P-7): py.typed present, LICENSE rides, no __pycache__/.pyc."""
     light = _build_wheel("light", tmp_path)
     contents = _wheel_contents(light)
@@ -106,16 +107,18 @@ def test_light_wheel_carries_no_b_and_no_scanner(tmp_path):
         f"{light.name} leaks the heavy package"
     assert not any("scanner" in n for n in contents), \
         f"{light.name} leaks scanner package data"
+    assert not any(n.endswith("node-types.json") for n in contents), \
+        "the light runtime must not claim ownership of community schemas"
     deps = _wheel_requires(light)
     assert not any(d.startswith("pydantree-sitter-grammar") for d in deps), \
         "the light package must not depend on the heavy one"
     assert "pydantic>=2.11" in deps
-    assert "tree-sitter>=0.26" in deps
+    assert TREE_SITTER_SPEC in deps
 
 
 def test_heavy_wheel_carries_the_scanner_and_depends_on_light(tmp_path):
     """The heavy build tool additionally carries the scanner package data
-    (scanners/indent_scanner.c) and the tree-sitter>=0.26 dependency floor;
+    (scanners/indent_scanner.c) and the tree-sitter>=0.26,<0.27 range;
     its one package edge is pydantree-sitter (A still never imports B; B
     depending on A is the free direction)."""
     heavy = _build_wheel("heavy", tmp_path)
@@ -127,7 +130,7 @@ def test_heavy_wheel_carries_the_scanner_and_depends_on_light(tmp_path):
     assert not any(n.endswith(".pyc") or "__pycache__" in n for n in contents)
     deps = _wheel_requires(heavy)
     assert "pydantree-sitter>=0.1" in deps
-    assert "tree-sitter>=0.26" in deps
+    assert TREE_SITTER_SPEC in deps
 
 
 def test_root_pyproject_is_workspace_only_and_ships_no_distribution():
@@ -144,14 +147,14 @@ def test_root_pyproject_is_workspace_only_and_ships_no_distribution():
         and "src/pydantree_sitter_grammar" in text  # the workspace members
 
 
-def test_light_wheel_pins_0_26(tmp_path):
-    """The tree-sitter pin tightened >=0.23 -> >=0.26 in both distributions."""
+def test_wheels_pin_tree_sitter_0_26_range(tmp_path):
+    """Both distributions use the ABI-verified 0.26.x runtime range."""
     for which in ("light", "heavy"):
         whl = _build_wheel(which, tmp_path / which)
         deps = _wheel_requires(whl)
-        pins = [d for d in deps if d.startswith("tree-sitter>=")]
+        pins = [d for d in deps if d.startswith("tree-sitter<")]
         assert pins, f"{which} has no tree-sitter pin"
-        assert pins[0] == "tree-sitter>=0.26", f"{which} pin is {pins[0]}"
+        assert pins[0] == TREE_SITTER_SPEC, f"{which} pin is {pins[0]}"
 
 
 def test_importing_light_never_imports_heavy():
@@ -206,8 +209,33 @@ def test_fresh_venv_light_install_delivers_a_without_b(tmp_path):
     assert proc.returncode != 0, \
         "pydantree_sitter_grammar IS importable in the light install"
 
+    # The schema loader is also an installed-wheel contract. The light wheel
+    # reads application-owned data and reports distribution failures without
+    # importing Product B or invoking a compiler.
+    schema_path = tmp_path / "installed-schema.json"
+    schema_path.write_text('[{"type": "source_file", "named": true}]')
+    probe = """
+import sys
+from pydantree_sitter.schema import load_schema
+from pydantree_sitter.errors import SchemaMissingError
+schema = load_schema(sys.argv[1])
+assert schema.get("source_file") is not None
+try:
+    load_schema(sys.argv[1] + ".missing")
+except SchemaMissingError:
+    pass
+else:
+    raise AssertionError("missing schema did not use the distribution error")
+print("schema-loader-ok")
+"""
+    proc = subprocess.run(
+        [str(venv / "bin" / "python"), "-c", probe, str(schema_path)],
+        capture_output=True, text=True, check=False)
+    assert proc.returncode == 0, proc.stderr or proc.stdout
+    assert proc.stdout.strip() == "schema-loader-ok"
+
     # build the cfg bundle (B-side) and round-trip it in the fresh venv
-    from cfg_grammar import CORPUS, LISTEN_GROUND_TRUTH, SECTION_GROUND_TRUTH
+    from cfg_grammar import CORPUS
     from cfg_grammar import build as _cfg
 
     import pydantree_sitter_grammar as tg
@@ -216,34 +244,19 @@ def test_fresh_venv_light_install_delivers_a_without_b(tmp_path):
     consumer = tmp_path / "consumer.py"
     consumer.write_text(f"""
 import json, sys
-from pydantree_sitter import (Language, M, OutputModel, capture,
-                              propose_value_map, source_meta)
-
-class ServerSection(OutputModel):
-    __match__ = M("source_file", "section", record=True)
-    host: str
-    port: int
-    debug: bool = False
-    title: str | None = None
-    line: int = source_meta()
-
-class Listen(OutputModel):
-    __match__ = M("source_file", "directive")
-    name: str = capture("name")
-    port: int = capture("arg")
-    line: int = source_meta()
+from pydantree_sitter import Grammar
 
 CORPUS = {CORPUS!r}
-GT_SEC = {SECTION_GROUND_TRUTH!r}
-GT_LIS = {LISTEN_GROUND_TRUTH!r}
-lang = Language.load_bundle(sys.argv[1])
-lang = Language.load_bundle(sys.argv[1],
-                            value_map=propose_value_map(lang.schema))
-ServerSection.validate_with(lang)
-Listen.validate_with(lang)
-secs = [r.model_dump() for r in ServerSection.extract(CORPUS, language=lang)]
-lis = [r.model_dump() for r in Listen.extract(CORPUS, language=lang)]
-print(json.dumps({{'ok': secs == GT_SEC and lis == GT_LIS}}))
+grammar = Grammar.load_bundle(sys.argv[1])
+tree = grammar.parse(CORPUS)
+sections = tree.find(grammar.nodes.Section)
+directives = tree.find(grammar.nodes.Directive)
+rows = {{
+    "sections": [(row.span.line, len(row.content)) for row in sections],
+    "directives": [row.span.line for row in directives],
+}}
+print(json.dumps({{"ok": rows == {{"sections": [(2, 5), (9, 3)],
+                                      "directives": [14, 15, 16]}}}}))
 """)
     proc = subprocess.run(
         [str(venv / "bin" / "python"), str(consumer), str(bundle)],

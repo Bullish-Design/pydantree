@@ -49,7 +49,7 @@ def _schema_for(name: str) -> NodeSchema:
 # content spot-checks over the jsonlike CLI byproduct
 # ---------------------------------------------------------------------------
 
-def test_fields_and_children_derived():
+def test_fields_and_children_are_inferred():
     s = _schema_for("jsonlike")
     pair = s.get("pair")
     assert pair is not None and pair.named

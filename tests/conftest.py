@@ -137,3 +137,11 @@ def markdown_bundle(tmp_path_factory):
     from pydantree_sitter_grammar.pipeline import build_from_source_dir, write_bundle
     result = build_from_source_dir(FIXTURES / "markdown")
     return write_bundle(result, tmp_path_factory.mktemp("md-bundle") / "bundle")
+
+
+@pytest.fixture(scope="session")
+def markdown_inline_bundle(tmp_path_factory):
+    from pydantree_sitter_grammar.pipeline import build_from_source_dir, write_bundle
+    result = build_from_source_dir(FIXTURES / "markdown-inline")
+    return write_bundle(result, tmp_path_factory.mktemp("md-inline-bundle") /
+                        "bundle")

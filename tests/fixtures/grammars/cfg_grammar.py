@@ -19,9 +19,9 @@ Grammar design (hand-written before the derivation, per the kickoff):
     identifier  -> /[a-zA-Z_][a-zA-Z0-9_.-]*/       (word)
     comment     -> '#' ... | ';' ...                (extra)
 
-Record mode: M("source_file", "section", record=True) — a section IS the
-record; its entries are the pairs (key: identifier, value: value-supertype).
-Field mode: M("source_file", "directive") — `include "x.conf"`-style.
+The typed consumer treats `section` and `directive` as ordinary generated
+anchors. A section owns repeated `entry` children; a directive owns a named
+argument.
 
 The corpus (ground truth hand-computed):
 

@@ -1,0 +1,5743 @@
+{
+ "environment": {},
+ "parse": [
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "nodes": 341,
+   "n": 30,
+   "min_ms": 0.2461,
+   "median_ms": 0.2639,
+   "mean_ms": 0.2823,
+   "p90_ms": 0.3977,
+   "max_ms": 0.4355,
+   "stdev_ms": 0.0487
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "nodes": 7190,
+   "n": 15,
+   "min_ms": 3.4024,
+   "median_ms": 3.5174,
+   "mean_ms": 3.8239,
+   "p90_ms": 4.6994,
+   "max_ms": 5.8956,
+   "stdev_ms": 0.6797
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "nodes": 78826,
+   "n": 7,
+   "min_ms": 48.0732,
+   "median_ms": 49.0332,
+   "mean_ms": 49.3123,
+   "p90_ms": 50.876,
+   "max_ms": 50.876,
+   "stdev_ms": 1.0573
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "nodes": 171,
+   "n": 30,
+   "min_ms": 0.1604,
+   "median_ms": 0.1756,
+   "mean_ms": 0.1856,
+   "p90_ms": 0.2503,
+   "max_ms": 0.2614,
+   "stdev_ms": 0.026
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "nodes": 5636,
+   "n": 15,
+   "min_ms": 2.7991,
+   "median_ms": 2.906,
+   "mean_ms": 3.4928,
+   "p90_ms": 3.9423,
+   "max_ms": 10.6152,
+   "stdev_ms": 1.9891
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "nodes": 17623,
+   "n": 7,
+   "min_ms": 8.7745,
+   "median_ms": 8.9664,
+   "mean_ms": 9.0405,
+   "p90_ms": 9.4585,
+   "max_ms": 9.4585,
+   "stdev_ms": 0.2498
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "nodes": 516,
+   "n": 30,
+   "min_ms": 0.2895,
+   "median_ms": 0.3029,
+   "mean_ms": 0.3411,
+   "p90_ms": 0.5426,
+   "max_ms": 0.6003,
+   "stdev_ms": 0.0923
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "nodes": 1077,
+   "n": 15,
+   "min_ms": 0.6456,
+   "median_ms": 0.6714,
+   "mean_ms": 0.7522,
+   "p90_ms": 0.8131,
+   "max_ms": 1.5892,
+   "stdev_ms": 0.2379
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "nodes": 29207,
+   "n": 7,
+   "min_ms": 11.4945,
+   "median_ms": 11.5816,
+   "mean_ms": 11.6855,
+   "p90_ms": 12.0962,
+   "max_ms": 12.0962,
+   "stdev_ms": 0.2343
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "nodes": 1066,
+   "n": 30,
+   "min_ms": 0.4955,
+   "median_ms": 0.5152,
+   "mean_ms": 0.5447,
+   "p90_ms": 0.5595,
+   "max_ms": 1.0772,
+   "stdev_ms": 0.1125
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "nodes": 6798,
+   "n": 15,
+   "min_ms": 3.8502,
+   "median_ms": 4.0611,
+   "mean_ms": 4.1208,
+   "p90_ms": 4.4264,
+   "max_ms": 4.4788,
+   "stdev_ms": 0.21
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "nodes": 38311,
+   "n": 7,
+   "min_ms": 13.8125,
+   "median_ms": 13.9801,
+   "mean_ms": 14.0955,
+   "p90_ms": 14.6119,
+   "max_ms": 14.6119,
+   "stdev_ms": 0.3076
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "nodes": 164,
+   "n": 30,
+   "min_ms": 0.3362,
+   "median_ms": 0.3437,
+   "mean_ms": 0.3623,
+   "p90_ms": 0.4631,
+   "max_ms": 0.5053,
+   "stdev_ms": 0.0463
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "nodes": 1433,
+   "n": 15,
+   "min_ms": 2.3073,
+   "median_ms": 2.3895,
+   "mean_ms": 2.6764,
+   "p90_ms": 3.9122,
+   "max_ms": 4.436,
+   "stdev_ms": 0.6419
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "nodes": 10229,
+   "n": 7,
+   "min_ms": 14.2177,
+   "median_ms": 14.9375,
+   "mean_ms": 15.4605,
+   "p90_ms": 17.63,
+   "max_ms": 17.63,
+   "stdev_ms": 1.299
+  }
+ ],
+ "anchors": [
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 81,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 1.256,
+    "median_ms": 1.2908,
+    "mean_ms": 1.3522,
+    "p90_ms": 1.5177,
+    "max_ms": 2.1239,
+    "stdev_ms": 0.2062
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.1828,
+    "median_ms": 0.1959,
+    "mean_ms": 0.1983,
+    "p90_ms": 0.2298,
+    "max_ms": 0.2446,
+    "stdev_ms": 0.0138
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0919,
+    "median_ms": 0.099,
+    "mean_ms": 0.1094,
+    "p90_ms": 0.1496,
+    "max_ms": 0.2224,
+    "stdev_ms": 0.0273
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1218,
+    "median_ms": 0.1288,
+    "mean_ms": 0.1921,
+    "p90_ms": 0.2717,
+    "max_ms": 1.5954,
+    "stdev_ms": 0.2684
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 3,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 1.342,
+    "median_ms": 1.4888,
+    "mean_ms": 1.5849,
+    "p90_ms": 2.2601,
+    "max_ms": 2.3621,
+    "stdev_ms": 0.2897
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.1156,
+    "median_ms": 0.1291,
+    "mean_ms": 0.131,
+    "p90_ms": 0.1434,
+    "max_ms": 0.1726,
+    "stdev_ms": 0.0116
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0884,
+    "median_ms": 0.0967,
+    "mean_ms": 0.1086,
+    "p90_ms": 0.169,
+    "max_ms": 0.2175,
+    "stdev_ms": 0.0332
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1074,
+    "median_ms": 0.1444,
+    "mean_ms": 0.1778,
+    "p90_ms": 0.2636,
+    "max_ms": 0.2873,
+    "stdev_ms": 0.0602
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 12,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 1.5269,
+    "median_ms": 1.6322,
+    "mean_ms": 1.7237,
+    "p90_ms": 2.1562,
+    "max_ms": 2.506,
+    "stdev_ms": 0.2529
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.1109,
+    "median_ms": 0.126,
+    "mean_ms": 0.1259,
+    "p90_ms": 0.1375,
+    "max_ms": 0.1476,
+    "stdev_ms": 0.0089
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0862,
+    "median_ms": 0.0964,
+    "mean_ms": 0.1124,
+    "p90_ms": 0.2159,
+    "max_ms": 0.2288,
+    "stdev_ms": 0.0402
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1086,
+    "median_ms": 0.1177,
+    "mean_ms": 0.1364,
+    "p90_ms": 0.2422,
+    "max_ms": 0.2513,
+    "stdev_ms": 0.0449
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "string",
+   "class": "String",
+   "matches": 14,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 1.2227,
+    "median_ms": 1.2542,
+    "mean_ms": 1.2893,
+    "p90_ms": 1.4348,
+    "max_ms": 1.4972,
+    "stdev_ms": 0.0811
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.1189,
+    "median_ms": 0.1267,
+    "mean_ms": 0.1318,
+    "p90_ms": 0.1506,
+    "max_ms": 0.1759,
+    "stdev_ms": 0.0134
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0887,
+    "median_ms": 0.0948,
+    "mean_ms": 0.1038,
+    "p90_ms": 0.1277,
+    "max_ms": 0.2436,
+    "stdev_ms": 0.0325
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1069,
+    "median_ms": 0.1198,
+    "mean_ms": 0.1425,
+    "p90_ms": 0.252,
+    "max_ms": 0.2591,
+    "stdev_ms": 0.0487
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 1670,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 4.1121,
+    "median_ms": 4.3511,
+    "mean_ms": 4.7144,
+    "p90_ms": 6.2915,
+    "max_ms": 6.4883,
+    "stdev_ms": 0.7988
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 2.8419,
+    "median_ms": 2.9392,
+    "mean_ms": 3.228,
+    "p90_ms": 3.5855,
+    "max_ms": 6.6146,
+    "stdev_ms": 0.9535
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.238,
+    "median_ms": 1.2843,
+    "mean_ms": 1.4632,
+    "p90_ms": 2.1094,
+    "max_ms": 2.4141,
+    "stdev_ms": 0.3675
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.5527,
+    "median_ms": 1.6097,
+    "mean_ms": 1.7147,
+    "p90_ms": 2.159,
+    "max_ms": 2.3386,
+    "stdev_ms": 0.2522
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 35,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 2.4681,
+    "median_ms": 2.559,
+    "mean_ms": 2.5594,
+    "p90_ms": 2.6175,
+    "max_ms": 2.8111,
+    "stdev_ms": 0.089
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 1.2166,
+    "median_ms": 1.2558,
+    "mean_ms": 1.2858,
+    "p90_ms": 1.416,
+    "max_ms": 1.4593,
+    "stdev_ms": 0.0702
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.1401,
+    "median_ms": 1.1733,
+    "mean_ms": 1.1803,
+    "p90_ms": 1.2139,
+    "max_ms": 1.2655,
+    "stdev_ms": 0.0314
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.3654,
+    "median_ms": 1.4243,
+    "mean_ms": 1.7124,
+    "p90_ms": 3.0363,
+    "max_ms": 3.0499,
+    "stdev_ms": 0.606
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 152,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 2.7354,
+    "median_ms": 2.8928,
+    "mean_ms": 2.9014,
+    "p90_ms": 3.0634,
+    "max_ms": 3.0917,
+    "stdev_ms": 0.1148
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 1.3301,
+    "median_ms": 1.3615,
+    "mean_ms": 1.3808,
+    "p90_ms": 1.4393,
+    "max_ms": 1.539,
+    "stdev_ms": 0.0554
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.1511,
+    "median_ms": 1.1871,
+    "mean_ms": 1.2431,
+    "p90_ms": 1.3639,
+    "max_ms": 1.7315,
+    "stdev_ms": 0.1457
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.3833,
+    "median_ms": 1.4213,
+    "mean_ms": 1.5323,
+    "p90_ms": 1.781,
+    "max_ms": 2.5863,
+    "stdev_ms": 0.3075
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "string",
+   "class": "String",
+   "matches": 97,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 2.3913,
+    "median_ms": 2.6151,
+    "mean_ms": 2.6522,
+    "p90_ms": 3.1321,
+    "max_ms": 3.5251,
+    "stdev_ms": 0.3039
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 1.2476,
+    "median_ms": 1.3192,
+    "mean_ms": 1.3509,
+    "p90_ms": 1.5884,
+    "max_ms": 1.6103,
+    "stdev_ms": 0.1097
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.1862,
+    "median_ms": 1.2499,
+    "mean_ms": 1.5357,
+    "p90_ms": 2.3549,
+    "max_ms": 2.3756,
+    "stdev_ms": 0.5101
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.3981,
+    "median_ms": 1.4754,
+    "mean_ms": 1.6253,
+    "p90_ms": 2.2394,
+    "max_ms": 2.2678,
+    "stdev_ms": 0.2983
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 19161,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 52.1592,
+    "median_ms": 54.1183,
+    "mean_ms": 54.8665,
+    "p90_ms": 61.0792,
+    "max_ms": 61.0792,
+    "stdev_ms": 2.9024
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 52.5821,
+    "median_ms": 55.5015,
+    "mean_ms": 55.9697,
+    "p90_ms": 61.8469,
+    "max_ms": 61.8469,
+    "stdev_ms": 3.2039
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 14.1679,
+    "median_ms": 16.1969,
+    "mean_ms": 16.0278,
+    "p90_ms": 18.2412,
+    "max_ms": 18.2412,
+    "stdev_ms": 1.754
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 17.2682,
+    "median_ms": 20.3155,
+    "mean_ms": 19.8493,
+    "p90_ms": 23.2404,
+    "max_ms": 23.2404,
+    "stdev_ms": 2.2192
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 352,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 13.6752,
+    "median_ms": 14.1563,
+    "mean_ms": 14.9507,
+    "p90_ms": 19.965,
+    "max_ms": 19.965,
+    "stdev_ms": 2.2398
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 12.5478,
+    "median_ms": 12.7437,
+    "mean_ms": 12.7973,
+    "p90_ms": 13.0326,
+    "max_ms": 13.0326,
+    "stdev_ms": 0.1771
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 13.4011,
+    "median_ms": 13.7422,
+    "mean_ms": 13.6984,
+    "p90_ms": 14.2267,
+    "max_ms": 14.2267,
+    "stdev_ms": 0.2791
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 15.5234,
+    "median_ms": 16.0214,
+    "mean_ms": 16.511,
+    "p90_ms": 18.0432,
+    "max_ms": 18.0432,
+    "stdev_ms": 0.9949
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 1499,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 15.1691,
+    "median_ms": 15.2368,
+    "mean_ms": 15.492,
+    "p90_ms": 16.1824,
+    "max_ms": 16.1824,
+    "stdev_ms": 0.3913
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 13.5734,
+    "median_ms": 13.7823,
+    "mean_ms": 13.796,
+    "p90_ms": 14.066,
+    "max_ms": 14.066,
+    "stdev_ms": 0.1512
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 12.8711,
+    "median_ms": 13.0612,
+    "mean_ms": 13.531,
+    "p90_ms": 15.9224,
+    "max_ms": 15.9224,
+    "stdev_ms": 1.0888
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 14.7514,
+    "median_ms": 15.0696,
+    "mean_ms": 15.2825,
+    "p90_ms": 16.8162,
+    "max_ms": 16.8162,
+    "stdev_ms": 0.7103
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "string",
+   "class": "String",
+   "matches": 618,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 13.9023,
+    "median_ms": 14.0623,
+    "mean_ms": 14.2886,
+    "p90_ms": 15.0503,
+    "max_ms": 15.0503,
+    "stdev_ms": 0.4218
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 12.9422,
+    "median_ms": 13.8067,
+    "mean_ms": 14.6284,
+    "p90_ms": 19.1912,
+    "max_ms": 19.1912,
+    "stdev_ms": 2.0847
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 12.9134,
+    "median_ms": 15.0424,
+    "mean_ms": 14.4776,
+    "p90_ms": 15.592,
+    "max_ms": 15.592,
+    "stdev_ms": 1.008
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 16.4717,
+    "median_ms": 18.6859,
+    "mean_ms": 20.7247,
+    "p90_ms": 29.2143,
+    "max_ms": 29.2143,
+    "stdev_ms": 4.921
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "command",
+   "class": "Command",
+   "matches": 10,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 3.1361,
+    "median_ms": 3.3058,
+    "mean_ms": 3.4421,
+    "p90_ms": 4.0443,
+    "max_ms": 4.6319,
+    "stdev_ms": 0.3658
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.1033,
+    "median_ms": 0.1105,
+    "mean_ms": 0.1177,
+    "p90_ms": 0.1447,
+    "max_ms": 0.1846,
+    "stdev_ms": 0.0186
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0738,
+    "median_ms": 0.0819,
+    "mean_ms": 0.0908,
+    "p90_ms": 0.1418,
+    "max_ms": 0.1522,
+    "stdev_ms": 0.0217
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.0887,
+    "median_ms": 0.0955,
+    "mean_ms": 0.1186,
+    "p90_ms": 0.1664,
+    "max_ms": 0.1733,
+    "stdev_ms": 0.0323
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 6,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 3.6296,
+    "median_ms": 3.7914,
+    "mean_ms": 3.8545,
+    "p90_ms": 4.038,
+    "max_ms": 4.9013,
+    "stdev_ms": 0.2929
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.1255,
+    "median_ms": 0.1331,
+    "mean_ms": 0.1422,
+    "p90_ms": 0.174,
+    "max_ms": 0.1914,
+    "stdev_ms": 0.0183
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0788,
+    "median_ms": 0.0809,
+    "mean_ms": 0.0867,
+    "p90_ms": 0.1108,
+    "max_ms": 0.1527,
+    "stdev_ms": 0.0176
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.0852,
+    "median_ms": 0.0942,
+    "mean_ms": 0.1074,
+    "p90_ms": 0.1596,
+    "max_ms": 0.1657,
+    "stdev_ms": 0.0275
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 0,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 3.9913,
+    "median_ms": 4.0859,
+    "mean_ms": 4.143,
+    "p90_ms": 4.3388,
+    "max_ms": 4.7275,
+    "stdev_ms": 0.1597
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.0799,
+    "median_ms": 0.085,
+    "mean_ms": 0.0867,
+    "p90_ms": 0.091,
+    "max_ms": 0.1241,
+    "stdev_ms": 0.0077
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0722,
+    "median_ms": 0.0785,
+    "mean_ms": 0.089,
+    "p90_ms": 0.1401,
+    "max_ms": 0.1503,
+    "stdev_ms": 0.0232
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.0847,
+    "median_ms": 0.0883,
+    "mean_ms": 0.0951,
+    "p90_ms": 0.1121,
+    "max_ms": 0.1598,
+    "stdev_ms": 0.0185
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 3,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "query_cold": {
+    "n": 30,
+    "min_ms": 3.145,
+    "median_ms": 3.2369,
+    "mean_ms": 3.2644,
+    "p90_ms": 3.3807,
+    "max_ms": 3.6345,
+    "stdev_ms": 0.1062
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0775,
+    "median_ms": 0.0817,
+    "mean_ms": 0.0911,
+    "p90_ms": 0.1398,
+    "max_ms": 0.1552,
+    "stdev_ms": 0.0228
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.0859,
+    "median_ms": 0.0904,
+    "mean_ms": 0.0943,
+    "p90_ms": 0.0976,
+    "max_ms": 0.1546,
+    "stdev_ms": 0.0157
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "command",
+   "class": "Command",
+   "matches": 323,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 4.2182,
+    "median_ms": 4.4451,
+    "mean_ms": 4.5163,
+    "p90_ms": 5.0907,
+    "max_ms": 5.1015,
+    "stdev_ms": 0.2624
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 1.2454,
+    "median_ms": 1.5264,
+    "mean_ms": 1.7326,
+    "p90_ms": 2.3434,
+    "max_ms": 2.9266,
+    "stdev_ms": 0.5188
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.9504,
+    "median_ms": 0.984,
+    "mean_ms": 0.9971,
+    "p90_ms": 1.0256,
+    "max_ms": 1.1812,
+    "stdev_ms": 0.0557
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.1012,
+    "median_ms": 1.1403,
+    "mean_ms": 1.2865,
+    "p90_ms": 1.8209,
+    "max_ms": 2.1476,
+    "stdev_ms": 0.3115
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 65,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 4.7675,
+    "median_ms": 4.8905,
+    "mean_ms": 4.9108,
+    "p90_ms": 5.0741,
+    "max_ms": 5.195,
+    "stdev_ms": 0.1106
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 1.1435,
+    "median_ms": 1.1784,
+    "mean_ms": 1.2154,
+    "p90_ms": 1.3395,
+    "max_ms": 1.3705,
+    "stdev_ms": 0.0709
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.942,
+    "median_ms": 0.9945,
+    "mean_ms": 1.0453,
+    "p90_ms": 1.3096,
+    "max_ms": 1.5552,
+    "stdev_ms": 0.1684
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.089,
+    "median_ms": 2.0499,
+    "mean_ms": 2.0088,
+    "p90_ms": 3.2279,
+    "max_ms": 3.249,
+    "stdev_ms": 0.843
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 29,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 5.6781,
+    "median_ms": 6.1666,
+    "mean_ms": 6.6036,
+    "p90_ms": 7.5367,
+    "max_ms": 9.9945,
+    "stdev_ms": 1.1181
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 1.6902,
+    "median_ms": 1.7507,
+    "mean_ms": 1.7727,
+    "p90_ms": 1.8482,
+    "max_ms": 2.0151,
+    "stdev_ms": 0.0784
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.9422,
+    "median_ms": 0.9567,
+    "mean_ms": 1.5619,
+    "p90_ms": 1.1689,
+    "max_ms": 9.767,
+    "stdev_ms": 2.2706
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.0711,
+    "median_ms": 1.0997,
+    "mean_ms": 1.2511,
+    "p90_ms": 1.54,
+    "max_ms": 2.8479,
+    "stdev_ms": 0.4571
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 54,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "query_cold": {
+    "n": 15,
+    "min_ms": 4.0891,
+    "median_ms": 4.2579,
+    "mean_ms": 4.4282,
+    "p90_ms": 5.2142,
+    "max_ms": 5.5729,
+    "stdev_ms": 0.4665
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.9327,
+    "median_ms": 0.97,
+    "mean_ms": 1.1449,
+    "p90_ms": 1.7248,
+    "max_ms": 2.1262,
+    "stdev_ms": 0.3516
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.097,
+    "median_ms": 1.1428,
+    "mean_ms": 1.382,
+    "p90_ms": 2.4334,
+    "max_ms": 2.9537,
+    "stdev_ms": 0.5523
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "command",
+   "class": "Command",
+   "matches": 590,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 7.7629,
+    "median_ms": 7.9417,
+    "mean_ms": 8.7312,
+    "p90_ms": 11.0852,
+    "max_ms": 11.0852,
+    "stdev_ms": 1.3225
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 3.7482,
+    "median_ms": 4.3618,
+    "mean_ms": 4.5883,
+    "p90_ms": 5.3935,
+    "max_ms": 5.3935,
+    "stdev_ms": 0.6621
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 2.6972,
+    "median_ms": 4.3236,
+    "mean_ms": 4.5683,
+    "p90_ms": 6.6619,
+    "max_ms": 6.6619,
+    "stdev_ms": 1.6157
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 3.2468,
+    "median_ms": 3.418,
+    "mean_ms": 4.0627,
+    "p90_ms": 7.9916,
+    "max_ms": 7.9916,
+    "stdev_ms": 1.7378
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 417,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 8.2112,
+    "median_ms": 8.868,
+    "mean_ms": 8.9952,
+    "p90_ms": 10.0063,
+    "max_ms": 10.0063,
+    "stdev_ms": 0.7523
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 4.7431,
+    "median_ms": 5.7986,
+    "mean_ms": 6.6922,
+    "p90_ms": 13.2887,
+    "max_ms": 13.2887,
+    "stdev_ms": 2.985
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 2.6732,
+    "median_ms": 2.8281,
+    "mean_ms": 3.8192,
+    "p90_ms": 5.4599,
+    "max_ms": 5.4599,
+    "stdev_ms": 1.3612
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 3.2804,
+    "median_ms": 3.3612,
+    "mean_ms": 4.5422,
+    "p90_ms": 7.9637,
+    "max_ms": 7.9637,
+    "stdev_ms": 1.7643
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 155,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 10.5118,
+    "median_ms": 11.5823,
+    "mean_ms": 12.3356,
+    "p90_ms": 15.703,
+    "max_ms": 15.703,
+    "stdev_ms": 1.9525
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 6.6258,
+    "median_ms": 8.5792,
+    "mean_ms": 8.2857,
+    "p90_ms": 9.4326,
+    "max_ms": 9.4326,
+    "stdev_ms": 1.0436
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 2.7274,
+    "median_ms": 3.7281,
+    "mean_ms": 4.4351,
+    "p90_ms": 7.0169,
+    "max_ms": 7.0169,
+    "stdev_ms": 1.8402
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 3.2534,
+    "median_ms": 7.9145,
+    "mean_ms": 6.925,
+    "p90_ms": 9.6312,
+    "max_ms": 9.6312,
+    "stdev_ms": 2.7206
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 102,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "query_cold": {
+    "n": 7,
+    "min_ms": 6.5569,
+    "median_ms": 9.1929,
+    "mean_ms": 8.773,
+    "p90_ms": 9.9455,
+    "max_ms": 9.9455,
+    "stdev_ms": 1.3517
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 2.8745,
+    "median_ms": 5.3515,
+    "mean_ms": 4.9958,
+    "p90_ms": 7.5428,
+    "max_ms": 7.5428,
+    "stdev_ms": 1.6903
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 3.3378,
+    "median_ms": 3.5611,
+    "mean_ms": 4.2621,
+    "p90_ms": 6.0592,
+    "max_ms": 6.0592,
+    "stdev_ms": 1.1922
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 33,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 0.9528,
+    "median_ms": 0.9849,
+    "mean_ms": 1.0004,
+    "p90_ms": 1.0962,
+    "max_ms": 1.2765,
+    "stdev_ms": 0.0658
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.4773,
+    "median_ms": 0.4981,
+    "mean_ms": 0.5578,
+    "p90_ms": 0.7507,
+    "max_ms": 0.9154,
+    "stdev_ms": 0.1169
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.139,
+    "median_ms": 0.1463,
+    "mean_ms": 0.1737,
+    "p90_ms": 0.3085,
+    "max_ms": 0.3128,
+    "stdev_ms": 0.057
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1623,
+    "median_ms": 0.1693,
+    "mean_ms": 0.1854,
+    "p90_ms": 0.2248,
+    "max_ms": 0.3769,
+    "stdev_ms": 0.0519
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 0,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "query_cold": {
+    "n": 30,
+    "min_ms": 0.5364,
+    "median_ms": 0.5532,
+    "mean_ms": 0.6284,
+    "p90_ms": 0.9376,
+    "max_ms": 1.6336,
+    "stdev_ms": 0.2166
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1362,
+    "median_ms": 0.1441,
+    "mean_ms": 0.1842,
+    "p90_ms": 0.3062,
+    "max_ms": 0.3163,
+    "stdev_ms": 0.0685
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1494,
+    "median_ms": 0.1588,
+    "mean_ms": 0.1777,
+    "p90_ms": 0.2896,
+    "max_ms": 0.3664,
+    "stdev_ms": 0.0565
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 9,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 293",
+   "query_cold": {
+    "n": 30,
+    "min_ms": 0.569,
+    "median_ms": 0.5889,
+    "mean_ms": 0.6359,
+    "p90_ms": 0.8906,
+    "max_ms": 0.9832,
+    "stdev_ms": 0.1172
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1335,
+    "median_ms": 0.1419,
+    "mean_ms": 0.1514,
+    "p90_ms": 0.1558,
+    "max_ms": 0.3046,
+    "stdev_ms": 0.0363
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1537,
+    "median_ms": 0.1623,
+    "mean_ms": 0.1658,
+    "p90_ms": 0.1827,
+    "max_ms": 0.1866,
+    "stdev_ms": 0.0081
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 0,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 489",
+   "query_cold": {
+    "n": 30,
+    "min_ms": 0.6633,
+    "median_ms": 0.6835,
+    "mean_ms": 0.7207,
+    "p90_ms": 0.7412,
+    "max_ms": 1.307,
+    "stdev_ms": 0.1386
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.1348,
+    "median_ms": 0.1402,
+    "mean_ms": 0.1524,
+    "p90_ms": 0.1751,
+    "max_ms": 0.3179,
+    "stdev_ms": 0.0425
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1544,
+    "median_ms": 0.1646,
+    "mean_ms": 0.1867,
+    "p90_ms": 0.353,
+    "max_ms": 0.3618,
+    "stdev_ms": 0.0619
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 55,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 1.3212,
+    "median_ms": 1.3699,
+    "mean_ms": 1.7492,
+    "p90_ms": 1.7398,
+    "max_ms": 6.5459,
+    "stdev_ms": 1.3314
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 0.8464,
+    "median_ms": 0.8707,
+    "mean_ms": 0.9558,
+    "p90_ms": 1.2094,
+    "max_ms": 1.2235,
+    "stdev_ms": 0.1416
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.2526,
+    "median_ms": 0.265,
+    "mean_ms": 0.3062,
+    "p90_ms": 0.5256,
+    "max_ms": 0.6012,
+    "stdev_ms": 0.1064
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.27,
+    "median_ms": 0.2799,
+    "mean_ms": 0.3264,
+    "p90_ms": 0.5844,
+    "max_ms": 0.6796,
+    "stdev_ms": 0.1255
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 11,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "query_cold": {
+    "n": 15,
+    "min_ms": 0.6422,
+    "median_ms": 0.6675,
+    "mean_ms": 0.6932,
+    "p90_ms": 0.7871,
+    "max_ms": 0.8244,
+    "stdev_ms": 0.0569
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.2467,
+    "median_ms": 0.2558,
+    "mean_ms": 0.2821,
+    "p90_ms": 0.3738,
+    "max_ms": 0.522,
+    "stdev_ms": 0.0739
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.2588,
+    "median_ms": 0.2669,
+    "mean_ms": 0.2953,
+    "p90_ms": 0.28,
+    "max_ms": 0.6694,
+    "stdev_ms": 0.1037
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 23,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 293",
+   "query_cold": {
+    "n": 15,
+    "min_ms": 0.6907,
+    "median_ms": 0.7043,
+    "mean_ms": 0.7389,
+    "p90_ms": 0.7193,
+    "max_ms": 1.2202,
+    "stdev_ms": 0.1335
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.2528,
+    "median_ms": 0.26,
+    "mean_ms": 0.3091,
+    "p90_ms": 0.6165,
+    "max_ms": 0.6221,
+    "stdev_ms": 0.1261
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.2603,
+    "median_ms": 0.2757,
+    "mean_ms": 0.278,
+    "p90_ms": 0.3043,
+    "max_ms": 0.3115,
+    "stdev_ms": 0.0142
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 0,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 489",
+   "query_cold": {
+    "n": 15,
+    "min_ms": 0.7706,
+    "median_ms": 0.7977,
+    "mean_ms": 0.8029,
+    "p90_ms": 0.8291,
+    "max_ms": 0.9278,
+    "stdev_ms": 0.0374
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.2468,
+    "median_ms": 0.2597,
+    "mean_ms": 0.2987,
+    "p90_ms": 0.5314,
+    "max_ms": 0.6046,
+    "stdev_ms": 0.1103
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.2563,
+    "median_ms": 0.2672,
+    "mean_ms": 0.2998,
+    "p90_ms": 0.3742,
+    "max_ms": 0.635,
+    "stdev_ms": 0.0971
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 2225,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 23.0348,
+    "median_ms": 23.5555,
+    "mean_ms": 24.5463,
+    "p90_ms": 30.9394,
+    "max_ms": 30.9394,
+    "stdev_ms": 2.8357
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 22.5001,
+    "median_ms": 22.6404,
+    "mean_ms": 22.8974,
+    "p90_ms": 23.9957,
+    "max_ms": 23.9957,
+    "stdev_ms": 0.5323
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.0845,
+    "median_ms": 5.2882,
+    "mean_ms": 5.3279,
+    "p90_ms": 5.7126,
+    "max_ms": 5.7126,
+    "stdev_ms": 0.1949
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 5.2538,
+    "median_ms": 5.2951,
+    "mean_ms": 5.3128,
+    "p90_ms": 5.4487,
+    "max_ms": 5.4487,
+    "stdev_ms": 0.0632
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 2014,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "query_cold": {
+    "n": 7,
+    "min_ms": 5.6201,
+    "median_ms": 5.7218,
+    "mean_ms": 5.7981,
+    "p90_ms": 6.2586,
+    "max_ms": 6.2586,
+    "stdev_ms": 0.232
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.1908,
+    "median_ms": 5.2641,
+    "mean_ms": 5.6605,
+    "p90_ms": 8.0389,
+    "max_ms": 8.0389,
+    "stdev_ms": 1.0507
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 5.1362,
+    "median_ms": 5.304,
+    "mean_ms": 5.3023,
+    "p90_ms": 5.6446,
+    "max_ms": 5.6446,
+    "stdev_ms": 0.1708
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 90,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 293",
+   "query_cold": {
+    "n": 7,
+    "min_ms": 5.4019,
+    "median_ms": 5.6419,
+    "mean_ms": 5.6095,
+    "p90_ms": 5.7116,
+    "max_ms": 5.7116,
+    "stdev_ms": 0.109
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.0324,
+    "median_ms": 5.1993,
+    "mean_ms": 5.4567,
+    "p90_ms": 6.3961,
+    "max_ms": 6.3961,
+    "stdev_ms": 0.4885
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 5.0561,
+    "median_ms": 5.1171,
+    "mean_ms": 5.5562,
+    "p90_ms": 6.7352,
+    "max_ms": 6.7352,
+    "stdev_ms": 0.7857
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 10,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 489",
+   "query_cold": {
+    "n": 7,
+    "min_ms": 5.6465,
+    "median_ms": 5.7476,
+    "mean_ms": 5.9228,
+    "p90_ms": 7.0871,
+    "max_ms": 7.0871,
+    "stdev_ms": 0.5177
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.0911,
+    "median_ms": 5.2739,
+    "mean_ms": 5.8194,
+    "p90_ms": 7.2612,
+    "max_ms": 7.2612,
+    "stdev_ms": 0.9538
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 5.1534,
+    "median_ms": 5.3479,
+    "mean_ms": 6.8318,
+    "p90_ms": 14.7897,
+    "max_ms": 14.7897,
+    "stdev_ms": 3.5388
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 99,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 2.1957,
+    "median_ms": 2.277,
+    "mean_ms": 2.3928,
+    "p90_ms": 2.6982,
+    "max_ms": 4.9222,
+    "stdev_ms": 0.497
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.3564,
+    "median_ms": 0.3693,
+    "mean_ms": 0.3714,
+    "p90_ms": 0.3851,
+    "max_ms": 0.4075,
+    "stdev_ms": 0.0103
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.2335,
+    "median_ms": 0.2432,
+    "mean_ms": 0.2687,
+    "p90_ms": 0.377,
+    "max_ms": 0.5006,
+    "stdev_ms": 0.068
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.2888,
+    "median_ms": 0.2978,
+    "mean_ms": 0.3109,
+    "p90_ms": 0.341,
+    "max_ms": 0.5763,
+    "stdev_ms": 0.052
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 5,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 3.2492,
+    "median_ms": 3.3491,
+    "mean_ms": 3.4682,
+    "p90_ms": 3.6775,
+    "max_ms": 5.052,
+    "stdev_ms": 0.3398
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.2651,
+    "median_ms": 0.2744,
+    "mean_ms": 0.2829,
+    "p90_ms": 0.307,
+    "max_ms": 0.3988,
+    "stdev_ms": 0.0281
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.227,
+    "median_ms": 0.2343,
+    "mean_ms": 0.2678,
+    "p90_ms": 0.4757,
+    "max_ms": 0.5085,
+    "stdev_ms": 0.0778
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.2722,
+    "median_ms": 0.2799,
+    "mean_ms": 0.3292,
+    "p90_ms": 0.6789,
+    "max_ms": 0.6952,
+    "stdev_ms": 0.1288
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 2,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 22",
+   "query_cold": {
+    "n": 30,
+    "min_ms": 2.3471,
+    "median_ms": 2.4337,
+    "mean_ms": 2.4828,
+    "p90_ms": 2.6656,
+    "max_ms": 2.9204,
+    "stdev_ms": 0.1341
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.2241,
+    "median_ms": 0.2375,
+    "mean_ms": 0.2828,
+    "p90_ms": 0.4823,
+    "max_ms": 0.5274,
+    "stdev_ms": 0.0934
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.2723,
+    "median_ms": 0.2824,
+    "mean_ms": 0.3291,
+    "p90_ms": 0.621,
+    "max_ms": 0.6818,
+    "stdev_ms": 0.1137
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 0,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 2.4876,
+    "median_ms": 2.5734,
+    "mean_ms": 2.7533,
+    "p90_ms": 3.7948,
+    "max_ms": 4.414,
+    "stdev_ms": 0.4917
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.2435,
+    "median_ms": 0.2509,
+    "mean_ms": 0.2599,
+    "p90_ms": 0.2876,
+    "max_ms": 0.3738,
+    "stdev_ms": 0.0261
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.221,
+    "median_ms": 0.2297,
+    "mean_ms": 0.2408,
+    "p90_ms": 0.2923,
+    "max_ms": 0.3763,
+    "stdev_ms": 0.0326
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.2695,
+    "median_ms": 0.2797,
+    "mean_ms": 0.3043,
+    "p90_ms": 0.3238,
+    "max_ms": 0.6612,
+    "stdev_ms": 0.0793
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 3,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 788",
+   "query_cold": {
+    "n": 30,
+    "min_ms": 3.0239,
+    "median_ms": 3.1123,
+    "mean_ms": 3.274,
+    "p90_ms": 3.8837,
+    "max_ms": 5.5165,
+    "stdev_ms": 0.4773
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.2231,
+    "median_ms": 0.2339,
+    "mean_ms": 0.2885,
+    "p90_ms": 0.5057,
+    "max_ms": 0.6696,
+    "stdev_ms": 0.1129
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.2734,
+    "median_ms": 0.2849,
+    "mean_ms": 0.3734,
+    "p90_ms": 0.6882,
+    "max_ms": 0.7217,
+    "stdev_ms": 0.1551
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 1081,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 4.796,
+    "median_ms": 5.2192,
+    "mean_ms": 5.615,
+    "p90_ms": 6.8031,
+    "max_ms": 7.1047,
+    "stdev_ms": 0.7138
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 2.8763,
+    "median_ms": 3.0564,
+    "mean_ms": 3.689,
+    "p90_ms": 5.9212,
+    "max_ms": 6.5,
+    "stdev_ms": 1.2212
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.2051,
+    "median_ms": 1.2797,
+    "mean_ms": 1.4424,
+    "p90_ms": 2.0622,
+    "max_ms": 2.3384,
+    "stdev_ms": 0.3534
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.7206,
+    "median_ms": 1.7671,
+    "mean_ms": 2.1755,
+    "p90_ms": 3.4357,
+    "max_ms": 3.6387,
+    "stdev_ms": 0.7224
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 47,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 4.7233,
+    "median_ms": 4.866,
+    "mean_ms": 4.8966,
+    "p90_ms": 5.1902,
+    "max_ms": 5.3586,
+    "stdev_ms": 0.1661
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 1.6794,
+    "median_ms": 1.8688,
+    "mean_ms": 1.9951,
+    "p90_ms": 2.7867,
+    "max_ms": 2.9618,
+    "stdev_ms": 0.388
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.0611,
+    "median_ms": 1.121,
+    "mean_ms": 1.1586,
+    "p90_ms": 1.2032,
+    "max_ms": 1.7698,
+    "stdev_ms": 0.1732
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.4887,
+    "median_ms": 1.5467,
+    "mean_ms": 1.7074,
+    "p90_ms": 2.0741,
+    "max_ms": 3.1987,
+    "stdev_ms": 0.4378
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 16,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 22",
+   "query_cold": {
+    "n": 15,
+    "min_ms": 3.2375,
+    "median_ms": 3.3502,
+    "mean_ms": 3.4143,
+    "p90_ms": 3.6012,
+    "max_ms": 4.2166,
+    "stdev_ms": 0.2383
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.0643,
+    "median_ms": 1.109,
+    "mean_ms": 1.1856,
+    "p90_ms": 1.285,
+    "max_ms": 1.8005,
+    "stdev_ms": 0.1904
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.4916,
+    "median_ms": 1.564,
+    "mean_ms": 1.8674,
+    "p90_ms": 2.6439,
+    "max_ms": 3.5904,
+    "stdev_ms": 0.6134
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 21,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 3.9668,
+    "median_ms": 4.0568,
+    "mean_ms": 4.0773,
+    "p90_ms": 4.1598,
+    "max_ms": 4.4097,
+    "stdev_ms": 0.1059
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 1.686,
+    "median_ms": 1.7554,
+    "mean_ms": 1.8437,
+    "p90_ms": 1.9335,
+    "max_ms": 2.7587,
+    "stdev_ms": 0.2605
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.0802,
+    "median_ms": 1.1336,
+    "mean_ms": 1.448,
+    "p90_ms": 2.1878,
+    "max_ms": 3.375,
+    "stdev_ms": 0.6259
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.5368,
+    "median_ms": 1.6677,
+    "mean_ms": 2.2227,
+    "p90_ms": 3.9436,
+    "max_ms": 3.9755,
+    "stdev_ms": 0.9455
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 95,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 788",
+   "query_cold": {
+    "n": 15,
+    "min_ms": 3.8691,
+    "median_ms": 4.0531,
+    "mean_ms": 4.4845,
+    "p90_ms": 6.1988,
+    "max_ms": 6.3254,
+    "stdev_ms": 0.8625
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 1.0903,
+    "median_ms": 1.1672,
+    "mean_ms": 1.4626,
+    "p90_ms": 2.5342,
+    "max_ms": 2.6562,
+    "stdev_ms": 0.5803
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 1.535,
+    "median_ms": 1.6343,
+    "mean_ms": 2.0578,
+    "p90_ms": 2.9264,
+    "max_ms": 4.5058,
+    "stdev_ms": 0.8117
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 2885,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 10.6854,
+    "median_ms": 11.089,
+    "mean_ms": 11.2331,
+    "p90_ms": 12.495,
+    "max_ms": 12.495,
+    "stdev_ms": 0.6216
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 8.7171,
+    "median_ms": 8.9762,
+    "mean_ms": 8.9906,
+    "p90_ms": 9.3638,
+    "max_ms": 9.3638,
+    "stdev_ms": 0.2082
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.9194,
+    "median_ms": 6.5667,
+    "mean_ms": 6.6959,
+    "p90_ms": 7.5772,
+    "max_ms": 7.5772,
+    "stdev_ms": 0.6538
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 7.0241,
+    "median_ms": 7.1543,
+    "mean_ms": 7.2533,
+    "p90_ms": 7.9687,
+    "max_ms": 7.9687,
+    "stdev_ms": 0.3209
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 381,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 8.8825,
+    "median_ms": 9.0618,
+    "mean_ms": 9.3041,
+    "p90_ms": 10.46,
+    "max_ms": 10.46,
+    "stdev_ms": 0.5532
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 5.7176,
+    "median_ms": 5.7716,
+    "mean_ms": 5.796,
+    "p90_ms": 6.01,
+    "max_ms": 6.01,
+    "stdev_ms": 0.1036
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.8377,
+    "median_ms": 5.9488,
+    "mean_ms": 7.6102,
+    "p90_ms": 16.8206,
+    "max_ms": 16.8206,
+    "stdev_ms": 4.0731
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 6.7773,
+    "median_ms": 6.9062,
+    "mean_ms": 7.1596,
+    "p90_ms": 8.6136,
+    "max_ms": 8.6136,
+    "stdev_ms": 0.6495
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 182,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 22",
+   "query_cold": {
+    "n": 7,
+    "min_ms": 7.927,
+    "median_ms": 8.0826,
+    "mean_ms": 8.4756,
+    "p90_ms": 10.5393,
+    "max_ms": 10.5393,
+    "stdev_ms": 0.9393
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.824,
+    "median_ms": 6.1273,
+    "mean_ms": 6.2099,
+    "p90_ms": 6.6921,
+    "max_ms": 6.6921,
+    "stdev_ms": 0.3607
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 6.8319,
+    "median_ms": 6.886,
+    "mean_ms": 7.1348,
+    "p90_ms": 8.5925,
+    "max_ms": 8.5925,
+    "stdev_ms": 0.6446
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 128,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 8.1969,
+    "median_ms": 8.3509,
+    "mean_ms": 8.4298,
+    "p90_ms": 8.7467,
+    "max_ms": 8.7467,
+    "stdev_ms": 0.2075
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 5.8655,
+    "median_ms": 6.2535,
+    "mean_ms": 6.4584,
+    "p90_ms": 7.387,
+    "max_ms": 7.387,
+    "stdev_ms": 0.5312
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.8176,
+    "median_ms": 5.944,
+    "mean_ms": 6.5621,
+    "p90_ms": 9.1024,
+    "max_ms": 9.1024,
+    "stdev_ms": 1.2315
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 6.9353,
+    "median_ms": 7.2264,
+    "mean_ms": 7.7849,
+    "p90_ms": 11.0097,
+    "max_ms": 11.0097,
+    "stdev_ms": 1.4478
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 566,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 788",
+   "query_cold": {
+    "n": 7,
+    "min_ms": 8.7983,
+    "median_ms": 10.0976,
+    "mean_ms": 9.8715,
+    "p90_ms": 11.1141,
+    "max_ms": 11.1141,
+    "stdev_ms": 0.8219
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 5.8044,
+    "median_ms": 6.1016,
+    "mean_ms": 6.1451,
+    "p90_ms": 6.5683,
+    "max_ms": 6.5683,
+    "stdev_ms": 0.2785
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 6.9777,
+    "median_ms": 7.1934,
+    "mean_ms": 7.4368,
+    "p90_ms": 8.6232,
+    "max_ms": 8.6232,
+    "stdev_ms": 0.6004
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 1,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 0.9058,
+    "median_ms": 0.9453,
+    "mean_ms": 0.9797,
+    "p90_ms": 1.1013,
+    "max_ms": 1.4737,
+    "stdev_ms": 0.1062
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.1366,
+    "median_ms": 0.1426,
+    "mean_ms": 0.144,
+    "p90_ms": 0.1527,
+    "max_ms": 0.1577,
+    "stdev_ms": 0.0057
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.063,
+    "median_ms": 0.0655,
+    "mean_ms": 0.0679,
+    "p90_ms": 0.0846,
+    "max_ms": 0.0878,
+    "stdev_ms": 0.0072
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1076,
+    "median_ms": 0.1125,
+    "mean_ms": 0.117,
+    "p90_ms": 0.131,
+    "max_ms": 0.1706,
+    "stdev_ms": 0.0141
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 0,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 0.8966,
+    "median_ms": 0.9261,
+    "mean_ms": 0.9335,
+    "p90_ms": 0.9718,
+    "max_ms": 0.996,
+    "stdev_ms": 0.0242
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.125,
+    "median_ms": 0.13,
+    "mean_ms": 0.1327,
+    "p90_ms": 0.1463,
+    "max_ms": 0.1637,
+    "stdev_ms": 0.0087
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0605,
+    "median_ms": 0.0648,
+    "mean_ms": 0.0676,
+    "p90_ms": 0.0885,
+    "max_ms": 0.095,
+    "stdev_ms": 0.0089
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1065,
+    "median_ms": 0.1125,
+    "mean_ms": 0.1253,
+    "p90_ms": 0.1732,
+    "max_ms": 0.2091,
+    "stdev_ms": 0.0268
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 2,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 0.905,
+    "median_ms": 0.9286,
+    "mean_ms": 0.9394,
+    "p90_ms": 0.9926,
+    "max_ms": 1.0294,
+    "stdev_ms": 0.0317
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.1378,
+    "median_ms": 0.144,
+    "mean_ms": 0.1471,
+    "p90_ms": 0.1604,
+    "max_ms": 0.1948,
+    "stdev_ms": 0.0112
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0619,
+    "median_ms": 0.0671,
+    "mean_ms": 0.0713,
+    "p90_ms": 0.0916,
+    "max_ms": 0.1199,
+    "stdev_ms": 0.0121
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1082,
+    "median_ms": 0.1128,
+    "mean_ms": 0.1184,
+    "p90_ms": 0.1547,
+    "max_ms": 0.1781,
+    "stdev_ms": 0.0171
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "section",
+   "class": "Section",
+   "matches": 1,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 30,
+    "min_ms": 0.9039,
+    "median_ms": 0.93,
+    "mean_ms": 0.976,
+    "p90_ms": 0.9765,
+    "max_ms": 2.1619,
+    "stdev_ms": 0.226
+   },
+   "query_warm": {
+    "n": 30,
+    "min_ms": 0.1361,
+    "median_ms": 0.1398,
+    "mean_ms": 0.1434,
+    "p90_ms": 0.1515,
+    "max_ms": 0.1902,
+    "stdev_ms": 0.0108
+   },
+   "recwalk": {
+    "n": 30,
+    "min_ms": 0.0622,
+    "median_ms": 0.0664,
+    "mean_ms": 0.068,
+    "p90_ms": 0.0747,
+    "max_ms": 0.0887,
+    "stdev_ms": 0.0058
+   },
+   "cursor": {
+    "n": 30,
+    "min_ms": 0.1065,
+    "median_ms": 0.1122,
+    "mean_ms": 0.1146,
+    "p90_ms": 0.1316,
+    "max_ms": 0.1465,
+    "stdev_ms": 0.0088
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 8,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 1.3966,
+    "median_ms": 1.416,
+    "mean_ms": 1.4389,
+    "p90_ms": 1.4868,
+    "max_ms": 1.5781,
+    "stdev_ms": 0.0478
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 0.6114,
+    "median_ms": 0.6468,
+    "mean_ms": 0.6679,
+    "p90_ms": 0.7247,
+    "max_ms": 0.8529,
+    "stdev_ms": 0.0612
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.1898,
+    "median_ms": 0.1995,
+    "mean_ms": 0.2244,
+    "p90_ms": 0.3378,
+    "max_ms": 0.3418,
+    "stdev_ms": 0.056
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.4484,
+    "median_ms": 0.4845,
+    "mean_ms": 0.5442,
+    "p90_ms": 0.9774,
+    "max_ms": 0.9931,
+    "stdev_ms": 0.1811
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 29,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 1.4073,
+    "median_ms": 1.4286,
+    "mean_ms": 1.4549,
+    "p90_ms": 1.5421,
+    "max_ms": 1.5453,
+    "stdev_ms": 0.0532
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 0.6341,
+    "median_ms": 0.6467,
+    "mean_ms": 0.6558,
+    "p90_ms": 0.6963,
+    "max_ms": 0.7242,
+    "stdev_ms": 0.0264
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.1937,
+    "median_ms": 0.1985,
+    "mean_ms": 0.2226,
+    "p90_ms": 0.3574,
+    "max_ms": 0.3798,
+    "stdev_ms": 0.0599
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.4531,
+    "median_ms": 0.468,
+    "mean_ms": 0.6055,
+    "p90_ms": 0.9806,
+    "max_ms": 0.9884,
+    "stdev_ms": 0.2157
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 5,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 1.3696,
+    "median_ms": 1.4025,
+    "mean_ms": 1.456,
+    "p90_ms": 1.4852,
+    "max_ms": 2.1849,
+    "stdev_ms": 0.2035
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 0.5927,
+    "median_ms": 0.6297,
+    "mean_ms": 0.6315,
+    "p90_ms": 0.6631,
+    "max_ms": 0.6699,
+    "stdev_ms": 0.0236
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.1877,
+    "median_ms": 0.1942,
+    "mean_ms": 0.2239,
+    "p90_ms": 0.3376,
+    "max_ms": 0.3401,
+    "stdev_ms": 0.0594
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.4464,
+    "median_ms": 0.4558,
+    "mean_ms": 0.4903,
+    "p90_ms": 0.5082,
+    "max_ms": 0.9012,
+    "stdev_ms": 0.1147
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "section",
+   "class": "Section",
+   "matches": 8,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 15,
+    "min_ms": 1.3678,
+    "median_ms": 1.4023,
+    "mean_ms": 1.4044,
+    "p90_ms": 1.4426,
+    "max_ms": 1.4705,
+    "stdev_ms": 0.0265
+   },
+   "query_warm": {
+    "n": 15,
+    "min_ms": 0.6009,
+    "median_ms": 0.6246,
+    "mean_ms": 0.6561,
+    "p90_ms": 0.7738,
+    "max_ms": 0.8532,
+    "stdev_ms": 0.0695
+   },
+   "recwalk": {
+    "n": 15,
+    "min_ms": 0.1862,
+    "median_ms": 0.1958,
+    "mean_ms": 0.2181,
+    "p90_ms": 0.3422,
+    "max_ms": 0.3483,
+    "stdev_ms": 0.0525
+   },
+   "cursor": {
+    "n": 15,
+    "min_ms": 0.4457,
+    "median_ms": 0.4648,
+    "mean_ms": 0.5208,
+    "p90_ms": 0.7671,
+    "max_ms": 0.9773,
+    "stdev_ms": 0.1491
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 63,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 4.2771,
+    "median_ms": 4.3677,
+    "mean_ms": 4.4497,
+    "p90_ms": 5.0413,
+    "max_ms": 5.0413,
+    "stdev_ms": 0.2721
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 3.4608,
+    "median_ms": 3.5213,
+    "mean_ms": 3.5436,
+    "p90_ms": 3.6777,
+    "max_ms": 3.6777,
+    "stdev_ms": 0.0766
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 0.9418,
+    "median_ms": 1.0047,
+    "mean_ms": 1.0422,
+    "p90_ms": 1.2802,
+    "max_ms": 1.2802,
+    "stdev_ms": 0.1164
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 2.5488,
+    "median_ms": 2.5845,
+    "mean_ms": 2.9228,
+    "p90_ms": 4.4212,
+    "max_ms": 4.4212,
+    "stdev_ms": 0.6964
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 122,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 4.2986,
+    "median_ms": 4.3467,
+    "mean_ms": 4.3752,
+    "p90_ms": 4.5524,
+    "max_ms": 4.5524,
+    "stdev_ms": 0.0831
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 3.4728,
+    "median_ms": 3.6041,
+    "mean_ms": 3.5915,
+    "p90_ms": 3.7194,
+    "max_ms": 3.7194,
+    "stdev_ms": 0.0881
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 0.9256,
+    "median_ms": 0.9425,
+    "mean_ms": 0.9499,
+    "p90_ms": 1.0165,
+    "max_ms": 1.0165,
+    "stdev_ms": 0.0309
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 2.5482,
+    "median_ms": 2.6362,
+    "mean_ms": 2.8331,
+    "p90_ms": 3.9613,
+    "max_ms": 3.9613,
+    "stdev_ms": 0.5037
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 13,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 4.1426,
+    "median_ms": 4.1793,
+    "mean_ms": 4.1985,
+    "p90_ms": 4.2917,
+    "max_ms": 4.2917,
+    "stdev_ms": 0.054
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 3.3147,
+    "median_ms": 3.406,
+    "mean_ms": 3.4058,
+    "p90_ms": 3.5107,
+    "max_ms": 3.5107,
+    "stdev_ms": 0.0644
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 0.9015,
+    "median_ms": 0.9196,
+    "mean_ms": 1.0523,
+    "p90_ms": 1.8346,
+    "max_ms": 1.8346,
+    "stdev_ms": 0.3454
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 2.5032,
+    "median_ms": 2.5635,
+    "mean_ms": 2.7167,
+    "p90_ms": 3.6762,
+    "max_ms": 3.6762,
+    "stdev_ms": 0.4249
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "section",
+   "class": "Section",
+   "matches": 63,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold": {
+    "n": 7,
+    "min_ms": 4.1684,
+    "median_ms": 4.3225,
+    "mean_ms": 4.3063,
+    "p90_ms": 4.4312,
+    "max_ms": 4.4312,
+    "stdev_ms": 0.0894
+   },
+   "query_warm": {
+    "n": 7,
+    "min_ms": 3.4136,
+    "median_ms": 3.4402,
+    "mean_ms": 3.4565,
+    "p90_ms": 3.5662,
+    "max_ms": 3.5662,
+    "stdev_ms": 0.0526
+   },
+   "recwalk": {
+    "n": 7,
+    "min_ms": 0.9164,
+    "median_ms": 0.9335,
+    "mean_ms": 0.9309,
+    "p90_ms": 0.9465,
+    "max_ms": 0.9465,
+    "stdev_ms": 0.0123
+   },
+   "cursor": {
+    "n": 7,
+    "min_ms": 2.5526,
+    "median_ms": 2.5987,
+    "mean_ms": 2.6422,
+    "p90_ms": 2.9736,
+    "max_ms": 2.9736,
+    "stdev_ms": 0.1492
+   }
+  }
+ ],
+ "rows": [
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 81,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 1.756,
+    "median_ms": 1.8252,
+    "mean_ms": 1.8334,
+    "p90_ms": 1.9048,
+    "max_ms": 2.106,
+    "stdev_ms": 0.0669
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.6025,
+    "median_ms": 0.6358,
+    "mean_ms": 0.7277,
+    "p90_ms": 1.0727,
+    "max_ms": 1.6713,
+    "stdev_ms": 0.2728
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 3,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 1.4836,
+    "median_ms": 1.5562,
+    "mean_ms": 1.8616,
+    "p90_ms": 1.973,
+    "max_ms": 9.0494,
+    "stdev_ms": 1.3701
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.2522,
+    "median_ms": 0.2676,
+    "mean_ms": 0.2789,
+    "p90_ms": 0.2869,
+    "max_ms": 0.5131,
+    "stdev_ms": 0.0473
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 12,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 1.639,
+    "median_ms": 1.7156,
+    "mean_ms": 1.7315,
+    "p90_ms": 1.8564,
+    "max_ms": 1.8963,
+    "stdev_ms": 0.075
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.3723,
+    "median_ms": 0.3919,
+    "mean_ms": 0.4176,
+    "p90_ms": 0.4243,
+    "max_ms": 0.7917,
+    "stdev_ms": 0.0999
+   }
+  },
+  {
+   "language": "python",
+   "tier": "small",
+   "bytes": 1609,
+   "kind": "string",
+   "class": "String",
+   "matches": 14,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 1.3138,
+    "median_ms": 1.3511,
+    "mean_ms": 1.3623,
+    "p90_ms": 1.4177,
+    "max_ms": 1.4996,
+    "stdev_ms": 0.0414
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.2342,
+    "median_ms": 0.2541,
+    "mean_ms": 0.3599,
+    "p90_ms": 0.5361,
+    "max_ms": 1.8402,
+    "stdev_ms": 0.2997
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 1670,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 14.2189,
+    "median_ms": 14.7259,
+    "mean_ms": 15.0466,
+    "p90_ms": 16.3202,
+    "max_ms": 18.2315,
+    "stdev_ms": 1.046
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 11.155,
+    "median_ms": 12.0556,
+    "mean_ms": 13.4697,
+    "p90_ms": 21.5835,
+    "max_ms": 23.8029,
+    "stdev_ms": 3.8546
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 35,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 3.5318,
+    "median_ms": 3.644,
+    "mean_ms": 4.571,
+    "p90_ms": 6.6105,
+    "max_ms": 12.6675,
+    "stdev_ms": 2.3747
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 2.4097,
+    "median_ms": 2.6003,
+    "mean_ms": 3.016,
+    "p90_ms": 3.9916,
+    "max_ms": 6.6019,
+    "stdev_ms": 1.0795
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 152,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 6.0117,
+    "median_ms": 6.2112,
+    "mean_ms": 6.3327,
+    "p90_ms": 6.6934,
+    "max_ms": 7.5937,
+    "stdev_ms": 0.3946
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 4.8892,
+    "median_ms": 5.0568,
+    "mean_ms": 5.4764,
+    "p90_ms": 6.5125,
+    "max_ms": 7.2238,
+    "stdev_ms": 0.7142
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "string",
+   "class": "String",
+   "matches": 97,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 2.9703,
+    "median_ms": 3.2002,
+    "mean_ms": 3.3046,
+    "p90_ms": 3.6852,
+    "max_ms": 4.4434,
+    "stdev_ms": 0.3684
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 1.9961,
+    "median_ms": 2.0911,
+    "mean_ms": 2.2409,
+    "p90_ms": 2.6797,
+    "max_ms": 3.0948,
+    "stdev_ms": 0.3091
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 19161,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 186.029,
+    "median_ms": 194.4958,
+    "mean_ms": 197.8084,
+    "p90_ms": 214.4434,
+    "max_ms": 214.4434,
+    "stdev_ms": 11.2513
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 141.7206,
+    "median_ms": 143.611,
+    "mean_ms": 146.3308,
+    "p90_ms": 160.1723,
+    "max_ms": 160.1723,
+    "stdev_ms": 6.4263
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 352,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 25.6366,
+    "median_ms": 26.246,
+    "mean_ms": 27.8237,
+    "p90_ms": 34.7955,
+    "max_ms": 34.7955,
+    "stdev_ms": 3.3584
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 26.0956,
+    "median_ms": 27.3422,
+    "mean_ms": 28.3091,
+    "p90_ms": 33.5631,
+    "max_ms": 33.5631,
+    "stdev_ms": 2.6189
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 1499,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 43.4472,
+    "median_ms": 43.8057,
+    "mean_ms": 45.0194,
+    "p90_ms": 48.3994,
+    "max_ms": 48.3994,
+    "stdev_ms": 2.1927
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 49.1712,
+    "median_ms": 51.3779,
+    "mean_ms": 53.126,
+    "p90_ms": 63.5217,
+    "max_ms": 63.5217,
+    "stdev_ms": 5.0394
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "bytes": 453424,
+   "kind": "string",
+   "class": "String",
+   "matches": 618,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 17.7883,
+    "median_ms": 17.9755,
+    "mean_ms": 18.2775,
+    "p90_ms": 20.123,
+    "max_ms": 20.123,
+    "stdev_ms": 0.8238
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 18.6397,
+    "median_ms": 19.5258,
+    "mean_ms": 20.5795,
+    "p90_ms": 26.7565,
+    "max_ms": 26.7565,
+    "stdev_ms": 2.8132
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "command",
+   "class": "Command",
+   "matches": 10,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 4.542,
+    "median_ms": 5.1077,
+    "mean_ms": 5.281,
+    "p90_ms": 6.4547,
+    "max_ms": 6.7974,
+    "stdev_ms": 0.6383
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 1.5145,
+    "median_ms": 1.6605,
+    "mean_ms": 1.9632,
+    "p90_ms": 3.3768,
+    "max_ms": 3.5888,
+    "stdev_ms": 0.6011
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 6,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 4.2251,
+    "median_ms": 4.3944,
+    "mean_ms": 4.4342,
+    "p90_ms": 4.6763,
+    "max_ms": 4.9786,
+    "stdev_ms": 0.1866
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.6973,
+    "median_ms": 0.7167,
+    "mean_ms": 0.7667,
+    "p90_ms": 1.1517,
+    "max_ms": 1.2565,
+    "stdev_ms": 0.1455
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 0,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 3.9734,
+    "median_ms": 4.1502,
+    "mean_ms": 4.2071,
+    "p90_ms": 4.4833,
+    "max_ms": 4.7273,
+    "stdev_ms": 0.1638
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.1006,
+    "median_ms": 0.1064,
+    "mean_ms": 0.1289,
+    "p90_ms": 0.1675,
+    "max_ms": 0.6547,
+    "stdev_ms": 0.1006
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "small",
+   "bytes": 1251,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 3,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 4.3344,
+    "median_ms": 4.6837,
+    "mean_ms": 5.1288,
+    "p90_ms": 5.9505,
+    "max_ms": 8.9355,
+    "stdev_ms": 1.0206
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 1.277,
+    "median_ms": 1.309,
+    "mean_ms": 1.3265,
+    "p90_ms": 1.3701,
+    "max_ms": 1.732,
+    "stdev_ms": 0.0838
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "command",
+   "class": "Command",
+   "matches": 323,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 66.7662,
+    "median_ms": 69.2642,
+    "mean_ms": 70.1942,
+    "p90_ms": 75.2662,
+    "max_ms": 75.8764,
+    "stdev_ms": 2.9711
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 64.1263,
+    "median_ms": 66.3819,
+    "mean_ms": 68.2347,
+    "p90_ms": 70.9621,
+    "max_ms": 85.1657,
+    "stdev_ms": 5.1667
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 65,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 17.5894,
+    "median_ms": 19.0687,
+    "mean_ms": 19.1962,
+    "p90_ms": 21.6375,
+    "max_ms": 21.8172,
+    "stdev_ms": 1.4585
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 13.8274,
+    "median_ms": 15.3065,
+    "mean_ms": 16.283,
+    "p90_ms": 18.4351,
+    "max_ms": 25.7711,
+    "stdev_ms": 2.9182
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 29,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 13.7184,
+    "median_ms": 14.2681,
+    "mean_ms": 15.0002,
+    "p90_ms": 17.785,
+    "max_ms": 21.6098,
+    "stdev_ms": 2.0765
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 9.2382,
+    "median_ms": 10.3683,
+    "mean_ms": 10.7313,
+    "p90_ms": 13.2793,
+    "max_ms": 14.036,
+    "stdev_ms": 1.594
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 54,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 85.6113,
+    "median_ms": 93.1673,
+    "mean_ms": 94.1003,
+    "p90_ms": 105.1338,
+    "max_ms": 111.9776,
+    "stdev_ms": 6.918
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 83.335,
+    "median_ms": 89.3211,
+    "mean_ms": 94.0186,
+    "p90_ms": 105.391,
+    "max_ms": 113.8353,
+    "stdev_ms": 9.132
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "command",
+   "class": "Command",
+   "matches": 590,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 141.0562,
+    "median_ms": 158.4519,
+    "mean_ms": 173.5457,
+    "p90_ms": 220.3157,
+    "max_ms": 220.3157,
+    "stdev_ms": 30.4024
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 177.4039,
+    "median_ms": 208.5166,
+    "mean_ms": 208.1404,
+    "p90_ms": 250.1597,
+    "max_ms": 250.1597,
+    "stdev_ms": 26.2371
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 417,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 90.6182,
+    "median_ms": 97.9187,
+    "mean_ms": 98.4861,
+    "p90_ms": 113.5487,
+    "max_ms": 113.5487,
+    "stdev_ms": 7.2876
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 76.6266,
+    "median_ms": 83.4411,
+    "mean_ms": 88.1394,
+    "p90_ms": 112.9945,
+    "max_ms": 112.9945,
+    "stdev_ms": 12.1875
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 155,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 84.216,
+    "median_ms": 98.8289,
+    "mean_ms": 98.0401,
+    "p90_ms": 111.9325,
+    "max_ms": 111.9325,
+    "stdev_ms": 10.8096
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 56.8307,
+    "median_ms": 67.5761,
+    "mean_ms": 65.8222,
+    "p90_ms": 73.6844,
+    "max_ms": 73.6844,
+    "stdev_ms": 6.0341
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "bytes": 102942,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 102,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 182.0856,
+    "median_ms": 192.0759,
+    "mean_ms": 190.7227,
+    "p90_ms": 199.0252,
+    "max_ms": 199.0252,
+    "stdev_ms": 6.3506
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 178.1118,
+    "median_ms": 186.7733,
+    "mean_ms": 191.4822,
+    "p90_ms": 234.0139,
+    "max_ms": 234.0139,
+    "stdev_ms": 19.4305
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 33,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 13.3335,
+    "median_ms": 14.2545,
+    "mean_ms": 14.6046,
+    "p90_ms": 16.6652,
+    "max_ms": 17.6786,
+    "stdev_ms": 1.1627
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 12.6155,
+    "median_ms": 13.1715,
+    "mean_ms": 13.9395,
+    "p90_ms": 15.7975,
+    "max_ms": 24.4594,
+    "stdev_ms": 2.2053
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 0,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 0.5599,
+    "median_ms": 0.5809,
+    "mean_ms": 0.6028,
+    "p90_ms": 0.6223,
+    "max_ms": 1.0145,
+    "stdev_ms": 0.0904
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.1657,
+    "median_ms": 0.173,
+    "mean_ms": 0.1892,
+    "p90_ms": 0.2995,
+    "max_ms": 0.3587,
+    "stdev_ms": 0.0479
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 9,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 293",
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 1.5569,
+    "median_ms": 1.6529,
+    "mean_ms": 1.9719,
+    "p90_ms": 3.1248,
+    "max_ms": 3.2757,
+    "stdev_ms": 0.5514
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 1.1629,
+    "median_ms": 1.2008,
+    "mean_ms": 1.2845,
+    "p90_ms": 1.6725,
+    "max_ms": 1.8995,
+    "stdev_ms": 0.2102
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "small",
+   "bytes": 6931,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 0,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 489",
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 0.685,
+    "median_ms": 0.706,
+    "mean_ms": 0.7594,
+    "p90_ms": 0.9461,
+    "max_ms": 1.4018,
+    "stdev_ms": 0.1603
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.1672,
+    "median_ms": 0.1735,
+    "mean_ms": 0.181,
+    "p90_ms": 0.1827,
+    "max_ms": 0.3751,
+    "stdev_ms": 0.0369
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 55,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 26.3987,
+    "median_ms": 27.8499,
+    "mean_ms": 30.168,
+    "p90_ms": 37.9081,
+    "max_ms": 41.3277,
+    "stdev_ms": 4.8124
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 25.1905,
+    "median_ms": 25.8485,
+    "mean_ms": 25.8579,
+    "p90_ms": 26.4764,
+    "max_ms": 26.6264,
+    "stdev_ms": 0.4859
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 11,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 6.1011,
+    "median_ms": 6.3299,
+    "mean_ms": 6.9943,
+    "p90_ms": 8.9437,
+    "max_ms": 9.5738,
+    "stdev_ms": 1.1217
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 5.7358,
+    "median_ms": 5.8439,
+    "mean_ms": 5.9053,
+    "p90_ms": 6.0731,
+    "max_ms": 6.5263,
+    "stdev_ms": 0.1983
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 23,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 293",
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 3.8992,
+    "median_ms": 4.0601,
+    "mean_ms": 4.1544,
+    "p90_ms": 4.4174,
+    "max_ms": 5.1259,
+    "stdev_ms": 0.2923
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 3.4148,
+    "median_ms": 3.5559,
+    "mean_ms": 3.6767,
+    "p90_ms": 4.2248,
+    "max_ms": 4.3066,
+    "stdev_ms": 0.2942
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 0,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 489",
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 0.837,
+    "median_ms": 0.867,
+    "mean_ms": 0.9567,
+    "p90_ms": 1.3368,
+    "max_ms": 1.7585,
+    "stdev_ms": 0.2546
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 0.2717,
+    "median_ms": 0.2842,
+    "mean_ms": 0.2914,
+    "p90_ms": 0.2971,
+    "max_ms": 0.389,
+    "stdev_ms": 0.028
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 2225,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 473.8011,
+    "median_ms": 486.5036,
+    "mean_ms": 485.9628,
+    "p90_ms": 497.7061,
+    "max_ms": 497.7061,
+    "stdev_ms": 8.6179
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 452.4508,
+    "median_ms": 474.983,
+    "mean_ms": 474.4857,
+    "p90_ms": 509.4861,
+    "max_ms": 509.4861,
+    "stdev_ms": 18.4922
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 2014,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 732.9653,
+    "median_ms": 740.1669,
+    "mean_ms": 749.1908,
+    "p90_ms": 776.1885,
+    "max_ms": 776.1885,
+    "stdev_ms": 15.8244
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 736.3818,
+    "median_ms": 753.3138,
+    "mean_ms": 757.5454,
+    "p90_ms": 772.5338,
+    "max_ms": 772.5338,
+    "stdev_ms": 13.9605
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 90,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 293",
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 17.4233,
+    "median_ms": 18.4309,
+    "mean_ms": 18.7889,
+    "p90_ms": 20.3236,
+    "max_ms": 20.3236,
+    "stdev_ms": 1.1193
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 15.0514,
+    "median_ms": 15.2553,
+    "mean_ms": 15.8001,
+    "p90_ms": 17.6358,
+    "max_ms": 17.6358,
+    "stdev_ms": 1.0362
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "bytes": 256322,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 10,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 489",
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 18.6452,
+    "median_ms": 19.3483,
+    "mean_ms": 19.7851,
+    "p90_ms": 21.2335,
+    "max_ms": 21.2335,
+    "stdev_ms": 1.0404
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 15.1763,
+    "median_ms": 15.7327,
+    "mean_ms": 16.603,
+    "p90_ms": 20.9093,
+    "max_ms": 20.9093,
+    "stdev_ms": 2.0015
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 99,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 2.8874,
+    "median_ms": 3.0841,
+    "mean_ms": 3.5158,
+    "p90_ms": 5.0214,
+    "max_ms": 5.2853,
+    "stdev_ms": 0.7659
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.9169,
+    "median_ms": 0.9935,
+    "mean_ms": 1.1913,
+    "p90_ms": 1.7077,
+    "max_ms": 2.4941,
+    "stdev_ms": 0.3801
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 5,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 3.5995,
+    "median_ms": 3.7379,
+    "mean_ms": 3.8027,
+    "p90_ms": 4.1419,
+    "max_ms": 4.281,
+    "stdev_ms": 0.1761
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.6229,
+    "median_ms": 0.6498,
+    "mean_ms": 0.7096,
+    "p90_ms": 0.9866,
+    "max_ms": 1.4116,
+    "stdev_ms": 0.183
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 2,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 22",
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 4.4461,
+    "median_ms": 4.6687,
+    "mean_ms": 4.9564,
+    "p90_ms": 5.8065,
+    "max_ms": 7.9511,
+    "stdev_ms": 0.6856
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 2.3186,
+    "median_ms": 2.4501,
+    "mean_ms": 2.6933,
+    "p90_ms": 3.2901,
+    "max_ms": 5.4647,
+    "stdev_ms": 0.6394
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 0,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 2.4885,
+    "median_ms": 2.5776,
+    "mean_ms": 2.6144,
+    "p90_ms": 2.7774,
+    "max_ms": 3.1688,
+    "stdev_ms": 0.1378
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.2881,
+    "median_ms": 0.3032,
+    "mean_ms": 0.3804,
+    "p90_ms": 0.6941,
+    "max_ms": 0.7045,
+    "stdev_ms": 0.1494
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "small",
+   "bytes": 4070,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 3,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 788",
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 4.1525,
+    "median_ms": 4.3107,
+    "mean_ms": 4.514,
+    "p90_ms": 5.1469,
+    "max_ms": 6.5565,
+    "stdev_ms": 0.5038
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 1.3478,
+    "median_ms": 1.3934,
+    "mean_ms": 1.6504,
+    "p90_ms": 2.3385,
+    "max_ms": 6.0449,
+    "stdev_ms": 0.8777
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 1081,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 11.8358,
+    "median_ms": 13.6882,
+    "mean_ms": 14.7098,
+    "p90_ms": 17.7599,
+    "max_ms": 23.6823,
+    "stdev_ms": 3.0268
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 8.2593,
+    "median_ms": 8.749,
+    "mean_ms": 9.0098,
+    "p90_ms": 10.2966,
+    "max_ms": 10.4972,
+    "stdev_ms": 0.7066
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 47,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 6.7323,
+    "median_ms": 6.9136,
+    "mean_ms": 7.2,
+    "p90_ms": 8.2046,
+    "max_ms": 8.9211,
+    "stdev_ms": 0.6193
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 3.5731,
+    "median_ms": 3.8627,
+    "mean_ms": 4.5785,
+    "p90_ms": 7.0148,
+    "max_ms": 8.5143,
+    "stdev_ms": 1.4308
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 16,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 22",
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 70.9517,
+    "median_ms": 76.9067,
+    "mean_ms": 81.1925,
+    "p90_ms": 105.1747,
+    "max_ms": 126.565,
+    "stdev_ms": 15.0226
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 68.2658,
+    "median_ms": 78.6942,
+    "mean_ms": 79.3596,
+    "p90_ms": 88.8466,
+    "max_ms": 108.8285,
+    "stdev_ms": 10.1223
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 21,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 13.1176,
+    "median_ms": 13.8407,
+    "mean_ms": 16.1392,
+    "p90_ms": 20.5763,
+    "max_ms": 25.2249,
+    "stdev_ms": 3.8999
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 10.4463,
+    "median_ms": 11.5317,
+    "mean_ms": 12.4751,
+    "p90_ms": 15.7346,
+    "max_ms": 20.6974,
+    "stdev_ms": 2.6421
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 95,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 788",
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 40.1835,
+    "median_ms": 47.675,
+    "mean_ms": 49.9705,
+    "p90_ms": 61.7218,
+    "max_ms": 80.0388,
+    "stdev_ms": 10.7193
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 36.8157,
+    "median_ms": 39.2227,
+    "mean_ms": 43.2693,
+    "p90_ms": 56.9437,
+    "max_ms": 68.6877,
+    "stdev_ms": 9.2364
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 2885,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 29.5739,
+    "median_ms": 30.2775,
+    "mean_ms": 31.2758,
+    "p90_ms": 37.0567,
+    "max_ms": 37.0567,
+    "stdev_ms": 2.617
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 24.4629,
+    "median_ms": 25.7035,
+    "mean_ms": 29.7253,
+    "p90_ms": 48.0959,
+    "max_ms": 48.0959,
+    "stdev_ms": 8.6527
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 381,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 29.2823,
+    "median_ms": 30.1203,
+    "mean_ms": 30.4689,
+    "p90_ms": 32.7765,
+    "max_ms": 32.7765,
+    "stdev_ms": 1.3139
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 25.9764,
+    "median_ms": 30.2718,
+    "mean_ms": 32.8449,
+    "p90_ms": 41.0697,
+    "max_ms": 41.0697,
+    "stdev_ms": 6.3695
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 182,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 22",
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 425.3867,
+    "median_ms": 438.3068,
+    "mean_ms": 437.6499,
+    "p90_ms": 452.7198,
+    "max_ms": 452.7198,
+    "stdev_ms": 9.7672
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 417.5547,
+    "median_ms": 424.1753,
+    "mean_ms": 434.1473,
+    "p90_ms": 468.0201,
+    "max_ms": 468.0201,
+    "stdev_ms": 19.0425
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 128,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 90.9761,
+    "median_ms": 95.4655,
+    "mean_ms": 96.7393,
+    "p90_ms": 102.6589,
+    "max_ms": 102.6589,
+    "stdev_ms": 4.3579
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 91.691,
+    "median_ms": 94.9667,
+    "mean_ms": 95.5612,
+    "p90_ms": 105.3706,
+    "max_ms": 105.3706,
+    "stdev_ms": 4.638
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "bytes": 175646,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 566,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 788",
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 281.3183,
+    "median_ms": 294.8585,
+    "mean_ms": 296.9833,
+    "p90_ms": 336.8014,
+    "max_ms": 336.8014,
+    "stdev_ms": 18.9087
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 262.2912,
+    "median_ms": 276.8534,
+    "mean_ms": 281.2856,
+    "p90_ms": 320.5193,
+    "max_ms": 320.5193,
+    "stdev_ms": 19.729
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 1,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 1.0228,
+    "median_ms": 1.0479,
+    "mean_ms": 1.0703,
+    "p90_ms": 1.159,
+    "max_ms": 1.5465,
+    "stdev_ms": 0.097
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.2484,
+    "median_ms": 0.2557,
+    "mean_ms": 0.2737,
+    "p90_ms": 0.2992,
+    "max_ms": 0.625,
+    "stdev_ms": 0.0692
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 0,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 0.8917,
+    "median_ms": 0.9171,
+    "mean_ms": 0.94,
+    "p90_ms": 0.9639,
+    "max_ms": 1.5532,
+    "stdev_ms": 0.1177
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.1238,
+    "median_ms": 0.1291,
+    "mean_ms": 0.1412,
+    "p90_ms": 0.1961,
+    "max_ms": 0.2008,
+    "stdev_ms": 0.0266
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 2,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 1.3478,
+    "median_ms": 1.3966,
+    "mean_ms": 1.512,
+    "p90_ms": 1.91,
+    "max_ms": 2.9647,
+    "stdev_ms": 0.3241
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.5701,
+    "median_ms": 0.5846,
+    "mean_ms": 0.6147,
+    "p90_ms": 0.6478,
+    "max_ms": 1.2022,
+    "stdev_ms": 0.116
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "small",
+   "bytes": 1289,
+   "kind": "section",
+   "class": "Section",
+   "matches": 1,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 30,
+    "min_ms": 1.6297,
+    "median_ms": 1.6693,
+    "mean_ms": 1.6724,
+    "p90_ms": 1.7056,
+    "max_ms": 1.825,
+    "stdev_ms": 0.0423
+   },
+   "cursor_rows": {
+    "n": 30,
+    "min_ms": 0.8609,
+    "median_ms": 1.6004,
+    "mean_ms": 1.4273,
+    "p90_ms": 1.8076,
+    "max_ms": 2.0811,
+    "stdev_ms": 0.3864
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 8,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 1.8954,
+    "median_ms": 1.9191,
+    "mean_ms": 2.0291,
+    "p90_ms": 2.514,
+    "max_ms": 2.5603,
+    "stdev_ms": 0.22
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 0.9626,
+    "median_ms": 0.9955,
+    "mean_ms": 1.2701,
+    "p90_ms": 2.0429,
+    "max_ms": 2.1028,
+    "stdev_ms": 0.4077
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 29,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 6.7527,
+    "median_ms": 6.9284,
+    "mean_ms": 7.2305,
+    "p90_ms": 8.501,
+    "max_ms": 9.731,
+    "stdev_ms": 0.8154
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 5.7059,
+    "median_ms": 6.2509,
+    "mean_ms": 6.8192,
+    "p90_ms": 9.5346,
+    "max_ms": 9.9156,
+    "stdev_ms": 1.4496
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 5,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 2.3219,
+    "median_ms": 2.3734,
+    "mean_ms": 2.5353,
+    "p90_ms": 3.1228,
+    "max_ms": 3.7062,
+    "stdev_ms": 0.3858
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 1.4207,
+    "median_ms": 1.457,
+    "mean_ms": 1.8,
+    "p90_ms": 2.3642,
+    "max_ms": 5.734,
+    "stdev_ms": 1.1136
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "section",
+   "class": "Section",
+   "matches": 8,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 15,
+    "min_ms": 15.1403,
+    "median_ms": 17.5895,
+    "mean_ms": 17.9438,
+    "p90_ms": 20.417,
+    "max_ms": 26.4828,
+    "stdev_ms": 2.7841
+   },
+   "cursor_rows": {
+    "n": 15,
+    "min_ms": 14.2137,
+    "median_ms": 16.6803,
+    "mean_ms": 17.1903,
+    "p90_ms": 21.5301,
+    "max_ms": 23.3274,
+    "stdev_ms": 2.7552
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 63,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 7.6367,
+    "median_ms": 7.7379,
+    "mean_ms": 7.9338,
+    "p90_ms": 8.4777,
+    "max_ms": 8.4777,
+    "stdev_ms": 0.3662
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 5.8712,
+    "median_ms": 6.5042,
+    "mean_ms": 6.6155,
+    "p90_ms": 8.1301,
+    "max_ms": 8.1301,
+    "stdev_ms": 0.8101
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 122,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 21.3139,
+    "median_ms": 21.472,
+    "mean_ms": 21.7744,
+    "p90_ms": 22.8512,
+    "max_ms": 22.8512,
+    "stdev_ms": 0.5484
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 19.8507,
+    "median_ms": 22.0913,
+    "mean_ms": 22.5681,
+    "p90_ms": 26.2482,
+    "max_ms": 26.2482,
+    "stdev_ms": 2.2979
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 13,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 6.7929,
+    "median_ms": 7.1558,
+    "mean_ms": 7.196,
+    "p90_ms": 7.9432,
+    "max_ms": 7.9432,
+    "stdev_ms": 0.4123
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 5.2088,
+    "median_ms": 6.1502,
+    "mean_ms": 7.0964,
+    "p90_ms": 10.9715,
+    "max_ms": 10.9715,
+    "stdev_ms": 2.1837
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "bytes": 61616,
+   "kind": "section",
+   "class": "Section",
+   "matches": 63,
+   "query_compiles": true,
+   "compile_error": null,
+   "find_in_shipped": {
+    "n": 7,
+    "min_ms": 118.7816,
+    "median_ms": 123.9194,
+    "mean_ms": 129.7675,
+    "p90_ms": 144.1611,
+    "max_ms": 144.1611,
+    "stdev_ms": 9.9465
+   },
+   "cursor_rows": {
+    "n": 7,
+    "min_ms": 125.6092,
+    "median_ms": 127.7502,
+    "mean_ms": 130.7637,
+    "p90_ms": 139.2946,
+    "max_ms": 139.2946,
+    "stdev_ms": 5.9884
+   }
+  }
+ ],
+ "repeat_scaling": [
+  {
+   "language": "python",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 1,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 11.3624,
+    "median_ms": 11.7603,
+    "mean_ms": 11.7942,
+    "p90_ms": 12.2776,
+    "max_ms": 12.2776,
+    "stdev_ms": 0.3643
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 5.9637,
+    "median_ms": 7.9362,
+    "mean_ms": 8.2646,
+    "p90_ms": 10.8881,
+    "max_ms": 10.8881,
+    "stdev_ms": 2.2504
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 10,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 110.7111,
+    "median_ms": 115.017,
+    "mean_ms": 115.5366,
+    "p90_ms": 120.6085,
+    "max_ms": 120.6085,
+    "stdev_ms": 4.3781
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 59.3966,
+    "median_ms": 71.7148,
+    "mean_ms": 75.162,
+    "p90_ms": 101.8681,
+    "max_ms": 101.8681,
+    "stdev_ms": 15.9445
+   }
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 50,
+   "query_cold": {
+    "n": 3,
+    "min_ms": 574.7247,
+    "median_ms": 592.1993,
+    "mean_ms": 590.6413,
+    "p90_ms": 604.9997,
+    "max_ms": 604.9997,
+    "stdev_ms": 15.1975
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 257.9065,
+    "median_ms": 293.1934,
+    "mean_ms": 285.3678,
+    "p90_ms": 305.0036,
+    "max_ms": 305.0036,
+    "stdev_ms": 24.5044
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 1,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 98.3475,
+    "median_ms": 100.6147,
+    "mean_ms": 101.8827,
+    "p90_ms": 110.2487,
+    "max_ms": 110.2487,
+    "stdev_ms": 4.7822
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 62.8298,
+    "median_ms": 70.5568,
+    "mean_ms": 75.7238,
+    "p90_ms": 92.1203,
+    "max_ms": 92.1203,
+    "stdev_ms": 13.6068
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 10,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 1025.5879,
+    "median_ms": 1027.3061,
+    "mean_ms": 1048.3562,
+    "p90_ms": 1106.4778,
+    "max_ms": 1106.4778,
+    "stdev_ms": 34.7919
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 638.7957,
+    "median_ms": 651.2175,
+    "mean_ms": 652.5193,
+    "p90_ms": 666.1815,
+    "max_ms": 666.1815,
+    "stdev_ms": 12.5138
+   }
+  },
+  {
+   "language": "python",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 50,
+   "query_cold": {
+    "n": 3,
+    "min_ms": 5374.201,
+    "median_ms": 5490.1072,
+    "mean_ms": 5467.327,
+    "p90_ms": 5537.6729,
+    "max_ms": 5537.6729,
+    "stdev_ms": 84.0831
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 3548.8516,
+    "median_ms": 3549.0299,
+    "mean_ms": 3566.1057,
+    "p90_ms": 3600.4356,
+    "max_ms": 3600.4356,
+    "stdev_ms": 29.7307
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 1,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 18.1774,
+    "median_ms": 18.2879,
+    "mean_ms": 18.3036,
+    "p90_ms": 18.4798,
+    "max_ms": 18.4798,
+    "stdev_ms": 0.1215
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 3.9151,
+    "median_ms": 4.0666,
+    "mean_ms": 4.8719,
+    "p90_ms": 6.5279,
+    "max_ms": 6.5279,
+    "stdev_ms": 1.2393
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 10,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 177.5254,
+    "median_ms": 189.3205,
+    "mean_ms": 185.5533,
+    "p90_ms": 190.185,
+    "max_ms": 190.185,
+    "stdev_ms": 5.7587
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 39.2866,
+    "median_ms": 41.0447,
+    "mean_ms": 43.8176,
+    "p90_ms": 52.5848,
+    "max_ms": 52.5848,
+    "stdev_ms": 5.5463
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 50,
+   "query_cold": {
+    "n": 3,
+    "min_ms": 907.1354,
+    "median_ms": 914.557,
+    "mean_ms": 924.7993,
+    "p90_ms": 952.7053,
+    "max_ms": 952.7053,
+    "stdev_ms": 24.4506
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 202.7668,
+    "median_ms": 203.7785,
+    "mean_ms": 203.7469,
+    "p90_ms": 204.6953,
+    "max_ms": 204.6953,
+    "stdev_ms": 0.9646
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 1,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 30.3763,
+    "median_ms": 30.8787,
+    "mean_ms": 30.9584,
+    "p90_ms": 31.9894,
+    "max_ms": 31.9894,
+    "stdev_ms": 0.6611
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 12.2605,
+    "median_ms": 19.4219,
+    "mean_ms": 21.0335,
+    "p90_ms": 31.6266,
+    "max_ms": 31.6266,
+    "stdev_ms": 8.8283
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 10,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 298.4453,
+    "median_ms": 331.1179,
+    "mean_ms": 338.2576,
+    "p90_ms": 404.7456,
+    "max_ms": 404.7456,
+    "stdev_ms": 40.0581
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 123.4855,
+    "median_ms": 126.7721,
+    "mean_ms": 128.3268,
+    "p90_ms": 135.7937,
+    "max_ms": 135.7937,
+    "stdev_ms": 5.2842
+   }
+  },
+  {
+   "language": "bash",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 50,
+   "query_cold": {
+    "n": 3,
+    "min_ms": 1525.5592,
+    "median_ms": 1528.4369,
+    "mean_ms": 1532.9461,
+    "p90_ms": 1544.8423,
+    "max_ms": 1544.8423,
+    "stdev_ms": 10.4024
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 628.7312,
+    "median_ms": 637.8185,
+    "mean_ms": 641.6482,
+    "p90_ms": 658.3949,
+    "max_ms": 658.3949,
+    "stdev_ms": 15.1981
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 1,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 3.0285,
+    "median_ms": 3.0939,
+    "mean_ms": 3.0833,
+    "p90_ms": 3.1414,
+    "max_ms": 3.1414,
+    "stdev_ms": 0.0505
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 0.8167,
+    "median_ms": 0.8212,
+    "mean_ms": 0.8303,
+    "p90_ms": 0.8532,
+    "max_ms": 0.8532,
+    "stdev_ms": 0.0161
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 10,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 29.1457,
+    "median_ms": 29.2206,
+    "mean_ms": 29.3657,
+    "p90_ms": 29.8707,
+    "max_ms": 29.8707,
+    "stdev_ms": 0.3063
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 7.2956,
+    "median_ms": 7.3422,
+    "mean_ms": 7.3359,
+    "p90_ms": 7.3642,
+    "max_ms": 7.3642,
+    "stdev_ms": 0.0285
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 50,
+   "query_cold": {
+    "n": 3,
+    "min_ms": 152.4821,
+    "median_ms": 160.0963,
+    "mean_ms": 172.5922,
+    "p90_ms": 205.1982,
+    "max_ms": 205.1982,
+    "stdev_ms": 28.4931
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 36.1691,
+    "median_ms": 36.4252,
+    "mean_ms": 37.0262,
+    "p90_ms": 38.4842,
+    "max_ms": 38.4842,
+    "stdev_ms": 1.2692
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 1,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 39.4144,
+    "median_ms": 40.8516,
+    "mean_ms": 42.2753,
+    "p90_ms": 49.2912,
+    "max_ms": 49.2912,
+    "stdev_ms": 4.0395
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 19.7019,
+    "median_ms": 19.8216,
+    "mean_ms": 20.1288,
+    "p90_ms": 20.7601,
+    "max_ms": 20.7601,
+    "stdev_ms": 0.5101
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 10,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 401.7467,
+    "median_ms": 420.8041,
+    "mean_ms": 431.6849,
+    "p90_ms": 481.4374,
+    "max_ms": 481.4374,
+    "stdev_ms": 31.9377
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 198.0018,
+    "median_ms": 203.574,
+    "mean_ms": 207.4588,
+    "p90_ms": 217.571,
+    "max_ms": 217.571,
+    "stdev_ms": 9.0021
+   }
+  },
+  {
+   "language": "nix",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 50,
+   "query_cold": {
+    "n": 3,
+    "min_ms": 2050.7728,
+    "median_ms": 2133.2997,
+    "mean_ms": 2113.0427,
+    "p90_ms": 2155.0555,
+    "max_ms": 2155.0555,
+    "stdev_ms": 55.0135
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 1039.6048,
+    "median_ms": 1046.727,
+    "mean_ms": 1047.6727,
+    "p90_ms": 1056.6863,
+    "max_ms": 1056.6863,
+    "stdev_ms": 8.5799
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "classes": 5,
+   "rounds": 1,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 20.4944,
+    "median_ms": 20.9624,
+    "mean_ms": 22.857,
+    "p90_ms": 30.1877,
+    "max_ms": 30.1877,
+    "stdev_ms": 4.1407
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 6.7523,
+    "median_ms": 6.9335,
+    "mean_ms": 7.1456,
+    "p90_ms": 7.7402,
+    "max_ms": 7.7402,
+    "stdev_ms": 0.4484
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "classes": 5,
+   "rounds": 10,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 201.4259,
+    "median_ms": 217.7528,
+    "mean_ms": 217.1381,
+    "p90_ms": 228.8213,
+    "max_ms": 228.8213,
+    "stdev_ms": 10.7615
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 69.7753,
+    "median_ms": 75.5684,
+    "mean_ms": 76.3121,
+    "p90_ms": 83.6687,
+    "max_ms": 83.6687,
+    "stdev_ms": 6.0175
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "classes": 5,
+   "rounds": 50,
+   "query_cold": {
+    "n": 3,
+    "min_ms": 1072.6734,
+    "median_ms": 1087.8916,
+    "mean_ms": 1090.1528,
+    "p90_ms": 1109.8934,
+    "max_ms": 1109.8934,
+    "stdev_ms": 18.7127
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 338.6079,
+    "median_ms": 353.5903,
+    "mean_ms": 350.3055,
+    "p90_ms": 358.7182,
+    "max_ms": 358.7182,
+    "stdev_ms": 10.4498
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "classes": 5,
+   "rounds": 1,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 44.9191,
+    "median_ms": 45.8575,
+    "mean_ms": 47.0266,
+    "p90_ms": 49.5745,
+    "max_ms": 49.5745,
+    "stdev_ms": 2.1213
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 34.96,
+    "median_ms": 37.5448,
+    "mean_ms": 37.7217,
+    "p90_ms": 41.6618,
+    "max_ms": 41.6618,
+    "stdev_ms": 2.7409
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "classes": 5,
+   "rounds": 10,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 449.0224,
+    "median_ms": 469.1427,
+    "mean_ms": 473.458,
+    "p90_ms": 511.2236,
+    "max_ms": 511.2236,
+    "stdev_ms": 22.9479
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 351.6637,
+    "median_ms": 355.1955,
+    "mean_ms": 398.27,
+    "p90_ms": 494.2435,
+    "max_ms": 494.2435,
+    "stdev_ms": 64.6681
+   }
+  },
+  {
+   "language": "rust",
+   "tier": "large",
+   "classes": 5,
+   "rounds": 50,
+   "query_cold": {
+    "n": 3,
+    "min_ms": 2298.2693,
+    "median_ms": 2322.8554,
+    "mean_ms": 2326.6068,
+    "p90_ms": 2358.6959,
+    "max_ms": 2358.6959,
+    "stdev_ms": 30.3874
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 1707.5415,
+    "median_ms": 1749.9663,
+    "mean_ms": 1752.0577,
+    "p90_ms": 1798.6654,
+    "max_ms": 1798.6654,
+    "stdev_ms": 45.5979
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 1,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 5.0658,
+    "median_ms": 5.1758,
+    "mean_ms": 5.3346,
+    "p90_ms": 5.9528,
+    "max_ms": 5.9528,
+    "stdev_ms": 0.3658
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 1.3682,
+    "median_ms": 1.3735,
+    "mean_ms": 1.5907,
+    "p90_ms": 2.4403,
+    "max_ms": 2.4403,
+    "stdev_ms": 0.4752
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 10,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 47.829,
+    "median_ms": 48.326,
+    "mean_ms": 48.481,
+    "p90_ms": 49.1193,
+    "max_ms": 49.1193,
+    "stdev_ms": 0.554
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 12.07,
+    "median_ms": 12.6292,
+    "mean_ms": 13.3981,
+    "p90_ms": 15.226,
+    "max_ms": 15.226,
+    "stdev_ms": 1.5711
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "classes": 4,
+   "rounds": 50,
+   "query_cold": {
+    "n": 3,
+    "min_ms": 240.6281,
+    "median_ms": 242.5159,
+    "mean_ms": 262.7668,
+    "p90_ms": 305.1563,
+    "max_ms": 305.1563,
+    "stdev_ms": 36.7226
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 60.058,
+    "median_ms": 71.0708,
+    "mean_ms": 68.1341,
+    "p90_ms": 73.2734,
+    "max_ms": 73.2734,
+    "stdev_ms": 7.0803
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 1,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 15.7981,
+    "median_ms": 16.1406,
+    "mean_ms": 16.3981,
+    "p90_ms": 18.0784,
+    "max_ms": 18.0784,
+    "stdev_ms": 0.9554
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 9.5425,
+    "median_ms": 9.8352,
+    "mean_ms": 10.0867,
+    "p90_ms": 11.1667,
+    "max_ms": 11.1667,
+    "stdev_ms": 0.6672
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 10,
+   "query_cold": {
+    "n": 5,
+    "min_ms": 146.9441,
+    "median_ms": 148.2383,
+    "mean_ms": 148.184,
+    "p90_ms": 149.5108,
+    "max_ms": 149.5108,
+    "stdev_ms": 1.155
+   },
+   "cursor": {
+    "n": 5,
+    "min_ms": 84.0948,
+    "median_ms": 87.5472,
+    "mean_ms": 88.5669,
+    "p90_ms": 94.9691,
+    "max_ms": 94.9691,
+    "stdev_ms": 4.1716
+   }
+  },
+  {
+   "language": "markdown",
+   "tier": "large",
+   "classes": 4,
+   "rounds": 50,
+   "query_cold": {
+    "n": 3,
+    "min_ms": 743.86,
+    "median_ms": 753.8414,
+    "mean_ms": 757.717,
+    "p90_ms": 775.4497,
+    "max_ms": 775.4497,
+    "stdev_ms": 16.1475
+   },
+   "cursor": {
+    "n": 3,
+    "min_ms": 439.0774,
+    "median_ms": 445.4751,
+    "mean_ms": 448.2368,
+    "p90_ms": 460.158,
+    "max_ms": 460.158,
+    "stdev_ms": 10.8083
+   }
+  }
+ ],
+ "memory": [
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 1670,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 1415.0,
+   "recwalk_peak_kib": 17.4,
+   "cursor_peak_kib": 121.1,
+   "find_in_shipped_peak_kib": 2376.8,
+   "cursor_rows_peak_kib": 1393.2
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 35,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 1421.1,
+   "recwalk_peak_kib": 4.2,
+   "cursor_peak_kib": 5.3,
+   "find_in_shipped_peak_kib": 1421.2,
+   "cursor_rows_peak_kib": 108.8
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "assignment",
+   "class": "Assignment",
+   "matches": 152,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 1429.8,
+   "recwalk_peak_kib": 4.9,
+   "cursor_peak_kib": 13.6,
+   "find_in_shipped_peak_kib": 1429.9,
+   "cursor_rows_peak_kib": 265.0
+  },
+  {
+   "language": "python",
+   "tier": "medium",
+   "bytes": 26200,
+   "kind": "string",
+   "class": "String",
+   "matches": 97,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 1415.0,
+   "recwalk_peak_kib": 4.6,
+   "cursor_peak_kib": 9.7,
+   "find_in_shipped_peak_kib": 1415.1,
+   "cursor_rows_peak_kib": 84.1
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "command",
+   "class": "Command",
+   "matches": 323,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 3840.7,
+   "recwalk_peak_kib": 6.2,
+   "cursor_peak_kib": 25.7,
+   "find_in_shipped_peak_kib": 3840.8,
+   "cursor_rows_peak_kib": 2068.0
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "variable_assignment",
+   "class": "VariableAssignment",
+   "matches": 65,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 3876.2,
+   "recwalk_peak_kib": 4.5,
+   "cursor_peak_kib": 7.5,
+   "find_in_shipped_peak_kib": 3876.3,
+   "cursor_rows_peak_kib": 406.2
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "binary_expression",
+   "class": "BinaryExpression",
+   "matches": 29,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 3875.2,
+   "recwalk_peak_kib": 4.2,
+   "cursor_peak_kib": 4.9,
+   "find_in_shipped_peak_kib": 3875.2,
+   "cursor_rows_peak_kib": 80.2
+  },
+  {
+   "language": "bash",
+   "tier": "medium",
+   "bytes": 33212,
+   "kind": "function_definition",
+   "class": "FunctionDefinition",
+   "matches": 54,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 2",
+   "query_cold_peak_kib": 3838.4,
+   "recwalk_peak_kib": 4.4,
+   "cursor_peak_kib": 6.7,
+   "find_in_shipped_peak_kib": 3838.5,
+   "cursor_rows_peak_kib": 1863.8
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "binding",
+   "class": "Binding",
+   "matches": 55,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 294.5,
+   "recwalk_peak_kib": 4.6,
+   "cursor_peak_kib": 6.7,
+   "find_in_shipped_peak_kib": 1480.4,
+   "cursor_rows_peak_kib": 1425.0
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "apply_expression",
+   "class": "ApplyExpression",
+   "matches": 11,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 330",
+   "query_cold_peak_kib": 290.6,
+   "recwalk_peak_kib": 4.5,
+   "cursor_peak_kib": 3.6,
+   "find_in_shipped_peak_kib": 290.7,
+   "cursor_rows_peak_kib": 227.5
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "select_expression",
+   "class": "SelectExpression",
+   "matches": 23,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 293",
+   "query_cold_peak_kib": 287.7,
+   "recwalk_peak_kib": 4.5,
+   "cursor_peak_kib": 4.4,
+   "find_in_shipped_peak_kib": 287.8,
+   "cursor_rows_peak_kib": 147.3
+  },
+  {
+   "language": "nix",
+   "tier": "medium",
+   "bytes": 25915,
+   "kind": "if_expression",
+   "class": "IfExpression",
+   "matches": 0,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 489",
+   "query_cold_peak_kib": 288.5,
+   "recwalk_peak_kib": 4.3,
+   "cursor_peak_kib": 2.8,
+   "find_in_shipped_peak_kib": 288.6,
+   "cursor_rows_peak_kib": 3.2
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "identifier",
+   "class": "Identifier",
+   "matches": 1081,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 1931.2,
+   "recwalk_peak_kib": 13.3,
+   "cursor_peak_kib": 81.0,
+   "find_in_shipped_peak_kib": 1931.2,
+   "cursor_rows_peak_kib": 905.0
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "scoped_identifier",
+   "class": "ScopedIdentifier",
+   "matches": 47,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 1976.6,
+   "recwalk_peak_kib": 5.8,
+   "cursor_peak_kib": 8.1,
+   "find_in_shipped_peak_kib": 1976.7,
+   "cursor_rows_peak_kib": 124.0
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "function_item",
+   "class": "FunctionItem",
+   "matches": 16,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 22",
+   "query_cold_peak_kib": 1936.8,
+   "recwalk_peak_kib": 5.6,
+   "cursor_peak_kib": 5.9,
+   "find_in_shipped_peak_kib": 1936.9,
+   "cursor_rows_peak_kib": 1492.2
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "let_declaration",
+   "class": "LetDeclaration",
+   "matches": 21,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 1940.4,
+   "recwalk_peak_kib": 5.6,
+   "cursor_peak_kib": 6.3,
+   "find_in_shipped_peak_kib": 1940.5,
+   "cursor_rows_peak_kib": 242.4
+  },
+  {
+   "language": "rust",
+   "tier": "medium",
+   "bytes": 29081,
+   "kind": "call_expression",
+   "class": "CallExpression",
+   "matches": 95,
+   "query_compiles": false,
+   "compile_error": "raw .scm rejected by Query(): Impossible pattern at row 2, column 788",
+   "query_cold_peak_kib": 1957.0,
+   "recwalk_peak_kib": 6.0,
+   "cursor_peak_kib": 11.6,
+   "find_in_shipped_peak_kib": 1957.1,
+   "cursor_rows_peak_kib": 864.4
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "atx_heading",
+   "class": "AtxHeading",
+   "matches": 8,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 479.4,
+   "recwalk_peak_kib": 2.2,
+   "cursor_peak_kib": 3.4,
+   "find_in_shipped_peak_kib": 479.4,
+   "cursor_rows_peak_kib": 26.1
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "list_item",
+   "class": "ListItem",
+   "matches": 29,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 479.4,
+   "recwalk_peak_kib": 2.3,
+   "cursor_peak_kib": 4.9,
+   "find_in_shipped_peak_kib": 479.4,
+   "cursor_rows_peak_kib": 351.7
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "fenced_code_block",
+   "class": "FencedCodeBlock",
+   "matches": 5,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 479.4,
+   "recwalk_peak_kib": 2.2,
+   "cursor_peak_kib": 3.2,
+   "find_in_shipped_peak_kib": 479.4,
+   "cursor_rows_peak_kib": 68.0
+  },
+  {
+   "language": "markdown",
+   "tier": "medium",
+   "bytes": 10204,
+   "kind": "section",
+   "class": "Section",
+   "matches": 8,
+   "query_compiles": true,
+   "compile_error": null,
+   "query_cold_peak_kib": 479.4,
+   "recwalk_peak_kib": 2.2,
+   "cursor_peak_kib": 3.4,
+   "find_in_shipped_peak_kib": 953.0,
+   "cursor_rows_peak_kib": 946.8
+  }
+ ]
+}

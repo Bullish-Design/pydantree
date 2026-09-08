@@ -1,11 +1,13 @@
 """pydantree_sitter.errors — the error taxonomy (014 refactor §1.3).
 
     PydantreeSitterError(Exception)
-      SchemaCheckError        # model↔grammar mismatch at bind time
+    SchemaCheckError        # model↔grammar mismatch at bind time
+      SchemaDistributionError # schema file is missing or malformed
+        SchemaMissingError    # distribution data was not installed
+        SchemaDataError       # installed data is not a node-types schema
       ShapeError              # unmappable value shape (class-creation or bind)
-      QueryBuildError         # tree-sitter rejected the emitted/raw query
+      QueryBuildError         # tree-sitter rejected a raw query
       ExtractionError         # per-match failures (strict mode), carries MatchFailure list
-      AmbiguousCaptureError   # scalar field fed by multiple captures
       BundleError             # loader: missing/invalid metadata, unknown format
       PatternError            # the pattern module (022 §9)
         PatternBuildError       # a rule failed validation / ast-grep rejected it
@@ -35,27 +37,28 @@ class SchemaCheckError(PydantreeSitterError):
         super().__init__(message)
 
 
+class SchemaDriftError(PydantreeSitterError):
+    """A generated node universe does not match its loaded language."""
+
+
+class SchemaDistributionError(PydantreeSitterError):
+    """A schema distribution artifact cannot be loaded."""
+
+
+class SchemaMissingError(SchemaDistributionError):
+    """The application-owned schema file is not present."""
+
+
+class SchemaDataError(SchemaDistributionError):
+    """The installed schema file is present but malformed or invalid."""
+
+
 class ShapeError(PydantreeSitterError):
-    """A field's value shape cannot be mapped in the bound grammar (or the
-    declaration itself is unmappable): use Annotated[..., NodeKind(...)] or
-    run `propose_value_map(schema)` and pass the reviewed result."""
+    """A field annotation cannot be mapped to the loaded node schema."""
 
 
 class QueryBuildError(PydantreeSitterError):
-    """The emitted (or raw) .scm was rejected by tree_sitter.Query()."""
-
-
-class AmbiguousCaptureError(PydantreeSitterError):
-    """A scalar field was fed by multiple captures (nested key collision)."""
-
-
-def raise_ambiguous_capture(fname: str, capture_name: str, count: int) -> None:
-    """THE one AmbiguousCaptureError raise (A7): the message must not drift
-    between the matcher's merge path and the materializer's build path."""
-    raise AmbiguousCaptureError(
-        f"field {fname!r} is scalar but capture "
-        f"{capture_name!r} matched {count} nodes "
-        f"(nested key collision?)")
+    """A raw .scm query was rejected by tree_sitter.Query()."""
 
 
 class ExtractionError(PydantreeSitterError):
@@ -74,10 +77,6 @@ class ExtractionError(PydantreeSitterError):
             lines.append(
                 f"  - pattern {f.pattern} @ {where} {f.snippet!r}: {f.detail}")
         super().__init__("\n".join(lines))
-
-
-class TreeLanguageError(PydantreeSitterError):
-    """The supplied tree was parsed by a different tree-sitter language."""
 
 
 class BundleError(PydantreeSitterError):

@@ -1,139 +1,50 @@
-"""pydantree_sitter — model-only typed extraction over tree-sitter grammars.
+"""Schema-backed typed nodes for tree-sitter grammars.
 
-The surface is the model:
-
-    class Assignment(OutputModel):
-        __match__ = M("module", "expression_statement", "assignment")
-        name: Annotated[str, Matches(r"^[A-Z][A-Z_]*$")] = capture("left")
-        value: Annotated[int, NodeKind("integer")] = capture("right")
-        line: int = source_meta()
-
-    lang = Language.load_bundle("bundles/mylang")   # or Language.from_module(...)
-    ext  = lang.extractor(Assignment)                # ALL checks run here, once
-    rows = ext.extract(text)
-    rows = Assignment.extract(text, language=lang)   # sugar
-
-The OutputModel class IS the query — the `.scm` is derived and never seen.
-The node-schema bridge (`NodeSchema`, `load_bundle`) runs model↔grammar and
-capture↔type checks at bind time; value shapes are declared data
-(`ValueMap`) — never silent name-regex inference (`propose_value_map` is the
-draft generator). `__raw_query__ = RawQuery('(module ...)')` is the escape
-hatch: a literal .scm whose captures map to fields by name (the query DSL is
-not public; sibling order/negation/multi-anchor joins live there).
+Generate a node universe from ``node-types.json`` or build one with
+``Grammar.load(language, schema)``. Narrow generated classes with Pydantic
+annotations and resolve them through ``Grammar.parse(source).find(cls)``.
 """
 
-from .agreement import GrammarAgreement
-from .binding import Extractor, Language
+# The typed node universe is the public surface.
+# ruff: noqa: RUF022
+
 from .errors import (
-    AmbiguousCaptureError,
-    BundleError,
     ExtractionError,
-    PatternBuildError,
-    PatternError,
-    PatternResolutionError,
-    PatternRewriteError,
     PydantreeSitterError,
-    QueryBuildError,
     SchemaCheckError,
+    SchemaDataError,
+    SchemaDistributionError,
+    SchemaDriftError,
+    SchemaMissingError,
     ShapeError,
-    TreeLanguageError,
-    UnsupportedLanguageError,
 )
-from .loader import load_bundle
-from .markers import (
-    AnyOf,
-    Eq,
-    M,
-    Matches,
-    NodeKind,
-    RawQuery,
-    Unescaped,
-    capture,
-    capture_kind,
-    derived,
-    source_meta,
-)
-from .materialize import MatchFailure, Span
+from .generate import build_namespace, generate_module
+from .grammar import Grammar
+from .nodes import Node
+from .schema import NodeSchema
+from .span import Span
 
-# 022 §12: importing these names must NEVER require the `pattern` extra.
-# `pattern.py` imports `ast_grep_py` inside `Pattern.__init__`, so this line
-# is safe without ast-grep-py installed — only CONSTRUCTING a Pattern needs
-# it, and the missing extra is then a PatternError naming what to install.
-from .pattern import (
-    Edit,
-    Pattern,
-    PatternMatch,
-    ReplaceResult,
-    register_bundle_language,
-    registered_languages,
-)
-from .rules import Rule
-from .schema import (
-    ChildInfo,
-    NodeSchema,
-    NodeTypeInfo,
-    NodeTypeRef,
-)
-from .spec import OutputModel
-from .syntax import SYNTAX_CHECKS, check_json, check_python, syntax_check_for
-from .valuemap import JSON_VALUE_MAP, ValueMap, propose_value_map
+__version__ = "0.3.0"
 
-__version__ = "0.2.0"
+
+def load_bundle(directory):
+    """Load a schema-backed bundle as a typed :class:`Grammar`."""
+    return Grammar.load_bundle(directory)
 
 __all__ = [
-    "JSON_VALUE_MAP",
-    # the third-parser seam: what the LANGUAGE calls valid, not tree-sitter
-    "SYNTAX_CHECKS",
-    "AmbiguousCaptureError",
-    "AnyOf",
-    "BundleError",
-    "ChildInfo",
-    "Edit",
-    "Eq",
-    "ExtractionError",
-    "Extractor",
-    "GrammarAgreement",
-    # the bind
-    "Language",
-    "M",
-    "MatchFailure",
-    "Matches",
-    "NodeKind",
-    # the schema seam + declared value shapes
-    "NodeSchema",
-    "NodeTypeInfo",
-    "NodeTypeRef",
-    # the model surface
-    "OutputModel",
-    # structural pattern matching + rewrite (022) — the `pattern` extra
-    "Pattern",
-    "PatternBuildError",
-    "PatternError",
-    "PatternMatch",
-    "PatternResolutionError",
-    "PatternRewriteError",
-    # errors (the taxonomy, §1.3)
-    "PydantreeSitterError",
-    "QueryBuildError",
-    "RawQuery",
-    "ReplaceResult",
-    "Rule",
-    "SchemaCheckError",
-    "ShapeError",
+    "Node",
+    "Grammar",
     "Span",
-    "TreeLanguageError",
-    "Unescaped",
-    "UnsupportedLanguageError",
-    "ValueMap",
-    "capture",
-    "capture_kind",
-    "check_json",
-    "check_python",
-    "derived",
+    "generate_module",
+    "build_namespace",
     "load_bundle",
-    "propose_value_map",
-    "register_bundle_language",
-    "registered_languages",
-    "source_meta",
-    "syntax_check_for",
+    "NodeSchema",
+    "PydantreeSitterError",
+    "SchemaCheckError",
+    "SchemaDataError",
+    "SchemaDriftError",
+    "SchemaDistributionError",
+    "SchemaMissingError",
+    "ShapeError",
+    "ExtractionError",
 ]

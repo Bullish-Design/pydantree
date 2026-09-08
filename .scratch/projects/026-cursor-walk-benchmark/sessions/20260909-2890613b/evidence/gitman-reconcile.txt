@@ -1,0 +1,8 @@
+Gitman reconcile — PARTIAL
+re-pointed colocated git ref(s) to jj: 024-typed-node-universe b9f39c8d -> b107690f.
+note: still off-canonical: lane(s) 024-typed-node-universe have a divergent change-id (one change → multiple commits) — run `gitman reconcile`.
+Undo: `gitman undo`
+Gitman status — OFF-CANONICAL
+Reason: lane(s) 024-typed-node-universe have a divergent change-id (one change → multiple commits) — run `gitman reconcile`.
+Recover: `gitman reconcile`  — adopt it into a lane, or abandon it.
+Exit: 1

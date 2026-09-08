@@ -1,0 +1,12 @@
+[
+  {
+    "key": "name",
+    "value": "\"alice\"",
+    "line": 1
+  },
+  {
+    "key": "age",
+    "value": "30",
+    "line": 2
+  }
+]

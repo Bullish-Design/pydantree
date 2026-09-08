@@ -1,0 +1,156 @@
+{
+  "repo_root": "/home/andrew/Documents/Projects/pydantree",
+  "colocated_git": true,
+  "canonical": false,
+  "off_canonical": "lane(s) 024-typed-node-universe have a divergent change-id (one change \u2192 multiple commits) \u2014 run `gitman reconcile`. 1 bookmark(s) out of sync with git: 024-typed-node-universe \u2014 git ref(s) lag jj: 024-typed-node-universe \u2014 run `gitman reconcile`.",
+  "trunk": {
+    "name": "main",
+    "change_id": "mupswlwzkuwyvltsyqkkuvnoxpswzxoz",
+    "commit_id": "b9cad4fae65ab44119a74b1e85af9dcf085de17b",
+    "remote": "origin",
+    "relation": "in-sync",
+    "behind_remote": 0,
+    "ahead_remote": 0
+  },
+  "current_lane": "024-typed-node-universe",
+  "lanes": [
+    {
+      "name": "024-typed-node-universe",
+      "base": null,
+      "depth": 0,
+      "orphaned": false,
+      "state": "published",
+      "head": {
+        "change_id": "vpzxkznmrrwxkxryymvkzuyluzqwwvpt",
+        "commit_id": "fa74e6c335f40b4482f4138428777d0c99c6326e",
+        "description": "phase024: complete typed node universe refactor",
+        "empty": false,
+        "conflict": false,
+        "bookmarks": [
+          "024-typed-node-universe"
+        ],
+        "files_changed": 173,
+        "insertions": 42038,
+        "deletions": 11868
+      },
+      "workspace": null,
+      "conflict": false,
+      "non_linear": false,
+      "divergent": true,
+      "ahead": 1,
+      "behind": 0,
+      "change_count": 1,
+      "insertions": 42038,
+      "deletions": 11868,
+      "files_changed": 173,
+      "pr": null
+    },
+    {
+      "name": "fix/review-018",
+      "base": null,
+      "depth": 1,
+      "orphaned": true,
+      "state": "published",
+      "head": {
+        "change_id": "tnqvkqkkxrqptmknmntoxlxvsttorqnr",
+        "commit_id": "2c1a69f01391d66e2474d63b3fb65914ff9f2936",
+        "description": "pkg: the 018 review's input documents (REVIEW.md, IMPLEMENTATION_GUIDE.md, evidence, test-run) \u2014 kept with its resolution record",
+        "empty": false,
+        "conflict": false,
+        "bookmarks": [
+          "fix/review-018"
+        ],
+        "files_changed": 4,
+        "insertions": 1103,
+        "deletions": 0
+      },
+      "workspace": null,
+      "conflict": false,
+      "non_linear": false,
+      "divergent": false,
+      "ahead": 0,
+      "behind": 46,
+      "change_count": 1,
+      "insertions": 0,
+      "deletions": 0,
+      "files_changed": 0,
+      "pr": null
+    }
+  ],
+  "conflicts": [],
+  "recent_ops": [
+    {
+      "op_id": "614279011a578e1bee6fa09d3714ff1b08a3091ca863df82421dc96ef9da743ddeed9a24b891cabf689a0d505dbe7e68323c8b71f998c262fc348168c387b46a",
+      "description": "snapshot working copy",
+      "timestamp": "2026-09-09T11:04:22.990000-04:00",
+      "is_snapshot": true,
+      "undoable": false
+    },
+    {
+      "op_id": "0ca438a74e61ee78e32d4ac5ba074ccbbe943b65a1c7eea8eb6565ccdda0a40fa5794eb2f1ce6151d79fcecb50dd2b83e8ea093948e9df85b5990ee2d2b06e58",
+      "description": "snapshot working copy",
+      "timestamp": "2026-09-09T11:04:22.553000-04:00",
+      "is_snapshot": true,
+      "undoable": false
+    },
+    {
+      "op_id": "3a31a0f49bef40f40fd839a61ef15ed279a4a6d6be0f5ab88f16fb97c6eb8653b16755efe84c16dc72d1f76a24df421d2fd3333532a3a42171b9b85a6e136557",
+      "description": "export git refs",
+      "timestamp": "2026-09-09T10:14:07.064000-04:00",
+      "is_snapshot": false,
+      "undoable": true
+    },
+    {
+      "op_id": "285048ca4406a478b4a163964b63d840b485c620c9fbd44de505b8542923040a1d62de4d5bf5a6868a8c124c8e652fa0b7be0a66a436d626d93f2fd55caafdad",
+      "description": "snapshot working copy",
+      "timestamp": "2026-09-09T10:14:06.997000-04:00",
+      "is_snapshot": true,
+      "undoable": false
+    },
+    {
+      "op_id": "4e60fe607d20fb63e246f29b3ef156f94d3f255ad32dc2e1f6a0f0caa9b5b77f79b3d5825755dfd7272f6aced62746976c7e77af034340e2dc7bf6c1affbc332",
+      "description": "export git refs",
+      "timestamp": "2026-09-09T10:13:31.643000-04:00",
+      "is_snapshot": false,
+      "undoable": true
+    },
+    {
+      "op_id": "c2430dddc25c14108972d20da77ef4c32cf6748c0944cb894e6785d749384030429aa022d55851070a04409ff0a222b1cf395e6c8d1483e49a9cee354587dcc3",
+      "description": "snapshot working copy",
+      "timestamp": "2026-09-09T10:13:31.583000-04:00",
+      "is_snapshot": true,
+      "undoable": false
+    },
+    {
+      "op_id": "3af8421cfc073b1861cdfba95b1caf6f33c46b7dc477ad47ce828099ef623db8ae66044d134522f69b07bf51d95d1b87f3cdcadf29258875ab18a25ab883e543",
+      "description": "export git refs",
+      "timestamp": "2026-09-09T10:11:07.152000-04:00",
+      "is_snapshot": false,
+      "undoable": true
+    },
+    {
+      "op_id": "1d262b26b6049da68f35ecc7fdac78e69f61f689551162c23ebeffc8fc91a41bf622ca723653c24fd68acd8bf040e4242d71a62d98f5d987bd861a603c42e357",
+      "description": "snapshot working copy",
+      "timestamp": "2026-09-09T10:11:07.090000-04:00",
+      "is_snapshot": true,
+      "undoable": false
+    },
+    {
+      "op_id": "1a3270c05f6feef1994a02752a207c09a159dc4659991282f6af44b9ce763a1865c8a7fe5d5d0fef1228b41b10966ccbd3277a0a7f48890baf842e6815faeaf6",
+      "description": "export git refs",
+      "timestamp": "2026-09-09T10:10:17.548000-04:00",
+      "is_snapshot": false,
+      "undoable": true
+    },
+    {
+      "op_id": "261b72b8768e2288b0059796f25b4e9703de18d5f19e71bebd2f047aa2763f1d338d99b6d2c5c3e2524fd8d9b7b264e206eb59add2944a2228c74fc1085d7f14",
+      "description": "snapshot working copy",
+      "timestamp": "2026-09-09T10:10:17.476000-04:00",
+      "is_snapshot": true,
+      "undoable": false
+    }
+  ],
+  "notes": [
+    "orphaned lane(s) fix/review-018: name-parent deleted out-of-band \u2014 `gitman reconcile` to re-root (or rename)."
+  ]
+}

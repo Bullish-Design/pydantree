@@ -4,7 +4,7 @@ The Phase-7 probe (Run A) showed the wasm mechanism works — a real rust.wasm
 built with the tree-sitter CLI + emcc, parsed through wasmtime 29.0.0 via the
 tree-sitter C library's official wasm store, at ~1.6x the native parse cost.
 The standard binding (py-tree-sitter 0.26) has NO wasm support, so A's
-`Language.load_bundle` over a `.wasm` artifact raises the clear
+`load_bundle` over a `.wasm` artifact raises the clear
 `WasmRuntimeUnavailableError`. In the 014 refactor the probe's bridge moved
 out of the shipped seam (`.scratch/projects/009-phase7/wasm_bridge.py`) and
 the wasm branch raises unconditionally — there is no env-var protocol in the

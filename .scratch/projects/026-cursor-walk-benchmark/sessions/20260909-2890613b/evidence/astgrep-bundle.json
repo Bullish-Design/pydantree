@@ -1,0 +1,119 @@
+{
+ "setup": {
+  "bundle": "/tmp/pdt-cwb-20260909-2890613b-exaXPQ/cache/nix-bundle/grammar.so",
+  "exists": true,
+  "astgrep_version": false,
+  "schema_kinds": 84
+ },
+ "register": {
+  "ok": true,
+  "result": "pdtnix"
+ },
+ "registered_languages": {
+  "pdtnix": [
+   "/tmp/pdt-cwb-20260909-2890613b-exaXPQ/cache/nix-bundle/grammar.so",
+   "tree_sitter_nix"
+  ]
+ },
+ "astgrep_parse": {
+  "ok": true,
+  "result": {
+   "root_kind": "source_code",
+   "bindings": 3,
+   "first": "packages = [ pkgs.git pkgs.jq ];"
+  }
+ },
+ "tree_agreement": {
+  "ok": true,
+  "result": {
+   "astgrep_nodes": 54,
+   "pydantree_nodes": 33,
+   "intersection": 33,
+   "only_astgrep": [
+    [
+     "\"",
+     65,
+     66
+    ],
+    [
+     "\"",
+     69,
+     70
+    ],
+    [
+     "''",
+     87,
+     89
+    ],
+    [
+     "''",
+     107,
+     109
+    ],
+    [
+     ",",
+     7,
+     8
+    ]
+   ],
+   "only_pydantree": []
+  }
+ },
+ "grammar_attrs": {
+  "has_astgrep_name": false,
+  "has_astgrep_is_bundle": false,
+  "slots": [
+   "language",
+   "namespace",
+   "schema"
+  ]
+ },
+ "pattern_implicit": {
+  "ok": false,
+  "error": "UnsupportedLanguageError",
+  "detail": "ast-grep has no grammar for language None. ast-grep compiles a fixed language set into its wheel, so a grammar built by pydantree-sitter-grammar has no counterpart there \u2014 this is not a missing install. Known here: python. Pass astgrep_name='...' if you know the correct identifier.",
+  "tb": [
+   "    ...<6 lines>...",
+   "        f\"astgrep_name='...' if you know the correct identifier.\")",
+   "pydantree_sitter.errors.UnsupportedLanguageError: ast-grep has no grammar for language None. ast-grep compiles a fixed language set into its wheel, so a grammar built by pydantree-sitter-grammar has no counterpart there \u2014 this is not a missing install. Known here: python. Pass astgrep_name='...' if you know the correct identifier."
+  ]
+ },
+ "pattern_kind_rule": {
+  "ok": true,
+  "result": {
+   "n": 3,
+   "spans": [
+    [
+     20,
+     52
+    ],
+    [
+     55,
+     71
+    ],
+    [
+     74,
+     110
+    ]
+   ],
+   "texts": [
+    "packages = [ pkgs.git pkgs.jq ];",
+    "env.FOO = \"bar\";",
+    "enterShell = ''\n    echo hello\n  '"
+   ],
+   "typed": [
+    "list"
+   ]
+  }
+ },
+ "pattern_metavariable": {
+  "ok": false,
+  "error": "PatternBuildError",
+  "detail": "ast-grep rejected the rule for language 'pdtnix': RuntimeError: cannot get matcher",
+  "tb": [
+   "    0: `rule` is not configured correctly.",
+   "    1: Rule contains invalid pattern matcher.",
+   "    2: Multiple AST nodes are detected. Please check the pattern source `$K = $V;`."
+  ]
+ }
+}
