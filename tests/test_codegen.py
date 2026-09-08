@@ -3,7 +3,7 @@
 The old stubs.py was typing fiction (F-A4): the accessors type-checked but
 didn't exist at runtime. The generated module now RUNS: module execs over
 the real rust schema, `wrap()` round-trips against raw
-`child_by_field_name`, and a mypy run over a consumer sees real runtime
+`child_by_field_name`, and a ty run over a consumer sees real runtime
 code.
 """
 
@@ -22,7 +22,7 @@ from pydantree_sitter.codegen import generate_typed_api
 from pydantree_sitter.schema import NodeSchema
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "rust"
-MYPY = shutil.which("mypy")
+TY = shutil.which("ty")
 
 requires_toolchain = pytest.mark.toolchain
 
@@ -34,7 +34,7 @@ def _rust_schema() -> NodeSchema:
 
 def _exec_module(src: str, name: str):
     mod = types.ModuleType(name)
-    exec(compile(src, f"{name}.py", "exec"), mod.__dict__)
+    exec(compile(src, f"{name}.py", "exec"), mod.__dict__)  # noqa: S102
     return mod
 
 
@@ -52,6 +52,7 @@ def test_runtime_round_trip_matches_raw_child_by_field_name(tmp_path):
     """parse real rust source, wrap() the tree, walk fields — the typed
     accessor values equal the raw child_by_field_name lookups."""
     import tree_sitter
+
     from pydantree_sitter.loader import load_grammar_so
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
 
@@ -107,9 +108,9 @@ def test_runtime_round_trip_matches_raw_child_by_field_name(tmp_path):
     assert "fn add" in fn.text
 
 
-@pytest.mark.skipif(MYPY is None, reason="mypy not on PATH")
+@pytest.mark.skipif(TY is None, reason="ty not on PATH")
 def test_typed_accessors_type_check_and_are_real(tmp_path):
-    """mypy over a consumer that imports the GENERATED RUNTIME module (not a
+    """ty over a consumer that imports the GENERATED RUNTIME module (not a
     .pyi): the accessors type-check AND exist (the F-A4 fix — the old stubs
     type-checked code that would crash)."""
     mod_src = generate_typed_api(_rust_schema(), "rust_accessors")
@@ -141,12 +142,10 @@ def wrap_roundtrip(n: tree_sitter.Node) -> ra.TypedNode | None:
     return ra.wrap(n)
 ''')
     proc = subprocess.run(
-        [MYPY, str(consumer), "--python-executable", sys.executable,
-         "--no-error-summary", "--follow-imports=skip",
-         "--ignore-missing-imports"],
+        [TY, "check", "--python", sys.executable, "--output-format", "concise",
+         str(consumer)],
         capture_output=True, text=True, cwd=str(tmp_path), check=False)
     assert proc.returncode == 0, proc.stdout or proc.stderr
-    assert "error:" not in proc.stdout
     # the module imports cleanly (it is real code, not a stub)
     _exec_module(mod_src, "rust_accessors")
 

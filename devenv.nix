@@ -33,7 +33,7 @@
               sync = {
                   enable = true;
                   # install the root project + the dev/python extras (pytest,
-                  # ruff, mypy, black, coverage, tree-sitter-json, -python)
+                  # ruff, ty, black, coverage, tree-sitter-json, -python)
                   allExtras = true;
                   # devenv's default args are kept: `--frozen` (uv.lock is the
                   # source of truth — run `uv lock` after dep changes) and
@@ -75,12 +75,12 @@
     # The task names the devman groups' workflows call. The group states which
     # tasks run and in what order; this repository states what each one is.
     #
-    # `mypy` takes an explicit `src`: this repository has no [tool.mypy] in
-    # pyproject.toml, so a bare `mypy` has nothing to check. That is what
-    # "the repository defines the group's task names" means in practice —
-    # the group file names a task and never a tool or its arguments.
+    # `ty check` takes an explicit `src` here to keep the task scope stable;
+    # this repository has no [tool.ty] in pyproject.toml. That is what "the
+    # repository defines the group's task names" means in practice — the group
+    # file names a task and never a tool or its arguments.
     "python:lint".exec = "ruff check .";
-    "python:typecheck".exec = "mypy src";
+    "python:typecheck".exec = "ty check src";
     "python:test".exec = "pytest";
 
     # base's two names, aliased rather than duplicated.

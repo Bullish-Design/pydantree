@@ -19,7 +19,7 @@ first for the map; this is the "how do I actually run things" doc.
   uv workspace (`pyproject.toml` → `uv.lock`), checksum-cached on
   `pyproject.toml` + interpreter + args, so it only actually syncs when
   those change. The root project (the dev-tooling envelope) + dev extras
-  (pytest, ruff, mypy, black, coverage, tree-sitter-json/python) land in the
+  (pytest, ruff, ty, black, coverage, tree-sitter-json/python) land in the
   managed venv (`.devenv/state/venv` — devenv points uv there via
   `UV_PROJECT_ENVIRONMENT`; the repo root has its own `.venv` only when a
   developer created one outside devenv — the managed one is
