@@ -44,7 +44,7 @@ def cli_version() -> str:
     """The installed tree-sitter CLI version string ('' when absent)."""
     try:
         out = subprocess.run(["tree-sitter", "--version"],
-                             capture_output=True, text=True)
+                             capture_output=True, text=True, check=False)
         return (out.stdout or out.stderr).strip()
     except FileNotFoundError:
         return "(tree-sitter not on PATH)"
@@ -104,7 +104,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(f"unknown fixture selector(s): {sorted(missing)}")
 
     print(f"tree-sitter CLI: {cli_version()}")
-    print(f"supported CLI range: 0.25.x (pinned 0.25.3 in this repository)")
+    print("supported CLI range: 0.25.x (pinned 0.25.3 in this repository)")
     print(f"mode: {'WRITE (atomic replacement)' if args.write else 'check only'}")
     print()
 
@@ -140,7 +140,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"    -> replaced {target}")
             else:
                 changed.append(fixture.dir_name)
-                print(f"    -> run with --write to replace the tracked file")
+                print("    -> run with --write to replace the tracked file")
 
     print()
     if changed:

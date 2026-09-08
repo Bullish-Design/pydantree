@@ -12,10 +12,10 @@ import tree_sitter_json
 import tree_sitter_python
 
 from pydantree_sitter import (
-    M,
     AnyOf,
     Eq,
     Language,
+    M,
     Matches,
     NodeKind,
     OutputModel,
@@ -242,7 +242,7 @@ def test_unmappable_shape_raises_at_bind():
 def test_nested_record_models():
     rows = norm(PersonNested.extract(JSON_SAMPLE, language=tree_sitter_json))
     # carol's address is materialized; others are None
-    carol = [r for r in rows if r["name"] == "carol"][0]
+    carol = next(r for r in rows if r["name"] == "carol")
     assert carol["address"] == {"city": "Paris"}
     assert all(r["address"] is None for r in rows if r["name"] != "carol")
 

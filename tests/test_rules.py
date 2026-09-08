@@ -18,7 +18,6 @@ import json
 import sys
 import types
 from pathlib import Path
-from typing import Literal
 
 import pytest
 
@@ -114,7 +113,7 @@ def test_gate_rule_order_matches_example():
     classes = _load_devenv_example("devenv_example_class2")
     g = classes.build()
     m = g.build()
-    assert list(m.rules)[0] == "source_file"
+    assert next(iter(m.rules)) == "source_file"
     assert list(m.rules)[1:] == [
         "comment", "name_path", "number", "path_literal", "string_fragment",
         "indented_string_fragment", "interpolation", "string",
@@ -401,10 +400,7 @@ def test_caller_site_attributes_to_the_known_fixture_line():
     """caller_site(skip) attributes to a KNOWN file/lineno: the combinator
     call in THIS test module. A frame added anywhere in the call path fails
     here instead of silently mis-attributing (D8's frame-depth guard)."""
-    from pydantree_sitter_grammar.builder import caller_site, site_of, seq
-
-    marker_line = None
-    node = None
+    from pydantree_sitter_grammar.builder import caller_site, seq, site_of
 
     def _build():
         site = caller_site(skip=2)     # the attribution under test

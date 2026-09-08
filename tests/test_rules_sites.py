@@ -7,7 +7,12 @@ node already carried a rules.py site from _track, so _stamp's
 import sys
 import types
 
-from pydantree_sitter_grammar.builder import _iter_body_nodes, as_node, site_of
+from pydantree_sitter_grammar.builder import (
+    RuleSite,
+    _iter_body_nodes,
+    as_node,
+    site_of,
+)
 
 AUTHOR_SRC = '''
 from pydantree_sitter_grammar import Rule, assemble
@@ -26,7 +31,8 @@ def test_rule_class_nodes_point_at_author_file(tmp_path):
     mod.__file__ = str(f)
     sys.modules["authorgram"] = mod
     try:
-        exec(compile(AUTHOR_SRC, str(f), "exec"), mod.__dict__)
+        exec(  # noqa: S102 — execute a synthetic author module
+            compile(AUTHOR_SRC, str(f), "exec"), mod.__dict__)
         g = mod.assemble("g", start=mod.Pair, rules=[mod.Name, mod.Pair])
         files = {site_of(n).file for n in _iter_body_nodes(as_node(g.rules["pair"]))
                  if site_of(n) is not None}
@@ -59,7 +65,8 @@ def test_attribute_sites_are_more_precise_than_the_class_line(tmp_path):
     mod.__file__ = str(f)
     sys.modules["authorgram2"] = mod
     try:
-        exec(compile(AUTHOR_SRC, str(f), "exec"), mod.__dict__)
+        exec(  # noqa: S102 — execute a synthetic author module
+            compile(AUTHOR_SRC, str(f), "exec"), mod.__dict__)
         g = mod.assemble("g", start=mod.Pair, rules=[mod.Name, mod.Pair])
         # every body-node site must be non-null and point at the author's
         # temporary file — never into the library

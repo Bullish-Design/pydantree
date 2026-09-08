@@ -85,13 +85,21 @@ from .conflicts import (
     parse_conflict_json,
     remap_from_proc,
 )
-from .corpus import Corpus, CorpusCase, CorpusResult, corpus_case, render, render_compact
-from .expressions import expression, semantic_smoke, DEFAULT_PRECEDENCE_CORPUS
+from .corpus import (
+    Corpus,
+    CorpusCase,
+    CorpusResult,
+    corpus_case,
+    render,
+    render_compact,
+)
+from .expressions import DEFAULT_PRECEDENCE_CORPUS, expression, semantic_smoke
 from .ir import (
     AliasNode,
     BlankNode,
     ChoiceNode,
     FieldNode,
+    GrammarModel,
     ImmediateTokenNode,
     PatternNode,
     PrecDynamicNode,
@@ -107,7 +115,6 @@ from .ir import (
     SymbolNode,
     TokenNode,
 )
-from .ir import GrammarModel
 from .language import load_language, parse
 from .pipeline import (
     BuildResult,
@@ -115,8 +122,10 @@ from .pipeline import (
     ExternalScannerRequiredError,
     GenerateError,
     PipelineError,
+    Toolchain,
     build,
     build_builder,
+    build_from_source_dir,
     build_loop,
     compile_parser,
     debug_states,
@@ -124,11 +133,8 @@ from .pipeline import (
     detect_toolchain,
     grammar_hash,
     run_generate,
-    Toolchain,
     write_bundle,
-    build_from_source_dir,
 )
-from .schema_tool import build_community_bundle, derive_schema_for_dir
 from .rules import (
     External,
     Extra,
@@ -151,6 +157,7 @@ from .scanners import (
     py_indent_scanner_path,
     scanner_for,
 )
+from .schema_tool import build_community_bundle, derive_schema_for_dir
 
 __version__ = "0.2.0"
 

@@ -16,8 +16,9 @@ class or a global registry (D5).
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field as dc_field
-from typing import Any, Optional, get_args, get_origin
+from dataclasses import dataclass
+from dataclasses import field as dc_field
+from typing import Any, get_args, get_origin
 
 from .emit import Query, cap, node
 from .errors import SchemaCheckError, ShapeError
@@ -50,12 +51,12 @@ class _Compiled:
     value_map: ValueMap
     schema: Any = None
     bindings: tuple = ()
-    match_path: Optional[tuple] = None     # the M() path (with GAPs), for the matcher
+    match_path: tuple | None = None     # the M() path (with GAPs), for the matcher
     query: Any = None                      # field mode / raw: the one query
     records: Any = None                    # record mode: outer query
     fields: Any = None                     # record mode: inner query
-    record_kind: Optional[str] = None
-    pair_kind: Optional[str] = None
+    record_kind: str | None = None
+    pair_kind: str | None = None
     nested_extractors: dict = dc_field(default_factory=dict)
 
     @property
@@ -474,7 +475,7 @@ def _check_field_bindings(model_cls, schema, vm: ValueMap, anchor_kinds,
             _raise(model_cls,
                    f"capture({b.key!r}) on field {b.name!r}: kind "
                    f"{missing[0]!r} has no CST field {b.key!r} (its fields: "
-                   f"{sorted((schema.get(missing[0]).fields or {}))})",
+                   f"{sorted(schema.get(missing[0]).fields or {})})",
                    entry=f"{missing[0]}.{b.key}")
         possible: set = set()
         for a in anchor_kinds:
@@ -565,11 +566,11 @@ def _kind_coerces(schema, vm: ValueMap, target, kind: str) -> bool:
 # different schema (a stale draft for the wrong grammar is a wrong check).
 # A lock makes the memo safe to share across threads (REVIEW 020 minor — the
 # caches were unsynchronized).
-_PROPOSED_CACHE: dict[int, tuple[object, "ValueMap"]] = {}
+_PROPOSED_CACHE: dict[int, tuple[object, ValueMap]] = {}
 _PROPOSED_LOCK = __import__("threading").Lock()
 
 
-def _proposed(schema) -> "ValueMap":
+def _proposed(schema) -> ValueMap:
     """The draft (name-regex) ValueMap for `schema`, computed once per
     schema object. Declared-data fallback ONLY — kinds the committed map
     declares never reach this."""
@@ -584,7 +585,7 @@ def _proposed(schema) -> "ValueMap":
         return cached[1]
 
 
-def _scalar_of(schema, vm: ValueMap | None, kind: str) -> Optional[str]:
+def _scalar_of(schema, vm: ValueMap | None, kind: str) -> str | None:
     """A kind's scalar meaning for the CHECK path: the committed ValueMap
     first (D6 — declared data wins), the draft heuristic only for kinds the
     map does not declare. Emission uses the same (schema, ValueMap), so the

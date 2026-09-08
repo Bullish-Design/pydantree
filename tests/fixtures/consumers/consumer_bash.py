@@ -35,7 +35,14 @@ if os.environ.get("BFREE_REQUIRED"):
     except ModuleNotFoundError:
         pass
 
-from pydantree_sitter import Language, M, OutputModel, capture, capture_kind, source_meta  # noqa: E402
+from pydantree_sitter import (
+    Language,
+    M,
+    OutputModel,
+    capture,
+    capture_kind,
+    source_meta,
+)
 
 CORPUS = Path(sys.argv[1])
 MODE = sys.argv[2]

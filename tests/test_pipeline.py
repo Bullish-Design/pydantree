@@ -4,7 +4,6 @@ content-addressed cache."""
 
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
 import pytest
@@ -80,7 +79,9 @@ def test_bundle_abi_matches_the_built_language(cache_dir, tmp_path, monkeypatch)
     that can claim ABI 15 for a 14 artifact. A stale TSGRAMMAR_ABI override
     must NOT leak into the bundle metadata."""
     import json
+
     import tree_sitter as _ts
+
     from pydantree_sitter_grammar.pipeline import write_bundle
 
     monkeypatch.setenv("TSGRAMMAR_ABI", "9")  # a stale override (B16)
@@ -276,7 +277,8 @@ def test_bodyless_external_emits_scanner_token_not_literal_text(cache_dir, tmp_p
     mod.__file__ = str(f)
     sys.modules["ext_author"] = mod
     try:
-        exec(compile(src, str(f), "exec"), mod.__dict__)
+        exec(  # noqa: S102 — execute a synthetic author module
+            compile(src, str(f), "exec"), mod.__dict__)
         g = mod.build()
         # the scanner that emits the single external (symbol 0)
         scanner = tmp_path / "scanner.c"
@@ -311,6 +313,7 @@ def test_detect_toolchain_degrades_when_binaries_missing(monkeypatch):
     """B17: a missing CLI/gcc must degrade to 'unknown', not raise inside
     build() — detect_toolchain probes degrade gracefully."""
     import subprocess as sp
+
     from pydantree_sitter_grammar import pipeline
 
     pipeline.detect_toolchain.cache_clear()

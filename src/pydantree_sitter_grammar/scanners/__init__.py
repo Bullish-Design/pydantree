@@ -30,11 +30,11 @@ from __future__ import annotations
 from pathlib import Path
 
 __all__ = [
-    "indent_scanner_path",
+    "bash_heredoc_scanner_path",
     "heredoc_scanner_path",
+    "indent_scanner_path",
     "matched_delimiter_scanner_path",
     "py_indent_scanner_path",
-    "bash_heredoc_scanner_path",
     "scanner_for",
 ]
 

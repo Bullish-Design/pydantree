@@ -23,11 +23,10 @@ from __future__ import annotations
 import re
 from typing import Literal, get_args, get_origin
 
-from .spec import unwrap_optional
-
 from pydantic import BaseModel, Field
 
 from .schema import NodeSchema
+from .spec import unwrap_optional
 
 Scalar = Literal["int", "float", "bool", "str", "null"]
 _SCALARS = ("int", "float", "bool", "str", "null")
@@ -88,11 +87,11 @@ def looks_like_json(schema: NodeSchema) -> bool:
 # propose_value_map — the demoted heuristic, as a DRAFT generator
 # ---------------------------------------------------------------------------
 
-_NUMERIC_NAME = re.compile(r"(number|numeric|integer|int|real|decimal|count)\b", re.I)
-_FLOAT_NAME = re.compile(r"(float|double|real|decimal|number)", re.I)
-_BOOL_NAME = re.compile(r"(true|false|boolean|bool)\b", re.I)
-_ARRAY_NAME = re.compile(r"(array|list|sequence|vector|slice)", re.I)
-_NULL_NAME = re.compile(r"^(null|none|nil|undefined)$", re.I)
+_NUMERIC_NAME = re.compile(r"(number|numeric|integer|int|real|decimal|count)\b", re.IGNORECASE)
+_FLOAT_NAME = re.compile(r"(float|double|real|decimal|number)", re.IGNORECASE)
+_BOOL_NAME = re.compile(r"(true|false|boolean|bool)\b", re.IGNORECASE)
+_ARRAY_NAME = re.compile(r"(array|list|sequence|vector|slice)", re.IGNORECASE)
+_NULL_NAME = re.compile(r"^(null|none|nil|undefined)$", re.IGNORECASE)
 
 
 def _is_numeric(kind: str) -> bool:

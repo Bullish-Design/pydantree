@@ -24,8 +24,13 @@ their docstrings document the shape they encode.
 from __future__ import annotations
 
 __all__ = [
-    "ident", "integer", "quoted", "slug", "path_literal", "dotted_path",
+    "dotted_path",
+    "ident",
+    "integer",
+    "path_literal",
+    "quoted",
     "rest_of_line",
+    "slug",
 ]
 
 

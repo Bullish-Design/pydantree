@@ -59,7 +59,8 @@ def _light_version() -> str:
 
 def _wheel_requires(whl: Path) -> list[str]:
     with zipfile.ZipFile(whl) as z:
-        meta = z.read([n for n in z.namelist() if n.endswith("METADATA")][0]).decode()
+        meta = z.read(next(n for n in z.namelist()
+                           if n.endswith("METADATA"))).decode()
     return [l.split("Requires-Dist: ")[1] for l in meta.splitlines()
             if l.startswith("Requires-Dist:") and "extra" not in l]
 
@@ -206,7 +207,9 @@ def test_fresh_venv_light_install_delivers_a_without_b(tmp_path):
         "pydantree_sitter_grammar IS importable in the light install"
 
     # build the cfg bundle (B-side) and round-trip it in the fresh venv
-    from cfg_grammar import CORPUS, LISTEN_GROUND_TRUTH, SECTION_GROUND_TRUTH, build as _cfg
+    from cfg_grammar import CORPUS, LISTEN_GROUND_TRUTH, SECTION_GROUND_TRUTH
+    from cfg_grammar import build as _cfg
+
     import pydantree_sitter_grammar as tg
     result = tg.build_builder(_cfg())
     bundle = result.package(tmp_path / "bundle")

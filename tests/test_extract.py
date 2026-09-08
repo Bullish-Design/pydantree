@@ -9,7 +9,6 @@ from __future__ import annotations
 from typing import Annotated, get_type_hints
 
 import pytest
-
 import tree_sitter_json
 import tree_sitter_python
 
@@ -33,9 +32,11 @@ from pydantree_sitter import (
 
 pytestmark = pytest.mark.toolchain
 
-from cfg_grammar import CORPUS, build as build_cfg  # noqa: E402
-from json_grammar import build as build_json  # noqa: E402
-from pydantree_sitter.schema import NodeSchema  # noqa: E402
+from cfg_grammar import CORPUS
+from cfg_grammar import build as build_cfg
+from json_grammar import build as build_json
+
+from pydantree_sitter.schema import NodeSchema
 
 
 def _cfg_lang():

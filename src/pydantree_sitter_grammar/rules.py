@@ -42,7 +42,8 @@ import inspect
 import os
 import sys
 import types
-from typing import Any, ClassVar, Literal, Sequence, Union, get_args, get_origin
+from collections.abc import Sequence
+from typing import Any, ClassVar, Literal, Union, get_args, get_origin
 
 from .builder import (
     B,
@@ -51,21 +52,47 @@ from .builder import (
     _iter_body_nodes,
     as_node,
     site_of,
+)
+from .builder import (
     choice as tg_choice,
+)
+from .builder import (
     field as tg_field,
+)
+from .builder import (
     opt as tg_opt,
+)
+from .builder import (
     pattern as tg_pattern,
+)
+from .builder import (
     ref as tg_ref,
+)
+from .builder import (
     repeat as tg_repeat,
+)
+from .builder import (
     seq as tg_seq,
+)
+from .builder import (
     tok as tg_tok,
+)
+from .builder import (
     token as tg_token,
 )
 
 __all__ = [
-    "Rule", "Pattern", "Token", "External",
-    "Extra", "Supertype", "Hidden", "Inline", "Word",
-    "R", "assemble",
+    "External",
+    "Extra",
+    "Hidden",
+    "Inline",
+    "Pattern",
+    "R",
+    "Rule",
+    "Supertype",
+    "Token",
+    "Word",
+    "assemble",
 ]
 
 # this module's own file — body nodes built here (annotation compilation,
@@ -106,7 +133,7 @@ def _rule_site(depth: int = 3) -> RuleSite:
     return caller_site(skip=depth)
 
 
-def _attr_sites(cls: type["Rule"]) -> dict[str, RuleSite]:
+def _attr_sites(cls: type[Rule]) -> dict[str, RuleSite]:
     """file/lineno/source for each annotated attribute — the class body's
     `attr: Type` lines — so conflict remapping can point at `Pair.value`
     (class + attribute), not a raw combinator line. Found by scanning the
@@ -232,7 +259,7 @@ def _resolve(cls: type, ann) -> object:
     classes defined later in the module. The annotation is the author's own
     module code; eval() runs with exactly that module's namespace."""
     if isinstance(ann, str):
-        return eval(ann, vars(sys.modules[cls.__module__]))  # noqa: S307
+        return eval(ann, vars(sys.modules[cls.__module__]))
     return ann
 
 

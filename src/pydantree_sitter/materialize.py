@@ -17,7 +17,7 @@ wrong (F-A2). Nested models in FIELD mode are rejected at class creation
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 import tree_sitter
 from pydantic import ValidationError
@@ -25,10 +25,10 @@ from pydantic import ValidationError
 from .emit import Cursor
 from .errors import (
     AmbiguousCaptureError,
-    raise_ambiguous_capture,
     ExtractionError,
+    raise_ambiguous_capture,
 )
-from .markers import ANCHOR, RECORD_CAP, _MARKERS, _MISSING
+from .markers import _MARKERS, _MISSING, ANCHOR, RECORD_CAP
 from .markers import _Derived as _D
 from .match import group_matches, match_ancestor_path, merge_group
 from .spec import is_optional, unwrap_optional
@@ -40,8 +40,15 @@ from .spec import is_optional, unwrap_optional
 class Span:
     """A source span (line/column, 1-based lines)."""
 
-    __slots__ = ("line", "column", "end_line", "end_column",
-                 "start_byte", "end_byte", "text")
+    __slots__ = (
+        "column",
+        "end_byte",
+        "end_column",
+        "end_line",
+        "line",
+        "start_byte",
+        "text",
+    )
 
     def __init__(self, line, column, end_line, end_column,
                  start_byte, end_byte, text):
@@ -54,7 +61,7 @@ class Span:
         self.text = text
 
     @classmethod
-    def from_node(cls, node: tree_sitter.Node) -> "Span":
+    def from_node(cls, node: tree_sitter.Node) -> Span:
         # `Point` is a tuple — unpack it, never read `.row` / `.column`.
         #
         # tree-sitter 0.26.0 reworked Point into a tuple subclass whose
@@ -130,10 +137,10 @@ class MatchFailure:
 
     pattern: int
     anchor: Any
-    span: Optional["Span"]
+    span: Span | None
     snippet: str
     detail: str
-    pydantic_errors: Optional[list] = None
+    pydantic_errors: list | None = None
 
 
 def _text_of(n) -> str:

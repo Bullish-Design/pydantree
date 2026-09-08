@@ -52,7 +52,7 @@ def cli_mm():
     import re
     import subprocess
     out = subprocess.run(["tree-sitter", "--version"],
-                         capture_output=True, text=True)
+                         capture_output=True, text=True, check=False)
     m = re.search(r"(\d+)\.(\d+)\.\d+", out.stdout or out.stderr)
     return f"{m.group(1)}.{m.group(2)}" if m else None
 
@@ -109,7 +109,7 @@ def _no_sys_modules_leaks():
     before = set(sys.modules)
     yield
     for name in set(sys.modules) - before:
-        if name.startswith("g_") or name.startswith("oracle_example"):
+        if name.startswith(("g_", "oracle_example")):
             sys.modules.pop(name, None)
 
 

@@ -317,23 +317,22 @@ def test_cond_primary_resolves_bare_cond():
                                              tg.ref("identifier"),
                                              tg.seq("(", tg.ref("expr"), ")")))
     res = tg.build_builder(g)
-    from pydantree_sitter_grammar.language import load_language
     import tree_sitter
+
+    from pydantree_sitter_grammar.language import load_language
     lang = load_language(res.so_path, "condlang")
-    ok = 0
     for src in (b"if (x) y;", b"if (f(x)) y;", b"if x + 1 + 2 y;",
                 b"if x (y);"):
         tree = tree_sitter.Parser(lang).parse(src)
         errors = []
 
-        def walk(n):
+        def walk(n, errors=errors):
             if n.type == "ERROR" or n.is_missing:
                 errors.append(n.type)
             for c in n.children:
                 walk(c)
         walk(tree.root_node)
         assert errors == [], src
-        ok += 1
     # the cond field is bound (hidden rule flattens into the if_stmt)
     tree = tree_sitter.Parser(lang).parse(b"if (f(x)) y;")
     ifs = tree.root_node.children[0]

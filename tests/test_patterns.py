@@ -8,7 +8,6 @@ tests pin each helper directly, including the parameter variants).
 
 from __future__ import annotations
 
-import pydantree_sitter_grammar as tg
 from pydantree_sitter_grammar.patterns import (
     dotted_path,
     ident,

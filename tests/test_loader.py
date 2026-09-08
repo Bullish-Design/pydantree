@@ -10,7 +10,6 @@ format-2 rollout.
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 
 import pytest
@@ -92,8 +91,9 @@ def test_non_int_bundle_format_is_rejected(tmp_path):
 def test_format_1_bundle_still_loads(tmp_path):
     """Absent bundle_format = format 1 (the original layout) — accepted, not
     rejected; the format-2 rollout must not break existing bundles."""
-    import pydantree_sitter_grammar as tg
     from cfg_grammar import build as build_cfg
+
+    import pydantree_sitter_grammar as tg
 
     result = tg.build_builder(build_cfg())
     bundle = result.package(tmp_path / "bundle")
@@ -111,8 +111,9 @@ def test_format_1_bundle_still_loads(tmp_path):
 @requires_toolchain
 def test_format_2_bundle_loads(tmp_path):
     """The current format: bundle_format 2 in the metadata, loaded normally."""
-    import pydantree_sitter_grammar as tg
     from cfg_grammar import build as build_cfg
+
+    import pydantree_sitter_grammar as tg
 
     result = tg.build_builder(build_cfg())
     bundle = result.package(tmp_path / "bundle")

@@ -90,10 +90,10 @@
       exec = ''
         echo "Linting with ruff..."
         ruff check src/ tests/
-        echo "Type checking with mypy..."
-        mypy src/
+        echo "Type checking with ty..."
+        ty check src
       '';
-      description = "Lint code with ruff and mypy";
+      description = "Lint code with ruff and ty";
     };
 
     # Build the package
@@ -138,10 +138,10 @@
   #   ruff.enable = true;
 
   #   # Type checking
-  #   mypy = {
+  #   ty = {
   #     enable = true;
   #     settings = {
-  #       binPath = "mypy";
+  #       binPath = "ty";
   #     };
   #   };
 
@@ -167,7 +167,7 @@
     echo "  play-cast           - Play asciinema recording"
     echo "  test                - Run pytest tests"
     echo "  format              - Format code with black"
-    echo "  lint                - Lint code with ruff and mypy"
+    echo "  lint                - Lint code with ruff and ty"
     echo "  build-package       - Build the Python package"
     echo ""
     echo "Quick start:"

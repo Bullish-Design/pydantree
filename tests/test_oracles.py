@@ -44,7 +44,6 @@ exit status).
 import importlib.util
 import json
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -116,9 +115,9 @@ def build_subset_bundle(mod, out_dir: Path):
     hardcodes DIST; ours lands in out_dir), consumed with
     Language.load_bundle."""
     import importlib.util
-    import pydantree_sitter_grammar as tg
-
     import sys as _sys
+
+    import pydantree_sitter_grammar as tg
     spec = importlib.util.spec_from_file_location(
         "oracle_example_grammar", EXAMPLES / "devenv-subset" / "grammar.py")
     mod = importlib.util.module_from_spec(spec)
@@ -336,7 +335,7 @@ def test_bash_extract_script_runs_end_to_end(bash_bundle):
     proc = subprocess.run(
         [sys.executable, str(EXAMPLES / "bash-extract" / "extract.py"),
          "--bundle", str(bash_bundle)],
-        capture_output=True, text=True)
+        capture_output=True, text=True, check=False)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert "34 rows extracted — " in proc.stdout, proc.stdout[-800:]
     assert "all match the hand-written ground truth ✓" in proc.stdout, \
@@ -348,7 +347,7 @@ def test_devenv_extract_script_runs_end_to_end(nix_bundle):
     proc = subprocess.run(
         [sys.executable, str(EXAMPLES / "devenv-extract" / "extract.py"),
          "--bundle", str(nix_bundle)],
-        capture_output=True, text=True)
+        capture_output=True, text=True, check=False)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert "102 rows extracted — " in proc.stdout, proc.stdout[-800:]
     assert "all match the hand-written ground truth ✓" in proc.stdout, \
@@ -363,7 +362,7 @@ def test_devenv_subset_script_runs_end_to_end(subset_bundle):
     env = dict(os.environ, DEVENV_BUNDLE_DIR=str(subset_bundle))
     proc = subprocess.run(
         [sys.executable, str(EXAMPLES / "devenv-subset" / "extract.py")],
-        capture_output=True, text=True, env=env)
+        capture_output=True, text=True, env=env, check=False)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert "56 rows extracted — " in proc.stdout, proc.stdout[-800:]
     assert "all match the hand-written ground truth ✓" in proc.stdout, \
@@ -381,6 +380,7 @@ def test_fa1_cross_language_second_extract_raises():
     the second language. Fix in Phase 4.2 (binding owns compiled state)."""
     import tree_sitter_json
     import tree_sitter_python
+
     from pydantree_sitter import Language, M, OutputModel, QueryBuildError, capture
 
     class PyAssignment2(OutputModel):
@@ -399,10 +399,10 @@ def test_fa1_cross_language_second_extract_raises():
 @requires_toolchain
 def test_fa2_schema_bound_nested_records_match_schema_less():
     import tree_sitter_json
+    from json_grammar import build as build_json
+
     import pydantree_sitter_grammar as tg
     from pydantree_sitter import Language, M, OutputModel
-
-    from json_grammar import build as build_json
     from pydantree_sitter.schema import NodeSchema
 
     schema = NodeSchema.from_node_types_json(
@@ -427,9 +427,11 @@ def test_fa2_schema_bound_nested_records_match_schema_less():
 
 
 def test_fa3_nodekind_tuple_emits_all_kinds_in_field_mode():
-    import tree_sitter_python
-    from pydantree_sitter import Language, M, OutputModel, NodeKind, capture
     from typing import Annotated
+
+    import tree_sitter_python
+
+    from pydantree_sitter import Language, M, NodeKind, OutputModel, capture
 
     class Flag(OutputModel):
         __match__ = M("module", "expression_statement", "assignment")
@@ -447,6 +449,7 @@ def test_list_field_with_gap_path_filters_by_ancestry():
     anchor's ancestry does NOT match must yield ZERO rows — the scalar
     branch filters, the list branch must too (one matcher, one call site)."""
     import tree_sitter_python
+
     from pydantree_sitter import Language, M, OutputModel, capture
 
     class NeverCall(OutputModel):
@@ -465,8 +468,9 @@ def test_list_field_with_gap_path_filters_by_ancestry():
 
 def _generate() -> int:
     import tempfile
-    from pydantree_sitter_grammar.schema_tool import build_community_bundle
+
     from pydantree_sitter import Language, propose_value_map
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
 
     with tempfile.TemporaryDirectory(prefix="oracle-gen-") as td:
         built = Path(td)

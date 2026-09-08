@@ -9,7 +9,6 @@ comment-only lines inside a block, EOF dedents.
 
 from __future__ import annotations
 
-import shutil
 import sys
 from pathlib import Path
 
@@ -18,11 +17,10 @@ import pytest
 import pydantree_sitter_grammar as tg
 from pydantree_sitter_grammar.corpus import Corpus, corpus_case
 
-
 pytestmark = [pytest.mark.toolchain, pytest.mark.slow]
 
 
-import pymini  # noqa: E402
+import pymini
 
 
 def test_externals_without_scanner_raises_clear_error(tmp_path):
@@ -39,7 +37,6 @@ def test_pymini_builds_and_parses_with_scanner(tmp_path):
     assert not tg.errors(g), issues
     result = tg.build_builder(g, scanner=tg.indent_scanner_path(),
                                cache_dir=tmp_path / "cache")
-    lang = result.language()
     r = Corpus([corpus_case(pymini.GOOD, pymini.GOOD_EXPECTED,
                             name="plain blocks"),
                 corpus_case(pymini.NESTED, pymini.NESTED_EXPECTED,
@@ -117,8 +114,8 @@ def test_indent_handling_is_lenient_at_invalid_states(tmp_path):
 
 CONSUMERS = Path(__file__).resolve().parent / "fixtures" / "consumers"
 
-import dmini  # noqa: E402
-import hmini  # noqa: E402
+import dmini
+import hmini
 
 
 def _parse_errs(lang, text) -> list:
@@ -141,7 +138,6 @@ def test_heredoc_scanner_builds_and_parses(tmp_path):
     g = hmini.build()
     result = tg.build_builder(g, scanner=tg.heredoc_scanner_path(),
                               cache_dir=tmp_path / "cache")
-    lang = result.language()
     r = Corpus([corpus_case(hmini.GOOD, hmini.GOOD_EXPECTED, name="heredoc")],
                name="hmini").run(build_result=result)
     assert r.ok(), r.report()
@@ -200,8 +196,8 @@ def test_matched_delimiter_scanner_is_strict(tmp_path):
 
 
 
-import bashmini  # noqa: E402
-import pyindent  # noqa: E402
+import bashmini
+import pyindent
 
 
 def _corpus(name, mod, scanner, tmp_path, cases):
@@ -297,7 +293,6 @@ def test_cpp_scanner_scanner_cc_builds_with_gpp(tmp_path):
     are wrapped in extern \"C\" exactly like tree-sitter's own C++ scanner
     template; the generated parser.c compiles as C++ (it is C/C++-safe by
     design) and g++ pulls in libstdc++."""
-    import sys
     import types
 
     src = (
@@ -313,7 +308,8 @@ def test_cpp_scanner_scanner_cc_builds_with_gpp(tmp_path):
     mod.__file__ = str(f)
     sys.modules["ext_cc"] = mod
     try:
-        exec(compile(src, str(f), "exec"), mod.__dict__)
+        exec(  # noqa: S102 — execute a synthetic author module
+            compile(src, str(f), "exec"), mod.__dict__)
         g = mod.build()
         scanner = tmp_path / "scanner.cc"
         scanner.write_text(r'''
@@ -345,8 +341,6 @@ def test_community_layout_discovers_scanner_cc(tmp_path):
     """B3/REVIEW 020: the community path (build_from_source_dir) discovers a
     scanner.cc next to grammar.json (the tree-sitter C++ layout) and builds
     it, instead of raising 'no scanner.c supplied'."""
-    import json
-    import sys
     import types
 
     src = (
@@ -362,7 +356,8 @@ def test_community_layout_discovers_scanner_cc(tmp_path):
     mod.__file__ = str(f)
     sys.modules["ext_cc2"] = mod
     try:
-        exec(compile(src, str(f), "exec"), mod.__dict__)
+        exec(  # noqa: S102 — execute a synthetic author module
+            compile(src, str(f), "exec"), mod.__dict__)
         g = mod.build()
         # a community-style source dir: grammar.json + scanner.cc beside it
         src_dir = tmp_path / "src"

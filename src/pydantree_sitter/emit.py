@@ -17,7 +17,6 @@ Design notes (all verified against the 0.26 bindings):
 from __future__ import annotations
 
 import json
-from typing import Optional, Union
 
 import tree_sitter
 
@@ -32,7 +31,7 @@ def _q(s: str) -> str:
 class Pred:
     """One `#pred?` — e.g. `#match? @name "^[A-Z]+"`."""
 
-    __slots__ = ("name", "args")
+    __slots__ = ("args", "name")
 
     def __init__(self, name: str, args: list[str]):
         self.name = name
@@ -70,24 +69,24 @@ def cap(name: str) -> CaptureRef:
 class NodeSpec:
     """A tree-sitter node pattern: `(type field: (child) @cap)* ...`."""
 
-    __slots__ = ("type", "field", "cap_name", "children", "predicates", "quant")
+    __slots__ = ("cap_name", "children", "field", "predicates", "quant", "type")
 
-    def __init__(self, type: Optional[str] = None):
+    def __init__(self, type: str | None = None):
         self.type = type              # None -> wildcard `_`
-        self.field: Optional[str] = None
-        self.cap_name: Optional[str] = None
+        self.field: str | None = None
+        self.cap_name: str | None = None
         self.children: list[NodeSpec] = []
         self.predicates: list[Pred] = []
         self.quant: str = ""          # "" | "?" | "*" | "+"
 
-    def capture(self, name: str) -> "NodeSpec":
+    def capture(self, name: str) -> NodeSpec:
         self.cap_name = name
         return self
 
-    def child(self, node: Optional[Union["NodeSpec", str]] = None, *,
-              field: Optional[str] = None,
-              capture: Optional[str] = None,
-              quant: str = "") -> "NodeSpec":
+    def child(self, node: NodeSpec | str | None = None, *,
+              field: str | None = None,
+              capture: str | None = None,
+              quant: str = "") -> NodeSpec:
         if isinstance(node, str):
             node = NodeSpec(node)
         elif node is None:
@@ -101,7 +100,7 @@ class NodeSpec:
         self.children.append(node)
         return self
 
-    def where(self, *preds: Pred) -> "NodeSpec":
+    def where(self, *preds: Pred) -> NodeSpec:
         self.predicates.extend(preds)
         return self
 
@@ -143,7 +142,7 @@ def _emit(spec: NodeSpec, parts: list[str]) -> None:
         parts.append(" @" + spec.cap_name)
 
 
-def node(type: Optional[str] = None) -> NodeSpec:
+def node(type: str | None = None) -> NodeSpec:
     return NodeSpec(type)
 
 
@@ -155,9 +154,9 @@ class Query:
     captures must map to model fields (checked at compile).
     """
 
-    def __init__(self, *specs: Union[NodeSpec, PatternSet], raw: Optional[str] = None):
+    def __init__(self, *specs: NodeSpec | PatternSet, raw: str | None = None):
         self.raw_source = raw
-        self._raw_fields: Optional[set] = None   # the model's field names
+        self._raw_fields: set | None = None   # the model's field names
         if raw is not None:
             self.specs = []
         else:
@@ -171,11 +170,11 @@ class Query:
                     raise TypeError(f"expected NodeSpec/PatternSet, got {type(s)}")
             if not self.specs:
                 raise ValueError("Query needs at least one pattern")
-        self._compiled: Optional[tree_sitter.Query] = None
-        self._quant_maps: Optional[list[dict[str, str]]] = None
+        self._compiled: tree_sitter.Query | None = None
+        self._quant_maps: list[dict[str, str]] | None = None
 
     @classmethod
-    def raw(cls, source: str) -> "Query":
+    def raw(cls, source: str) -> Query:
         return cls(raw=str(source))
 
     def capture_names(self) -> set[str]:
@@ -263,7 +262,7 @@ class Cursor:
     `QueryCursor.matches()` is eager (returns a list); node TEXT/span reads
     happen on demand."""
 
-    __slots__ = ("_query", "_quant_maps", "_tree")
+    __slots__ = ("_quant_maps", "_query", "_tree")
 
     def __init__(self, query: tree_sitter.Query, quant_maps: list[dict[str, str]],
                  tree: tree_sitter.Tree):
@@ -271,13 +270,13 @@ class Cursor:
         self._quant_maps = quant_maps
         self._tree = tree
 
-    def matches(self) -> list["MatchView"]:
+    def matches(self) -> list[MatchView]:
         out = []
         for pi, caps in tree_sitter.QueryCursor(self._query).matches(self._tree.root_node):
             out.append(MatchView(pi, caps, self._quant_maps[pi]))
         return out
 
-    def matches_on(self, node: tree_sitter.Node) -> list["MatchView"]:
+    def matches_on(self, node: tree_sitter.Node) -> list[MatchView]:
         """Matches scoped to a node (record extraction)."""
         out = []
         for pi, caps in tree_sitter.QueryCursor(self._query).matches(node):
@@ -289,7 +288,7 @@ class MatchView:
     """One query match; captures are raw tree_sitter.Node lists (the
     materializer's only need)."""
 
-    __slots__ = ("pi", "_caps", "_quant")
+    __slots__ = ("_caps", "_quant", "pi")
 
     def __init__(self, pi: int, captures: dict[str, list],
                  quant: dict[str, str]):
@@ -304,7 +303,7 @@ class MatchView:
     def caps(self) -> dict[str, list]:
         return self._caps
 
-    def text(self, name: str) -> Optional[str]:
+    def text(self, name: str) -> str | None:
         ns = self._caps.get(name)
         if not ns:
             return None

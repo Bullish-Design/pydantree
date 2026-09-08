@@ -25,7 +25,7 @@
               sync = {
                   enable = true;
                   # install the root project + the dev/python extras (pytest,
-                  # ruff, mypy, black, coverage, tree-sitter-json, -python)
+                  # ruff, ty, black, coverage, tree-sitter-json, -python)
                   allExtras = true;
                   # devenv's default args are kept: `--frozen` (uv.lock is the
                   # source of truth — run `uv lock` after dep changes) and

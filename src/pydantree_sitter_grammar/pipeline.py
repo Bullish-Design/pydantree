@@ -33,8 +33,7 @@ import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .ir import ABI_15_CONFIG
-from .ir import GrammarModel
+from .ir import ABI_15_CONFIG, GrammarModel
 
 # the loader shim shipped inside a packaged bundle: it delegates to pydantree_sitter's
 # shared loading contract (the ONE implementation, CONCEPT §8)
@@ -103,7 +102,7 @@ def _python_abi() -> str:
     try:
         import tree_sitter as _ts
         return str(_ts.LANGUAGE_VERSION)
-    except Exception:
+    except Exception:  # noqa: BLE001 — optional binding API probing is best effort
         return env or "15"
 
 
@@ -351,7 +350,8 @@ def build(model: GrammarModel, *, cache_dir: Path | None = None,
     to the caller. Pass `check=False` to skip.
     """
     if check:
-        from .checks import assert_clean, warnings as check_warnings
+        from .checks import assert_clean
+        from .checks import warnings as check_warnings
         assert_clean(model)
         build_warnings = list(check_warnings(model))
     else:

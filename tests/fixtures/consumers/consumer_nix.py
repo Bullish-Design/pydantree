@@ -30,6 +30,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import ClassVar
 
 if os.environ.get("BFREE_REQUIRED"):
     try:
@@ -40,7 +41,14 @@ if os.environ.get("BFREE_REQUIRED"):
     except ModuleNotFoundError:
         pass
 
-from pydantree_sitter import Language, M, OutputModel, Span, capture, source_meta  # noqa: E402
+from pydantree_sitter import (
+    Language,
+    M,
+    OutputModel,
+    Span,
+    capture,
+    source_meta,
+)
 
 FILES = tuple(os.environ.get("NIX_FLEET_FILES",
               "mypi-agent.nix pydantree.nix terminal-state.nix "
@@ -68,7 +76,7 @@ class Binding(OutputModel):
     line: int = source_meta()
     span: Span = source_meta()
 
-    model_config = {"arbitrary_types_allowed": True}
+    model_config: ClassVar = {"arbitrary_types_allowed": True}
 
 
 class List(OutputModel):
@@ -82,7 +90,7 @@ class List(OutputModel):
     line: int = source_meta()
     span: Span = source_meta()
 
-    model_config = {"arbitrary_types_allowed": True}
+    model_config: ClassVar = {"arbitrary_types_allowed": True}
 
 
 def load_language():
@@ -119,7 +127,7 @@ def dotted_path(node, src: bytes) -> str:
                     parts.append(src[c.start_byte:c.end_byte].decode())
         n = n.parent
     path = ".".join(reversed(parts))
-    return path[7:] if path.startswith("config.") else path
+    return path.removeprefix("config.")
 
 
 def walk_bindings(root):
@@ -282,11 +290,11 @@ def main() -> int:
               and rows["enterTest"] == t["enterTest"])
         all_ok = all_ok and ok
         if not ok:
-            for k in rows:
-                if rows[k] != t[k]:
-                    print(f"  MISMATCH {fname}.{k}: got {len(rows[k])} "
+            for k, values in rows.items():
+                if values != t[k]:
+                    print(f"  MISMATCH {fname}.{k}: got {len(values)} "
                           f"want {len(t[k])}")
-                    for g, w in zip(rows[k], t[k]):
+                    for g, w in zip(values, t[k]):
                         if g != w:
                             print(f"    got  {g}")
                             print(f"    want {w}")

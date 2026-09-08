@@ -38,7 +38,7 @@ def test_wheel_example_runs_and_matches_the_transcript_oracle():
     env["PYTHONPATH"] = os.pathsep.join(
         [str(REPO / "src"), env.get("PYTHONPATH", "")])
     proc = subprocess.run([sys.executable, str(EXTRACT)],
-                          capture_output=True, text=True, env=env)
+                          capture_output=True, text=True, env=env, check=False)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     # the committed per-step transcript is the oracle: this run's stdout must
     # equal it byte-for-byte (regenerate with --update after eyeballing)

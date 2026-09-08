@@ -4,8 +4,6 @@ failure surfaces at validate_with/class creation, BEFORE any text is parsed."""
 
 from __future__ import annotations
 
-import shutil
-import sys
 from pathlib import Path
 from typing import Annotated
 
@@ -13,11 +11,9 @@ import pytest
 import tree_sitter_json
 
 import pydantree_sitter_grammar as tg
-from pydantree_sitter.schema import NodeSchema
 from pydantree_sitter import (
     Language,
     M,
-    Eq,
     NodeKind,
     OutputModel,
     SchemaCheckError,
@@ -25,6 +21,7 @@ from pydantree_sitter import (
     capture,
     source_meta,
 )
+from pydantree_sitter.schema import NodeSchema
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -38,7 +35,9 @@ pytestmark = pytest.mark.toolchain
 def json_schema() -> NodeSchema:
     """The json grammar's schema — the CLI byproduct (build once, reuse)."""
     import functools
+
     from json_grammar import build as build_json
+
     from pydantree_sitter_grammar.pipeline import build as _build
 
     @functools.lru_cache(maxsize=1)
@@ -54,6 +53,7 @@ def cfg_schema() -> tuple[NodeSchema, object, object]:
     draft ValueMap (D6: value shapes are declared data — the config grammar
     is not the JSON family, so record mode over it needs a map)."""
     from cfg_grammar import build as build_cfg
+
     from pydantree_sitter import propose_value_map
     from pydantree_sitter_grammar.language import load_language
     g = build_cfg()
@@ -99,7 +99,7 @@ def test_derived_map_reproduces_v1_over_json_wheel():
         ("dave", 55, ["x"], True),
     ]
     # carol's nested address.city must NOT collide with the record-level keys
-    carol = [r for r in rows if r["name"] == "carol"][0]
+    carol = next(r for r in rows if r["name"] == "carol")
     assert carol["nickname"] is None and carol["tags"] == []
 
 
@@ -290,6 +290,7 @@ def test_community_path_node_types_schema():
     """A node-schema built from the CLI's node-types.json (derive_from_node_types)
     is equivalent for the shared subset — the community-grammar path."""
     from cfg_grammar import build as build_cfg
+
     from pydantree_sitter.schema import NodeSchema, derive_from_node_types
     schema_ir, lang, _g = cfg_schema()
     model = build_cfg().build()

@@ -66,9 +66,9 @@ class ExtractionError(PydantreeSitterError):
     def __init__(self, failures: list, into):
         self.failures = failures
         self.into = into
-        lines = [
+        lines = [(
             f"{len(failures)} match(es) failed to materialize "
-            f"{into.__name__}:"]
+            f"{into.__name__}:")]
         for f in failures:
             where = f"line {f.span.line}" if f.span is not None else "?"
             lines.append(

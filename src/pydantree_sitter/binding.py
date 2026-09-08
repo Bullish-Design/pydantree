@@ -30,7 +30,7 @@ from .valuemap import (
     looks_like_json,
 )
 
-__all__ = ["Language", "Extractor"]
+__all__ = ["Extractor", "Language"]
 
 
 # ---------------------------------------------------------------------------
@@ -105,7 +105,7 @@ def _language_fingerprint(lang: Any) -> tuple:
                   for i in range(1, lang.field_count + 1)))
 
 
-def _transient_language(lang: "Language", schema=None) -> "Language":
+def _transient_language(lang: Language, schema=None) -> Language:
     """A copy of `lang` with an explicit schema (the sugar path)."""
     return Language(lang._lang, schema=schema if schema is not None
                     else lang._schema, value_map=lang._value_map,
@@ -198,9 +198,19 @@ class Language:
     here by construction).
     """
 
-    __slots__ = ("_lang", "_schema", "_value_map", "_lib", "_extractors",
-                 "_astgrep_name", "_patterns", "_syntax_check",
-                 "_bundle_path", "_bundle_symbol", "_bind_lock")
+    __slots__ = (
+        "_astgrep_name",
+        "_bind_lock",
+        "_bundle_path",
+        "_bundle_symbol",
+        "_extractors",
+        "_lang",
+        "_lib",
+        "_patterns",
+        "_schema",
+        "_syntax_check",
+        "_value_map",
+    )
 
     def __init__(self, lang, schema=None, value_map=None, astgrep_name=None,
                  syntax_check=None):
@@ -242,20 +252,20 @@ class Language:
 
     @classmethod
     def load(cls, lang, schema=None, *, value_map=None,
-             astgrep_name=None, syntax_check=None) -> "Language":
+             astgrep_name=None, syntax_check=None) -> Language:
         """Wrap a language (module / tree_sitter.Language / capsule)."""
         return cls(lang, schema=schema, value_map=value_map,
                    astgrep_name=astgrep_name, syntax_check=syntax_check)
 
     @classmethod
     def from_module(cls, mod, schema=None, value_map=None,
-                    astgrep_name=None, syntax_check=None) -> "Language":
+                    astgrep_name=None, syntax_check=None) -> Language:
         """A grammar module (e.g. tree_sitter_python) as a Language."""
         return cls(mod, schema=schema, value_map=value_map,
                    astgrep_name=astgrep_name, syntax_check=syntax_check)
 
     @classmethod
-    def load_bundle(cls, dir, *, value_map=None) -> "Language":
+    def load_bundle(cls, dir, *, value_map=None) -> Language:
         """Consume a packaged grammar bundle in ONE call (grammar.so +
         node-schema.json + metadata via the shared loader). Keeps the
         bundle's .so library alive for the language's lifetime (F-A10).
@@ -377,7 +387,7 @@ class Language:
 
     # -- binding ------------------------------------------------------------
 
-    def extractor(self, model_cls, *, strict: bool = True) -> "Extractor":
+    def extractor(self, model_cls, *, strict: bool = True) -> Extractor:
         """Bind `model_cls`: ALL checks run here, once; the Extractor is
         cached on SELF keyed by (model_cls, strict)."""
         key = (model_cls, strict)

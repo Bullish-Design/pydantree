@@ -7,7 +7,8 @@ SUPPORTED = {"0.25"}  # major.minor ranges the conflict/schema code is verified 
 
 
 def _cli_mm():
-    out = subprocess.run(["tree-sitter", "--version"], capture_output=True, text=True)
+    out = subprocess.run(["tree-sitter", "--version"],
+                         capture_output=True, text=True, check=False)
     m = re.search(r"(\d+)\.(\d+)\.\d+", out.stdout or out.stderr)
     return f"{m.group(1)}.{m.group(2)}" if m else None
 

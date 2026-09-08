@@ -29,8 +29,9 @@ run's node-types.json, copied byte-for-byte.
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from pydantic import BaseModel, Field, PrivateAttr
 
@@ -127,11 +128,11 @@ class NodeSchema(BaseModel):
     # -- construction -------------------------------------------------------
 
     @classmethod
-    def from_list(cls, types: Iterable[Any], *, name: str | None = None) -> "NodeSchema":
+    def from_list(cls, types: Iterable[Any], *, name: str | None = None) -> NodeSchema:
         return cls(name=name, node_types=[NodeTypeInfo.model_validate(t) for t in types])
 
     @classmethod
-    def from_node_types_json(cls, path: str | Path, *, name: str | None = None) -> "NodeSchema":
+    def from_node_types_json(cls, path: str | Path, *, name: str | None = None) -> NodeSchema:
         data = json.loads(Path(path).read_text())
         if isinstance(data, dict) and "node_types" in data:  # our serialized form
             return cls.model_validate(data)

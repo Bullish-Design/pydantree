@@ -36,14 +36,14 @@ class _BFreeBlocker(importlib.abc.MetaPathFinder):
             raise ModuleNotFoundError(
                 f"No module named {fullname!r} (B-free consumer: pydantree_sitter_grammar "
                 f"is deliberately unimportable in this process)")
-        return None
 
 
 sys.meta_path.insert(0, _BFreeBlocker())
 
 # keep a record for the experiment's evidence
-import site  # noqa: E402
+import site
+
 try:
-    _log = site.getusersitepackages()  # noqa: F841  (touch site module)
-except Exception:  # pragma: no cover
-    pass
+    _log = site.getusersitepackages()
+except Exception:  # noqa: BLE001 — user-site discovery is optional
+    _log = None

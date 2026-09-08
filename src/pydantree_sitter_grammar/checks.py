@@ -47,6 +47,7 @@ from .ir import (
     AliasNode,
     BlankNode,
     ChoiceNode,
+    GrammarModel,
     ImmediateTokenNode,
     PatternNode,
     PrecDynamicNode,
@@ -61,9 +62,6 @@ from .ir import (
     StrNode,
     SymbolNode,
     TokenNode,
-)
-from .ir import (
-    GrammarModel,
 )
 
 VALID_PATTERN_FLAGS = frozenset("i")

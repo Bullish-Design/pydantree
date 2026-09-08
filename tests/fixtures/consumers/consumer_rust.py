@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import json
 import sys
-from pathlib import Path
 
 try:
     import pydantree_sitter_grammar  # noqa: F401
@@ -29,7 +28,13 @@ try:
 except ModuleNotFoundError:
     pass
 
-from pydantree_sitter import Language, M, OutputModel, capture, source_meta  # noqa: E402
+from pydantree_sitter import (
+    Language,
+    M,
+    OutputModel,
+    capture,
+    source_meta,
+)
 
 RUST_SAMPLE = """\
 // module doc

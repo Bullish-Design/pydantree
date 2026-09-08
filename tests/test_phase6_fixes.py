@@ -6,14 +6,12 @@ correct behavior).
 """
 
 import sys
-import types
 from typing import Literal
 
 import pytest
 
 import pydantree_sitter_grammar as tg
 from pydantree_sitter_grammar.rules import Rule, _snake, assemble, module_rules
-
 
 # ---- F-B1: rule(alias=) deleted; alias() combinator is the one way -------
 
@@ -147,13 +145,12 @@ def test_replace_rule_clears_stale_flag_entries():
 
 def test_module_rules_excludes_imported_classes():
     """The silent-join bug dies: a class imported INTO a module is not swept."""
-    import importlib.util
     import types as _types
 
-    imported = types.ModuleType("_imported_for_test")
     # a Rule subclass DEFINED in another module
     other = _types.ModuleType("_other_module")
-    exec("""
+    exec(  # noqa: S102 — execute a synthetic module for the import test
+        """
 from pydantree_sitter_grammar.rules import Rule
 from typing import Literal
 class Foreign(Rule):
@@ -164,7 +161,8 @@ class Foreign(Rule):
     mod = _types.ModuleType("_host_module")
     mod.Foreign = imp            # imported into the host namespace
     mod.own = None
-    exec("""
+    exec(  # noqa: S102 — execute a synthetic module for the import test
+        """
 from pydantree_sitter_grammar.rules import Rule
 from typing import Literal
 class Own(Rule):

@@ -186,8 +186,8 @@ class CorpusResult:
         return not self.failures
 
     def report(self, *, diff: bool = True) -> str:
-        lines = [f"corpus: {len(self.cases)} case(s), "
-                 f"{len(self.failures)} failure(s)"]
+        lines = [(f"corpus: {len(self.cases)} case(s), "
+                  f"{len(self.failures)} failure(s)")]
         if self.snapshots:
             lines.append("  snapshots: " + ", ".join(str(p) for p in self.snapshots))
         if not self.failures:

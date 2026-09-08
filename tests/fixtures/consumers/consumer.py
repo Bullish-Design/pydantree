@@ -26,9 +26,13 @@ except ModuleNotFoundError:
     pass
 
 from pydantree_sitter import (
-    Language, M, OutputModel, capture, propose_value_map,
+    Language,
+    M,
+    OutputModel,
+    capture,
+    propose_value_map,
     source_meta,
-)  # noqa: E402
+)
 
 BUNDLE = Path(sys.argv[1])
 

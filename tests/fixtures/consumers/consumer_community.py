@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import json
 import sys
-from pathlib import Path
 
 try:
     import pydantree_sitter_grammar  # noqa: F401
@@ -22,9 +21,10 @@ try:
 except ModuleNotFoundError:
     pass
 
-import tree_sitter_json  # noqa: E402
-from pydantree_sitter.schema import NodeSchema  # noqa: E402
-from pydantree_sitter import Language, M, OutputModel, source_meta  # noqa: E402
+import tree_sitter_json
+
+from pydantree_sitter import Language, M, OutputModel, source_meta
+from pydantree_sitter.schema import NodeSchema
 
 JSON_SAMPLE = """\
 [

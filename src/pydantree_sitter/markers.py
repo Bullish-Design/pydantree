@@ -10,8 +10,6 @@ NodeKind, Unescaped.
 
 from __future__ import annotations
 
-from typing import Optional, Union
-
 # --------------------------------------------------------------------------
 # capture-name constants
 # --------------------------------------------------------------------------
@@ -93,7 +91,7 @@ class _Capture:
 
     __slots__ = ("field",)
 
-    def __init__(self, field: Optional[str] = None):
+    def __init__(self, field: str | None = None):
         self.field = field
 
 
@@ -131,7 +129,7 @@ class _Derived:
         self.default = default
 
 
-def capture(field: Optional[str] = None) -> _Capture:
+def capture(field: str | None = None) -> _Capture:
     return _Capture(field)
 
 
@@ -160,7 +158,7 @@ class NodeKind:
 
     __slots__ = ("kinds",)
 
-    def __init__(self, kinds: Union[str, tuple[str, ...], list[str]]):
+    def __init__(self, kinds: str | tuple[str, ...] | list[str]):
         if isinstance(kinds, str):
             kinds = (kinds,)
         if not kinds or not all(isinstance(k, str) for k in kinds):

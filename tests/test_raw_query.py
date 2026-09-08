@@ -6,7 +6,6 @@ and multi-anchor joins are out of scope and expressed here.
 from __future__ import annotations
 
 import pytest
-
 import tree_sitter_python
 
 from pydantree_sitter import (
@@ -101,7 +100,9 @@ def test_raw_query_multi_pattern_does_not_index_error():
 
 
 def test_match_and_raw_query_are_mutually_exclusive():
-    with pytest.raises(Exception):
+    from pydantree_sitter import ShapeError
+
+    with pytest.raises(ShapeError):
 
         class Both(OutputModel):
             __match__ = M("module", "expression_statement")

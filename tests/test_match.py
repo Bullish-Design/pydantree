@@ -13,15 +13,15 @@ import random
 
 import pytest
 
-from pydantree_sitter.match import match_ancestor_path
 from pydantree_sitter.markers import GAP
+from pydantree_sitter.match import match_ancestor_path
 from pydantree_sitter.spec import PathStep
 
 
 class _Node:
     """A minimal ancestry chain (parent pointers only)."""
 
-    def __init__(self, kind: str, parent: "_Node | None" = None):
+    def __init__(self, kind: str, parent: _Node | None = None):
         self.type = kind
         self.parent = parent
 

@@ -15,7 +15,6 @@ not-an-extraction-model error.
 from __future__ import annotations
 
 import pytest
-
 import tree_sitter_python
 
 from pydantree_sitter import (

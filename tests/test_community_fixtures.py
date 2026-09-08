@@ -22,7 +22,6 @@ import difflib
 from pathlib import Path
 
 import pytest
-
 from community_fixture_manifest import COMMUNITY_FIXTURES
 
 TESTS = Path(__file__).resolve().parent

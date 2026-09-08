@@ -224,8 +224,8 @@ DEFAULT_PRECEDENCE_CORPUS: list[tuple[str, str]] = [
     ("-a ^ b;", "(- ((identifier) ^ (identifier)))"),          # -(a^b)
     ("-f(x);", "(- ((identifier) ( args((identifier)) )))"),    # -(f(x))
     ("a.b.c;", "(((identifier) . identifier) . identifier)"),   # (a.b).c
-    ("f(x)(y);", "(((identifier) ( args((identifier)) )) "
-                  "( args((identifier)) ))"),                    # (f(x))(y)
+      ("f(x)(y);", ("(((identifier) ( args((identifier)) )) "
+                    "( args((identifier)) ))")),                 # (f(x))(y)
     ("-a or b;", "((- (identifier)) or (identifier))"),          # (-a) or b
 ]
 

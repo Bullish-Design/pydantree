@@ -35,7 +35,6 @@ import argparse
 import difflib
 import os
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 
@@ -47,7 +46,7 @@ CORPUS = ("shift_reduce", "dangling_else", "reduce_reduce")
 def cli_version() -> str:
     try:
         out = subprocess.run(["tree-sitter", "--version"],
-                             capture_output=True, text=True)
+                             capture_output=True, text=True, check=False)
         return (out.stdout or out.stderr).strip()
     except FileNotFoundError:
         return "(tree-sitter not on PATH)"

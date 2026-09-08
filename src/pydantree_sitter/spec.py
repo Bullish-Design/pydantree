@@ -25,23 +25,23 @@ from typing import (
     ClassVar,
     ForwardRef,
     Literal,
-    Optional,
     Union,
     get_args,
     get_origin,
 )
 
 from pydantic import BaseModel
-from pydantic.fields import PydanticUndefined
 from pydantic._internal._model_construction import ModelMetaclass
+from pydantic.fields import PydanticUndefined
 
 from .errors import ShapeError
 from .markers import (
-    GAP,
-    M,
+    _MARKERS,
     _MISSING,
+    GAP,
     AnyOf,
     Eq,
+    M,
     Matches,
     NodeKind,
     RawQuery,
@@ -49,7 +49,6 @@ from .markers import (
     _Capture,
     _CaptureKind,
     _Derived,
-    _MARKERS,
     _SourceMeta,
     capture,
     capture_kind,
@@ -58,9 +57,17 @@ from .markers import (
 )
 
 __all__ = [
-    "GAP", "PathStep", "FieldBinding", "MatchSpec", "derive_spec",
-    "OutputModel", "DerivingMeta",
-    "capture", "capture_kind", "source_meta", "derived",
+    "GAP",
+    "DerivingMeta",
+    "FieldBinding",
+    "MatchSpec",
+    "OutputModel",
+    "PathStep",
+    "capture",
+    "capture_kind",
+    "derive_spec",
+    "derived",
+    "source_meta",
 ]
 
 # ---------------------------------------------------------------------------
@@ -87,7 +94,7 @@ class FieldBinding:
     predicates: tuple = ()         # Matches/Eq/AnyOf markers, inert data
     optional: bool = False
     is_list: bool = False
-    nested: Optional[type] = None  # OutputModel subclass (issubclass check)
+    nested: type | None = None  # OutputModel subclass (issubclass check)
     unescape: bool = False
     is_meta: bool = False
     explicit_key: bool = False
@@ -119,8 +126,8 @@ class MatchSpec:
 
     path: tuple[PathStep | object, ...]  # PathStep | GAP
     record: bool = False
-    record_pair: Optional[str] = None
-    raw_query: Optional[str] = None
+    record_pair: str | None = None
+    raw_query: str | None = None
     bindings: tuple[FieldBinding, ...] = ()
 
     @property
@@ -128,7 +135,7 @@ class MatchSpec:
         return any(p is GAP for p in self.path)
 
     @property
-    def anchor_kind(self) -> Optional[str]:
+    def anchor_kind(self) -> str | None:
         """The anchor's kind (the last path step) — None for raw queries."""
         if self.raw_query is not None:
             return None
@@ -199,7 +206,9 @@ def _resolve_annotation(model_cls, fname, annotation):
         args = tuple(_try_resolve_forward_ref(model_cls, a)
                      if isinstance(a, ForwardRef) else a
                      for a in get_args(annotation))
-        annotation = args[0] if len(args) == 1 else Union[args]
+        # The union is assembled dynamically from resolved ForwardRefs; the
+        # PEP 604 spelling cannot represent this runtime operation.
+        annotation = args[0] if len(args) == 1 else Union[args]  # noqa: UP007
     if isinstance(annotation, ForwardRef) or \
             (not isinstance(annotation, type) and get_origin(annotation) is None):
         raise ShapeError(
@@ -227,7 +236,7 @@ def _try_resolve_forward_ref(model_cls, ref):
         return ref
     try:
         return eval(name, vars(module))
-    except Exception:
+    except Exception:  # noqa: BLE001 — forward-ref resolution is best effort
         return ref
 
 
@@ -292,7 +301,7 @@ def _field_binding(model_cls, fname, f, record: bool) -> FieldBinding | None:
     )
 
 
-def derive_spec(model_cls: type["OutputModel"]) -> MatchSpec:
+def derive_spec(model_cls: type[OutputModel]) -> MatchSpec:
     """The pure declaration: model class -> MatchSpec.
 
     A pure function of `model_fields` + `__match__` / `__raw_query__`; no
@@ -338,7 +347,7 @@ def derive_spec(model_cls: type["OutputModel"]) -> MatchSpec:
                      bindings=tuple(bindings))
 
 
-def binding_warnings(model_cls: type["OutputModel"]) -> list[str]:
+def binding_warnings(model_cls: type[OutputModel]) -> list[str]:
     """Warnings for bindings that can never materialize (the port of the
     legacy quantifier-vs-type check, 014 §4.1). Surfaced once at bind via
     warnings.warn — never prints. Only a field with NO binding and no
@@ -477,9 +486,9 @@ def _sugar_extractor(model_cls, language, schema, *, strict: bool):
     if lang is None:
         if schema is not None:
             raise ShapeError(
-                f"extract(..., schema=...) needs a language too — pass "
-                f"language= (a Language, a grammar module, or a "
-                f"tree_sitter.Language)")
+                "extract(..., schema=...) needs a language too — pass "
+                "language= (a Language, a grammar module, or a "
+                "tree_sitter.Language)")
         raise ShapeError(
             f"{model_cls.__name__}.extract needs language= (a Language, a "
             f"grammar module, or a tree_sitter.Language) — "

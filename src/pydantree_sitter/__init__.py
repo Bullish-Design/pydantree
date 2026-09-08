@@ -36,14 +36,14 @@ from .errors import (
     QueryBuildError,
     SchemaCheckError,
     ShapeError,
-    UnsupportedLanguageError,
     TreeLanguageError,
+    UnsupportedLanguageError,
 )
 from .loader import load_bundle
 from .markers import (
-    M,
     AnyOf,
     Eq,
+    M,
     Matches,
     NodeKind,
     RawQuery,
@@ -68,7 +68,6 @@ from .pattern import (
     registered_languages,
 )
 from .rules import Rule
-from .syntax import SYNTAX_CHECKS, check_json, check_python, syntax_check_for
 from .schema import (
     ChildInfo,
     NodeSchema,
@@ -76,28 +75,65 @@ from .schema import (
     NodeTypeRef,
 )
 from .spec import OutputModel
+from .syntax import SYNTAX_CHECKS, check_json, check_python, syntax_check_for
 from .valuemap import JSON_VALUE_MAP, ValueMap, propose_value_map
 
 __version__ = "0.2.0"
 
 __all__ = [
-    # the model surface
-    "OutputModel", "M", "capture", "capture_kind", "source_meta", "derived",
-    "Matches", "Eq", "AnyOf", "NodeKind", "Unescaped", "RawQuery",
-    # the bind
-    "Language", "Extractor", "Span",
-    # the schema seam + declared value shapes
-    "NodeSchema", "NodeTypeInfo", "ChildInfo", "NodeTypeRef",
-    "ValueMap", "JSON_VALUE_MAP", "propose_value_map", "load_bundle",
-    # errors (the taxonomy, §1.3)
-    "PydantreeSitterError", "SchemaCheckError", "ShapeError",
-    "QueryBuildError", "ExtractionError", "AmbiguousCaptureError",
-    "BundleError", "MatchFailure",
-    # structural pattern matching + rewrite (022) — the `pattern` extra
-    "Pattern", "PatternMatch", "Rule", "Edit", "ReplaceResult",
-    "GrammarAgreement", "register_bundle_language", "registered_languages",
+    "JSON_VALUE_MAP",
     # the third-parser seam: what the LANGUAGE calls valid, not tree-sitter
-    "SYNTAX_CHECKS", "syntax_check_for", "check_python", "check_json",
-    "PatternError", "PatternBuildError", "PatternResolutionError",
-    "PatternRewriteError", "UnsupportedLanguageError", "TreeLanguageError",
+    "SYNTAX_CHECKS",
+    "AmbiguousCaptureError",
+    "AnyOf",
+    "BundleError",
+    "ChildInfo",
+    "Edit",
+    "Eq",
+    "ExtractionError",
+    "Extractor",
+    "GrammarAgreement",
+    # the bind
+    "Language",
+    "M",
+    "MatchFailure",
+    "Matches",
+    "NodeKind",
+    # the schema seam + declared value shapes
+    "NodeSchema",
+    "NodeTypeInfo",
+    "NodeTypeRef",
+    # the model surface
+    "OutputModel",
+    # structural pattern matching + rewrite (022) — the `pattern` extra
+    "Pattern",
+    "PatternBuildError",
+    "PatternError",
+    "PatternMatch",
+    "PatternResolutionError",
+    "PatternRewriteError",
+    # errors (the taxonomy, §1.3)
+    "PydantreeSitterError",
+    "QueryBuildError",
+    "RawQuery",
+    "ReplaceResult",
+    "Rule",
+    "SchemaCheckError",
+    "ShapeError",
+    "Span",
+    "TreeLanguageError",
+    "Unescaped",
+    "UnsupportedLanguageError",
+    "ValueMap",
+    "capture",
+    "capture_kind",
+    "check_json",
+    "check_python",
+    "derived",
+    "load_bundle",
+    "propose_value_map",
+    "register_bundle_language",
+    "registered_languages",
+    "source_meta",
+    "syntax_check_for",
 ]

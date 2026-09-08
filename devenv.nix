@@ -79,7 +79,7 @@
     # this repository has no [tool.ty] in pyproject.toml. That is what "the
     # repository defines the group's task names" means in practice — the group
     # file names a task and never a tool or its arguments.
-    "python:lint".exec = "ruff check .";
+    "python:lint".exec = "ruff check src tests";
     "python:typecheck".exec = "ty check src";
     "python:test".exec = "pytest";
 

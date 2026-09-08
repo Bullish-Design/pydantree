@@ -16,7 +16,6 @@ by construction — the IR-derivation port is gone.)
 from __future__ import annotations
 
 import json
-import shutil
 import sys
 from pathlib import Path
 
@@ -24,7 +23,12 @@ import pytest
 
 import pydantree_sitter_grammar as tg
 from pydantree_sitter import (
-    Language, M, OutputModel, capture, capture_kind, source_meta,
+    Language,
+    M,
+    OutputModel,
+    capture,
+    capture_kind,
+    source_meta,
 )
 
 CONSUMERS = Path(__file__).resolve().parent / "fixtures" / "consumers"
@@ -32,16 +36,18 @@ CONSUMERS = Path(__file__).resolve().parent / "fixtures" / "consumers"
 pytestmark = [pytest.mark.toolchain, pytest.mark.slow]
 
 
-from bfree import build_consumer_env, run_bfree  # noqa: E402
-from cfg_grammar import (  # noqa: E402
+from bfree import build_consumer_env, run_bfree
+from cfg_grammar import (
     CORPUS,
     LISTEN_GROUND_TRUTH,
     SECTION_GROUND_TRUTH,
+)
+from cfg_grammar import (
     build as build_cfg,
 )
-from json_grammar import build as build_json  # noqa: E402
-from pydantree_sitter_grammar.language import load_language  # noqa: E402
-from pydantree_sitter.schema import NodeSchema  # noqa: E402
+from json_grammar import build as build_json
+
+from pydantree_sitter.schema import NodeSchema
 
 
 class ServerSection(OutputModel):
@@ -205,7 +211,7 @@ def test_community_bundle_build_and_bfree_extraction(tmp_path):
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(RUST_FIXTURE, tmp_path / "bundle",
                                     name="rust")
-    assert set(p.name for p in bundle.iterdir()) == {
+    assert {p.name for p in bundle.iterdir()} == {
         "grammar.so", "node-schema.json", "tree-sitter.json", "loader.py"}
     rc, out = run_bfree(P8_DIR / "consumer_rust.py", str(bundle),
                         workdir=tmp_path / "bfree")
@@ -225,8 +231,8 @@ def test_community_job1_catches_bad_path_over_real_rust(tmp_path):
     names a kind the grammar cannot produce (tuple_type is not a node kind in
     rust — struct_item -> ordered_field_declaration_list directly) is
     rejected at validate_with, before any text is parsed."""
-    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     from pydantree_sitter import SchemaCheckError
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(RUST_FIXTURE, tmp_path / "bundle",
                                     name="rust")
     lang = Language.load_bundle(bundle)
@@ -348,8 +354,8 @@ def test_capture_kind_job1_rejects_non_child(tmp_path):
     anchor is rejected before parsing (real markdown: `language` sits under
     info_string, not on fenced_code_block; `link_destination` sits under
     inline_link, not on inline)."""
-    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     from pydantree_sitter import SchemaCheckError
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     md = Path(__file__).resolve().parent / "fixtures" / "markdown"
     block = build_community_bundle(md, tmp_path / "b-block", name="markdown")
     lang = Language.load_bundle(block)
@@ -381,7 +387,7 @@ def test_community_bundle_build_and_bfree_fleet_extraction(tmp_path):
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(NIX_FIXTURE, tmp_path / "bundle",
                                     name="nix")
-    assert set(p.name for p in bundle.iterdir()) == {
+    assert {p.name for p in bundle.iterdir()} == {
         "grammar.so", "node-schema.json", "tree-sitter.json", "loader.py"}
     rc, out = run_bfree(P9_DIR / "consumer_nix.py",
                         str(NIX_FIXTURE / "fleet"),
@@ -406,8 +412,8 @@ def test_nix_attrpath_capture_rejected_as_str(tmp_path):
     of identifiers + dots) — Job 4 rejects capturing it as str (the
     Phase-8 'no raw text of any node' residual, triggered hard over nix: the
     KEY of every nix binding is context, not a capture)."""
-    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     from pydantree_sitter import SchemaCheckError
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(NIX_FIXTURE, tmp_path / "bundle",
                                     name="nix")
     lang = Language.load_bundle(bundle)
@@ -427,8 +433,8 @@ def test_record_mode_over_nix_binding_set_unsupported(tmp_path):
     key/value fields (the JSON pair shape); nix's binding_set carries a
     `binding` FIELD with attrpath/expression. A documented parameterization
     candidate, not a fit today."""
-    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     from pydantree_sitter import M, OutputModel, ShapeError, propose_value_map
+    from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(NIX_FIXTURE, tmp_path / "bundle",
                                     name="nix")
     lang = Language.load_bundle(bundle)

@@ -74,7 +74,7 @@ devenv shell -- python -m pytest tests/            # the full suite (fast, ~40s)
 devenv shell -- python -m pytest tests/test_scanners.py -q
 devenv shell -- python -m pytest tests/test_wasm.py -q
 devenv shell -- ty check src
-devenv shell -- ruff check src
+devenv shell -- ruff check src tests
 ```
 
 - The suite is the verification record. Run `python -m pytest -q` for the
