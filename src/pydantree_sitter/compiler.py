@@ -22,7 +22,7 @@ from typing import Any, Optional, get_args, get_origin
 from .emit import Query, cap, node
 from .errors import QueryBuildError, SchemaCheckError, ShapeError
 from .markers import ANCHOR, GAP, RECORD_CAP, AnyOf, Eq, Matches
-from .spec import FieldBinding, MatchSpec, unwrap_optional
+from .spec import FieldBinding, MatchSpec, PathStep, unwrap_optional
 from .valuemap import (
     JSON_KINDS,
     JSON_VALUE_MAP,
@@ -160,6 +160,7 @@ def emitted_source(model_cls, schema=None, *, check: bool = False) -> str:
 # ---------------------------------------------------------------------------
 
 def _compile_raw(model_cls, spec: MatchSpec, language, value_map: ValueMap):
+    assert spec.raw_query is not None
     compiled = _Compiled(model=model_cls, spec=spec, value_map=value_map,
                          schema=language.schema, bindings=spec.bindings)
     compiled.query = Query.raw(spec.raw_query)
@@ -243,6 +244,8 @@ def _check_path(model_cls, spec: MatchSpec, schema) -> None:
     for step in spec.path:
         if step is GAP:
             continue
+        if not isinstance(step, PathStep):
+            continue
         for kind in step.kinds:
             t = schema.get(kind)
             if t is None:
@@ -257,6 +260,8 @@ def _check_path(model_cls, spec: MatchSpec, schema) -> None:
     for step in spec.path:
         if step is GAP:
             gap = True
+            continue
+        if not isinstance(step, PathStep):
             continue
         for kind in step.kinds:
             if prev is not None:
@@ -280,8 +285,8 @@ def _check_path(model_cls, spec: MatchSpec, schema) -> None:
 # ---------------------------------------------------------------------------
 
 def _field_quant(b: FieldBinding, annotation) -> str:
-    """The emitted quantifier for a field-mode capture: `?` for an optional
-    scalar AND for LIST fields (zero-or-more), "" otherwise (exactly one).
+    """The emitted quantifier for a field-mode capture: `?` for LIST fields
+    (zero-or-more), "" otherwise (exactly one).
 
     For a list field `?` means zero-or-more via the anchor-merge machinery
     (A2/REVIEW 020): the repeated child is fielded, tree-sitter yields ONE
@@ -293,7 +298,7 @@ def _field_quant(b: FieldBinding, annotation) -> str:
     empirically.)"""
     if get_origin(unwrap_optional(annotation)) is list:
         return "?"
-    return "?" if b.optional else ""
+    return ""
 
 
 def _capture_spec(k: str, b: FieldBinding, vm):
@@ -335,25 +340,33 @@ def _compile_field(compiled: _Compiled, language, *, check: bool = True) -> None
             field_kinds[b.name] = ("_",)
 
     patterns = []
-    for steps, chosen in _combinations(suffix, field_kinds):
-        cur = node(steps[-1])
+    for steps in _path_combinations(suffix):
+        # Keep the anchor visible even when none of the optional/list fields
+        # occur. Per-capture patterns below contribute fields independently,
+        # so repeated fields cannot form a cartesian product and model field
+        # order cannot impose a CST sibling order.
+        patterns.append(_wrap_anchor(steps, node(steps[-1])))
         for b in bindings:
             if b.is_meta:
                 continue
-            k = chosen[b.name]
-            quant = _field_quant(b, annotations[b.name])
-            if b.source == "child_kind":
-                cur.child(node=node(b.key).capture(b.name), quant=quant)
-            else:
-                cur.child(field=b.key,
-                          node=_capture_spec(k, b, compiled.value_map),
-                          quant=quant)
-            for p in _preds_for(b):
-                cur.where(p)
-        cur.capture(ANCHOR)
-        for s in reversed(steps[:-1]):
-            cur = node(s).child(node=cur)
-        patterns.append(cur)
+            # `child_kind` uses its key directly; NodeKind alternatives are
+            # meaningful only for field-backed captures. The old combined
+            # emitter ignored this choice for child_kind, so do not emit
+            # duplicate queries for it here.
+            choices = (b.key,) if b.source == "child_kind" \
+                else field_kinds[b.name]
+            for k in choices:
+                cur = node(steps[-1])
+                quant = _field_quant(b, annotations[b.name])
+                if b.source == "child_kind":
+                    cur.child(node=node(b.key).capture(b.name), quant=quant)
+                else:
+                    cur.child(field=b.key,
+                              node=_capture_spec(k, b, compiled.value_map),
+                              quant=quant)
+                for p in _preds_for(b):
+                    cur.where(p)
+                patterns.append(_wrap_anchor(steps, cur))
 
     compiled.query = Query(*patterns)
     if schema is not None and check:
@@ -372,16 +385,20 @@ def _split_suffix(path: tuple) -> tuple[tuple, tuple]:
     return tuple(steps[last_gap + 1:]), tuple(steps[:last_gap])
 
 
-def _combinations(suffix: tuple, field_kinds: dict):
-    """Cartesian product of suffix-step kind choices x field-kind choices."""
+def _path_combinations(suffix: tuple):
+    """Yield path-kind alternatives without combining field captures."""
     import itertools
     step_choices = [s.kinds if len(s.kinds) > 1 else (s.kinds[0],)
                     for s in suffix]
-    field_names = list(field_kinds)
-    field_choices = [field_kinds[n] for n in field_names]
-    for step_combo in itertools.product(*step_choices):
-        for field_combo in itertools.product(*field_choices):
-            yield tuple(step_combo), dict(zip(field_names, field_combo))
+    yield from itertools.product(*step_choices)
+
+
+def _wrap_anchor(steps: tuple, cur):
+    """Capture ``cur`` as the anchor and wrap it in the ancestor suffix."""
+    cur.capture(ANCHOR)
+    for s in reversed(steps[:-1]):
+        cur = node(s).child(node=cur)
+    return cur
 
 
 def _infer_field_kind(schema, vm: ValueMap, anchor_kinds: tuple, b: FieldBinding,

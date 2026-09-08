@@ -243,9 +243,10 @@ def test_community_job1_catches_bad_path_over_real_rust(tmp_path):
 
 
 def test_optional_field_capture_is_query_optional(tmp_path):
-    """Phase 6.5: a field-mode capture with an Optional type emits `?` in the
-    derived query — matches WITHOUT the field still materialize (None), while
-    a required capture (no Optional, no real default) stays required. This is
+    """Phase 6.5: an Optional field-mode capture is materializable without
+    the field, while a required capture stays required. Field mode now emits
+    an anchor-only pattern plus one independent pattern per capture, so the
+    optional capture itself is not syntactically quantified. This preserves
     the fix for the Phase-6 finding that `str | None = capture(...)` silently
     excluded every node lacking the field (real rust `fn no_return() {}`)."""
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
@@ -259,9 +260,12 @@ def test_optional_field_capture_is_query_optional(tmp_path):
         return_type: str | None = capture("return_type")
         line: int = source_meta()
 
-    # the derived query makes the optional capture `?`-quantified
+    # the anchor-only pattern covers the absent optional field; its own
+    # capture pattern remains exact
     src = RustFnReturn.compiled_source(schema=lang.schema, language=lang)
-    assert "return_type:(_)? @return_type" in src, src
+    assert "(function_item) @__anchor__" in src, src
+    assert "return_type:(_) @return_type" in src, src
+    assert "return_type:(_)? @return_type" not in src, src
     rows = [r.model_dump() for r in RustFnReturn.extract(
         "fn add(a: u32) -> u32 { a }\nfn main() {}\n", language=lang)]
     assert rows == [{"name": "add", "return_type": "u32", "line": 1},
@@ -271,7 +275,7 @@ def test_optional_field_capture_is_query_optional(tmp_path):
         __match__ = M("source_file", "function_item")
         name: str = capture("name")
 
-    # a required capture (no Optional, no real default) is NOT quantified
+    # a required capture (no Optional, no real default) is exact
     src2 = Required.compiled_source(schema=lang.schema, language=lang)
     assert "name:(_)?" not in src2
     assert "name:(_) @name" in src2, src2
@@ -279,13 +283,13 @@ def test_optional_field_capture_is_query_optional(tmp_path):
 
 def test_capture_kind_optionality_quantifies_only_optional_fields(tmp_path):
     """Phase 8 (real bash): `= capture_kind(...)` is a MARKER, not a real
-    default — a required capture_kind field must NOT be query-optional.
-    Before the fix, `_field_is_query_optional` missed _CaptureKind in the
-    marker tuple, so EVERY capture_kind field emitted `?` and a required
-    heredoc_start/body capture could match vacuously (then fail
-    materialization with "field required" — surfaced over real bash's
-    positional heredoc children). Optional capture_kind fields keep `?`
-    (an absent child materializes None)."""
+    default — a required capture_kind field must not be materializable from
+    the anchor-only pattern. Before the fix, `_field_is_query_optional`
+    missed _CaptureKind in the marker tuple, so EVERY capture_kind field
+    emitted `?` and a required heredoc_start/body capture could match
+    vacuously (then fail materialization with "field required" — surfaced
+    over real bash's positional heredoc children). Optional capture_kind
+    fields are covered by the anchor-only pattern when absent."""
     from pydantree_sitter_grammar.schema_tool import build_community_bundle
     bundle = build_community_bundle(BASH_FIXTURE, tmp_path / "bundle",
                                     name="bash")
@@ -309,7 +313,8 @@ def test_capture_kind_optionality_quantifies_only_optional_fields(tmp_path):
         end: str | None = capture_kind("heredoc_end")
 
     src2 = HeredocOptional.compiled_source(schema=lang.schema, language=lang)
-    assert "(heredoc_end)? @end" in src2, src2
+    assert "(heredoc_end) @end" in src2, src2
+    assert "(heredoc_end)? @end" not in src2, src2
 
 
 def test_markdown_community_bundle_and_bfree_extraction(tmp_path):

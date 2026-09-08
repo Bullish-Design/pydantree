@@ -230,6 +230,62 @@ def test_field_mode_list_with_schema_bound():
                     {"name": "g", "params": ["x", "y"]}]
 
 
+def _multi_list_grammar() -> tg.Grammar:
+    """A node with several repeated fields on the same anchor."""
+    g = tg.Grammar("multi_list")
+    g.rule("identifier", tg.pattern(r"[a-z]+"), word=True)
+    g.rule("item", tg.seq(
+        "(", tg.repeat(tg.field("left", tg.ref("identifier"))), ";",
+        tg.repeat(tg.field("middle", tg.ref("identifier"))), ";",
+        tg.repeat(tg.field("right", tg.ref("identifier"))), ")"))
+    g.rule("source_file", tg.repeat(tg.ref("item")))
+    g.start("source_file")
+    return g
+
+
+def test_field_mode_multiple_lists_do_not_form_cartesian_duplicates():
+    """Each repeated field is merged independently, not per combination."""
+    class Items(OutputModel):
+        __match__ = M("source_file", "item")
+        left: list[str] = capture("left")
+        middle: list[str] = capture("middle")
+        right: list[str] = capture("right")
+
+    lang = Language.load(tg.build_builder(_multi_list_grammar()).language())
+    rows = [r.model_dump() for r in
+            Items.extract("(a b; c d; e f)\n", language=lang)]
+    assert rows == [{
+        "left": ["a", "b"],
+        "middle": ["c", "d"],
+        "right": ["e", "f"],
+    }]
+
+
+def _ordered_field_grammar() -> tg.Grammar:
+    """A node whose CST fields have a meaningful grammar order."""
+    g = tg.Grammar("ordered_field")
+    g.rule("identifier", tg.pattern(r"[a-z]+"), word=True)
+    g.rule("function_item", tg.seq(
+        tg.field("name", tg.ref("identifier")), "->",
+        tg.field("return_type", tg.ref("identifier"))))
+    g.rule("source_file", tg.repeat(tg.ref("function_item")))
+    g.start("source_file")
+    return g
+
+
+def test_field_mode_capture_order_is_independent_of_model_field_order():
+    """Reordering model fields must not reorder CST siblings in a query."""
+    class Reordered(OutputModel):
+        __match__ = M("source_file", "function_item")
+        return_type: str = capture("return_type")
+        name: str = capture("name")
+
+    lang = Language.load(tg.build_builder(_ordered_field_grammar()).language())
+    rows = [r.model_dump() for r in
+            Reordered.extract("f -> int\n", language=lang)]
+    assert rows == [{"return_type": "int", "name": "f"}]
+
+
 def test_field_mode_list_anchor_with_zero_occurrences_matches():
     """A2/REVIEW 020: a non-optional list[T] field whose anchor has ZERO
     occurrences of the repeated child used to vanish — the emitted quantifier

@@ -91,8 +91,8 @@ class Call(OutputModel):
 | `Annotated[T, NodeKind("integer")]` | constrain the matched node kind (tuple = alternation); schema-checked |
 | `Annotated[str, Unescaped()]` | decode the string literal's escapes (JSON-first) — the schema check requires a string-wrapper shape |
 | `= derived(value)` | a COMPUTED field — excluded from the query, materialized from the given value (D4.1: unmarked = bind-by-name) |
-| `str \| None = capture(...)` | **optional capture**: matches WITHOUT the field still materialize (None) — a field-mode capture is query-optional iff the model can materialize without it |
-| `list[T] = capture("field")` | **field-mode list**: merge the repeated field's matches across the shared anchor (the repeated field must sit ON the anchor node) |
+| `str \| None = capture(...)` | **optional capture**: an anchor-only pattern lets matches WITHOUT the field materialize (None) |
+| `list[T] = capture("field")` | **field-mode list**: merge the repeated field's independent matches across the shared anchor (the repeated field must sit ON the anchor node) |
 | nested `OutputModel` | a field typed as another `OutputModel` materializes the nested node with the inner model |
 
 ### 2.3 Record mode (key/value documents)

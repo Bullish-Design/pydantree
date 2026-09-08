@@ -116,9 +116,16 @@ def merge_group(caps_list: list[dict], bindings) -> dict:
         for name, nodes in caps.items():
             merged.setdefault(name, []).extend(nodes)
     for b in bindings:
-        if b.is_meta or b.is_list:
+        if b.is_meta:
             continue
         nodes = merged.get(b.capture_name, [])
+        if b.is_list:
+            # Independent per-capture patterns can still observe the same
+            # repeated node through more than one query match. Preserve
+            # source order while making the list semantics set-like by CST
+            # node identity, just as scalar captures already are.
+            merged[b.capture_name] = _dedup_by_id(nodes)
+            continue
         if len(nodes) > 1:
             dedup = _dedup_by_id(nodes)
             if len(dedup) > 1:

@@ -68,10 +68,11 @@ FN_GROUND_TRUTH = [
     {"name": "greet", "line": 14},
     {"name": "no_return", "line": 26},
 ]
-# functions WITH their return type — an Optional field-mode capture is now
-# query-optional (Phase 6.5): `return_type: str | None = capture(...)` emits
-# `return_type:(_)?`, so functions WITHOUT the field also match (None) — the
-# Phase-6 finding (the field was silently required) is fixed
+# functions WITH their return type — an Optional field-mode capture is
+# materializable without the field (Phase 6.5). Field mode emits an
+# anchor-only pattern alongside the exact return_type capture pattern, so
+# functions WITHOUT the field also match (None) — the Phase-6 finding (the
+# field was silently required) is fixed
 FN_RETURN_GROUND_TRUTH = [
     {"name": "add", "return_type": "u32", "line": 4},
     {"name": "main", "return_type": None, "line": 8},
@@ -94,7 +95,7 @@ class RustFn(OutputModel):
 
 class RustFnReturn(OutputModel):
     """Functions with their return type: an Optional field-mode capture — the
-    query emits `return_type:(_)?`, so functions WITHOUT one match with None
+    anchor-only query pattern, so functions WITHOUT one match with None
     (the Phase-6.5 fix; previously the field was silently required)."""
 
     __match__ = M("source_file", "function_item")

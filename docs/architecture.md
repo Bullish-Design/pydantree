@@ -139,6 +139,14 @@ Grammar -> IR (grammar.json) -> tree-sitter generate --json -> src/parser.c
 - **Value shapes (D6)**: record-mode shapes consume ONLY (schema, ValueMap).
   `propose_value_map(schema)` is the draft generator (reviewed, committed —
   never silent inference); `JSON_VALUE_MAP` is the schema-less JSON family.
+- **Field-mode capture emission (Review 021 D1/D3)**: the compiler emits one
+  anchor-only pattern plus one anchored pattern per non-meta capture (and per
+  kind alternative). Captures are therefore merged independently by anchor:
+  repeated list fields cannot form a cartesian product, and model declaration
+  order cannot impose a sibling order on the CST query. Required scalar
+  presence is checked during materialization; optional and list fields can be
+  supplied by the anchor-only match when absent. List nodes are deduplicated
+  by CST identity while preserving source order.
 
 ## 6. The external-scanner mechanism (summary — full contract in
 [scanner-library.md](scanner-library.md))

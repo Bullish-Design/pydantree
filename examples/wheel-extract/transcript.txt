@@ -2,10 +2,18 @@
 language: 'python' — a community wheel (no CLI, no gcc, no bundle build)
 
 Function.compiled_source()  # the query each class IS:
-(module (function_definition name:(_) @name return_type:(_)? @return_type) @__anchor__)
+(module (function_definition) @__anchor__)
+
+(module (function_definition name:(_) @name) @__anchor__)
+
+(module (function_definition return_type:(_) @return_type) @__anchor__)
 
 Assignment.compiled_source():
-(module (expression_statement (assignment left:(_) @target right:(_) @value) @__anchor__))
+(module (expression_statement (assignment) @__anchor__))
+
+(module (expression_statement (assignment left:(_) @target) @__anchor__))
+
+(module (expression_statement (assignment right:(_) @value) @__anchor__))
 
 === step 2: parse the corpus (CST, fields shown) ===
 module

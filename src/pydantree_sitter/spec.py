@@ -161,8 +161,9 @@ def is_optional(t) -> bool:
 
 
 def _field_is_query_optional(f) -> bool:
-    """A capture is query-optional iff the model can materialize WITHOUT the
-    field: an Optional annotation, or a REAL default. A marker default
+    """A capture is materialization-optional iff the model can materialize
+    WITHOUT the field: an Optional annotation, or a REAL default. A marker
+    default
     (`= capture(...)` etc.) is NOT a default — pydantic's `is_required()`
     treats any default as non-required, so the marker would wrongly make a
     required field optional."""

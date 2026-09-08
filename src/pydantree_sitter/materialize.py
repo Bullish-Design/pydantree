@@ -237,6 +237,20 @@ def _is_optional(t) -> bool:
     return is_optional(t)
 
 
+def _required_captures_present(bindings, caps: dict) -> bool:
+    """Return whether every required scalar field captured its value.
+
+    Field mode emits one pattern per binding, so an anchor-only match is
+    useful for optional and list-only models but cannot by itself produce a
+    row for a model with a required scalar field. The old combined pattern
+    enforced this in the query engine; keep the same row-filtering contract
+    explicitly at materialization time.
+    """
+    return all(
+        b.is_meta or b.is_list or b.optional or bool(caps.get(b.capture_name))
+        for b in bindings)
+
+
 # ---------------------------------------------------------------------------
 # the extract loops (the ONE matcher call site, before grouping)
 # ---------------------------------------------------------------------------
@@ -281,6 +295,8 @@ def extract_field(model_cls, compiled, tree: tree_sitter.Tree, *,
     groups, order = group_matches(matches)
     for gid in order:
         caps = merge_group(groups[gid], compiled.bindings)
+        if not _required_captures_present(compiled.bindings, caps):
+            continue
         try:
             results.append(model_cls(**build_kwargs(model_cls,
                                                     compiled.bindings, caps)))
@@ -390,4 +406,3 @@ def _record_kwargs(model_cls, compiled, rec, tree):
             continue
         merged[b.key] = out
     return build_kwargs(model_cls, compiled.bindings, merged)
-
