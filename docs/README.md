@@ -16,7 +16,7 @@ design argument). This directory is the working reference.
 ## For developers (working on this codebase)
 
 - [architecture.md](architecture.md) — how the pieces fit: the A/B split,
-  the three packages, the seams, the pipeline, the schema bridge, the module
+  the two packages, the seams, the pipeline, the schema bridge, the module
   map, the durable facts.
 - [development.md](development.md) — the day-to-day workflow: devenv, uv
   (uv sync, no pip, edits live via a venv .pth), running tests, evidence + commit
@@ -47,6 +47,19 @@ Each phase's verdict + evidence is a `FINDINGS.md` under `../.scratch/projects/0
 | 007 | distribution | corpus harness + the artifact seam |
 | 008 | consumer seam | install boundary + grammar-ownership boundary, GO |
 | 009 | wasm + scanners | wasm assessed (no-go for A's budget, seam landed); 2 real scanners |
+| 010 | Bash adoption | real-user adoption pass |
+| 011 | Nix adoption | real-world adoption pass |
+| 012 | grammar models | class-based Product B grammar surface |
+| 013 | rule classes | Product B rule-class surface |
+| 014 | adversarial review | first deep review and refactor decisions |
+| 015 | Product A spike | initial Product A extraction spike |
+| 016 | model-only extraction | Product A model-only extraction |
+| 017 | legacy island | legacy pydantree isolation |
+| 018 | adversarial review 2 | second adversarial review |
+| 019 | final verification review | verification and release review |
+| 020 | final code review | final code review |
+| 021 | deep adversarial review | concept, architecture, and codebase review |
+| 022 | ast-grep pattern | grammar-agreement pattern module |
 
 ## Coding-agent skills
 

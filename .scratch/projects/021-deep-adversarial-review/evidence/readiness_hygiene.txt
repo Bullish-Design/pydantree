@@ -1,0 +1,25 @@
+Readiness hygiene probe — 2026-09-08
+
+Command:
+  devenv shell -- python .scratch/projects/021-deep-adversarial-review/probes/probe_readiness_hygiene.py
+
+Measured output:
+  D14 py_compile with -W error::SyntaxWarning: returncode=0, stderr=""
+  D16 bundle_format=-7: BundleError
+    bundle <tmp>/bundle: unsupported bundle_format -7 — this loader understands formats 1 and 2 (2 is the current; 1 is the original layout, still accepted)
+  D18 documentation checks: all five checks passed
+    readme_avoids_stale_count=true
+    development_avoids_stale_count=true
+    codegen_describes_runtime_module=true
+    field_nested_shape_error_documented=true
+    phase_022_listed=true
+
+Focused regression command:
+  devenv shell -- python -m pytest -q tests/test_hygiene.py tests/test_loader.py
+  10 passed in 0.75s
+
+Pre-fix observations:
+  - python -W error::SyntaxWarning -m py_compile .../builder.py .../patterns.py
+    failed at builder.py:111 with SyntaxError: invalid escape sequence '\\s'.
+  - bundle_format=0 and -7 reached ctypes.CDLL and raised OSError: file too
+    short instead of the public BundleError.

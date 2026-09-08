@@ -107,7 +107,7 @@ class Call(OutputModel):
 | `= derived(value)` | a COMPUTED field — excluded from the query, materialized from the given value (D4.1: unmarked = bind-by-name) |
 | `str \| None = capture(...)` | **optional capture**: an anchor-only pattern lets matches WITHOUT the field materialize (None) |
 | `list[T] = capture("field")` | **field-mode list**: merge the repeated field's independent matches across the shared anchor (the repeated field must sit ON the anchor node) |
-| nested `OutputModel` | a field typed as another `OutputModel` materializes the nested node with the inner model |
+| nested `OutputModel` | record-mode fields can materialize a nested node with the inner model; field-mode nested records are rejected with `ShapeError` |
 
 ### 2.3 Record mode (key/value documents)
 
@@ -143,7 +143,9 @@ rows = ServerSection.extract(corpus, language=lang)
 - A predicate field that does not match filters the WHOLE record (like the
   field-mode query engine) — unless the field is OPTIONAL, in which case it
   just stays absent (`None`).
-- Nested `OutputModel` fields materialize nested records.
+- Nested `OutputModel` fields materialize nested records in record mode.
+  Field-mode nested records are not supported and fail at bind time with
+  `ShapeError`.
 
 > **Numeric note (REVIEW 020):** the JSON builtin ValueMap declares `number`
 > as `int` — so an `int` field over a JSON `number` passes the bind checks
@@ -197,12 +199,13 @@ per failed match (pattern, anchor span, snippet, pydantic errors);
 
 ### 2.6 Typed CST codegen (typed node access)
 
-Generate a `.pyi` beside the schema — per named kind: field accessors,
-`get(field)` overloads, `children(kind)` overloads, supertype aliases:
+Generate a runnable Python module from the schema. It provides a `TypedNode`
+wrapper, one runtime class per named kind, typed field accessors,
+`children(kind)`, and supertype aliases:
 
 ```python
 from pydantree_sitter.codegen import generate_typed_api
-# REAL runtime classes (not .pyi fiction — F-A4): the module imports and runs
+# The generated module contains real runtime classes and can be imported.
 api_src = generate_typed_api(lang.schema, "mylang_api")
 ```
 

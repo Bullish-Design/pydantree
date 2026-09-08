@@ -54,12 +54,12 @@ def slug() -> str:
 
 
 def path_literal() -> str:
-    """A nix path literal — `./relative/or/absolute`: `\.[/]` + a slug."""
+    r"""A nix path literal — `./relative/or/absolute`: `\.[/]` + a slug."""
     return r"\.[/]" + slug()
 
 
 def dotted_path(segment: str | None = None) -> str:
-    """A dotted path as ONE token: `pkgs`  `config.env.DEVENV_ROOT`
+    r"""A dotted path as ONE token: `pkgs`  `config.env.DEVENV_ROOT`
     `scripts.hello.exec`  `tasks."quoted".exec`.
 
     Shape: `(SEGMENT)(\.ident|"quoted")*` — the FIRST segment may be quoted

@@ -108,7 +108,7 @@ def site_of(node: Rule) -> RuleSite | None:
 
 
 def _char_class_whitespace(content: str) -> bool:
-    """Every element of a char-class body is whitespace: `\s`, `\t`, `\n`,
+    r"""Every element of a char-class body is whitespace: `\s`, `\t`, `\n`,
     `\r`, `\f`, `\v`, or a literal space. Anything else (letters, `-`
     ranges, `^`, ...) makes the class non-whitespace."""
     i = 0
@@ -127,7 +127,7 @@ def _char_class_whitespace(content: str) -> bool:
 
 
 def _only_whitespace(pattern: str) -> bool:
-    """Does a PATTERN match only whitespace characters? (F-B5/B24 —
+    r"""Does a PATTERN match only whitespace characters? (F-B5/B24 —
     intent-based whitespace-extra detection). True when the pattern's
     language is a subset of whitespace: `\s`, a literal space, or a
     character class whose elements are all whitespace (optionally

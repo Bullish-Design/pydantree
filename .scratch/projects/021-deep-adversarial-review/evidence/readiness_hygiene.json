@@ -1,0 +1,23 @@
+{
+  "date": "2026-09-08",
+  "d14_compile_without_syntax_warnings": {
+    "returncode": 0,
+    "stderr": ""
+  },
+  "d16_negative_bundle_format": {
+    "class": "BundleError",
+    "message": "bundle <tmp>/bundle: unsupported bundle_format -7 — this loader understands formats 1 and 2 (2 is the current; 1 is the original layout, still accepted)"
+  },
+  "d18_documentation_checks": {
+    "codegen_describes_runtime_module": true,
+    "development_avoids_stale_count": true,
+    "field_nested_shape_error_documented": true,
+    "phase_022_listed": true,
+    "readme_avoids_stale_count": true
+  },
+  "focused_tests": {
+    "command": "python -m pytest -q tests/test_hygiene.py tests/test_loader.py",
+    "passed": 10,
+    "skipped": 0
+  }
+}

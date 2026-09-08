@@ -887,3 +887,22 @@ default whitespace extra. D9/D10 repair the Product B wildcard import surface.
 C2 warns at the bind boundary for schema-less and unreviewed field-mode value
 shape inference. The 46 Ty diagnostics and repository Ruff baseline remain
 separate known gate findings.
+
+## 12. Readiness hygiene resolution — 2026-09-08
+
+D14 is resolved: the affected Product B docstrings are raw, and compiling
+`builder.py` and `patterns.py` with `-W error::SyntaxWarning` now succeeds.
+The finding header said four warnings but listed seven invalid-escape sites;
+all listed sites were corrected.
+
+D16 is resolved: `load_bundle()` rejects every `bundle_format` outside the
+supported range 1–2, including zero and negative values, with `BundleError`
+before attempting to load an artifact. Absent metadata continues to mean
+format 1 for compatibility.
+
+D18 is resolved for the affected public documentation: suite counts are no
+longer hardcoded in README/development guidance, the phase index includes the
+records through 022, the Product B package count is corrected, the typed-CST
+section describes the generated runtime module, and field-mode nested records
+are documented as a bind-time `ShapeError`. Probe output is in
+`evidence/readiness_hygiene.txt` and `evidence/readiness_hygiene.json`.

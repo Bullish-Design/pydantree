@@ -2,7 +2,7 @@
 
 The TS report §7 flagged the loader's error paths as untested; the 014
 refactor (D12) versions the artifact contract with `bundle_format` (absent =
-format 1, accepted; unknown >2 = `BundleError` naming both versions). These
+format 1, accepted; unsupported values = `BundleError` naming both versions). These
 tests pin all of it, plus a real format-1 bundle still loading after the
 format-2 rollout.
 """
@@ -64,6 +64,19 @@ def test_unknown_bundle_format_is_rejected_naming_both_versions(tmp_path):
     msg = str(exc.value)
     assert "99" in msg
     assert "1" in msg and "2" in msg  # names both versions
+
+
+@pytest.mark.parametrize("fmt", [0, -7])
+def test_bundle_format_below_one_is_rejected(tmp_path, fmt):
+    bundle = _metadata_bundle(
+        tmp_path, {"bundle_format": fmt, "name": "cfg",
+                   "artifact": "grammar.so"})
+    with pytest.raises(BundleError) as exc:
+        load_bundle(bundle)
+    msg = str(exc.value)
+    assert "bundle_format" in msg
+    assert str(fmt) in msg
+    assert "1" in msg and "2" in msg
 
 
 def test_non_int_bundle_format_is_rejected(tmp_path):

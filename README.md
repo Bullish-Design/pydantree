@@ -83,5 +83,5 @@ capture↔type checks run at **bind time** — before any text is parsed.
   install by design.
 - Dev environment: `devenv shell`; `uv sync` manages the venv (uv workspace,
   no pip); the venv resolves `src/` via a `_pydantree_src.pth`, so edits are
-  live immediately (no stale-copy reinstall). Baseline: 272 green (fast loop
-  `-m "not slow"` ~24s).
+  live immediately (no stale-copy reinstall). Run `python -m pytest -q` for
+  the current suite result; the fast loop is `-m "not slow"` (~24s).

@@ -139,8 +139,8 @@ def load_bundle(dir: Path | str) -> Bundle:
 
     Bundle format (D12): the metadata's `bundle_format` int versioning the
     artifact contract. Absent = format 1 (the original layout — accepted);
-    an unknown (>2) format is rejected with `BundleError` naming both
-    versions, so the artifact contract can never silently shift.
+    an unsupported format is rejected with `BundleError` naming both
+    supported versions, so the artifact contract can never silently shift.
     """
     dir = Path(dir)
     meta_path = dir / "tree-sitter.json"
@@ -153,9 +153,9 @@ def load_bundle(dir: Path | str) -> Bundle:
     if not isinstance(fmt, int):
         raise BundleError(
             f"bundle {dir}: bundle_format must be an int, got {fmt!r}")
-    if fmt > 2:
+    if fmt < 1 or fmt > 2:
         raise BundleError(
-            f"bundle {dir}: unknown bundle_format {fmt} — this loader "
+            f"bundle {dir}: unsupported bundle_format {fmt} — this loader "
             f"understands formats 1 and 2 (2 is the current; 1 is the "
             f"original layout, still accepted)")
     name = metadata.get("name")

@@ -75,9 +75,9 @@ devenv shell -- python -m pytest tests/test_scanners.py -q
 devenv shell -- python -m pytest tests/test_wasm.py -q
 ```
 
-- The suite is the pinned record: 265 green (post REVIEW 018; 233 post
-  Phase 7, +32 regression tests from the 018 fixes). The count is
-  captured in each phase's FINDINGS and the refactor log.
+- The suite is the verification record. Run `python -m pytest -q` for the
+  current result; historical counts remain in the relevant phase findings and
+  refactor notes rather than being duplicated as a stale gate here.
 - Tests that need the tree-sitter CLI / gcc are marked `@pytest.mark.toolchain`;
   a conftest auto-skip hook skips them when the toolchain is absent (the
   toolchain-less run is all-skip, zero errors). Fast loop: `-m "not slow"`.
