@@ -153,9 +153,10 @@ def generate_typed_api(schema: NodeSchema, module_name: str) -> str:
     union_defs: dict[str, tuple[str, str]] = {}   # kind -> (name, rhs)
     for t in named:
         if t.type in supertype_kinds:
-            subs = sorted(dict.fromkeys(
-                _ref_name(NodeTypeRef(type=s.type, named=s.named))
-                for s in t.subtypes))
+            subs = sorted(
+                dict.fromkeys(
+                    _ref_name(NodeTypeRef(type=s.type, named=s.named))
+                    for s in (t.subtypes or ())))
             if subs:
                 union_defs[t.type] = (class_name(t.type),
                                       _union(subs, optional=False))

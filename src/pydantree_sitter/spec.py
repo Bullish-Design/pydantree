@@ -21,6 +21,8 @@ import sys
 import types
 from dataclasses import dataclass
 from typing import (
+    Any,
+    ClassVar,
     ForwardRef,
     Literal,
     Optional,
@@ -299,10 +301,12 @@ def derive_spec(model_cls: type["OutputModel"]) -> MatchSpec:
     match: M | None = None
     raw_query: str | None = None
     for base in model_cls.__mro__:
-        if match is None and getattr(base, "__match__", None) is not None:
-            match = base.__match__
-        if raw_query is None and getattr(base, "__raw_query__", None) is not None:
-            raw_query = base.__raw_query__
+        declared_match = getattr(base, "__match__", None)
+        if match is None and isinstance(declared_match, M):
+            match = declared_match
+        declared_raw_query = getattr(base, "__raw_query__", None)
+        if raw_query is None and isinstance(declared_raw_query, str):
+            raw_query = declared_raw_query
     if match is None and raw_query is None:
         raise ShapeError(
             f"{model_cls.__name__} is not an extraction model: it needs "
@@ -325,6 +329,7 @@ def derive_spec(model_cls: type["OutputModel"]) -> MatchSpec:
         return MatchSpec(path=(), record=False, raw_query=str(raw_query),
                          bindings=tuple(bindings))
 
+    assert match is not None
     path = tuple(PathStep((k,)) if isinstance(k, str) else
                  (PathStep(k) if isinstance(k, tuple) else k)
                  for k in match.path)
@@ -341,6 +346,7 @@ def binding_warnings(model_cls: type["OutputModel"]) -> list[str]:
     modes; a derived(value) field carries its value."""
     warnings: list[str] = []
     spec = model_cls._match_spec
+    assert spec is not None
     bound = {b.name for b in spec.bindings}
     from .markers import _Derived as _D
     for fname, f in model_cls.model_fields.items():
@@ -370,7 +376,7 @@ class DerivingMeta(ModelMetaclass):
     bindings)."""
 
     def __new__(mcls, name, bases, ns, **kwargs):
-        cls = super().__new__(mcls, name, bases, ns, **kwargs)
+        cls: Any = super().__new__(mcls, name, bases, ns, **kwargs)
         has_decl = any(
             getattr(base, "__match__", None) is not None or
             getattr(base, "__raw_query__", None) is not None
@@ -403,8 +409,10 @@ class OutputModel(BaseModel, metaclass=DerivingMeta):
     checks once — binding.py).
     """
 
-    __match__ = None
-    __raw_query__ = None
+    _match_spec: ClassVar[MatchSpec | None] = None
+    _binding_warnings: ClassVar[tuple[str, ...]] = ()
+    __match__: ClassVar[M | None] = None
+    __raw_query__: ClassVar[str | RawQuery | None] = None
 
     # -- entry points (sugar; the real work is the Extractor) ---------------
 
@@ -456,7 +464,9 @@ class OutputModel(BaseModel, metaclass=DerivingMeta):
 
     @classmethod
     def _spec(cls) -> MatchSpec:
-        return cls._match_spec
+        spec = cls._match_spec
+        assert spec is not None
+        return spec
 
 
 def _sugar_extractor(model_cls, language, schema, *, strict: bool):

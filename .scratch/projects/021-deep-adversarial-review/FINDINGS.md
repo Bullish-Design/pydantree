@@ -922,3 +922,15 @@ use separate canonical naming helpers, and acronym casing is intentionally
 lossy (`HTTPServer` -> `http_server` -> `HttpServer`). The test pins both
 canonical mappings and the corrected documentation. Probe output is in
 `evidence/d15_d17_hygiene.txt` and `evidence/d15_d17_hygiene.json`.
+
+## 14. D13 type-contract resolution — 2026-09-08
+
+D13 is resolved against the project's current type gate. The shipped
+annotations now describe the IR returned by `expressions._as_op`, declare
+`OutputModel._match_spec` and its related metaclass-managed class attributes,
+and remove the reviewed Ty errors in the binding, pipeline, rule, schema, and
+value-map seams. `devenv shell -- ty check src` passes with exit code 0. The
+historical mypy command is not runnable in the current pinned environment
+(`mypy` is not installed), so mypy-specific compatibility is not claimed;
+Ty is the documented and enforced project gate. Probe and raw results are in
+`evidence/d13_type_contract.txt` and `evidence/d13_type_contract.json`.

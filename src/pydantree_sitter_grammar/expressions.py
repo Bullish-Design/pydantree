@@ -25,7 +25,7 @@ Table formats:
 
     infix:  [(op, assoc, level), ...]      # op: str literal | B (named-op rule)
     prefix: [(op, level), ...]
-    postfix: [(label, level, builder), ...]  # builder(expr_ref) -> B
+    postfix: [(label, level, builder), ...]  # builder(expr_ref) -> B | Rule | str
 
 Escape hatch: the helper emits ONE rule; authors can drop to raw `g.rule()`
 + `prec*` for anything weird (or add a `postfix` builder that does it).
@@ -51,10 +51,13 @@ Usage:
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from .builder import (
     B,
     Grammar,
     Ladder,
+    Rule,
     as_node,
     choice,
     prec,
@@ -64,19 +67,19 @@ from .builder import (
     seq,
 )
 
-_Op = str | B  # an operator: literal string or a rule node (named op)
+_Op = str | B | Rule  # an operator: literal string or a rule node (named op)
 
 
 def expression(
     g: Grammar,
     name: str,
     *,
-    primary: B | object,
+    primary: B | Rule | str,
     infix: list[tuple[_Op, str, str]] | None = None,
     prefix: list[tuple[_Op, str]] | None = None,
-    postfix: list[tuple[str, str, object]] | None = None,
+    postfix: list[tuple[str, str, Callable[[B], B | Rule | str]]] | None = None,
     ladder: Ladder,
-    cond_primary: B | object | None = None,
+    cond_primary: B | Rule | str | None = None,
     cond_drops: tuple[str, ...] = ("call",),
 ) -> Grammar:
     """Register an expression rule `<name>` from a table (see module docstring
@@ -112,7 +115,7 @@ def expression(
         _require_level(ladder, level, f"postfix {label!r}")
 
     expr_ref = ref(name)
-    alternatives: list[B] = []
+    alternatives: list[B | Rule | str] = []
 
     # infix operators, ladder order -> tightest last
     for op, assoc, level in infix:
@@ -148,7 +151,7 @@ def expression(
         # cond + parens-capable then) parses unambiguously; `if f(x) y` is a
         # parse error (call conds are rejected — parens-delimit: `if (f(x))`).
         cond_ref = ref(f"_{name}_cond")
-        cond_alts: list[B] = []
+        cond_alts: list[B | Rule | str] = []
         for op, assoc, level in infix:
             body = seq(cond_ref, _as_op(op), cond_ref)
             cond_alts.append(prec_left(ladder.n(level), body) if assoc == "left"
@@ -235,7 +238,7 @@ def _require_level(ladder: Ladder, level: str, what: str) -> None:
             "it must outrank the unary)")
 
 
-def _as_op(op: _Op) -> B:
+def _as_op(op: _Op) -> Rule:
     """An operator can be a literal string (anonymous token) or a B/rule node
     (a named operator rule, e.g. a compare-op choice). F-B9: a literal string
     becomes the StrNode ITSELF (`as_node`), not a 1-member SEQ wrapper —

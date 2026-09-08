@@ -1,0 +1,37 @@
+{
+  "date": "2026-09-08",
+  "historical_checker": {
+    "command": "mypy --ignore-missing-imports src",
+    "available": false,
+    "returncode": 127,
+    "message": "mypy: command not found"
+  },
+  "type_gate": {
+    "command": "ty check src",
+    "returncode": 0,
+    "stdout": "All checks passed!\n",
+    "stderr": ""
+  },
+  "contract_probe": {
+    "as_op_return_matches_rule_union": true,
+    "output_model_declares_match_spec": true
+  },
+  "focused_tests": {
+    "as_op_annotation": {
+      "passed": 1,
+      "deselected": 7,
+      "failed": 0
+    },
+    "output_model_annotation": {
+      "passed": 1,
+      "deselected": 30,
+      "failed": 0
+    }
+  },
+  "full_suite": {
+    "passed": 509,
+    "skipped": 1,
+    "failed": 0,
+    "returncode": 0
+  }
+}

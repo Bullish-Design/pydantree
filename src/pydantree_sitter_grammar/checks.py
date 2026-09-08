@@ -107,7 +107,7 @@ def iter_all(node: RuleNode) -> Iterable[RuleNode]:
     """DFS over the whole rule tree, cycles-safe via node id."""
     seen: set[int] = set()
 
-    def walk(n: Rule):
+    def walk(n: RuleNode):
         if id(n) in seen:
             return
         seen.add(id(n))

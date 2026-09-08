@@ -6,14 +6,10 @@ where possible.
 
 from __future__ import annotations
 
-import shutil
-import sys
-from pathlib import Path
-from typing import Annotated
+from typing import Annotated, get_type_hints
 
 import pytest
 
-import tree_sitter
 import tree_sitter_json
 import tree_sitter_python
 
@@ -27,6 +23,7 @@ from pydantree_sitter import (
     OutputModel,
     SchemaCheckError,
     ShapeError,
+    Span,
     TreeLanguageError,
     Unescaped,
     ValueMap,
@@ -34,7 +31,6 @@ from pydantree_sitter import (
     source_meta,
 )
 
-import pytest
 pytestmark = pytest.mark.toolchain
 
 from cfg_grammar import CORPUS, build as build_cfg  # noqa: E402
@@ -52,6 +48,10 @@ def _cfg_lang():
                          value_map=propose_value_map(schema)), schema
 
 
+def test_output_model_declares_compiled_spec_class_attribute():
+    assert "_match_spec" in get_type_hints(OutputModel, include_extras=True)
+
+
 def _json_lang():
     jmodel = build_json().build()
     res = tg.build(jmodel)
@@ -67,14 +67,13 @@ def test_parse_errors_are_visible_in_the_tree():
     """The typed Diagnostics surface (the old Query.validate) is deleted with
     the public DSL (D11): parse errors surface on the raw tree — ERROR/MISSING
     nodes — and extraction over them is the caller's choice."""
-    import tree_sitter as _ts
     lang = Language.load(tree_sitter_python.language())
     tree = lang.parse("def (\n")      # a syntax error
     errs = []
 
     def walk(n):
         if n.type == "ERROR" or n.is_missing:
-            errs.append((n.type, n.start_point.row + 1))
+            errs.append((n.type, Span.from_node(n).line))
         for c in n.children:
             walk(c)
 
@@ -165,7 +164,7 @@ def test_descendant_path_skips_non_matching_anchors():
 
 
 def test_descendant_job1_checks_the_gap():
-    lang, schema = _cfg_lang()
+    lang, _schema = _cfg_lang()
 
     class Entries(OutputModel):
         __match__ = M("source_file", ..., "entry")
@@ -182,7 +181,7 @@ def test_descendant_job1_checks_the_gap():
 
 
 def test_descendant_record_mode():
-    lang, schema = _json_lang()
+    lang, _schema = _json_lang()
 
     class AnyObject(OutputModel):
         __match__ = M("document", ..., "object", record=True)
@@ -521,7 +520,7 @@ def test_record_optional_predicate_field_keeps_the_record():
 # ---------------------------------------------------------------------------
 
 def test_unescaped_decodes_json_string():
-    lang, schema = _json_lang()
+    lang, _schema = _json_lang()
 
     class Doc(OutputModel):
         __match__ = M("document", "array", "object", record=True)
@@ -533,7 +532,7 @@ def test_unescaped_decodes_json_string():
 
 
 def test_unescaped_noop_on_plain_text():
-    lang, schema = _json_lang()
+    lang, _schema = _json_lang()
 
     class Doc(OutputModel):
         __match__ = M("document", "array", "object", record=True)
@@ -544,7 +543,7 @@ def test_unescaped_noop_on_plain_text():
 
 
 def test_unescaped_schema_check_requires_string_wrapper():
-    lang, schema = _cfg_lang()
+    lang, _schema = _cfg_lang()
 
     class Bad(OutputModel):
         __match__ = M("source_file", "directive")
@@ -557,7 +556,7 @@ def test_unescaped_schema_check_requires_string_wrapper():
 
 
 def test_unescaped_over_cfg_string():
-    lang, schema = _cfg_lang()
+    lang, _schema = _cfg_lang()
 
     class Server(OutputModel):
         __match__ = M("source_file", "section", record=True)
@@ -733,8 +732,6 @@ def _twopair_lang():
 
 
 def test_record_pair_kind_must_be_pinned_when_ambiguous():
-    from pydantree_sitter import ShapeError
-
     lang, _schema = _twopair_lang()
 
     class Ambiguous(OutputModel):

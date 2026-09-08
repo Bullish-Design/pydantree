@@ -3,7 +3,7 @@ pipeline with ground truth (the probe-2 corpus), int + named ladder modes."""
 
 from __future__ import annotations
 
-import shutil
+from typing import get_args, get_type_hints
 
 import pytest
 
@@ -54,6 +54,15 @@ def _named_grammar() -> tg.Grammar:
     ladder = g.precedence("or", "and", "not", "compare", "add", "mul",
                           "unary", "pow", "postfix", named=True)
     return _build_grammar(g, ladder)
+
+
+def test_as_op_annotation_matches_the_ir_node_it_returns():
+    from pydantree_sitter_grammar.expressions import _as_op
+    from pydantree_sitter_grammar.ir import Rule
+
+    # ``Rule`` is an Annotated discriminated union; get_type_hints strips the
+    # metadata, so compare the underlying union rather than the alias wrapper.
+    assert get_type_hints(_as_op)["return"] == get_args(Rule)[0]
 
 
 def test_expression_emits_single_rule_with_prec_alternatives():

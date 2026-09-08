@@ -45,11 +45,11 @@ def _resolve_language(language, schema=None):
     if isinstance(language, tree_sitter.Language):
         lang = language
     elif callable(language):                   # tree_sitter_python.language
-        lang = tree_sitter.Language(language())
+        lang = tree_sitter.Language(language())  # ty: ignore[deprecated]
     elif hasattr(language, "language") and callable(language.language):
-        lang = tree_sitter.Language(language.language())
+        lang = tree_sitter.Language(language.language())  # ty: ignore[deprecated]
     else:
-        lang = tree_sitter.Language(language)  # a bare PyCapsule
+        lang = tree_sitter.Language(language)  # ty: ignore[deprecated]
     if schema is not None:
         schema = _load_schema(schema)
     return lang, schema
@@ -340,6 +340,10 @@ class Language:
                 "Language.load_bundle(): ast-grep loads the bundle's "
                 "grammar.so directly, and a Language wrapping a wheel has no "
                 "such file to hand it.")
+        if self._bundle_symbol is None:
+            raise BundleError(
+                "register_astgrep() needs a bundle export symbol; the loaded "
+                "Language has no tree-sitter_<name> symbol")
         from .pattern import register_bundle_language
         name = name or f"{self._lang.name or 'grammar'}"
         registered = register_bundle_language(

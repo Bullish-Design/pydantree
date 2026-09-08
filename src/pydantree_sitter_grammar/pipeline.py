@@ -24,6 +24,7 @@ Toolchain facts (Phase 0, not re-derived):
 
 from __future__ import annotations
 
+import functools as _functools
 import hashlib
 import json
 import os
@@ -63,6 +64,7 @@ class Toolchain:
         return f"{self.tree_sitter_version}|{self.gcc_version}|{self.python_abi}"
 
 
+@_functools.lru_cache(maxsize=1)
 def detect_toolchain() -> Toolchain:
     """Probe the CLI + compiler versions (cached in-process via
     functools.lru_cache — `detect_toolchain.cache_clear()` documented
@@ -103,10 +105,6 @@ def _python_abi() -> str:
         return str(_ts.LANGUAGE_VERSION)
     except Exception:
         return env or "15"
-
-
-import functools as _functools
-detect_toolchain = _functools.lru_cache(maxsize=1)(detect_toolchain)
 
 
 def grammar_hash(model: GrammarModel) -> str:
@@ -171,7 +169,7 @@ def compile_parser(src_dir: Path, so_path: Path, *,
         ["g++", "-shared", str(parser_o), str(scanner_o),
          "-o", str(so_path)],
     ]
-    proc = None
+    proc: subprocess.CompletedProcess[str] | None = None
     for step in steps:
         proc = subprocess.run(step, capture_output=True, text=True, check=False)
         if proc.returncode != 0:
@@ -182,6 +180,7 @@ def compile_parser(src_dir: Path, so_path: Path, *,
             obj.unlink()
         except OSError:
             pass
+    assert proc is not None
     return proc
 
 
@@ -515,7 +514,11 @@ def build_from_source_dir(src_dir: Path | str, *,
                  grammar_name=name or model.name, scanner=scanner)
 
 
-def build_builder(g, *, cache_dir=None, **kw) -> BuildResult:
+def build_builder(g, *, cache_dir: Path | None = None,
+                  toolchain: Toolchain | None = None,
+                  grammar_name: str | None = None,
+                  scanner: Path | str | None = None,
+                  check: bool = True) -> BuildResult:
     """build() for a builder DSL Grammar (builds the IR first).
 
     When `tree-sitter generate` fails on an unresolved conflict, the SINGLE
@@ -525,7 +528,7 @@ def build_builder(g, *, cache_dir=None, **kw) -> BuildResult:
     loop depends on this. No re-run happens on conflict.
     """
     model = g.build()
-    run_checks = kw.get("check", True)
+    run_checks = check
     if run_checks:
         # B1 (REVIEW 020): run the analyzer over the BUILDER Grammar FIRST so
         # analyzer ERRORS cite the author's DSL source sites; build()'s
@@ -535,9 +538,11 @@ def build_builder(g, *, cache_dir=None, **kw) -> BuildResult:
         # raised with no `at file:line` at all.
         from .checks import assert_clean
         assert_clean(g)
-        kw = {**kw, "check": False}
+        check = False
     try:
-        result = build(model, cache_dir=cache_dir, **kw)
+        result = build(model, cache_dir=cache_dir, toolchain=toolchain,
+                       grammar_name=grammar_name, scanner=scanner,
+                       check=check)
     except GenerateError as e:
         # the conflict report is JSON on the SAME run's stderr (D10 — the
         # --json flag is always on): remap to the author's per-production

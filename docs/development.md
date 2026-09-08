@@ -73,11 +73,17 @@ construction:
 devenv shell -- python -m pytest tests/            # the full suite (fast, ~40s)
 devenv shell -- python -m pytest tests/test_scanners.py -q
 devenv shell -- python -m pytest tests/test_wasm.py -q
+devenv shell -- ty check src
+devenv shell -- ruff check src
 ```
 
 - The suite is the verification record. Run `python -m pytest -q` for the
   current result; historical counts remain in the relevant phase findings and
   refactor notes rather than being duplicated as a stale gate here.
+- The type gate is `ty check src`. The four `tree_sitter.Language(...)`
+  compatibility calls use targeted `ty` ignores because the installed
+  tree-sitter stubs mark the supported capsule/int construction overload as
+  deprecated; no project type errors are allowed through that gate.
 - Tests that need the tree-sitter CLI / gcc are marked `@pytest.mark.toolchain`;
   a conftest auto-skip hook skips them when the toolchain is absent (the
   toolchain-less run is all-skip, zero errors). Fast loop: `-m "not slow"`.

@@ -1,0 +1,24 @@
+D13 type-contract evidence — 2026-09-08
+
+Historical checker command:
+  devenv shell -- mypy --ignore-missing-imports src
+Observed result: mypy is not installed in the pinned development environment
+(shell reported "mypy: command not found", return code 127).
+
+Current project type gate:
+  devenv shell -- ty check src
+Observed result: "All checks passed!", return code 0.
+
+Contract probe:
+  _as_op's resolved return annotation matches the underlying Rule union.
+  OutputModel's resolved class hints include _match_spec with type
+  ClassVar[MatchSpec | None].
+
+Focused regressions:
+  devenv shell -- python -m pytest -q tests/test_expressions.py -k as_op_annotation
+  1 passed, 7 deselected
+  devenv shell -- python -m pytest -q tests/test_extract.py -k output_model_declares
+  1 passed, 30 deselected
+
+Readiness full suite after the D13 changes:
+  509 passed, 1 skipped, return code 0.

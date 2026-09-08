@@ -91,7 +91,7 @@ def load_grammar_so(so_path: Path | str, grammar_name: str | None = None):
     pycapsule_new.restype = ctypes.py_object
     pycapsule_new.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]
     capsule = pycapsule_new(ptr, b"tree_sitter.Language", None)
-    return tree_sitter.Language(capsule), lib
+    return tree_sitter.Language(capsule), lib  # ty: ignore[deprecated]
 
 
 # ---------------------------------------------------------------------------

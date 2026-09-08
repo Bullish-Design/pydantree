@@ -158,7 +158,7 @@ def propose_value_map(schema: NodeSchema) -> ValueMap:
     kinds whose children include a text leaf are wrappers; array-ish kinds
     map to their named children.
     """
-    scalars: dict[str, str] = {}
+    scalars: dict[str, Scalar] = {}
     wrappers: dict[str, str] = {}
     arrays: dict[str, list[str]] = {}
 

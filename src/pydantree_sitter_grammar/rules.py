@@ -42,7 +42,7 @@ import inspect
 import os
 import sys
 import types
-from typing import Literal, Sequence, Union, get_args, get_origin
+from typing import Any, ClassVar, Literal, Sequence, Union, get_args, get_origin
 
 from .builder import (
     B,
@@ -106,7 +106,7 @@ def _rule_site(depth: int = 3) -> RuleSite:
     return caller_site(skip=depth)
 
 
-def _attr_sites(cls: type) -> dict[str, RuleSite]:
+def _attr_sites(cls: type["Rule"]) -> dict[str, RuleSite]:
     """file/lineno/source for each annotated attribute — the class body's
     `attr: Type` lines — so conflict remapping can point at `Pair.value`
     (class + attribute), not a raw combinator line. Found by scanning the
@@ -135,7 +135,7 @@ class _RuleMeta(type):
     bases (Pattern, Token, External, Extra, ...) are never registered."""
 
     def __new__(mcs, name, bases, ns):
-        cls = super().__new__(mcs, name, bases, ns)
+        cls: Any = super().__new__(mcs, name, bases, ns)
         if not ns.get("__abstract__"):      # OWN ns: kind bases skip
             rn = ns.get("__rule_name__") or _snake(name)
             cls.__rule_name__ = rn
@@ -146,6 +146,9 @@ class _RuleMeta(type):
 
 class Rule(metaclass=_RuleMeta):
     """The base rule class; annotation-bodied rules (the common case)."""
+    __rule_name__: ClassVar[str]
+    __site__: ClassVar[RuleSite]
+    __attr_sites__: ClassVar[dict[str, RuleSite]]
     __abstract__ = True
 
 
@@ -206,7 +209,7 @@ class Word(Rule):
 # name resolution
 # ---------------------------------------------------------------------------
 
-def _resolved_name(cls: type) -> str:
+def _resolved_name(cls: type[Rule]) -> str:
     """The rule name as REGISTERED — for a `Hidden` rule this is the
     underscore-prefixed name the builder's `rule(hidden=True)` produces."""
     rn = cls.__rule_name__
@@ -233,15 +236,15 @@ def _resolve(cls: type, ann) -> object:
     return ann
 
 
-def _wrap(x: B, attr: str | None) -> B:
+def _wrap(x: B | str, attr: str | None) -> B:
     """Field-wrap unless unnamed (`content` is the reserved label for an
     UNNAMED child — the IR's own slot name)."""
     if attr is not None and attr != "content":
         return tg_field(attr, x)
-    return x
+    return x if isinstance(x, B) else B(as_node(x))
 
 
-def _child(cls: type, t, attr: str | None = None) -> B:
+def _child(cls: type, t, attr: str | None = None) -> B | str:
     """One annotation -> one body node. Rows (each probe-verified):
 
         key: NamePath              -> field("key", ref("name_path"))
@@ -283,7 +286,8 @@ def _child(cls: type, t, attr: str | None = None) -> B:
     raise TypeError(f"{cls.__name__}: cannot compile annotation {t!r}")
 
 
-def _stamp(cls: type, body: B, attr: str | None = None) -> None:
+def _stamp(cls: type[Rule], body: B | str,
+           attr: str | None = None) -> None:
     """Stamp a body's nodes with the class's site (attribute-line precision
     via `__attr_sites__` when known) AT CREATION (D8 — no post-hoc repair;
     provenance lives on the node). Repoints nodes whose site still points
@@ -301,7 +305,7 @@ def _stamp(cls: type, body: B, attr: str | None = None) -> None:
             n._site = site   # pydantic private attr
 
 
-def _from_annotations(cls: type) -> B:
+def _from_annotations(cls: type[Rule]) -> B | str:
     """The annotation form: ordered children -> one seq (or a bare member).
 
     Attribute-line source-site attribution is stamped directly on each node.
@@ -347,7 +351,7 @@ def R(cls: type) -> B:
 # assemble
 # ---------------------------------------------------------------------------
 
-def module_rules(module) -> list[type]:
+def module_rules(module) -> list[type[Rule]]:
     """The concrete Rule classes DEFINED IN `module` — `cls.__module__ ==
     module.__name__` only (imported classes are excluded: the silent-join
     bug dies, F-B3) — in definition order. The explicit-rules helper (D9):
@@ -361,8 +365,8 @@ def module_rules(module) -> list[type]:
     ]
 
 
-def assemble(name: str, *, start: type,
-             rules: Sequence[type] | None = None) -> Grammar:
+def assemble(name: str, *, start: type[Rule],
+             rules: Sequence[type[Rule]] | None = None) -> Grammar:
     """Compile rule classes into a builder `Grammar` — the SAME object the
     builder DSL produces, so `run_checks`, `build_builder`, and the bundle
     pipeline are unchanged.

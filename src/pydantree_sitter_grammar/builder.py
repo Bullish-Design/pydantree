@@ -84,8 +84,13 @@ def caller_site(skip: int = 2) -> RuleSite:
     silently mis-attributing."""
     frame = inspect.currentframe()
     try:
+        if frame is None:
+            raise RuntimeError("inspect.currentframe() returned None")
         for _ in range(skip):
-            frame = frame.f_back  # type: ignore[union-attr]
+            parent = frame.f_back
+            if parent is None:
+                raise RuntimeError("caller site walked past the outer frame")
+            frame = parent
         fname = frame.f_code.co_filename  # type: ignore[union-attr]
         lineno = frame.f_lineno  # type: ignore[union-attr]
         source = linecache.getline(fname, lineno).rstrip("\n")
@@ -94,7 +99,7 @@ def caller_site(skip: int = 2) -> RuleSite:
         del frame
 
 
-def site_of(node: Rule) -> RuleSite | None:
+def site_of(node: RuleNode) -> RuleSite | None:
     """The definition site stamped on a node (D8: provenance lives on the
     node; no per-grammar store)."""
     return getattr(node, "_site", None)
