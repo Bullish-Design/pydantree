@@ -1,16 +1,19 @@
 {
+  "source": "---\ntags: [project, active]\n---\n\n# Caf\u00e9 [[Target#Heading]]\n\nParagraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.\n\n> [!note] Callout [[Quoted]]\n> Body pr\u00e9 ^quoteid.\n>\n> [!warning]- Warning [[Warned]]\n\n- [ ] t\u00e2che [[Task]]\n- [x] done #checked\n\n```python\ndef f(x): return x\n```\n",
   "all_kinds": [
     "!",
     "#",
+    "%",
     "(",
     ")",
-    "*",
-    ",",
+    "-",
     ".",
     "/",
     ":",
+    "=",
     "[",
     "]",
+    "^",
     "atx_h1_marker",
     "atx_heading",
     "block_continuation",
@@ -30,12 +33,13 @@
     "paragraph",
     "section",
     "task_list_marker_checked",
-    "task_list_marker_unchecked"
+    "task_list_marker_unchecked",
+    "|"
   ],
   "block_structure_available": {
     "section": 2,
     "atx_heading": 1,
-    "paragraph": 4,
+    "paragraph": 5,
     "list": 1,
     "list_item": 2,
     "block_quote": 1,
@@ -45,9 +49,471 @@
     "task_list_marker_unchecked": 1
   },
   "inline_nodes_are_opaque": {
-    "inline_node_count": 5,
+    "inline_node_count": 6,
     "kinds_inside_inline_are_only_punctuation": true
   },
+  "block_nodes": [
+    {
+      "kind": "atx_heading",
+      "text": "# Caf\u00e9 [[Target#Heading]]\n",
+      "character": {
+        "start": 33,
+        "end": 59
+      },
+      "byte": {
+        "start": 33,
+        "end": 60
+      },
+      "block_ancestors": [
+        "atx_heading"
+      ],
+      "direct_children": [
+        "atx_h1_marker",
+        "inline"
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "text": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.\n",
+      "character": {
+        "start": 60,
+        "end": 224
+      },
+      "byte": {
+        "start": 61,
+        "end": 227
+      },
+      "block_ancestors": [
+        "paragraph"
+      ],
+      "direct_children": [
+        "inline"
+      ]
+    },
+    {
+      "kind": "block_quote",
+      "text": "> [!note] Callout [[Quoted]]\n> Body pr\u00e9 ^quoteid.\n>\n> [!warning]- Warning [[Warned]]\n",
+      "character": {
+        "start": 225,
+        "end": 310
+      },
+      "byte": {
+        "start": 228,
+        "end": 314
+      },
+      "block_ancestors": [
+        "block_quote"
+      ],
+      "direct_children": [
+        "block_quote_marker",
+        "paragraph",
+        "block_continuation",
+        "paragraph"
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "text": "[!note] Callout [[Quoted]]\n> Body pr\u00e9 ^quoteid.\n>",
+      "character": {
+        "start": 227,
+        "end": 276
+      },
+      "byte": {
+        "start": 230,
+        "end": 280
+      },
+      "block_ancestors": [
+        "block_quote",
+        "paragraph"
+      ],
+      "direct_children": [
+        "inline",
+        "block_continuation"
+      ]
+    },
+    {
+      "kind": "paragraph",
+      "text": "[!warning]- Warning [[Warned]]\n",
+      "character": {
+        "start": 279,
+        "end": 310
+      },
+      "byte": {
+        "start": 283,
+        "end": 314
+      },
+      "block_ancestors": [
+        "block_quote",
+        "paragraph"
+      ],
+      "direct_children": [
+        "inline"
+      ]
+    },
+    {
+      "kind": "list_item",
+      "text": "- [ ] t\u00e2che [[Task]]\n",
+      "character": {
+        "start": 311,
+        "end": 332
+      },
+      "byte": {
+        "start": 315,
+        "end": 337
+      },
+      "block_ancestors": [
+        "list_item"
+      ],
+      "direct_children": [
+        "list_marker_minus",
+        "task_list_marker_unchecked",
+        "paragraph"
+      ]
+    },
+    {
+      "kind": "task_list_marker_unchecked",
+      "text": "[ ]",
+      "character": {
+        "start": 313,
+        "end": 316
+      },
+      "byte": {
+        "start": 317,
+        "end": 320
+      },
+      "block_ancestors": [
+        "list_item",
+        "task_list_marker_unchecked"
+      ],
+      "direct_children": []
+    },
+    {
+      "kind": "paragraph",
+      "text": "t\u00e2che [[Task]]\n",
+      "character": {
+        "start": 317,
+        "end": 332
+      },
+      "byte": {
+        "start": 321,
+        "end": 337
+      },
+      "block_ancestors": [
+        "list_item",
+        "paragraph"
+      ],
+      "direct_children": [
+        "inline"
+      ]
+    },
+    {
+      "kind": "list_item",
+      "text": "- [x] done #checked\n\n",
+      "character": {
+        "start": 332,
+        "end": 353
+      },
+      "byte": {
+        "start": 337,
+        "end": 358
+      },
+      "block_ancestors": [
+        "list_item"
+      ],
+      "direct_children": [
+        "list_marker_minus",
+        "task_list_marker_checked",
+        "paragraph"
+      ]
+    },
+    {
+      "kind": "task_list_marker_checked",
+      "text": "[x]",
+      "character": {
+        "start": 334,
+        "end": 337
+      },
+      "byte": {
+        "start": 339,
+        "end": 342
+      },
+      "block_ancestors": [
+        "list_item",
+        "task_list_marker_checked"
+      ],
+      "direct_children": []
+    },
+    {
+      "kind": "paragraph",
+      "text": "done #checked\n",
+      "character": {
+        "start": 338,
+        "end": 352
+      },
+      "byte": {
+        "start": 343,
+        "end": 357
+      },
+      "block_ancestors": [
+        "list_item",
+        "paragraph"
+      ],
+      "direct_children": [
+        "inline",
+        "block_continuation"
+      ]
+    }
+  ],
+  "inline_nodes": [
+    {
+      "kind": "inline",
+      "block_ancestors": [
+        "atx_heading"
+      ],
+      "nearest_block": "atx_heading",
+      "text": "Caf\u00e9 [[Target#Heading]]",
+      "fragment": "Caf\u00e9 [[Target#Heading]]",
+      "character": {
+        "start": 35,
+        "end": 58
+      },
+      "byte": {
+        "start": 35,
+        "end": 59
+      },
+      "direct_children": [
+        "[",
+        "[",
+        "#",
+        "]",
+        "]"
+      ]
+    },
+    {
+      "kind": "inline",
+      "block_ancestors": [
+        "paragraph"
+      ],
+      "nearest_block": "paragraph",
+      "text": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "fragment": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "character": {
+        "start": 60,
+        "end": 223
+      },
+      "byte": {
+        "start": 61,
+        "end": 226
+      },
+      "direct_children": [
+        "[",
+        "[",
+        "]",
+        "]",
+        "[",
+        "[",
+        "|",
+        "]",
+        "]",
+        "[",
+        "[",
+        "#",
+        "^",
+        "]",
+        "]",
+        "!",
+        "[",
+        "[",
+        ".",
+        "]",
+        "]",
+        "#",
+        "#",
+        "/",
+        ":",
+        ":",
+        "=",
+        "=",
+        "=",
+        "=",
+        "%",
+        "%",
+        "%",
+        "%",
+        "^",
+        "[",
+        "[",
+        "]",
+        "]",
+        "."
+      ]
+    },
+    {
+      "kind": "inline",
+      "block_ancestors": [
+        "block_quote",
+        "paragraph"
+      ],
+      "nearest_block": "paragraph",
+      "text": "[!note] Callout [[Quoted]]\n> Body pr\u00e9 ^quoteid.",
+      "fragment": "[!note] Callout [[Quoted]]\n> Body pr\u00e9 ^quoteid.",
+      "character": {
+        "start": 227,
+        "end": 274
+      },
+      "byte": {
+        "start": 230,
+        "end": 278
+      },
+      "direct_children": [
+        "[",
+        "!",
+        "]",
+        "[",
+        "[",
+        "]",
+        "]",
+        "block_continuation",
+        "^",
+        "."
+      ]
+    },
+    {
+      "kind": "inline",
+      "block_ancestors": [
+        "block_quote",
+        "paragraph"
+      ],
+      "nearest_block": "paragraph",
+      "text": "[!warning]- Warning [[Warned]]",
+      "fragment": "[!warning]- Warning [[Warned]]",
+      "character": {
+        "start": 279,
+        "end": 309
+      },
+      "byte": {
+        "start": 283,
+        "end": 313
+      },
+      "direct_children": [
+        "[",
+        "!",
+        "]",
+        "-",
+        "[",
+        "[",
+        "]",
+        "]"
+      ]
+    },
+    {
+      "kind": "inline",
+      "block_ancestors": [
+        "list_item",
+        "paragraph"
+      ],
+      "nearest_block": "paragraph",
+      "text": "t\u00e2che [[Task]]",
+      "fragment": "t\u00e2che [[Task]]",
+      "character": {
+        "start": 317,
+        "end": 331
+      },
+      "byte": {
+        "start": 321,
+        "end": 336
+      },
+      "direct_children": [
+        "[",
+        "[",
+        "]",
+        "]"
+      ]
+    },
+    {
+      "kind": "inline",
+      "block_ancestors": [
+        "list_item",
+        "paragraph"
+      ],
+      "nearest_block": "paragraph",
+      "text": "done #checked",
+      "fragment": "done #checked",
+      "character": {
+        "start": 338,
+        "end": 351
+      },
+      "byte": {
+        "start": 343,
+        "end": 356
+      },
+      "direct_children": [
+        "#"
+      ]
+    }
+  ],
+  "task_list_marker_nodes": [
+    {
+      "kind": "task_list_marker_unchecked",
+      "text": "[ ]",
+      "character": {
+        "start": 313,
+        "end": 316
+      },
+      "byte": {
+        "start": 317,
+        "end": 320
+      },
+      "block_ancestors": [
+        "list_item",
+        "task_list_marker_unchecked"
+      ],
+      "direct_children": []
+    },
+    {
+      "kind": "task_list_marker_checked",
+      "text": "[x]",
+      "character": {
+        "start": 334,
+        "end": 337
+      },
+      "byte": {
+        "start": 339,
+        "end": 342
+      },
+      "block_ancestors": [
+        "list_item",
+        "task_list_marker_checked"
+      ],
+      "direct_children": []
+    }
+  ],
+  "non_ascii_offset_checks": [
+    {
+      "fragment": "Caf\u00e9 [[Target#Heading]]",
+      "character_start": 35,
+      "byte_start": 35,
+      "source_slice": "Caf\u00e9 [[Target#Heading]]"
+    },
+    {
+      "fragment": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "character_start": 60,
+      "byte_start": 61,
+      "source_slice": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside."
+    },
+    {
+      "fragment": "[!note] Callout [[Quoted]]\n> Body pr\u00e9 ^quoteid.",
+      "character_start": 227,
+      "byte_start": 230,
+      "source_slice": "[!note] Callout [[Quoted]]\n> Body pr\u00e9 ^quoteid."
+    },
+    {
+      "fragment": "t\u00e2che [[Task]]",
+      "character_start": 317,
+      "byte_start": 321,
+      "source_slice": "t\u00e2che [[Task]]"
+    }
+  ],
   "block_level_patterns_work": {
     "# $TITLE": 1,
     "- $ITEM": 2

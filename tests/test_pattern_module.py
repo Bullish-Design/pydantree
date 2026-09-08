@@ -126,6 +126,78 @@ def test_find_returns_the_first_match_or_none(defs, lang):
     assert defs.find("x = 1\n") is None
 
 
+def test_find_all_in_filters_whole_document_matches_to_a_node(defs, lang):
+    src = "def outer():\n    def inner():\n        return 'héllo'\n"
+    tree = lang.parse(src)
+    outer = tree.root_node.children[0]
+    matches = defs.find_all_in(outer, src)
+    assert [m.captures["NAME"].text for m in matches] == ["outer", "inner"]
+    assert all(outer.start_byte <= m.span.start_byte <= m.span.end_byte <= outer.end_byte
+               for m in matches)
+
+
+def test_find_all_in_keeps_absolute_utf8_byte_offsets(defs, lang):
+    src = "# héllo\ndef outer():\n    return 1\n"
+    tree = lang.parse(src)
+    outer = tree.root_node.children[1]
+    match = defs.find_in(outer, src)
+    assert match is not None
+    assert match.span.start_byte == src.encode().index(b"def outer")
+    assert src.encode()[match.span.start_byte:match.span.end_byte].decode() == match.text
+
+
+def test_find_rebased_uses_an_absolute_utf8_base_for_fragment_matches(defs):
+    prefix = "préface\n"
+    fragment = "def inner():\n    return 'héllo'\n"
+    match = defs.find_rebased(fragment, base_byte=len(prefix.encode("utf-8")))
+    assert match is not None
+    expected_start = len(prefix.encode("utf-8"))
+    expected_end = expected_start + len(match.text.encode("utf-8"))
+    assert (match.span.start_byte, match.span.end_byte) == (
+        expected_start, expected_end)
+    assert match.captures["NAME"].start_byte == expected_start + \
+        fragment.encode("utf-8").index(b"inner")
+    assert match.node.start_byte == 0  # the node belongs to the fragment parse
+
+
+def test_find_rebased_rejects_an_invalid_base(defs):
+    with pytest.raises(PatternError, match="base_byte"):
+        defs.find_all_rebased("def inner(): pass\n", base_byte=-1)
+
+
+def test_frontmatter_scopes_yaml_pattern_to_minus_metadata():
+    """The two-parser frontmatter seam keeps YAML matching exact.
+
+    The markdown block parser is ast-grep's built-in grammar. The YAML
+    fragment is parsed by the pinned tree-sitter-yaml wheel. The first
+    integration step returns structural YAML pairs; typed record extraction
+    needs the wheel's node-types schema, which it does not publish.
+    """
+    import ast_grep_py
+    import tree_sitter_yaml
+
+    from pydantree_sitter.pattern import _Parse
+
+    source = "---\ntitle: Héllo\ntags:\n  - project\n---\n\n# Body\n"
+    metadata = ast_grep_py.SgRoot(source, "markdown").root().find(
+        kind="minus_metadata")
+    assert metadata is not None
+    start = metadata.range().start.index
+    end = metadata.range().end.index
+    fragment = source[start:end]
+
+    yaml_lang = Language.from_module(tree_sitter_yaml,
+                                     astgrep_name="yaml")
+    pattern = Pattern(Rule(kind="block_mapping_pair"), language=yaml_lang)
+    matches = pattern.find_all(fragment)
+    assert [match.text.split(":", 1)[0] for match in matches] == [
+        "title", "tags"]
+    assert matches[0].span.start_byte == fragment.encode().index(b"title")
+    assert _Parse(yaml_lang, fragment).data[matches[0].span.start_byte:
+                                            matches[0].span.end_byte].decode() \
+        == matches[0].text
+
+
 def test_multi_metavariable_captures_are_a_tuple(defs):
     match = defs.find(SOURCE)
     assert isinstance(match.captures["ARGS"], tuple)

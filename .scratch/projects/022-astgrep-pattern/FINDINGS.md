@@ -138,3 +138,79 @@ evidence about the module. `devenv.nix` records this.
 Neither `ast_grep_py` nor `tree_sitter_python` exposes `__version__`. Read
 versions with `importlib.metadata.version`, or `GrammarAgreement.digest`
 records the string `"unknown"` and two runs become incomparable.
+
+## 6. Scoped patterns — measured decision
+
+`Pattern.find_all_in(node, source)` uses one parse of the complete source.
+It filters ast-grep matches by `node.start_byte <= match.start_byte` and
+`match.end_byte <= node.end_byte`. The probe showed that this keeps nested
+function matches and preserves the outer document context.
+
+Fragment parsing was rejected. A fragment can be invalid outside its parent,
+and fragment offsets would need UTF-8 rebasing. Whole-document matching keeps
+the existing exact-range resolution and absolute byte-offset invariant.
+
+## 7. Frontmatter — first integration boundary
+
+The development envelope now pins `tree-sitter-yaml>=0.7`; the lock resolves
+version 0.7.2. ast-grep's built-in `markdown` grammar locates
+`minus_metadata`, and the YAML wheel parses that fragment. A YAML
+`block_mapping_pair` pattern finds the expected pairs, including a non-ASCII
+value, with exact pydantree nodes.
+
+The YAML wheel does not publish `node-types.json`. Without that schema,
+record-mode `OutputModel` binding cannot prove key and value shapes at bind
+time. The current integration therefore stops at structural pair matching.
+Typed frontmatter extraction needs a reviewed YAML schema artifact or a
+bundle-backed YAML grammar. The test records this limitation instead of
+guessing a schema.
+
+## 8. Dynamic registration is one-shot in ast-grep-py 0.45.3
+
+The dynamic-language API accepts several language configurations in its first
+call. A later call returns without making its new name available. The wrapper
+previously recorded that name as registered, which caused later `SgRoot`
+calls to raise `LanguageNotSupported` and made the result depend on test
+order.
+
+The wrapper now allows an identical re-registration, refuses a second
+distinct language with a clear `PatternBuildError`, and tells callers to
+combine registrations or use a subprocess. The Obsidian integration test
+uses a subprocess because the suite also registers a JSON fixture language.
+
+## 9. Markdown block handoff — measured design
+
+The built-in ast-grep Markdown parser exposes useful block nodes, but its
+`inline` node is opaque. The extended `probe_markdown.py` records the exact
+shape in `evidence/markdown.json`.
+
+The measured shape is:
+
+- `atx_heading` owns an `inline` child directly.
+- `paragraph` owns the `inline` child directly.
+- `list_item` owns a `paragraph`, which owns the `inline` child.
+- `block_quote` owns a `paragraph`, which owns the `inline` child.
+- task markers are direct `list_item` children beside that paragraph.
+- multiline paragraphs keep their line breaks inside one `inline` span.
+
+ast-grep reports character ranges. The Markdown probe converts each range
+with `char_to_byte_table`, and the evidence verifies each byte slice against
+the original source. The check includes `Café`, `pré`, and `tâche`.
+
+The cross-parser design does not pass an ast-grep node to
+`Pattern.find_all_in`. That API requires a node from the Pattern language's
+own pydantree parse. `Pattern.find_all_rebased(fragment, base_byte=...)`
+parses each inline fragment with `obsidian_inline`, then rebases the match
+and capture spans to the original document. The fragment match node remains
+local to that parse, which the API documents.
+
+`probe_obsidian_markdown.py` writes `evidence/obsidian-markdown.json`. Each
+record contains the Markdown node kind, character and byte ranges, inline
+fragment, inline match kind, match text, absolute byte range, and the
+original-source slice. The probe and subprocess integration test cover every
+requested construct in headings, paragraphs, block quotes, list items, and
+task list items.
+
+The bounded inline grammar now includes a `line_break` node. This keeps
+multiline Markdown inline fragments parseable without recovery errors. It
+does not attempt to parse the full Markdown block language.

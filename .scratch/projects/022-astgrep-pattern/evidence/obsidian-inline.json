@@ -1,0 +1,46 @@
+{
+  "source": "[[Target|Alias]] ![[Embed.png]] #tag/nested [!note]- key:: value ^abc ==hi== %%x%%",
+  "bundle": "/home/andrew/Documents/Projects/pydantree/.scratch/projects/022-astgrep-pattern/evidence/obsidian-inline-bundle",
+  "same_artifact": true,
+  "matches": {
+    "wiki_link": [
+      "[[Target|Alias]]"
+    ],
+    "embed": [
+      "![[Embed.png]]"
+    ],
+    "tag": [
+      "#tag/nested"
+    ],
+    "callout_marker": [
+      "[!note]-"
+    ],
+    "inline_field": [
+      " key:: value "
+    ],
+    "block_id": [
+      "^abc"
+    ],
+    "highlight": [
+      "==hi=="
+    ],
+    "comment": [
+      "%%x%%"
+    ]
+  },
+  "child_types": [
+    "wiki_link",
+    "text",
+    "embed",
+    "text",
+    "tag",
+    "text",
+    "callout_marker",
+    "inline_field",
+    "block_id",
+    "text",
+    "highlight",
+    "text",
+    "comment"
+  ]
+}

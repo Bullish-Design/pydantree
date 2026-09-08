@@ -123,6 +123,12 @@ def register_bundle_language(name: str, library_path, symbol: str, *,
             f"re-registering it from {library_path!r} would silently rebind "
             f"every Pattern already built on it. Registration is "
             f"process-global — pick another name.")
+    if _REGISTERED:
+        raise PatternBuildError(
+            f"ast-grep-py accepts dynamic languages only in its first "
+            f"registration call; {name!r} cannot be added after "
+            f"{', '.join(sorted(_REGISTERED))!r}. Register all dynamic "
+            f"languages together in one process, or use a subprocess.")
 
     engine = _load_engine()
     config = {"library_path": library_path, "language_symbol": symbol,
@@ -402,6 +408,26 @@ def _span_dict(span: Span) -> dict:
     }
 
 
+def _rebase_span(span: Span, base_byte: int) -> Span:
+    """Return ``span`` with its UTF-8 byte offsets shifted by ``base_byte``."""
+    return Span(span.line, span.column, span.end_line, span.end_column,
+                span.start_byte + base_byte, span.end_byte + base_byte,
+                span.text)
+
+
+def _rebase_match(match: PatternMatch, base_byte: int) -> PatternMatch:
+    """Rebase a fragment match and all its metavariable spans."""
+    captures = {
+        name: (tuple(_rebase_span(span, base_byte) for span in value)
+               if isinstance(value, tuple)
+               else _rebase_span(value, base_byte))
+        for name, value in match.captures.items()
+    }
+    return PatternMatch(
+        _rebase_span(match.span, base_byte), match.node, captures,
+        match._parse, match._agreement, match._language)
+
+
 # ---------------------------------------------------------------------------
 # Pattern
 # ---------------------------------------------------------------------------
@@ -522,6 +548,57 @@ class Pattern:
         """
         parse = _Parse(self._language, source)
         return tuple(self._matches(source, parse))
+
+    def find_all_in(self, node: tree_sitter.Node, source: str) -> tuple[PatternMatch, ...]:
+        """Find matches contained by ``node`` in the original source.
+
+        The method parses the complete source and filters whole-document
+        matches by absolute byte range. It does not parse ``node.text`` as a
+        fragment. This preserves the parent context that relational rules
+        can inspect and keeps every returned offset absolute over UTF-8.
+        """
+        parse = _Parse(self._language, source)
+        return tuple(
+            match for match in self._matches(source, parse)
+            if node.start_byte <= match.span.start_byte
+            and match.span.end_byte <= node.end_byte
+        )
+
+    def find_in(self, node: tree_sitter.Node, source: str) -> PatternMatch | None:
+        """Return the first match contained by ``node``, or ``None``."""
+        matches = self.find_all_in(node, source)
+        return matches[0] if matches else None
+
+    def find_all_rebased(self, fragment: str, *, base_byte: int) \
+            -> tuple[PatternMatch, ...]:
+        """Find matches in a separately parsed fragment.
+
+        ``fragment`` is parsed by this Pattern's pydantree language. The
+        returned ``PatternMatch.span`` and every metavariable span use
+        absolute UTF-8 byte offsets after adding ``base_byte``, which is the
+        fragment's first byte in the original source. The match node remains
+        a node from the fragment parse. Use this method for a fragment from a
+        different parser, such as an ast-grep Markdown ``inline`` node.
+
+        This method does not replace ``find_all_in``. That method accepts a
+        node from this Pattern's own pydantree parse and filters one complete
+        source parse, so it preserves parent context for relational rules.
+        """
+        if not isinstance(base_byte, int) or isinstance(base_byte, bool) \
+                or base_byte < 0:
+            raise PatternError(
+                f"base_byte must be a non-negative integer, got {base_byte!r}")
+        parse = _Parse(self._language, fragment)
+        return tuple(
+            _rebase_match(match, base_byte)
+            for match in self._matches(fragment, parse)
+        )
+
+    def find_rebased(self, fragment: str, *, base_byte: int) \
+            -> PatternMatch | None:
+        """Return the first match in a fragment with absolute byte offsets."""
+        matches = self.find_all_rebased(fragment, base_byte=base_byte)
+        return matches[0] if matches else None
 
     def _matches(self, source: str, parse: _Parse):
         digest = self._agreement.digest

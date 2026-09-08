@@ -262,6 +262,25 @@ that is the one place the two vocabularies touch.
 Full findings, including the offset conversion and the three places the
 concept did not survive contact: `.scratch/projects/022-astgrep-pattern/`.
 
+`Pattern.find_all_in(node, source)` searches the original document and keeps
+matches whose absolute byte ranges fit inside `node`. It does not reparse a
+fragment. This preserves parent context for relational rules and avoids UTF-8
+offset rebasing.
+
+`Pattern.find_all_rebased(fragment, base_byte=...)` serves a different
+boundary. It parses a source fragment with the Pattern's own language, then
+adds the fragment's absolute UTF-8 byte base to the match and capture spans.
+The returned `PatternMatch.node` remains a node from the fragment parse. A
+caller must use this method when the fragment node came from another parser,
+such as ast-grep Markdown's `inline` node. The caller converts the Markdown
+character start with `char_to_byte_table` before passing it as `base_byte`.
+
+The Markdown pipeline is therefore two-stage: ast-grep's built-in Markdown
+grammar locates block nodes and opaque `inline` child spans, then the bundled
+`obsidian_inline` grammar parses each span through
+`find_all_rebased`. The Markdown parser exposes `inline` as a direct child of
+`paragraph`; list-item and block-quote ownership remains in its ancestor path.
+
 ## 8. Durable facts (verified, do not re-derive)
 
 1. tree-sitter CLI **0.25.3**, bindings **0.26.0** (LANGUAGE_VERSION=15,
@@ -307,6 +326,23 @@ concept did not survive contact: `.scratch/projects/022-astgrep-pattern/`.
     it alone as a "the edit is safe" gate. `Pattern._verify_reparse` also
     requires each edit site to occupy exactly ONE node in the result, which
     caught 19 of 19 with no false positive over 35 valid rewrites.
+13. Scoped pattern searches filter whole-document ast-grep results by the
+    supplied pydantree node's absolute byte range. Fragment parsing would
+    lose parent context and would require offset rebasing.
+14. The `tree-sitter-yaml` wheel resolves YAML parsing but does not publish a
+    node-types schema. Structural YAML pattern matching works; typed
+    record-mode extraction requires a reviewed schema artifact or bundle.
+15. `ast-grep-py` accepts dynamic-language registrations only in its first
+    process call. Later calls can return without registering the new name.
+    `pattern.py` refuses a second distinct registration and names the
+    subprocess or combined-registration requirement.
+16. `Pattern.find_all_in` is for nodes from the Pattern language's own
+    pydantree parse. Cross-parser fragments use `find_all_rebased`, which adds
+    an explicit absolute UTF-8 byte base to match and capture spans.
+17. ast-grep Markdown emits `inline` as an opaque direct child of
+    `paragraph`. A `list_item` or `block_quote` appears in the ancestor path.
+    Task markers are direct children of `list_item`; ast-grep reports all
+    these ranges as character offsets.
 
 ## 9. Where to start reading
 

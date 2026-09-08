@@ -1,0 +1,405 @@
+{
+  "source": "---\ntags: [project, active]\n---\n\n# Caf\u00e9 [[Target#Heading]]\n\nParagraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.\n\n> [!note] Callout [[Quoted]]\n> Body pr\u00e9 ^quoteid.\n>\n> [!warning]- Warning [[Warned]]\n\n- [ ] t\u00e2che [[Task]]\n- [x] done #checked\n\n```python\ndef f(x): return x\n```\n",
+  "bundle": "/home/andrew/Documents/Projects/pydantree/.scratch/projects/022-astgrep-pattern/evidence/obsidian-inline-bundle",
+  "same_artifact": true,
+  "markdown_block_counts": {
+    "atx_heading": 1,
+    "paragraph": 5,
+    "list_item": 2,
+    "block_quote": 1,
+    "task_list_marker_checked": 1,
+    "task_list_marker_unchecked": 1,
+    "list": 1,
+    "minus_metadata": 1
+  },
+  "markdown_inline_node_count": 6,
+  "matches": [
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "atx_heading"
+      ],
+      "markdown_node_character_range": {
+        "start": 35,
+        "end": 58
+      },
+      "markdown_node_byte_range": {
+        "start": 35,
+        "end": 59
+      },
+      "inline_fragment_text": "Caf\u00e9 [[Target#Heading]]",
+      "inline_match_kind": "wiki_link",
+      "match_text": "[[Target#Heading]]",
+      "absolute_byte_start": 41,
+      "absolute_byte_end": 59,
+      "original_source_slice": "[[Target#Heading]]"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 60,
+        "end": 223
+      },
+      "markdown_node_byte_range": {
+        "start": 61,
+        "end": 226
+      },
+      "inline_fragment_text": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "inline_match_kind": "wiki_link",
+      "match_text": "[[Target]]",
+      "absolute_byte_start": 76,
+      "absolute_byte_end": 86,
+      "original_source_slice": "[[Target]]"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 60,
+        "end": 223
+      },
+      "markdown_node_byte_range": {
+        "start": 61,
+        "end": 226
+      },
+      "inline_fragment_text": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "inline_match_kind": "wiki_link",
+      "match_text": "[[Target|Alias]]",
+      "absolute_byte_start": 87,
+      "absolute_byte_end": 103,
+      "original_source_slice": "[[Target|Alias]]"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 60,
+        "end": 223
+      },
+      "markdown_node_byte_range": {
+        "start": 61,
+        "end": 226
+      },
+      "inline_fragment_text": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "inline_match_kind": "wiki_link",
+      "match_text": "[[Target#^block]]",
+      "absolute_byte_start": 104,
+      "absolute_byte_end": 121,
+      "original_source_slice": "[[Target#^block]]"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 60,
+        "end": 223
+      },
+      "markdown_node_byte_range": {
+        "start": 61,
+        "end": 226
+      },
+      "inline_fragment_text": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "inline_match_kind": "wiki_link",
+      "match_text": "[[Caf\u00e9]]",
+      "absolute_byte_start": 209,
+      "absolute_byte_end": 218,
+      "original_source_slice": "[[Caf\u00e9]]"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 60,
+        "end": 223
+      },
+      "markdown_node_byte_range": {
+        "start": 61,
+        "end": 226
+      },
+      "inline_fragment_text": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "inline_match_kind": "embed",
+      "match_text": "![[Embed.png]]",
+      "absolute_byte_start": 127,
+      "absolute_byte_end": 141,
+      "original_source_slice": "![[Embed.png]]"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 60,
+        "end": 223
+      },
+      "markdown_node_byte_range": {
+        "start": 61,
+        "end": 226
+      },
+      "inline_fragment_text": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "inline_match_kind": "tag",
+      "match_text": "#tag",
+      "absolute_byte_start": 142,
+      "absolute_byte_end": 146,
+      "original_source_slice": "#tag"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 60,
+        "end": 223
+      },
+      "markdown_node_byte_range": {
+        "start": 61,
+        "end": 226
+      },
+      "inline_fragment_text": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "inline_match_kind": "tag",
+      "match_text": "#nested/tag",
+      "absolute_byte_start": 147,
+      "absolute_byte_end": 158,
+      "original_source_slice": "#nested/tag"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 60,
+        "end": 223
+      },
+      "markdown_node_byte_range": {
+        "start": 61,
+        "end": 226
+      },
+      "inline_fragment_text": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "inline_match_kind": "inline_field",
+      "match_text": " key:: value ",
+      "absolute_byte_start": 158,
+      "absolute_byte_end": 171,
+      "original_source_slice": " key:: value "
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 60,
+        "end": 223
+      },
+      "markdown_node_byte_range": {
+        "start": 61,
+        "end": 226
+      },
+      "inline_fragment_text": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "inline_match_kind": "block_id",
+      "match_text": "^abc123",
+      "absolute_byte_start": 197,
+      "absolute_byte_end": 204,
+      "original_source_slice": "^abc123"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 60,
+        "end": 223
+      },
+      "markdown_node_byte_range": {
+        "start": 61,
+        "end": 226
+      },
+      "inline_fragment_text": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "inline_match_kind": "highlight",
+      "match_text": "==highlight==",
+      "absolute_byte_start": 171,
+      "absolute_byte_end": 184,
+      "original_source_slice": "==highlight=="
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 60,
+        "end": 223
+      },
+      "markdown_node_byte_range": {
+        "start": 61,
+        "end": 226
+      },
+      "inline_fragment_text": "Paragraph pr\u00e9 [[Target]] [[Target|Alias]] [[Target#^block]]\nwith ![[Embed.png]] #tag #nested/tag key:: value ==highlight==\n%%comment%% ^abc123 and [[Caf\u00e9]] inside.",
+      "inline_match_kind": "comment",
+      "match_text": "%%comment%%",
+      "absolute_byte_start": 185,
+      "absolute_byte_end": 196,
+      "original_source_slice": "%%comment%%"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "block_quote",
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 227,
+        "end": 274
+      },
+      "markdown_node_byte_range": {
+        "start": 230,
+        "end": 278
+      },
+      "inline_fragment_text": "[!note] Callout [[Quoted]]\n> Body pr\u00e9 ^quoteid.",
+      "inline_match_kind": "wiki_link",
+      "match_text": "[[Quoted]]",
+      "absolute_byte_start": 246,
+      "absolute_byte_end": 256,
+      "original_source_slice": "[[Quoted]]"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "block_quote",
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 227,
+        "end": 274
+      },
+      "markdown_node_byte_range": {
+        "start": 230,
+        "end": 278
+      },
+      "inline_fragment_text": "[!note] Callout [[Quoted]]\n> Body pr\u00e9 ^quoteid.",
+      "inline_match_kind": "callout_marker",
+      "match_text": "[!note]",
+      "absolute_byte_start": 230,
+      "absolute_byte_end": 237,
+      "original_source_slice": "[!note]"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "block_quote",
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 227,
+        "end": 274
+      },
+      "markdown_node_byte_range": {
+        "start": 230,
+        "end": 278
+      },
+      "inline_fragment_text": "[!note] Callout [[Quoted]]\n> Body pr\u00e9 ^quoteid.",
+      "inline_match_kind": "block_id",
+      "match_text": "^quoteid",
+      "absolute_byte_start": 269,
+      "absolute_byte_end": 277,
+      "original_source_slice": "^quoteid"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "block_quote",
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 279,
+        "end": 309
+      },
+      "markdown_node_byte_range": {
+        "start": 283,
+        "end": 313
+      },
+      "inline_fragment_text": "[!warning]- Warning [[Warned]]",
+      "inline_match_kind": "wiki_link",
+      "match_text": "[[Warned]]",
+      "absolute_byte_start": 303,
+      "absolute_byte_end": 313,
+      "original_source_slice": "[[Warned]]"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "block_quote",
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 279,
+        "end": 309
+      },
+      "markdown_node_byte_range": {
+        "start": 283,
+        "end": 313
+      },
+      "inline_fragment_text": "[!warning]- Warning [[Warned]]",
+      "inline_match_kind": "callout_marker",
+      "match_text": "[!warning]-",
+      "absolute_byte_start": 283,
+      "absolute_byte_end": 294,
+      "original_source_slice": "[!warning]-"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "list_item",
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 317,
+        "end": 331
+      },
+      "markdown_node_byte_range": {
+        "start": 321,
+        "end": 336
+      },
+      "inline_fragment_text": "t\u00e2che [[Task]]",
+      "inline_match_kind": "wiki_link",
+      "match_text": "[[Task]]",
+      "absolute_byte_start": 328,
+      "absolute_byte_end": 336,
+      "original_source_slice": "[[Task]]"
+    },
+    {
+      "markdown_node_kind": "inline",
+      "markdown_block_ancestors": [
+        "list_item",
+        "paragraph"
+      ],
+      "markdown_node_character_range": {
+        "start": 338,
+        "end": 351
+      },
+      "markdown_node_byte_range": {
+        "start": 343,
+        "end": 356
+      },
+      "inline_fragment_text": "done #checked",
+      "inline_match_kind": "tag",
+      "match_text": "#checked",
+      "absolute_byte_start": 348,
+      "absolute_byte_end": 356,
+      "original_source_slice": "#checked"
+    }
+  ]
+}
