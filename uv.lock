@@ -399,7 +399,7 @@ wheels = [
 
 [[package]]
 name = "pydantree"
-version = "0.3.0"
+version = "0.4.0"
 source = { virtual = "." }
 
 [package.optional-dependencies]
@@ -433,7 +433,7 @@ provides-extras = ["dev", "python"]
 
 [[package]]
 name = "pydantree-sitter"
-version = "0.3.0"
+version = "0.4.0"
 source = { editable = "src/pydantree_sitter" }
 dependencies = [
     { name = "pydantic" },
@@ -455,7 +455,7 @@ provides-extras = ["pattern"]
 
 [[package]]
 name = "pydantree-sitter-grammar"
-version = "0.3.0"
+version = "0.4.0"
 source = { editable = "src/pydantree_sitter_grammar" }
 dependencies = [
     { name = "pydantic" },

@@ -25,7 +25,7 @@ from .pattern import Edit, Pattern, PatternMatch, ReplaceResult
 from .schema import NodeSchema
 from .span import Span
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 
 def load_bundle(directory):

@@ -159,7 +159,7 @@ from .scanners import (
 )
 from .schema_tool import build_community_bundle, derive_schema_for_dir
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
     # builder
