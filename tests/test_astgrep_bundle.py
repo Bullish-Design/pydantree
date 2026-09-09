@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from pydantree_sitter import Grammar
+from pydantree_sitter.errors import PatternBuildError
 from pydantree_sitter.pattern import (
     Pattern,
     register_bundle_languages,
@@ -69,8 +70,14 @@ def test_bundle_registration_uses_metadata_and_batches_languages(
     assert grammar.astgrep_name == "pdtnix"
     assert grammar.astgrep_is_bundle is True
 
-    bindings = Pattern(Rule(kind="binding"), language=grammar).find_all(NIX)
+    pattern = Pattern(Rule(kind="binding"), language=grammar)
+    bindings = pattern.find_all(NIX)
     assert len(bindings) == 2
+    typed = bindings[0].extract(grammar.nodes.Binding)
+    assert len(typed) == 1
+    assert typed[0].__kind__ == "binding"
+    assert pattern.agreement.same_artifact is True
+    assert bindings[0].agreement == pattern.agreement.digest
 
     metavariable = Pattern("{ _K = _V; }", language=grammar)
     matches = metavariable.find_all(NIX)
@@ -78,3 +85,26 @@ def test_bundle_registration_uses_metadata_and_batches_languages(
     assert set(matches[0].captures) == {"K", "V"}
     assert matches[0].captures["K"].text == "packages"
     assert matches[0].captures["V"].text == "[ pkgs.git ]"
+
+    rewritten = metavariable.replace_all(NIX, "{ _K = _V; }")
+    assert rewritten.original_source == NIX
+    assert rewritten.count == 1
+    assert rewritten.new_source == (
+        "{ pkgs, ... }:\n"
+        "{ packages = [ pkgs.git ]; }\n")
+
+    assert grammar.register_astgrep() == "pdtnix"
+    with pytest.raises(PatternBuildError, match="already registered"):
+        register_bundle_languages({
+            "pdtnix": {
+                "library_path": rust_dir / "grammar.so",
+                "language_symbol": "tree_sitter_rust",
+            },
+        })
+    with pytest.raises(PatternBuildError, match="first registration call"):
+        register_bundle_languages({
+            "pdtextra": {
+                "library_path": nix_dir / "grammar.so",
+                "language_symbol": "tree_sitter_nix",
+            },
+        })

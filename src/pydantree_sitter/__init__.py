@@ -21,6 +21,7 @@ from .errors import (
 from .generate import build_namespace, generate_module
 from .grammar import Grammar
 from .nodes import Node
+from .pattern import Edit, Pattern, PatternMatch, ReplaceResult
 from .schema import NodeSchema
 from .span import Span
 
@@ -47,4 +48,8 @@ __all__ = [
     "SchemaMissingError",
     "ShapeError",
     "ExtractionError",
+    "Pattern",
+    "PatternMatch",
+    "Edit",
+    "ReplaceResult",
 ]

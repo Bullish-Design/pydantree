@@ -1,0 +1,5 @@
+== Product B: author + build ==
+bundle: /home/andrew/Documents/Projects/pydantree/examples/devenv-subset/dist
+== Product A: typed traversal ==
+host = example.com (line 1)
+port = 8080 (line 1)

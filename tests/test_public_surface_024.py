@@ -18,6 +18,10 @@ def test_typed_node_universe_public_surface() -> None:
         "SchemaDriftError",
         "SchemaDistributionError",
         "SchemaMissingError",
-        "ShapeError",
-        "ExtractionError",
-    ]
+            "ShapeError",
+            "ExtractionError",
+            "Pattern",
+            "PatternMatch",
+            "Edit",
+            "ReplaceResult",
+        ]

@@ -117,14 +117,50 @@ JSON escape decoding, including lenient raw-newline input, is provided by
 `__raw_query__` remains an isolated escape hatch for sibling order, negation,
 or multi-anchor joins. Keep ordinary extraction on typed node subclasses.
 
-## 7. Product B
+## 7. Structural patterns
+
+`Pattern` is the expressive front end for structural search. ast-grep finds
+matches. pydantree resolves each match through the same typed `Grammar.parse`
+tree and returns exact schema-backed nodes.
+
+```python
+from pydantree_sitter import Pattern
+from pydantree_sitter.rules import Rule
+
+pattern = Pattern(Rule(kind="function_definition"), language=grammar)
+matches = pattern.find_all(source)
+typed_rows = matches[0].extract(grammar.nodes.FunctionDefinition)
+```
+
+For a grammar owned by your project, load its bundle and call
+`grammar.register_astgrep()` before constructing the pattern. Bundle
+registration makes ast-grep and pydantree use the same shared library. The
+bundle metadata supplies the registration name, shared-library symbol,
+extensions, and metavariable sigil. Register several bundles together with
+`register_bundle_languages()` because dynamic registration is process-global
+and ast-grep accepts it only during its first registration call.
+
+Installed wheel grammars, such as Python, use the recorded
+`GrammarAgreement` data. This path does not claim same-artifact agreement.
+For a bundle pattern, `pattern.agreement.same_artifact` is true. Each match
+also carries the agreement digest in its serializable record.
+
+`PatternMatch.extract(Model)` resolves the match by exact kind and byte range.
+It never selects a nearest or enclosing node. `PatternMatch.captures` reports
+UTF-8 byte spans, even though ast-grep reports character offsets internally.
+Pass a callable instead of a template when replacement text needs custom
+logic. The callable receives one `PatternMatch` and returns a string.
+Use raw queries when the pattern needs sibling order, negation, or a
+multi-anchor join.
+
+## 8. Product B
 
 `pydantree_sitter_grammar.Rule` uses the same annotation grammar. Its
 `to_ir()` method compiles the shared `NodeMeta`/`Child` declaration forward to
 the grammar builder. The D12 round-trip is covered by
 `tests/test_direction_roundtrip.py`.
 
-## 8. Errors and gates
+## 9. Errors and gates
 
 The typed core exposes `SchemaCheckError` for class/schema mismatches,
 `SchemaDriftError` for generated-language drift, `ShapeError` for unmappable

@@ -1,8 +1,9 @@
 """pydantree_sitter.agreement — the two-parser boundary (022 §4).
 
-`ast-grep-py` vendors its own tree-sitter grammars. pydantree parses with
-`tree_sitter_python`, or with a bundle from `pydantree-sitter-grammar`. Two
-parses of one source, from two grammar revisions.
+`ast-grep-py` vendors its own tree-sitter grammars. For a wheel grammar,
+pydantree parses with `tree_sitter_python` and records the measured agreement
+between two grammar revisions. For a registered bundle, both sides load the
+same shared library, so the agreement is established by construction.
 
 This module owns everything that crosses between them:
 
@@ -10,7 +11,8 @@ This module owns everything that crosses between them:
     byte offsets throughout. The conversion is mandatory, not a nicety.
   * `GrammarAgreement` — the recorded evidence that the two grammars agree,
     plus the bind-time version check against it.
-  * `measure_agreement` — the measurement that produces a record.
+  * `measure_agreement` — the explicit regeneration and evidence helper for
+    wheel-grammar records.
 
 The handoff rule (§4.1) is enforced in `pattern.py`, and it depends on this
 module's offsets being right:

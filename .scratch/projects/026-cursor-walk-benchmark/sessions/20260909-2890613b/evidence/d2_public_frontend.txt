@@ -1,0 +1,73 @@
+F.F                                                                      [100%]
+=================================== FAILURES ===================================
+_________ test_wheel_pattern_extracts_exact_typed_node_and_utf8_spans __________
+
+    def test_wheel_pattern_extracts_exact_typed_node_and_utf8_spans() -> None:
+        grammar = _python_grammar()
+        source = "😀 = 1\ndef greet(name):\n    return name\n"
+    
+        matches = Pattern(Rule(kind="function_definition"), language=grammar) \
+            .find_all(source)
+    
+        assert len(matches) == 1
+        match = matches[0]
+        assert match.node.type == "function_definition"
+        assert match.span.start_byte == len("😀 = 1\n".encode())
+        assert match.span.end_byte == len(source.encode()) - 1
+>       assert match.agreement.same_artifact is False
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'str' object has no attribute 'same_artifact'
+
+tests/test_pattern_frontend.py:36: AttributeError
+_________ test_bundle_registration_uses_metadata_and_batches_languages _________
+
+nix_bundle = PosixPath('/tmp/pytest-of-andrew/pytest-14787/nix-bundle0/bundle')
+rust_bundle = PosixPath('/tmp/pytest-of-andrew/pytest-14787/rust-bundle0/bundle')
+tmp_path = PosixPath('/tmp/pytest-of-andrew/pytest-14787/test_bundle_registration_uses_0')
+
+    def test_bundle_registration_uses_metadata_and_batches_languages(
+            nix_bundle, rust_bundle, tmp_path):
+        """Register two bundles in one engine call and bind Pattern implicitly."""
+        nix_dir = _copy_bundle(nix_bundle, tmp_path / "nix",
+                               name="pdtnix", meta_var_char="_")
+        rust_dir = _copy_bundle(rust_bundle, tmp_path / "rust",
+                                name="pdtrust", meta_var_char="$")
+        nix_meta = json.loads((nix_dir / "tree-sitter.json").read_text())
+        rust_meta = json.loads((rust_dir / "tree-sitter.json").read_text())
+    
+        registered = register_bundle_languages({
+            "pdtnix": {
+                "library_path": nix_dir / "grammar.so",
+                "language_symbol": nix_meta.get(
+                    "language_symbol", f"tree_sitter_{nix_meta['name']}"),
+                "meta_var_char": nix_meta["meta_var_char"],
+            },
+            "pdtrust": {
+                "library_path": rust_dir / "grammar.so",
+                "language_symbol": rust_meta.get(
+                    "language_symbol", f"tree_sitter_{rust_meta['name']}"),
+                "meta_var_char": rust_meta["meta_var_char"],
+            },
+        })
+        assert set(registered) == {"pdtnix", "pdtrust"}
+        assert set(registered_languages()) == {"pdtnix", "pdtrust"}
+    
+        grammar = Grammar.load_bundle(nix_dir)
+        assert grammar.register_astgrep() == "pdtnix"
+        assert grammar.astgrep_name == "pdtnix"
+        assert grammar.astgrep_is_bundle is True
+    
+        bindings = Pattern(Rule(kind="binding"), language=grammar).find_all(NIX)
+        assert len(bindings) == 2
+        typed = bindings[0].extract(grammar.nodes.Binding)
+        assert len(typed) == 1
+        assert typed[0].__kind__ == "binding"
+>       assert bindings[0].agreement.same_artifact is True
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'str' object has no attribute 'same_artifact'
+
+tests/test_astgrep_bundle.py:78: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_pattern_frontend.py::test_wheel_pattern_extracts_exact_typed_node_and_utf8_spans
+FAILED tests/test_astgrep_bundle.py::test_bundle_registration_uses_metadata_and_batches_languages
+2 failed, 1 passed in 1.56s

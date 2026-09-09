@@ -1,0 +1,36 @@
+........................................................................ [ 19%]
+........................................................................ [ 38%]
+........................................................................ [ 57%]
+........................................................F............... [ 77%]
+........................................................................ [ 96%]
+............x                                                            [100%]
+=================================== FAILURES ===================================
+___________________ test_typed_node_universe_public_surface ____________________
+
+    def test_typed_node_universe_public_surface() -> None:
+>       assert p.__all__ == [
+            "Node",
+            "Grammar",
+            "Span",
+            "generate_module",
+            "build_namespace",
+            "load_bundle",
+            "NodeSchema",
+            "PydantreeSitterError",
+            "SchemaCheckError",
+            "SchemaDataError",
+            "SchemaDriftError",
+            "SchemaDistributionError",
+            "SchemaMissingError",
+            "ShapeError",
+            "ExtractionError",
+        ]
+E       AssertionError: assert ['Node', 'Gra..._bundle', ...] == ['Node', 'Gra..._bundle', ...]
+E         
+E         Left contains 4 more items, first extra item: 'Pattern'
+E         Use -v to get more diff
+
+tests/test_public_surface_024.py:7: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_public_surface_024.py::test_typed_node_universe_public_surface
+1 failed, 371 passed, 1 xfailed in 96.89s (0:01:36)

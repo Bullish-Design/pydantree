@@ -49,13 +49,18 @@ The top-level `pydantree_sitter.__all__` remains the following list:
 Node, Grammar, Span, generate_module, build_namespace, load_bundle,
 NodeSchema, PydantreeSitterError, SchemaCheckError, SchemaDataError,
 SchemaDriftError, SchemaDistributionError, SchemaMissingError, ShapeError,
-ExtractionError
+ExtractionError, Pattern, PatternMatch, Edit, ReplaceResult
 ```
 
 `Grammar.query_source`, `find.query_source`, the generated `_query_walk`, and
 the `pydantree_sitter.emit` compatibility module are removed. The inspectable
 `Selector` and `SelectorChild` live in `pydantree_sitter.find`. `raw.Query`,
 `raw.Cursor`, `raw.MatchView`, `raw.RawQuery`, and capture validation remain.
+The structural front end is available from both `pydantree_sitter.pattern`
+and the top-level package: `Pattern`, `PatternMatch`, `Edit`, and
+`ReplaceResult`. `GrammarAgreement`, `agreement_for`, and `measure_agreement`
+remain in `pydantree_sitter.agreement` for the installed wheel-grammar path
+and its explicit regeneration evidence.
 
 ## Worked example: `let _ = ...`
 

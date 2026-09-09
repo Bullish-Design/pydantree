@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import re
 import warnings
+from collections.abc import Callable
 from itertools import pairwise
 from typing import Any
 
@@ -54,6 +55,7 @@ from .errors import (
 )
 from .rules import Rule, _metavar_pattern, metavariables_of
 from .span import Span
+from .syntax import syntax_check_for
 
 __all__ = ["Edit", "Pattern", "PatternMatch", "ReplaceResult",
            "register_bundle_language", "register_bundle_languages",
@@ -358,6 +360,7 @@ class ReplaceResult(BaseModel):
 
     count: int
     edits: tuple[Edit, ...]
+    original_source: str
     new_source: str
     agreement: str
     # What validation FOUND, whether or not it refused. With `validate=True`
@@ -679,7 +682,8 @@ class Pattern:
 
     # -- rewrite ------------------------------------------------------------
 
-    def replace_all(self, source: str, template: str, *,
+    def replace_all(self, source: str,
+                    template: str | Callable[[PatternMatch], str], *,
                     on_overlap: str = "refuse",
                     reindent: bool = False,
                     single_node: bool | None = None,
@@ -720,16 +724,21 @@ class Pattern:
                 f"on_overlap={on_overlap!r} is not one of 'refuse', "
                 f"'outermost', 'innermost'.")
 
-        unknown = sorted(
-            metavariables_of(template, self._meta_var_char)
-            - self.metavariables())
-        if unknown:
+        if isinstance(template, str):
+            unknown = sorted(
+                metavariables_of(template, self._meta_var_char)
+                - self.metavariables())
+            if unknown:
+                raise PatternRewriteError(
+                    f"template names metavariable(s) "
+                    f"{', '.join(self._meta_var_char + n for n in unknown)} "
+                    f"that the pattern does "
+                    f"not bind. The pattern binds: "
+                    f"{', '.join(self._meta_var_char + n for n in sorted(self.metavariables())) or '(none)'}.")
+        elif not callable(template):
             raise PatternRewriteError(
-                f"template names metavariable(s) "
-                f"{', '.join(self._meta_var_char + n for n in unknown)} "
-                f"that the pattern does "
-                f"not bind. The pattern binds: "
-                f"{', '.join(self._meta_var_char + n for n in sorted(self.metavariables())) or '(none)'}.")
+                "replacement must be a template string or a callable that "
+                "returns a string")
 
         parse = _Parse(self._language, source)
         matches = tuple(self._matches(source, parse))
@@ -740,7 +749,7 @@ class Pattern:
 
         edits = tuple(
             Edit(start_byte=m.span.start_byte, end_byte=m.span.end_byte,
-                 new_text=_expand(
+                 new_text=_replacement_text(
                      template, m, parse, reindent=reindent,
                      meta_var_char=self._meta_var_char))
             for m in kept)
@@ -753,6 +762,7 @@ class Pattern:
                                            single_node=single_node,
                                            raising=validate)
         return ReplaceResult(count=count, edits=edits,
+                             original_source=source,
                              new_source=new_source,
                              agreement=self._agreement.digest,
                              diagnostics=diagnostics,
@@ -805,6 +815,8 @@ class Pattern:
                 "original had no ERROR node and the result does.")
 
         check = getattr(self._language, "syntax_check", None)
+        if check is None:
+            check = syntax_check_for(self._astgrep_name)
         if check is not None and not findings:
             original_ok = _passes(check, parse.text)
             if original_ok and not _passes(check, new_source):
@@ -924,6 +936,28 @@ def _expand(template: str, match: PatternMatch, parse: _Parse, *,
     return text
 
 
+def _replacement_text(template: str | Callable[[PatternMatch], str],
+                      match: PatternMatch, parse: _Parse, *,
+                      reindent: bool, meta_var_char: str) -> str:
+    if callable(template):
+        try:
+            text = template(match)
+        except Exception as exc:
+            raise PatternRewriteError(
+                f"replacement function failed for bytes "
+                f"{match.span.start_byte}..{match.span.end_byte}: "
+                f"{type(exc).__name__}: {exc}") from exc
+        if not isinstance(text, str):
+            raise PatternRewriteError(
+                "replacement function must return a string, got "
+                f"{type(text).__name__}")
+        if reindent and "\n" in text:
+            return _reindent(text, _indent_of(parse, match.span.start_byte))
+        return text
+    return _expand(template, match, parse, reindent=reindent,
+                   meta_var_char=meta_var_char)
+
+
 def _indent_of(parse: _Parse, start_byte: int) -> str:
     """The whitespace before `start_byte` on its own line."""
     char = _char_of(parse, start_byte)
@@ -991,6 +1025,18 @@ def _apply(source: str, edits: tuple[Edit, ...]) -> str:
     """
     data = source.encode("utf-8")
     for edit in sorted(edits, key=lambda e: e.start_byte, reverse=True):
+        if edit.start_byte < 0 or edit.end_byte < edit.start_byte \
+                or edit.end_byte > len(data):
+            raise PatternRewriteError(
+                f"edit range {edit.start_byte}..{edit.end_byte} is outside "
+                f"the source byte range 0..{len(data)}")
+        try:
+            data[:edit.start_byte].decode("utf-8")
+            data[edit.start_byte:edit.end_byte].decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise PatternRewriteError(
+                f"edit range {edit.start_byte}..{edit.end_byte} does not "
+                "align with UTF-8 character boundaries") from exc
         data = (data[:edit.start_byte]
                 + edit.new_text.encode("utf-8")
                 + data[edit.end_byte:])

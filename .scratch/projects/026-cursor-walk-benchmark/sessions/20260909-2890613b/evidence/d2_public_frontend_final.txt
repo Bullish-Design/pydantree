@@ -1,0 +1,18 @@
+..F.                                                                     [100%]
+=================================== FAILURES ===================================
+____________ test_pattern_rejects_unknown_kinds_and_malformed_text _____________
+
+    def test_pattern_rejects_unknown_kinds_and_malformed_text() -> None:
+        grammar = _python_grammar()
+    
+        with pytest.raises(PatternBuildError, match="unknown node kind"):
+            Pattern(Rule(kind="not_a_python_kind"), language=grammar)
+    
+>       with pytest.raises(PatternBuildError, match="ast-grep rejected"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE PatternBuildError
+
+tests/test_pattern_frontend.py:69: Failed
+=========================== short test summary info ============================
+FAILED tests/test_pattern_frontend.py::test_pattern_rejects_unknown_kinds_and_malformed_text
+1 failed, 3 passed in 1.88s

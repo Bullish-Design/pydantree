@@ -771,3 +771,139 @@ D2 (promoting `Pattern` as the documented expressive front end and reducing
 `agreement.py`) and D3 rewrite work were not started. Version-control work was
 not performed: gitman reported the lane desynchronized again during the final
 read-only check, so no commit, publish, or reconcile was safe.
+## 2026-09-09 — Phase D2 acceptance
+
+### Verdict
+
+D2 is green. `Pattern` is the documented structural-search front end.
+ast-grep finds matches. pydantree resolves and types them through the bound
+`Grammar.parse()` tree. D3 may begin.
+
+### Changed files
+
+- `src/pydantree_sitter/__init__.py` — promoted `Pattern`, `PatternMatch`,
+  `Edit`, and `ReplaceResult` to the top-level package exports.
+- `src/pydantree_sitter/agreement.py` — clarified that bundle agreement is
+  same-artifact provenance and retained measurement as an explicit
+  wheel-grammar regeneration helper.
+- `tests/test_astgrep_bundle.py` — added typed bundle extraction,
+  same-artifact provenance, idempotent registration, and deterministic late
+  and conflicting registration checks.
+- `tests/test_pattern_frontend.py` — added wheel-grammar search, exact typed
+  extraction, Unicode byte offsets, and typed errors for unknown kinds and
+  malformed patterns.
+- `tests/test_public_surface_024.py` — updated the public-surface contract
+  for the four deliberate top-level exports.
+- `docs/user-guide.md` — documented the wheel and bundle Pattern workflows,
+  registration, provenance, exact resolution, and UTF-8 offsets.
+- `docs/filter-semantics.md` — recorded the expanded public surface and the
+  retained agreement module boundary.
+- `evidence/d2_*.txt` — captured the D2 gate output verbatim.
+
+### Public API and artifact delta
+
+The top-level public surface adds `Pattern`, `PatternMatch`, `Edit`, and
+`ReplaceResult`. The stable module-level imports remain available from
+`pydantree_sitter.pattern`. `PatternMatch.agreement` remains the stable digest
+string. `Pattern.agreement` remains the structured `GrammarAgreement` record.
+Bundle patterns set `same_artifact=True`; wheel patterns use the recorded
+version-checked agreement. Bundle metadata and generated artifacts do not
+change in D2.
+
+### Agreement symbols
+
+`GrammarAgreement` and `agreement_for` remain live for the wheel grammar path.
+`char_to_byte_table` remains live because ast-grep reports character offsets.
+`measure_agreement` remains as the explicit regeneration and evidence helper
+for wheel-grammar records. No bundle-only measurement path remains.
+
+### Gates
+
+```text
+devenv shell -- python -m pytest -q                         -> 0 (372 passed, 1 xfailed)
+devenv shell -- python -m pytest -q -W error                -> 0 (372 passed, 1 xfailed)
+devenv shell -- ruff check src tests examples               -> 0
+devenv shell -- ty check src                                -> 0
+devenv shell -- python -m pytest -q tests/test_docs_snippets.py -> 0 (1 passed)
+devenv shell -- python examples/wheel-extract/extract.py    -> 0
+devenv shell -- python examples/bash-extract/extract.py     -> 0
+devenv shell -- python examples/devenv-extract/extract.py  -> 0
+devenv shell -- python examples/devenv-subset/extract.py   -> 0
+devenv shell -- python -m pytest -q tests/test_pattern_frontend.py tests/test_astgrep_bundle.py -> 0 (4 passed)
+```
+
+Evidence is under
+`.scratch/projects/026-cursor-walk-benchmark/sessions/20260909-2890613b/evidence/`.
+The D1 benchmark remains the prior measured result: 14 Python
+`ClassDefinition` matches, 24.693 ms for lazy discovery and materialisation,
+about 85.8x below the old fully materialised path.
+
+### Deliberate non-changes and risks
+
+D2 does not remove `agreement.py`, raw queries, or generated bundles. Raw
+queries remain the escape hatch for sibling order, negation, and multi-anchor
+joins. D2 does not change rewrite behavior. D3 must validate rewrite edits
+against the exact typed parse before any D3 API claim is made.
+
+## 2026-09-09 — Phase D3 acceptance
+
+### Verdict
+
+D3 is green. Rewrites remain pure text-in/data-out operations. Pattern matches
+anchor edits to exact byte ranges from the bound pydantree parse. The operation
+rejects unsafe ranges and overlapping edits, applies edits right-to-left,
+reparses the result, and runs the language syntax check when one exists.
+
+### Changed files
+
+- `src/pydantree_sitter/pattern.py` — use the existing language syntax-check
+  registry during reparse validation; accept pure replacement callables;
+  return the original source in `ReplaceResult`; reject out-of-tree and
+  non-UTF-8-aligned edit ranges before splicing.
+- `tests/test_pattern_rewrite.py` — added focused wheel rewrite coverage for
+  exact ranges, disjoint edits, overlap policies, invalid reparses,
+  diagnostics, syntax-check recovery, callable replacements, UTF-8 ranges,
+  and invalid edit ranges.
+- `tests/test_astgrep_bundle.py` — added a bundle rewrite using the custom
+  metavariable sigil.
+- `docs/user-guide.md` — documented callable replacements.
+- `evidence/d3_*.txt` — captured the D3 gate output verbatim.
+
+### API delta
+
+`Pattern.replace_all()` now accepts either a template string or a callable
+with signature `PatternMatch -> str`. `ReplaceResult` now includes
+`original_source`. Existing fields and pure-operation behavior remain. The
+library does not write files, invoke a subprocess, or add rewrite state.
+
+### Safety evidence
+
+The focused suite has 11 passing tests. It proves refuse, outermost, and
+innermost overlap policies; deterministic duplicate handling through the
+existing overlap policy; right-to-left application; exact UTF-8 boundaries;
+tree-sitter reparse rejection; Python syntax-check rejection of recovery;
+`validate=False` diagnostics with original source and edits; bundle and wheel
+rewrites; callable replacements; and no file writes.
+
+### Gates
+
+```text
+devenv shell -- python -m pytest -q                         -> 0 (379 passed, 1 xfailed)
+devenv shell -- python -m pytest -q -W error                -> 0 (379 passed, 1 xfailed)
+devenv shell -- ruff check src tests examples               -> 0
+devenv shell -- ty check src                                -> 0
+devenv shell -- python -m pytest -q tests/test_docs_snippets.py -> 0 (1 passed)
+devenv shell -- python examples/wheel-extract/extract.py    -> 0
+devenv shell -- python examples/bash-extract/extract.py     -> 0
+devenv shell -- python examples/devenv-extract/extract.py  -> 0
+devenv shell -- python examples/devenv-subset/extract.py   -> 0
+devenv shell -- python -m pytest -q tests/test_pattern_frontend.py tests/test_astgrep_bundle.py tests/test_pattern_rewrite.py -> 0 (11 passed)
+```
+
+### Deliberate non-changes and remaining risks
+
+The rewrite API does not write files. Callers own persistence. Raw query
+support remains unchanged. The default overlap policy remains refusal. A
+grammar without a language-level syntax check uses the structural single-node
+guard. Future languages need their own `SyntaxCheck` entry before they can
+claim parser-level rewrite validation.
