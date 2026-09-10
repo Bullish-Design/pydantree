@@ -67,12 +67,6 @@
     enable = true;
     project = "pydantree";
     groups = [ "base" ];
-    link = {
-      ".envrc" = {
-        canonical = "central";
-        path = "common/envrc";
-      };
-    };
   };
 
   # https://devenv.sh/tasks/
