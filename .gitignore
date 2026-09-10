@@ -229,3 +229,6 @@ devenv.local.nix
 !.agents/skills/**
 !AGENTS.md
 !CLAUDE.md
+.envrc
+.envrc.devman-promoted
+devenv.local.yaml
