@@ -63,12 +63,6 @@
   # `base:lint` and `base:test`, so those names must exist — and a devenv task
   # with only `after` and no `exec` runs its dependency and fails when that
   # dependency fails, so they are two lines rather than two more bodies.
-  devman = {
-    enable = true;
-    project = "pydantree";
-    groups = [ "base" ];
-  };
-
   # https://devenv.sh/tasks/
   tasks = {
     # ---------------------------------------------------------------------

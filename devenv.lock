@@ -241,6 +241,7 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
+        "ref": "refs/heads/038-devman-migration",
         "type": "git",
         "url": "file:///home/andrew/Documents/Projects/shellij"
       },
