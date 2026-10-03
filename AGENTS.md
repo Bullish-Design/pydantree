@@ -42,14 +42,17 @@ toolchain gates; deeper architecture and workflow detail lives in `docs/`.
 
 ## The standing configuration
 
-The user's cross-repo law — devenv discipline, the exit-code contract, manager
-routing, the agent-files convention — lives in
-[`.agents/skills/my-ai/SKILL.md`](.agents/skills/my-ai/SKILL.md), delivered by
-the `my-ai` personal layer. **Read it first.** Keep this file for what is true of
-*this* project only.
+Keep this file for what is true of *this* project only.
+
+- **The lifecycle is RepoMan's.** Scaffold/update → change → verify → save →
+  docs. For the order and the routing, start at the `repoman` skill; for
+  domain detail open the per-tool skills.
+- **Exit codes are an API:** `0` ok · `1` finding · `2` infra/config · `3`
+  usage.
+- **`.agents/` and `.claude/`** are machine-local links maintained by the
+  central Devman link plane.
 
 ```bash
 copyroom layer list              # which template layers manage this repo
-copyroom update --layer my-ai    # converge the personal layer
 copyroom agent-files check       # conformance report
 ```
