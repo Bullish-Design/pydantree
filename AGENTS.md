@@ -1,9 +1,7 @@
 # AGENTS.md — project instructions
 
-> **Seed.** The `my-ai` personal layer wrote this file because this repo had
-> none. It is now **the repo's** file: edit it freely, and no `my-ai` update will
-> ever overwrite it (`_skip_if_exists`). Every agent tool reads it through the
-> `CLAUDE.md` symlink.
+> This is the repository's canonical instruction file. `CLAUDE.md` is a symlink
+> to it so agent tools read the same instructions.
 
 ## What this project is
 
