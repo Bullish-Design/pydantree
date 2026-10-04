@@ -15,7 +15,7 @@ committed to disk. **Do not re-derive it.** Read it, trust it, and build on it.
 In the repository:
 
 - `AGENTS.md` (= `CLAUDE.md`)
-- `.agents/skills/my-ai/SKILL.md` — the cross-repo law
+- `.agents/skills/writing/SKILL.md` — Simplified Technical English rules
 - `.agents/skills/gitman/SKILL.md` — all version control routes through gitman
 - `.agents/skills/pydantree-dev/SKILL.md`
 - `.agents/skills/pydantree-extraction/SKILL.md`

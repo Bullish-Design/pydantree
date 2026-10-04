@@ -17,8 +17,8 @@ or re-open decisions that the evidence already settled.
 Read these files completely before taking task action:
 
 - `AGENTS.md` (also exposed as `CLAUDE.md`)
-- `.agents/skills/my-ai/SKILL.md`
 - `.agents/skills/gitman/SKILL.md`
+- `.agents/skills/writing/SKILL.md`
 - `.agents/skills/pydantree-dev/SKILL.md`
 - `.agents/skills/pydantree-extraction/SKILL.md`
 - `docs/architecture.md`
