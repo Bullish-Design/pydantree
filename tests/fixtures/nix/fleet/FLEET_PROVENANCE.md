@@ -21,6 +21,9 @@ committed to the pydantree repo.
   path `/home/andrew/...` (in script `exec` strings and env defaults) is
   replaced with `/home/nixuser/...` — a same-shape string literal, so the
   parse is unaffected. Documented here; everything else is verbatim.
+- **`flora.nix`**: five comments that named the v0.4 Testee pattern now
+  describe Testee 0.5 (Testee checks in `testee.checks`; wrapper on the host).
+  The edit changes comment text only. Line count and code lines are the same.
 - Review found **no secrets** in any vendored file (no private keys, tokens,
   passwords; the `vim.env.ANTHROPIC_API_KEY = vim.fn.system("pass show …")`
   line in nixvim.nix calls the user's pass store at RUNTIME — the config

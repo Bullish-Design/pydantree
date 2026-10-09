@@ -1,7 +1,7 @@
 # Flora — repoman-enabled Python devenv.
 #
 # RepoMan is always on. This Python template is a superset of template-nix: it adds
-# the `test` manager (testee — pytest / ruff / ty) to the language-agnostic core
+# the `test` manager (Testee 0.5 checks in `testee.checks`) to the language-agnostic core
 # (copy + git), on top of the Python toolchain.
 { pkgs, config, lib, ... }:
 
@@ -401,7 +401,7 @@ in
   #   devenv shell -- flora-build-pipeline-report            # build the self-contained demo.html
   #   devenv shell -- flora-build-pipeline-report --check    # validate only, no writes
   # 089 phase 7 (the §5 tests seam): hypothesis + syrupy are ENTRYPOINT-INSTALLED —
-  # flora-only, never in the base venv requirements (no checksum churn), never in testee's
+  # flora-only, never in the base venv requirements (no checksum churn), never in Testee's
   # deps (the import-linter console-script rationale doesn't apply to pytest-imported
   # libraries), never on the wheel. The property/snapshot test modules importorskip when
   # the libs are absent, so the base suite stays green (2 modules skipped); this entrypoint
@@ -450,8 +450,8 @@ in
     sharedCargo = false;
   };
 
-  # Python toolchain. The venv also hosts the manager CLIs (copyroom, gitman,
-  # testee) that repoman-sync installs from repoman.lock.
+  # Python toolchain. The venv also hosts the manager CLIs (copyroom, gitman) that
+  # repoman-sync installs. The Testee 0.5 wrapper runs on the host, not in the venv.
   languages.python = {
     enable = true;
     venv.enable = true;
@@ -459,10 +459,10 @@ in
     # flora_qc environment with zero manual steps. venv.requirements is the ADDITIVE,
     # checksum-gated mechanism (uv pip install -r on init) — deliberately NOT uv.sync:
     # uv sync would PRUNE every package outside uv.lock, and the repoman manager CLIs
-    # (testee/gitman/repoman/copyroom) are uv-pip-installed, not locked. The forwarding
+    # (gitman/repoman/copyroom) are uv-pip-installed, not locked. The forwarding
     # extras resolve flora-qc (the uv workspace member) EDITABLE, so dev edits to
     # src/flora_qc are live. import-linter is declared here too (belt-and-suspenders;
-    # repoman-sync also brings it via testee's deps).
+    # Testee 0.5 does not ship it).
     venv.requirements = ''
       -e .[qc,qc-embed,matte]
       import-linter>=2.0
