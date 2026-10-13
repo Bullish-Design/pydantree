@@ -16,17 +16,6 @@
         "type": "github"
       }
     },
-    "devman": {
-      "flake": false,
-      "locked": {
-        "path": "/home/andrew/Documents/Projects/devman",
-        "type": "path"
-      },
-      "original": {
-        "path": "/home/andrew/Documents/Projects/devman",
-        "type": "path"
-      }
-    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -189,7 +178,6 @@
     "root": {
       "inputs": {
         "devenv": "devenv",
-        "devman": "devman",
         "mk-shell-bin": "mk-shell-bin",
         "nix2container": "nix2container",
         "nixpkgs": "nixpkgs_2",
