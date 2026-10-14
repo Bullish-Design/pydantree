@@ -1,6 +1,12 @@
 { pkgs, lib, config, inputs, ... }:
 
 {
+  # Workaround: the devenv 2.4 CLI forces `dotenv.resolved`. The devenv module
+  # locked here (1.6.1 era) declares that option with no default, and the
+  # locked nixpkgs lib throws for an option with no definition. Remove this
+  # line when devenv.lock is refreshed (see jj bookmark wip-devenv-update).
+  dotenv.resolved = lib.mkDefault { };
+
   # https://devenv.sh/basics/
   env.GREET = "devenv";
 
